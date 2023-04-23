@@ -22,3 +22,7 @@ dist
 !.yarn/sdks
 !.yarn/versions
 
+# Database
+*.sqlite
+*.db
+*.sqlite3
