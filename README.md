@@ -1,6 +1,9 @@
-# Nuxt 3 Minimal Starter
+# Thesaurus - Projeto Manuel Correia de Andrade
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## Requirements
+
+- [Node.js](https://nodejs.org/en/download/) version v16.20.0
+- [Yarn](https://yarnpkg.com/getting-started/install)
 
 ## Setup
 
@@ -10,11 +13,6 @@ Make sure to install the dependencies:
 # yarn
 yarn install
 
-# npm
-npm install
-
-# pnpm
-pnpm install
 ```
 
 ## Development Server
@@ -22,21 +20,5 @@ pnpm install
 Start the development server on `http://localhost:3000`
 
 ```bash
-npm run dev
+yarn dev
 ```
-
-## Production
-
-Build the application for production:
-
-```bash
-npm run build
-```
-
-Locally preview production build:
-
-```bash
-npm run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
