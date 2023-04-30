@@ -2,6 +2,7 @@
 export default defineNuxtConfig({
     modules: [
         "@vuestic/nuxt",
-        '@nuxtjs/tailwindcss',
+        "@nuxtjs/tailwindcss",
+        "nuxt-icon"
     ]
 })
