@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 sm:pl-20 pt-32 md:flex">
+  <article class="container max-w-screen-xl mx-auto p-5 sm:pl-20 md:flex">
     <section class="w-full md:w-1/5 mx-auto">
       <a href="#" class="text-red-900 text-xl uppercase hover:underline">materiais</a>
       <h1 class="text-5xl font-bold text-black">Papel</h1>
@@ -30,7 +30,7 @@
         </div>
       </div>
     </section>
-    <article class="w-full md:w-4/5 md:pl-10 md:py-6 mt-6 md:mt-0">
+    <section class="w-full md:w-4/5 md:pl-10 md:py-6 mt-6 md:mt-0">
       <div class="snap-x w-full overflow-x-scroll flex mt-4 scrollbar-hide">
         <div class="snap-start py-2 pr-2 flex-none">
           <img src="https://picsum.photos/id/237/300/200" />
@@ -75,8 +75,8 @@
           </div>
         </div>
       </div>
-    </article>
-  </div>
+    </section>
+  </article>
 </template>
 
 <script setup lang="ts">
