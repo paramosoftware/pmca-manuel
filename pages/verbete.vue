@@ -1,6 +1,8 @@
 <template>
+
+   <Navbar />
     
-    <Entry />
+   <Entry />
 
  </template>
  
