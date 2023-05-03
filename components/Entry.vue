@@ -1,5 +1,5 @@
 <template>
-  <article class="container max-w-screen-xl mx-auto p-5 sm:pl-20 md:flex">
+  <article class="container max-w-screen-xl mx-auto p-5 md:flex">
     <section class="w-full md:w-1/5 mx-auto">
       <a href="#" class="text-red-900 text-xl uppercase hover:underline">materiais</a>
       <h1 class="text-5xl font-bold text-black">Papel</h1>

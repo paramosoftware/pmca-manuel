@@ -1,8 +1,13 @@
 <template>
 
    <Navbar />
-    
-   <Entry />
+
+   <div class="flex-shrink flex ">
+      <Sidebar />
+      <Entry />
+   </div>
+
+   <Footer />
 
  </template>
  

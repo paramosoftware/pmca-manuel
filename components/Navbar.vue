@@ -1,5 +1,5 @@
 <template>
-    <nav id="navbar" class="sticky w-full top-0 left-0 right-0 z-50 p-4 border-b border-red-900 bg-neutral-100">
+    <nav id="navbar" class="sticky w-full top-0 left-0 right-0 z-10 p-4 border-b border-red-900 bg-neutral-100">
     <div class="flex items-center justify-between">
       <div>
         <Icon name="ph:list" class="text-2xl text-black" />
