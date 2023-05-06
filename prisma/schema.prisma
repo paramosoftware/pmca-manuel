@@ -11,14 +11,96 @@ datasource db {
 }
 
 
-model Entry {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String
+model Category { 
+  id        Int          @id @default(autoincrement())
+  name      String       @unique
+  description String?
+
+  children  Category[]   @relation("SubCategories")
+  parent    Category?    @relation("SubCategories", fields: [parentId], references: [id])
+  parentId  Int?
+
+  entries   Entry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@map("categories")
+}
+
+
+model Entry {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique
+  definition      String?
+  notes           String?
+  // TODO: create a reference model
+  references      String?  
+
+  media           Media[]   @relation("media_entries")
+  translations    Translation[]
+
+  entries         Entry[]   @relation("entries_entries")
+  relatedEntries  Entry[]   @relation("entries_entries")
+
+  categoryId      Int?       @map("category_id")
+  category        Category?  @relation(fields: [categoryId], references: [id])
+
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
   @@map("entries")
 }
+
+model Language {
+  id            Int       @id @default(autoincrement())
+  name          String
+  abbreviation  String?   @unique
+  code          String?   @unique
+
+  translations  Translation[]
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("languages")
+}
+
+
+model Media {
+  id          Int       @id @default(autoincrement())
+  name        String
+  path        String?
+  subtitle    String?
+
+  private     Boolean?   @default(false)
+  position    Int?
+
+  // TODO: create a media type model
+  type        String?
+
+  entries     Entry[]   @relation("media_entries")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("media")
+}
   
+
+model Translation {
+  id          Int       @id @default(autoincrement())
+  name        String
+
+  languageId  Int
+  language    Language  @relation(fields: [languageId], references: [id])
+
+  entryId     Int       @map("entry_id")
+  entry       Entry     @relation(fields: [entryId], references: [id])
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("translations")
+}
