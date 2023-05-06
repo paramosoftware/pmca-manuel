@@ -1,9 +1,13 @@
 import { prisma } from '../../prisma'
 
 export default defineEventHandler(async (event) => {
-    const { name, definition, notes, references, category  } = await readBody(event);
+    const { id, name, definition, notes, references, category  } = await readBody(event);
 
-    const savedEntry = await prisma.entry.create({
+    const savedEntry = await prisma.entry.update({
+        where: {
+            // @ts-ignore
+            id: parseInt(id)
+        },
         data: {
             name,
             definition: definition === "" ? undefined : definition,

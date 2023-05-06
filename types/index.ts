@@ -17,6 +17,46 @@ declare global {
     export interface Entry {
         id: number;
         name: string;
+        definition?: string;
+        notes?: string;
+        references?: string;
+        media?: Media[];
+        translations?: Translation[];
+        relatedEntries?: Entry[];
+        category?: Category;
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+    
+    export interface Language {
+        id: number;
+        name: string;
+        abbreviation?: string;
+        code?: string;
+        translations?: Translation[];
+        createdAt?: Date;
+        updatedAt?: Date;
     }
 
+    export interface Media {
+        id: number;
+        name: string;
+        path?: string;
+        subtitle?: string;
+        private?: boolean;
+        position?: number;
+        type?: string;
+        entries?: Entry[];
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
+    export interface Translation {
+        id: number;
+        name: string;
+        language: Language;
+        entry: Entry;
+        createdAt?: Date;
+        updatedAt?: Date;   
+    }
 }
