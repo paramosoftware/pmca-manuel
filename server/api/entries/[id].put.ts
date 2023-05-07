@@ -1,7 +1,7 @@
 import { prisma } from '../../prisma'
 
 export default defineEventHandler(async (event) => {
-    const { id, name, definition, notes, references, category  } = await readBody(event);
+    const { id, name, definition, notes, references, categoryId  } = await readBody(event);
 
     const savedEntry = await prisma.entry.update({
         where: {
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
             definition: definition === "" ? undefined : definition,
             notes: notes === "" ? undefined : notes,
             references: references === "" ? undefined : references,
-            categoryId: category.id === 0 ? undefined : category.id
+            categoryId: categoryId === 0 ? undefined : parseInt(categoryId)
         }
     }).catch((error) => {
         console.error(error);

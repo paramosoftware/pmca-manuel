@@ -11,8 +11,8 @@ export default defineEventHandler(async (event) => {
         },
         data: {
             name,
-            description: description ? description : undefined,
-            parentId: parentId ? parseInt(parentId) : undefined
+            description: description === '' ? null : description,
+            parentId: parentId == 0 ? null : parseInt(parentId)
         }
     }).catch((error) => {
         return error;

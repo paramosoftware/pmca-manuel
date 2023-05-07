@@ -1,0 +1,85 @@
+<template>
+    <div class="flex flex-col justify-center items-center mt-10">
+        <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
+            <AnchorReturn :href="`/logged/${pluralNamePt}`" />
+            <div class="justify-between flex flex-row items-center mt-4">
+                <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
+                <Button v-if=!isCreate label="NOVA" :on-click="() => $router.push(`/logged/${pluralNamePt}/criar`)" />
+            </div>
+
+            <slot />
+
+            <div class="mt-5 text-end">
+                <Button label="SALVAR" :on-click="save" />
+            </div>
+        </div>
+    </div>
+</template>
+
+
+<script setup lang="ts">
+
+const props = defineProps({
+    singularName: {
+        type: String,
+        default: 'object'
+    },
+    pluralName: {
+        type: String,
+        default: 'objects'
+    },
+    singularNamePt: {
+        type: String,
+        default: 'objeto'
+    },
+    pluralNamePt: {
+        type: String,
+        default: 'objetos'
+    },
+    isCreate: {
+        type: Boolean,
+        default: true
+    },
+    object: {
+        type: Object,
+        default: {
+            value: {
+                id: 0
+            }
+        }
+    }
+});
+
+const router = useRouter();
+
+const save = async () => {
+
+    console.log('save');
+    console.log(props.object.id);
+
+    console.log(`/api/${props.pluralName}/${props.object.id}`);
+
+    let url = `/api/${props.pluralName}/${props.object.id}`;
+    let method = 'PUT';
+
+    if (props.object.id === 0) {
+        url = '/api/' + props.pluralName;
+        method = 'POST';
+    }
+
+    const { data: saved } = await useFetch(url, {
+        // @ts-ignore
+        method: method,
+        body: JSON.stringify(props.object),
+    });
+
+    console.log(saved);
+
+    if (saved) {
+        // TODO: check Typescript error
+        router.push('/logged/' + props.pluralNamePt + '/editar/' + saved.value.id);
+    }
+};
+
+
+</script>

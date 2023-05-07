@@ -23,7 +23,7 @@ declare global {
         media?: Media[];
         translations?: Translation[];
         relatedEntries?: Entry[];
-        category?: Category;
+        categoryId?: number;
         createdAt?: Date;
         updatedAt?: Date;
     }
