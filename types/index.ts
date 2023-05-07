@@ -16,6 +16,7 @@ declare global {
     
     export interface Entry {
         id: number;
+        code: string;
         name: string;
         definition?: string;
         notes?: string;
@@ -23,6 +24,7 @@ declare global {
         media?: Media[];
         translations?: Translation[];
         relatedEntries?: Entry[];
+        category?: Category;
         categoryId?: number;
         createdAt?: Date;
         updatedAt?: Date;

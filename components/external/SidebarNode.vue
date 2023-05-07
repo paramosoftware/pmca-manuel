@@ -13,7 +13,7 @@
                 <Icon name="ph:caret-down" class="w-5 h-5 text-black transition duration-75" />
             </button>
             <ul :id="dropdownName" class="hidden py-2 space-y-2">
-                <ExternalSidebarLi v-for="entry in entries" :key="entry.id" :entry="entry.name" padding="pl-8"/>
+                <ExternalSidebarLi v-for="entry in entries" :key="entry.id" :entry="entry.name" :code="entry.code" padding="pl-8"/>
             </ul>
         </span>
     </li>
@@ -31,6 +31,8 @@ const props = defineProps({
         required: true,
         default: []
     }
+
+    
 })
 
 const dropdownName = "dropdown-" + props.category;

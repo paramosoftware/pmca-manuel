@@ -1,14 +1,19 @@
 import { prisma } from '../../prisma'
+import { useNormalizeString } from '../../../composables/useNormalizeString'
+
 
 export default defineEventHandler(async (event) => {
     const { name, definition, notes, references, categoryId  } = await readBody(event);
 
+    const { normalizeString } = useNormalizeString();
+
     const savedEntry = await prisma.entry.create({
         data: {
             name,
-            definition: definition === "" ? undefined : definition,
-            notes: notes === "" ? undefined : notes,
-            references: references === "" ? undefined : references,
+            code: normalizeString(name),
+            definition: definition === "" ? null : definition,
+            notes: notes === "" ? null : notes,
+            references: references === "" ? null : references,
             categoryId: categoryId === 0 ? null : parseInt(categoryId)
         }
     }).catch((error) => {

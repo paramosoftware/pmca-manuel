@@ -1,7 +1,11 @@
 import { prisma } from '../../prisma'
+import { useNormalizeString } from '../../../composables/useNormalizeString'
+
 
 export default defineEventHandler(async (event) => {
     const { id, name, definition, notes, references, categoryId  } = await readBody(event);
+
+    const { normalizeString } = useNormalizeString();
 
     const savedEntry = await prisma.entry.update({
         where: {
@@ -10,10 +14,11 @@ export default defineEventHandler(async (event) => {
         },
         data: {
             name,
-            definition: definition === "" ? undefined : definition,
-            notes: notes === "" ? undefined : notes,
-            references: references === "" ? undefined : references,
-            categoryId: categoryId === 0 ? undefined : parseInt(categoryId)
+            code: normalizeString(name),
+            definition: definition === "" ? null : definition,
+            notes: notes === "" ? null : notes,
+            references: references === "" ? null : references,
+            categoryId: categoryId == 0 ? null : parseInt(categoryId)
         }
     }).catch((error) => {
         console.error(error);

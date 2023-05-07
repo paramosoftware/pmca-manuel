@@ -31,6 +31,7 @@ model Category {
 
 model Entry {
   id              Int      @id @default(autoincrement())
+  code            String?  @unique
   name            String   @unique
   definition      String?
   notes           String?

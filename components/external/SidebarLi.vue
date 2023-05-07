@@ -1,6 +1,6 @@
 <template>
     <li>
-        <a :href="link + entryNameNormalized" class="flex items-center text-black" :class="padding">
+        <a :href="link + code" class="flex items-center text-black" :class="padding">
             <span class="text-lg p-3 border-l border-red-900 hover:border-l-4">
                 {{ entry }}
             </span>
@@ -15,6 +15,11 @@ const props = defineProps({
         type: String,
         required: true
     },
+    code: {
+        type: String,
+        required: true,
+        default: ''
+    },
     padding: {
         type: String,
         default: ''
@@ -24,9 +29,5 @@ const props = defineProps({
         default: '/verbetes/'
     }
 })
-
-
-const entryNameNormalized = props.entry.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ /g, '-');
-
 
 </script>
