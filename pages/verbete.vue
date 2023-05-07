@@ -1,10 +1,10 @@
 <template>
 
-   <Navbar />
+   <ExternalNavbar />
 
    <div class="flex-shrink flex ">
-      <Sidebar />
-      <Entry />
+      <ExternalSidebar />
+      <ExternalEntry />
    </div>
 
    <Footer />

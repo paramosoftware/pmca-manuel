@@ -5,7 +5,8 @@ export default defineEventHandler(async (event) => {
 
     const categories = await prisma.category.findMany({
         include: {
-            children: true
+            children: true,
+            entries: true
         }
     }).catch((error) => {
         console.error(error);

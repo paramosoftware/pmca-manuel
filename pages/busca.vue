@@ -1,5 +1,5 @@
 <template>
-  <Navbar />
+  <ExternalNavbar />
   <main class="container max-w-screen-xl mx-auto p-5">
     <div class="flex items-center justify-between">
       <div class="flex flex-col">

@@ -54,11 +54,6 @@ const router = useRouter();
 
 const save = async () => {
 
-    console.log('save');
-    console.log(props.object.id);
-
-    console.log(`/api/${props.pluralName}/${props.object.id}`);
-
     let url = `/api/${props.pluralName}/${props.object.id}`;
     let method = 'PUT';
 
