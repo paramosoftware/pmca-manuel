@@ -9,7 +9,10 @@ export default defineEventHandler(async (event) => {
             id: parseInt(id)
         },
         include: {
-            category: true
+            category: true,
+            translations: true,
+            relatedEntries: true,
+            entries: true
         }
     }).catch((error) => {
         console.error(error);

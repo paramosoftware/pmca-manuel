@@ -1,10 +1,10 @@
 <template>
   <ExternalNavbar />
-  <main class="container max-w-screen-xl mx-auto p-5">
+  <main class="container max-w-screen-xl mx-auto p-5 bg-white border border-neutral mt-5">
     <div class="flex items-center justify-between">
       <div class="flex flex-col">
         <h1 class="text-5xl text-black">Busca</h1>
-        <p class="text-black">Mostrando 1-10 de 100 resultados</p>
+        <p class="text-black">{{ filteredEntries.length }} resultados</p>
       </div>
 
       <div class="flex flex-col items-end justify-center">
@@ -12,119 +12,28 @@
       </div>
     </div>
 
-    <div class="flex flex-col items-end justify-center my-6">
-      <nav aria-label="Paginação">
-        <ul class="inline-flex items-center -space-x-px">
-          <li>
-            <a href="#" class="block px-3 py-2 ml-0 leading-tight">
-              <span class="sr-only">Previous</span>
-              <Icon name="bi:chevron-left" class="w-5 h-5" />
-            </a>
-          </li>
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight bg-red-900 text-white">
-              1
-            </a>
-          </li>
 
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight ">
-              2
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight ">
-              3
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight ">
-              ...
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight ">
-              10
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight ">
-              <span class="sr-only">Next</span>
-              <Icon name="bi:chevron-right" class="w-5 h-5" />
-            </a>
-          </li>
-        </ul>
-      </nav>
+    <div class="mt-4">
+      <label class="text-lg uppercase text-red-900" for="filter">
+        Filtrar
+      </label>
+      <input v-model="filter" @input=handleInput
+        class="w-full text-sm text-black border-black bg-transparent focus:outline-none focus:ring-red-900 focus:border-transparent"
+        id="filter" type="text" placeholder="Filtrar verbetes">
     </div>
 
-    <div v-for="n in 10" class="w-full py-4 border-b border-red-900">
-      <a href="/verbete" class="w-full h-full flex items-center justify-between">
-        <div>
-          <p class="text-red-900 text-md uppercase">materiais</p>
-          <h1 class="text-4xl text-black">Papel</h1>
-          <p class="text-xl text-black mt-4">
-            <a href="#">Paper</a> (en) | 
-            <a href="#">Papier</a> (fr) | 
-            <a href="#">Papel</a>(es)
-          </p>
-        </div>
-        <Icon name="ph:arrow-right" class="text-9xl text-black" />
-      </a>
-    </div>
+    <Pagination v-if="totalPages > 1" :currentPage="currentPage" :totalPages="totalPages"
+      @update:currentPage="updateCurrentPage" />
 
+    <span v-if="filteredEntries.length === 0" class="text-black text-xl">
+      Nenhum resultado encontrado
+    </span>
+    <span v-else>
+      <ExternalEntryList v-for="entry in filteredEntries" :key="entry.id" :entry="entry" />
+    </span>
 
-    <div class="flex flex-col items-end justify-center my-10">
-      <nav aria-label="Paginação">
-        <ul class="inline-flex items-center -space-x-px">
-          <li>
-            <a href="#" class="block px-3 py-2 ml-0 leading-tight">
-              <span class="sr-only">Previous</span>
-              <Icon name="bi:chevron-left" class="w-5 h-5" />
-            </a>
-          </li>
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight bg-red-900 text-white">
-              1
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight ">
-              2
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight ">
-              3
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight ">
-              ...
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight ">
-              10
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="block px-3 py-2 leading-tight ">
-              <span class="sr-only">Next</span>
-              <Icon name="bi:chevron-right" class="w-5 h-5" />
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </div>
+    <Pagination v-if="totalPages > 1" :currentPage="currentPage" :totalPages="totalPages"
+      @update:currentPage="updateCurrentPage" />
 
   </main>
 
@@ -132,6 +41,69 @@
   <Footer />
 </template>
  
-<script setup lang="ts"></script>
+<script setup lang="ts">
+
+const router = useRouter();
+
+const query = computed(() => {
+  return router.currentRoute.value.query;
+});
+
+const entries = ref([])
+
+const fetchEntries = async (query) => {
+  const { data } = await useFetch('/api/entries/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      query: query
+    })
+  });
+
+  entries.value = data.value;
+}
+
+fetchEntries(query.value);
+
+// TODO: for some reason, watch is not triggered when the URL is changed directly, 
+// so the fetchEntries need to be called at least once
+watch(() => query.value, async (newQuery) => {
+  await fetchEntries(newQuery)
+});
+
+const filter = ref('');
+
+const handleInput = (event: Event) => {
+  filter.value = event.target.value;
+};
+
+const filteredEntries = computed(() => {
+  if (!filter.value) {
+    return entries.value;
+  }
+
+  return entries.value?.filter(entry => entry.name.toLowerCase().includes(filter.value.toLowerCase()));
+});
+
+const totalResults = computed(() => filteredEntries.value?.length)
+
+const currentPage = ref(1)
+
+// TODO: Paginate results and fix pagination
+
+const totalPages = computed(() => {
+  if (totalResults.value === 0) {
+    return 1
+  }
+  return Math.ceil(totalResults.value / 10)
+})
+
+const updateCurrentPage = (newPage: number) => {
+  currentPage.value = newPage
+}
+
+</script>
  
 <style scoped></style>
