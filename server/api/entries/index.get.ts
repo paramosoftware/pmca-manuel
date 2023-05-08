@@ -9,6 +9,9 @@ export default defineEventHandler(async (event) => {
             translations: true,
             relatedEntries: true,
             entries: true
+        },
+        orderBy: {
+            name: 'asc'
         }
     })
     .catch((error) => { 

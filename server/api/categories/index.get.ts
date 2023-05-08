@@ -7,6 +7,9 @@ export default defineEventHandler(async (event) => {
         include: {
             children: true,
             entries: true
+        },
+        orderBy: {
+            name: 'asc'
         }
     }).catch((error) => {
         console.error(error);

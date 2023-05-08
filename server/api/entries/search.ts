@@ -51,6 +51,9 @@ export default defineEventHandler(async (event) => {
         include: {
             category: true,
             translations: true
+        },
+        orderBy: {
+            name: 'asc'
         }
     }).catch((error) => {
         console.error(error);
