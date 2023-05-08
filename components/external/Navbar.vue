@@ -1,8 +1,13 @@
 <template>
-    <nav id="navbar" class="sticky w-full top-0 left-0 right-0 z-10 p-4 border-b border-neutral-100 bg-neutral-100">
-    <div class="flex items-center justify-between">
-      <div>
-        <Icon name="ph:list" class="text-2xl text-black" />
+    <nav id="navbar" class="sticky w-full top-0 left-0 right-0 z-10 p-4 border-b border-neutral-400 bg-neutral-100">
+    <div class="flex flex-col md:flex-row items-center justify-between">
+      <div class="flex flex-row items-center mb-5">
+        <NuxtLink to="/">
+          <span class="text-2xl p-5 hover:underline text-black">Início</span>
+        </NuxtLink>
+        <NuxtLink to="/verbetes">
+          <span class="text-2xl p-5 hover:underline text-black">Verbetes</span>
+        </NuxtLink>
       </div>
 
       <div class="flex items-center">
