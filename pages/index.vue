@@ -9,6 +9,9 @@
         <NuxtLink to="/verbetes">
           <span class="text-2xl p-5 hover:underline" :class="isScrolled ? 'text-black' : 'text-white'">Verbetes</span>
         </NuxtLink>
+        <NuxtLink to="/logged">
+          <span class="text-2xl p-5 hover:underline" :class="isScrolled ? 'text-black' : 'text-white'">Cadastrar</span>
+        </NuxtLink>
       </div>
       <form id="search" :class="isScrolled ? '' : 'hidden'" @submit="searchHandler">
         <label for="default-search" class="sr-only">Search</label>

@@ -8,6 +8,9 @@
         <NuxtLink to="/verbetes">
           <span class="text-2xl p-5 hover:underline text-black">Verbetes</span>
         </NuxtLink>
+        <NuxtLink to="/logged">
+          <span class="text-2xl p-5 hover:underline text-black">Cadastrar</span>
+        </NuxtLink>
       </div>
 
       <div class="flex items-center">
