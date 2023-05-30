@@ -7,13 +7,23 @@
 
 ## Setup
 
-Make sure to install the dependencies:
+1. Install the dependencies:
 
-```bash
-# yarn
-yarn install
+    ```bash
+    # yarn
+    yarn install
+    ```
+    
+2. Create a `.env.local` file similar to `.env.example`.
 
-```
+
+3. Migrate the database:
+
+    ```bash
+    # yarn
+    yarn prisma migrate dev
+    ```
+
 
 ## Development Server
 
