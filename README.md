@@ -14,7 +14,7 @@
     yarn install
     ```
     
-2. Create a `.env.local` file similar to `.env.example`.
+2. Create a `.env` file similar to `.env.example`.
 
 
 3. Migrate the database:
