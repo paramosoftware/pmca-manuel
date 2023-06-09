@@ -21,7 +21,7 @@
 
 
 const router = useRouter();
-const { data, pending, error } = await useFetch(`/api/entries/by-code`, {
+const { data, pending, error } = await useFetchWithBaseUrl(`/api/entries/by-code`, {
     method: 'POST',
     body: JSON.stringify({
         code: router.currentRoute.value.params.code

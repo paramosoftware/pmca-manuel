@@ -13,3 +13,4 @@ export const prisma =
 if (!isProduction) {
     globalForPrisma.prisma = prisma
 }
+

@@ -7,7 +7,7 @@
 const entry = ref<Entry>();
 
 const router = useRouter();
-const { data } = await useFetch(`/api/entries/${router.currentRoute.value.params.id}`);
+const { data } = await useFetchWithBaseUrl(`/api/entries/${router.currentRoute.value.params.id}`);
 
 // TODO: check if there is a better way 
 entry.value = data.value;

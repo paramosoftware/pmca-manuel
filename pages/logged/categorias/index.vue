@@ -55,7 +55,7 @@
 
 const categories = ref<Category[]>([]);
 
-const { data } = await useFetch('/api/categories');
+const { data } = await useFetchWithBaseUrl('/api/categories');
 
 categories.value = data.value;
 
@@ -70,7 +70,7 @@ const editCategory = (id: number) => {
 }
 
 const deleteCategory = async (id: number) => {
-    const { data } = await useFetch(`/api/categories/${id}`, {
+    const { data } = await useFetchWithBaseUrl(`/api/categories/${id}`, {
         method: 'DELETE'
     });
 

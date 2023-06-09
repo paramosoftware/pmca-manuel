@@ -16,7 +16,7 @@
 
 const props = defineProps<{ category?: Category }>();
 
-const { data: categories } = useFetch('/api/categories');
+const { data: categories } = useFetchWithBaseUrl('/api/categories');
 
 const category = ref<Category>(
     props.category ?? {
