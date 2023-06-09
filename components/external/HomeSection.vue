@@ -15,14 +15,10 @@
 
 
 <script setup lang="ts">
-
-import { defineProps } from 'vue'
-
 const props = defineProps({
     title: {
         type: String,
         required: true
     }
 })
-
 </script>
