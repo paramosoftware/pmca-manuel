@@ -4,7 +4,7 @@ export default defineAppConfig({
       class: 'icon' // default <Icon> class applied
     },
     ui: {
-      primary: 'red-900',
+      primary: 'red',
       gray: 'cool',
     }
   })

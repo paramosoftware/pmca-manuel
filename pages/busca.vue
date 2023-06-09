@@ -52,7 +52,7 @@ const query = computed(() => {
 const entries = ref([])
 
 const fetchEntries = async (query) => {
-  const { data } = await useFetch('/api/entries/search', {
+  const { data } = await useFetchWithBaseUrl('/api/entries/search', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

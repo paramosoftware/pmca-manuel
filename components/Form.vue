@@ -62,7 +62,7 @@ const save = async () => {
         method = 'POST';
     }
 
-    const { data: saved } = await useFetch(url, {
+    const { data: saved } = await useFetchWithBaseUrl(url, {
         // @ts-ignore
         method: method,
         body: JSON.stringify(props.object),

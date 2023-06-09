@@ -102,7 +102,7 @@ if (process.client) {
     })
 }
 
-const { data, pending, error } = useFetch('/api/categories')
+const { data, pending, error } = useFetchWithBaseUrl('/api/categories')
 
 const categories = ref(data.value);
 
