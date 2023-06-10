@@ -89,6 +89,21 @@ model Media {
 
   @@map("media")
 }
+
+model User {
+  id            Int         @id @default(autoincrement())
+  email         String      @unique @map("email") 
+  password      String   
+  firstName     String?     @map("first_name")
+  lastName      String?     @map("last_name")
+
+  role         String?     @default("user")
+
+  refreshToken  String?     @unique @map("refresh_token")
+
+  createdAt     DateTime?   @default(now()) @map("created_at")
+  updatedAt     DateTime?   @updatedAt @map("updated_at")
+}
   
 
 model Translation {
