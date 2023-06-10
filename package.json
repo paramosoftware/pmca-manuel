@@ -10,7 +10,10 @@
   },
   "devDependencies": {
     "@nuxthq/ui": "^2.3.0",
+    "@types/bcrypt": "^5.0.0",
+    "@types/cookie-parser": "^1.4.3",
     "@types/express": "^4.17.17",
+    "@types/jsonwebtoken": "^9.0.1",
     "@types/node": "^18",
     "nuxt": "^3.5.2",
     "nuxt-icon": "^0.4.0",
@@ -18,8 +21,11 @@
   },
   "dependencies": {
     "@prisma/client": "^4.13.0",
+    "bcrypt": "^5.1.0",
+    "cookie-parser": "^1.4.6",
     "express": "^4.18.2",
-    "flowbite": "^1.6.5"
+    "flowbite": "^1.6.5",
+    "jsonwebtoken": "^9.0.0"
   },
   "prisma": {
     "schema": "server/prisma/schema.prisma"

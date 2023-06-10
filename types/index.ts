@@ -53,6 +53,24 @@ declare global {
         updatedAt?: Date;
     }
 
+
+    export interface User {
+        id: number;
+        email: string;
+        password: string;
+
+        refreshToken: string;
+
+        firstName?: string;
+        lastName?: string;
+
+        role?: string;
+
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
+
     export interface Translation {
         id: number;
         name: string;
