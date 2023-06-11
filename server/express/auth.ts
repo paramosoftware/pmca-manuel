@@ -83,10 +83,19 @@ router.get('/refresh', async (req, res, next) => {
         if (!oldAccessToken) {
             throw new InvalidCredentialError('Invalid credentials');
         }
-        const isAccessTokenValid = jwt.verify(oldAccessToken, process.env.ACCESS_TOKEN_SECRET!);
+
+        let isAccessTokenValid = true;
+        try {
+            jwt.verify(oldAccessToken, process.env.ACCESS_TOKEN_SECRET!);
+        }
+        catch (error) {
+            isAccessTokenValid = false;
+        }
+
         if (isAccessTokenValid) {
             return res.json({ message: 'Access token is valid' });
         }
+        
         const { email } = jwt.decode(oldAccessToken) as { email: string };
         const user = await findUserByEmail(email);
         if (!user || !user.refreshToken) {

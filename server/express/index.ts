@@ -1,13 +1,15 @@
 import { fromNodeMiddleware } from 'h3'
 import InvalidCredentialError  from './errors/InvalidCredentialError'
+import UploadError from './errors/UploadError'
 import express from 'express'
 import cookieParser from 'cookie-parser'
+import multer from 'multer'
 import auth from './auth'
 import categories from './categories'
 import entries from './entries'
+import upload from './upload'
 
 const app = express();
-
 
 app.use(cookieParser());
 app.use(express.json());
@@ -20,6 +22,7 @@ function useApiRoute(app: any, route: string, handler: any) {
 useApiRoute(app, '/auth', auth);
 useApiRoute(app, '/categories', categories);
 useApiRoute(app, '/entries', entries);
+useApiRoute(app, '/upload', upload);
 
 
 app.get('/api/test', (req, res) => {
@@ -29,7 +32,9 @@ app.get('/api/test', (req, res) => {
 
 
 app.use((err: Error , req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (err instanceof InvalidCredentialError) {
+  if (err instanceof multer.MulterError) { 
+    res.status(400).json({ error: err.message });
+  } else if (err instanceof InvalidCredentialError || err instanceof UploadError ) {
     res.status(err.statusCode).json({ error: err.message });
   } else {
     res.status(500).json({ error: 'An unexpected error occurred' });

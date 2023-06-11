@@ -14,7 +14,9 @@
     "@types/cookie-parser": "^1.4.3",
     "@types/express": "^4.17.17",
     "@types/jsonwebtoken": "^9.0.1",
+    "@types/multer": "^1.4.7",
     "@types/node": "^18",
+    "@types/uuid": "^9.0.2",
     "nuxt": "^3.5.2",
     "nuxt-icon": "^0.4.0",
     "prisma": "^4.13.0"
@@ -25,7 +27,10 @@
     "cookie-parser": "^1.4.6",
     "express": "^4.18.2",
     "flowbite": "^1.6.5",
-    "jsonwebtoken": "^9.0.0"
+    "jsonwebtoken": "^9.0.0",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.0",
+    "vue2-dropzone-vue3": "^1.1.0"
   },
   "prisma": {
     "schema": "server/prisma/schema.prisma"
