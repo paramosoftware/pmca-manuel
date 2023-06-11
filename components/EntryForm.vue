@@ -27,6 +27,7 @@ const entry = ref<Entry>(
     props.entry ?? {
         id: 0,
         name: '',
+        code: '',
         definition: '',
         notes: '',
         references: '',
@@ -37,17 +38,13 @@ const entry = ref<Entry>(
     }
 );
 
-const { data: categories } = await useAsyncData(
-  "categories",
-  () => $fetch('/api/categories'),
-  {
-    transform: (categories) =>
-      categories.map((category) => ({
-        id: category.id,
-        name: category.name,
-      })),
-  }
-);
+const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
+  transform: (categories) =>
+    categories.map((category: Category) => ({
+      id: category.id,
+      name: category.name,
+    })),
+});
 
 </script>
 
