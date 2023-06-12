@@ -14,6 +14,13 @@
 
         <FormSelect v-model="entry.categoryId" :label="'Categoria'" :options="categories" />
 
+        <FormAutocomplete 
+            id="relatedEntries" 
+            v-model="entry.relatedEntries" 
+            label="Verbetes relacionados"  
+            :searchFunction="searchEntries" 
+            placeholder="Digite o nome de um verbete..."  />
+
         <span v-if="entry.id !== 0">
 
             <div>
@@ -38,9 +45,7 @@
 </template>
 
 <script setup lang="ts">
-
 const isOpen = ref(false)
-
 
 const props = defineProps<{ entry?: Entry }>();
 
@@ -66,6 +71,22 @@ const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
             name: category.name,
         })),
 });
+
+
+
+const searchEntries = async (searchTerm:string) => {
+ 
+  const { data: entries } = await useFetchWithBaseUrl('api/entries/autocomplete', {params: {q: searchTerm}})
+
+  return entries.value.map((entry: Entry) => ({
+    id: entry.id,
+    name: entry.name,
+    })).filter((entry: Entry) =>
+        props.entry ? entry.id !== props.entry.id : true
+    )
+
+}
+
 
 </script>
 
