@@ -1,10 +1,40 @@
 import express from 'express';
-import  { prisma }  from '../prisma/prisma';
-import { useNormalizeString } from '../../composables/useNormalizeString'
+import { prisma } from '../prisma/prisma';
+import { prepareRequestBodyForPrisma } from './utils';
+import { useNormalizeString } from '../../composables/useNormalizeString';
 
 const router = express.Router();
 
-router.post('/search', async (req, res) => {
+router.get('/autocomplete', async (req, res, next) => {
+    const { q } = req.query;
+
+    if (!q) {
+        return res.json([]);
+    }
+
+    try {
+        const entries = await prisma.entry.findMany({
+            where: {
+                name: {
+                    contains: q as string
+                }
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            orderBy: {
+                name: 'asc'
+            }
+        });
+        res.json(entries);
+
+    } catch (error) {
+      next(error);
+    }
+});
+
+router.post('/search', async (req, res, next) => {
 
     const { query } = req.body;
 
@@ -60,13 +90,13 @@ router.post('/search', async (req, res) => {
             }
         });
         res.json(entries);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
-    }
+
+    } catch (error) {
+        next(error);
+     }
 });
 
-router.post('/by-code', async (req, res) => {
+router.post('/by-code', async (req, res, next) => {
 
     const { code } = req.body;
 
@@ -80,13 +110,13 @@ router.post('/by-code', async (req, res) => {
             }
         });
         res.json(entry);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
+
+    } catch (error) {
+      next(error);
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
     const id = req.params.id;
 
     try {
@@ -95,14 +125,15 @@ router.delete('/:id', async (req, res) => {
                 id: parseInt(id)
             }
         });
+
         res.json(deleteEntry);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
+
+    } catch (error) {
+      next(error);
     }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
     const id = req.params.id;
 
     try {
@@ -118,43 +149,44 @@ router.get('/:id', async (req, res) => {
             }
         });
         res.json(entry);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
+
+    } catch (error) {
+      next(error);
     }
 });
 
-router.put('/:id', async (req, res) => {
-
-    const { id, name, definition, notes, references, categoryId } = req.body;
+router.put('/:id', async (req, res, next) => {
+    const { id } = req.params;
     const { normalizeString } = useNormalizeString();
 
     try {
+
+        let data:any = prepareRequestBodyForPrisma(req.body);
+
+        if (data.name) {
+            data.code = normalizeString(data.name);
+        }
+
+        if (data.category) {
+            data.category = undefined;
+        }
+
         const savedEntry = await prisma.entry.update({
             where: {
                 id: parseInt(id)
             },
-            data: {
-                name,
-                code: normalizeString(name),
-                definition: definition === "" ? null : definition,
-                notes: notes === "" ? null : notes,
-                references: references === "" ? null : references,
-                categoryId:
-                    categoryId == 0 ? null : parseInt(categoryId)
-            }
+            data
         });
 
         res.json(savedEntry);
 
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
-    }
-
+    } catch (error) {
+        next(error);
+    } 
 });
 
-router.get('/', async (req, res) => {
+
+router.get('/', async (req, res, next) => {
 
     try {
         const entries = await prisma.entry.findMany({
@@ -171,36 +203,38 @@ router.get('/', async (req, res) => {
 
         res.json(entries);
 
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        next(error);
     }
 
 });
 
-router.post('/', async (req, res) => {
-
-    const { name, definition, notes, references, categoryId } = req.body;
+router.post('/', async (req, res, next) => {
 
     const { normalizeString } = useNormalizeString();
 
     try {
+
+        let data:any = prepareRequestBodyForPrisma(req.body, true);
+
+        data.id = undefined;
+       
+        if (data.name) {
+            data.code = normalizeString(data.name);
+        }
+
+        if (data.category) {
+            data.category = undefined;
+        }
+
         const savedEntry = await prisma.entry.create({
-            data: {
-                name,
-                code: normalizeString(name),
-                definition: (definition === "") ? null : definition,
-                notes: (notes === "") ? null : notes,
-                references: (references === "") ? null : references,
-                categoryId: (categoryId === 0) ? null : parseInt(categoryId)
-            }
+            data
         });
 
         res.json(savedEntry);
 
-    } catch (error : any) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+      next(error);
     }
 
 });
