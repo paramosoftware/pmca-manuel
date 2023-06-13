@@ -16,7 +16,7 @@ declare global {
     
     export interface Entry {
         id: number;
-        code: string;
+        code?: string;
         name: string;
         definition?: string;
         notes?: string;

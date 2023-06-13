@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col justify-center items-center mt-10">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
-            <AnchorReturn :href="`/logged/${pluralNamePt}`" />
+            <AnchorReturn v-if="isStandalone"  :href="`/logged/${pluralNamePt}`" />
             <div class="justify-between flex flex-row items-center mt-4">
                 <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
                 <Button v-if=!isCreate label="NOVA" :on-click="() => $router.push(`/logged/${pluralNamePt}/criar`)" />
@@ -18,7 +18,6 @@
 
 
 <script setup lang="ts">
-
 const props = defineProps({
     singularName: {
         type: String,
@@ -40,6 +39,10 @@ const props = defineProps({
         type: Boolean,
         default: true
     },
+    isStandalone: {
+        type: Boolean,
+        default: true
+    },
     object: {
         type: Object,
         default: {
@@ -51,6 +54,7 @@ const props = defineProps({
 });
 
 const router = useRouter();
+const emit = defineEmits(['auxiliarySaved']);
 
 const save = async () => {
 
@@ -68,13 +72,13 @@ const save = async () => {
         body: JSON.stringify(props.object),
     });
 
-    console.log(saved);
-
     if (saved) {
-        // TODO: check Typescript error
-        router.push('/logged/' + props.pluralNamePt + '/editar/' + saved.value.id);
+        if (props.isStandalone) {
+            router.push('/logged/' + props.pluralNamePt + '/editar/' + saved.value.id);
+        } else {
+            emit('auxiliarySaved', saved.value);
+        }
     }
 };
-
 
 </script>

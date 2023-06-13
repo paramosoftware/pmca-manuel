@@ -1,6 +1,13 @@
 <template>
-    <Form singular-name="entry" plural-name="entries" singular-name-pt="verbete" plural-name-pt="verbetes" :object=entry
-        :is-create="entry.id == 0">
+    <Form 
+        singular-name="entry" 
+        plural-name="entries"
+        singular-name-pt="verbete" 
+        plural-name-pt="verbetes" 
+        :object=entry
+        :is-create="entry.id == 0"
+        @auxiliary-saved="console.log('auxiliary-saved', $event)"
+        >
 
         <FormInput label="Nome" v-model="entry.name" id="name" type="text" placeholder="Nome do verbete" />
 
@@ -16,14 +23,30 @@
 
         <FormAutocomplete 
             id="relatedEntries" 
-            v-model="entry.relatedEntries" 
+            :modelValue="entry.relatedEntries"
+            @update:modelValue="entry.relatedEntries = $event" 
             label="Verbetes relacionados"  
             :searchFunction="searchEntries" 
             placeholder="Digite o nome de um verbete..."  />
 
+
+        <FormModalAuxiliaryForm
+            id="translations"
+            :items="entry.translations"
+            route="translations"
+            :object-id="entry.id"
+            label="Traduções" 
+            @update-translation="console.log('update-translation', $event)"
+            >
+            
+  
+            <TranslationForm :entry-id="entry.id" />
+        
+        </FormModalAuxiliaryForm>
+
         <span v-if="entry.id !== 0">
 
-            <div>
+            <div class="mt-4">
                 <Button label="ADICIONAR ARQUIVOS" @click="isOpen = true" />
                 <UModal v-model="isOpen" :ui = "{ width: 'max-w-5xl', rounded: '' }">
                     <UCard :ui="{ rounded: '' }">
@@ -72,8 +95,6 @@ const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
         })),
 });
 
-
-
 const searchEntries = async (searchTerm:string) => {
  
   const { data: entries } = await useFetchWithBaseUrl('api/entries/autocomplete', {params: {q: searchTerm}})
@@ -86,9 +107,4 @@ const searchEntries = async (searchTerm:string) => {
     )
 
 }
-
-
 </script>
-
-
-<style scoped></style>
