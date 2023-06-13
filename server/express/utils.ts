@@ -9,6 +9,16 @@ function prepareRequestBodyForPrisma(data: any, create: boolean = false) {
             } : {
                 set: mapIds(transformedData[key])
             };
+        } else if (typeof transformedData[key] === 'object') {
+            transformedData[key] = create ? {
+                connect: {
+                    id: parseInt(transformedData[key].id)
+                }
+            } : {
+                set: {
+                    id: parseInt(transformedData[key].id)
+                }
+            };
         }
     });
     return replaceEmptyWithNull(transformedData);

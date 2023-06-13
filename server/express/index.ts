@@ -7,6 +7,8 @@ import multer from 'multer'
 import auth from './auth'
 import categories from './categories'
 import entries from './entries'
+import languages from './languages'
+import translations from './translations'
 import upload from './upload'
 
 const app = express();
@@ -22,6 +24,8 @@ function useApiRoute(app: any, route: string, handler: any) {
 useApiRoute(app, '/auth', auth);
 useApiRoute(app, '/categories', categories);
 useApiRoute(app, '/entries', entries);
+useApiRoute(app, '/languages', languages);
+useApiRoute(app, '/translations', translations);
 useApiRoute(app, '/upload', upload);
 
 
