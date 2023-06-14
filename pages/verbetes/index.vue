@@ -22,7 +22,7 @@
           id="filter" type="text" placeholder="Filtrar verbetes">
       </div>
 
-      <div class="w-full sm:w-1/10 mt-4 md:mt-0 ml-5">
+      <div class="w-full sm:w-1/10 mt-4 md:mt-0 md:ml-5">
         <label class="text-lg uppercase text-red-900" for="list-mode">
           Modo de exibição
         </label>
@@ -34,6 +34,20 @@
           <option value="list">Lista</option>
         </select>
       </div>
+
+      <div class="w-full sm:w-1/10 mt-4 md:mt-0 md:ml-5">
+        <label class="text-lg uppercase text-red-900" for="list-mode">
+          Categoria
+        </label>
+        <select v-model="category" @input=handleCategory
+          class="w-full  text-md text-black border-black bg-transparent focus:outline-none focus:ring-red-900 focus:border-transparent"
+          id="list-mode">
+          <option value="0">Todas</option>
+          <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+        </select>
+      </div>
+      
+
     </div>
 
 
@@ -47,7 +61,7 @@
       <div v-for="(entries, key, index) in filteredEntriesByMode">
         <h2 :key="key" :id="'accordion-flush-heading-' + index" class="cursor-pointer mb-5">
           <button type="button"
-            class="flex items-center justify-between border-b border-b-red-900 w-full p-5 text-4xl text-black text-left bg-white"
+            class="flex items-center justify-between border-b border-b-red-900 w-full p-5 text-3xl text-black text-left bg-white"
             :data-accordion-target="'#accordion-flush-body-' + index" aria-expanded="false"
             :aria-controls="'accordion-flush-body-' + index">
             <span>{{ key }}</span>
@@ -80,6 +94,7 @@
 import { initFlowbite } from 'flowbite'
 
 onMounted(() => {
+  getCategoriesFromEntries(entries.value)
   initFlowbite();
 })
 
@@ -94,9 +109,12 @@ const query = computed(() => {
 });
 
 const entries = ref([])
+const entriesByCategory = ref([])
 const filter = ref('');
 const listMode = ref('category'); // category, alphabetical, list
 const sortOrder = ref('asc');
+const categories = ref([]);
+const category = ref("0");
 
 const fetchEntries = async (query) => {
   const { data } = await useFetchWithBaseUrl('/api/entries/search', {
@@ -112,7 +130,7 @@ const fetchEntries = async (query) => {
   entries.value = data.value;
 }
 
-fetchEntries(query.value);
+await fetchEntries(query.value);
 
 // TODO: for some reason, watch is not triggered when the URL is changed directly, 
 // so the fetchEntries need to be called at least once
@@ -121,13 +139,17 @@ watch(() => query.value, async (newQuery) => {
 });
 
 const filteredEntries = computed(() => {
-  if (!filter.value) {
+
+  if (!filter.value && !category.value) {
     return entries.value;
   }
 
+  if (category.value != "0") {
+    return entriesByCategory.value?.filter(entry => entry.name.toLowerCase().includes(filter.value.toLowerCase()) && entry.category?.id === parseInt(category.value));
+  } 
+
   return entries.value?.filter(entry => entry.name.toLowerCase().includes(filter.value.toLowerCase()));
 });
-
 
 const filteredEntriesByMode = computed(() => {
 
@@ -155,9 +177,9 @@ const filteredEntriesByMode = computed(() => {
 
     const sortedKeys = Object.keys(groupedEntries).sort((a, b) => {
       if (sortOrder.value === 'asc') {
-        return a.toLowerCase().localeCompare(b.toLowerCase());
+        return a.toLowerCase().localeCompare(b.toLowerCase(), 'pt-BR');
       } else {
-        return b.toLowerCase().localeCompare(a.toLowerCase());
+        return b.toLowerCase().localeCompare(a.toLowerCase(), 'pt-BR');
       }
     });
 
@@ -172,6 +194,24 @@ const filteredEntriesByMode = computed(() => {
   }
 
 });
+
+const getCategoriesFromEntries = (newEntries: Entry[]) => {
+  categories.value = newEntries.reduce((acc, entry) => {
+    if (entry.category && !acc.find(category => category.id === entry.category.id)) {
+      acc.push(entry.category);
+    }
+    return acc;
+  }, []);
+}
+
+const handleCategory = (event: Event) => {
+  category.value = event.target.value;
+
+  if (category.value) {
+    entriesByCategory.value = entries.value.filter(entry => entry.category?.id === parseInt(category.value));
+  } 
+
+};
 
 const handleFilter = (event: Event) => {
   filter.value = event.target.value;
