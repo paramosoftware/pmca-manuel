@@ -6207,6 +6207,7 @@ __metadata:
     nuxt-icon: ^0.4.0
     prisma: ^4.13.0
     uuid: ^9.0.0
+    v-viewer: next
     vue2-dropzone-vue3: ^1.1.0
   languageName: unknown
   linkType: soft
@@ -8059,10 +8060,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"v-viewer@npm:next":
+  version: 3.0.11
+  resolution: "v-viewer@npm:3.0.11"
+  dependencies:
+    lodash: ^4.17.21
+    viewerjs: ^1.9.0
+  peerDependencies:
+    vue: ^3.0.0
+  checksum: e8ae6cd057768b21bb74eabb9b9e59aeb9505e9774b35edfea09ecf561a658165c4d497aba993e88493fa8f58d42e70837701d1a6f44f83f5a222031bc16d576
+  languageName: node
+  linkType: hard
+
 "vary@npm:^1.1.2, vary@npm:~1.1.2":
   version: 1.1.2
   resolution: "vary@npm:1.1.2"
   checksum: ae0123222c6df65b437669d63dfa8c36cee20a504101b2fcd97b8bf76f91259c17f9f2b4d70a1e3c6bbcee7f51b28392833adb6b2770b23b01abec84e369660b
+  languageName: node
+  linkType: hard
+
+"viewerjs@npm:^1.9.0":
+  version: 1.11.3
+  resolution: "viewerjs@npm:1.11.3"
+  checksum: 2f5fe2d8a39ae79d2a7932960daead500f565b9c0ae69959c78c039016270cea403b11e643772b8479aa50d0da53da03bf64b885fae2fd5e2066c36b10d9fbf3
   languageName: node
   linkType: hard
 

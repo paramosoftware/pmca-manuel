@@ -106,7 +106,8 @@ router.post('/by-code', async (req, res, next) => {
                 code: code
             },
             include: {
-                category: true
+                category: true,
+                media: true
             }
         });
         res.json(entry);
