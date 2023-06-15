@@ -11,10 +11,9 @@
 
         <FormInput label="Nome" v-model="entry.name" id="name" type="text" placeholder="Nome do verbete" />
 
-        <FormInput label="Descrição" v-model="entry.definition" id="definition" type="text" textarea
-            placeholder="Definição do verbete" />
+        <FormQuillEditor label="Definição" v-model="entry.definition" id="definition" />
 
-        <FormInput label="Notas" v-model="entry.notes" id="notes" type="text" textarea placeholder="Notas do verbete" />
+        <FormQuillEditor label="Notas" v-model="entry.notes" id="notes" />
 
         <FormInput label="Referências" v-model="entry.references" id="references" type="text" textarea
             placeholder="Referências do verbete" />
