@@ -9,6 +9,7 @@ import categories from './categories'
 import entries from './entries'
 import languages from './languages'
 import translations from './translations'
+import references from './references'
 import upload from './upload'
 
 const app = express();
@@ -26,6 +27,7 @@ useApiRoute(app, '/categories', categories);
 useApiRoute(app, '/entries', entries);
 useApiRoute(app, '/languages', languages);
 useApiRoute(app, '/translations', translations);
+useApiRoute(app, '/references', references);
 useApiRoute(app, '/upload', upload);
 
 

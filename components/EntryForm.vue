@@ -15,9 +15,6 @@
 
         <FormQuillEditor label="Notas" v-model="entry.notes" id="notes" />
 
-        <FormInput label="Referências" v-model="entry.references" id="references" type="text" textarea
-            placeholder="Referências do verbete" />
-
         <FormSelect v-model="entry.categoryId" :label="'Categoria'" :options="categories" />
 
         <FormAutocomplete 
@@ -42,6 +39,20 @@
             <TranslationForm :entry-id="entry.id" />
         
         </FormModalAuxiliaryForm>
+
+
+        <FormAutocomplete 
+            id="references" 
+            :modelValue="entry.references"
+            @update:modelValue="entry.references = $event" 
+            label="Referências"  
+            :searchFunction="searchReferences"
+            placeholder="Adicione referências..."
+            :allow-create=true
+            :create-function="createReference"
+            
+            
+            />
 
         <span v-if="entry.id !== 0">
 
@@ -99,11 +110,28 @@ const searchEntries = async (searchTerm:string) => {
   const { data: entries } = await useFetchWithBaseUrl('api/entries/autocomplete', {params: {q: searchTerm}})
 
   return entries.value.map((entry: Entry) => ({
-    id: entry.id,
-    name: entry.name,
+        id: entry.id,
+        name: entry.name,
     })).filter((entry: Entry) =>
         props.entry ? entry.id !== props.entry.id : true
     )
 
 }
+
+const searchReferences = async (searchTerm:string) => {
+ 
+  const { data: references } = await useFetchWithBaseUrl('api/references/autocomplete', {params: {q: searchTerm}})
+
+  return references.value.map((reference: Reference) => ({
+        id: reference.id,
+        name: reference.name,
+    }))
+
+}
+
+const createReference = async (reference: string) => {
+    const { data: language } = await useFetchWithBaseUrl('api/references', {method: 'POST', body: {name: reference}})
+    return language.value
+}
+
 </script>

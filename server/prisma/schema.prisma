@@ -36,8 +36,8 @@ model Entry {
   name            String   @unique
   definition      String?
   notes           String?
-  // TODO: create a reference model
-  references      String?  
+ 
+  references      Reference[] @relation("entries_references")
 
   media           Media[]   @relation("media_entries")
   translations    Translation[]
@@ -120,4 +120,16 @@ model Translation {
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@map("translations")
+}
+
+model Reference {
+  id          Int       @id @default(autoincrement())
+  name        String
+  
+  entries     Entry[]   @relation("entries_references")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("references")
 }
