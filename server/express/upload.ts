@@ -1,8 +1,10 @@
 import express from 'express';
 import multer from 'multer';
-import UploadError  from './errors/UploadError'
+import UploadError from './errors/UploadError'
+import ServerError from './errors/ServerError'
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../prisma/prisma';
+import fs from 'fs';
 import path from 'path';
 
 
@@ -57,7 +59,16 @@ router.post('/', upload, async (req, res, next) => {
         res.json({ message: 'File uploaded' });
 
     } catch (error) {
-        // TODO: delete file from disk
+        const filePath = path.join('public', req.file?.filename);
+
+        if (fs.existsSync(filePath)) {
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    throw new ServerError('Error deleting file');
+                }
+            });
+        }
+
         next(error);
     }
     

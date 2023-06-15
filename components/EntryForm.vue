@@ -54,31 +54,19 @@
             
             />
 
-        <span v-if="entry.id !== 0">
 
-            <div class="mt-4">
-                <Button label="ADICIONAR ARQUIVOS" @click="isOpen = true" />
-                <UModal v-model="isOpen" :ui = "{ width: 'max-w-5xl', rounded: '' }">
-                    <UCard :ui="{ rounded: '' }">
-                        <template #header>
-                            <span class="text-2xl text-black">
-                                Upload de arquivos
-                            </span>
-                        </template>
-
-                        <FormDropzone :entry-id="entry.id" />
-
-                    </UCard>
-                </UModal>
-            </div>
-
-        </span>
+        <FormMedia 
+            id="media" 
+            :media="entry.media" 
+            label="Imagens" 
+            :object-id="entry.id" 
+            @remove:media="removeMedia"
+            v-if="entry.id !== 0" />
 
     </Form>
 </template>
 
 <script setup lang="ts">
-const isOpen = ref(false)
 
 const props = defineProps<{ entry?: Entry }>();
 
@@ -89,7 +77,7 @@ const entry = ref<Entry>(
         code: '',
         definition: '',
         notes: '',
-        references: '',
+        references: [],
         categoryId: 0,
         media: [],
         translations: [],
@@ -132,6 +120,10 @@ const searchReferences = async (searchTerm:string) => {
 const createReference = async (reference: string) => {
     const { data: language } = await useFetchWithBaseUrl('api/references', {method: 'POST', body: {name: reference}})
     return language.value
+}
+
+const removeMedia = (media: Media) => {
+    props.entry.media = props.entry.media.filter((m: Media) => m.id !== media.id);
 }
 
 </script>

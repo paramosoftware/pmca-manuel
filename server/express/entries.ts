@@ -147,7 +147,8 @@ router.get('/:id', async (req, res, next) => {
                 translations: true,
                 relatedEntries: true,
                 entries: true,
-                references: true
+                references: true,
+                media: true
             }
         });
         res.json(entry);
