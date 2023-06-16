@@ -10,7 +10,7 @@
             </button>
 
             <div class="flex flex-wrap mb-2" v-if="items.length > 0">
-                <div v-for="item in items" :key="item.id" class="text-red-900 px-2 border-2 border-red-900 p-1 mt-2 mr-2">
+                <div v-for="item in items" :key="item.id" class="text-gray-700 px-2 border-2 border-red-900 p-1 mt-2 mr-2">
                     {{ item.name }}
                     <button @click="removeItem(item.id)" class="bg-white text-red-900">
                         <Icon name="ph:trash-simple" class="text-black w-6 h-6" />
@@ -58,7 +58,6 @@ const props = defineProps({
 
 const isOpenModal = ref(false)
 
-
 const removeItem = async (id: number) => {
     const { data } = await useFetchWithBaseUrl('/api/' + props.route + '/' + id, {
         method: 'DELETE',
@@ -70,9 +69,4 @@ const removeItem = async (id: number) => {
     }
 }
 
-
-watch(() => props.items, () => {
-    isOpenModal.value = false
-
-})
 </script>

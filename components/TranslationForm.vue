@@ -7,14 +7,13 @@
         :object=translation 
         :is-create="translation.id == 0" 
         :is-standalone=false
-        @auxiliary-saved="updateTranslation"
+        @auxiliary-saved="updateParent"
         >
 
 
         <input type="hidden" v-model="translation.entry.id" id="entryId" />
 
         <FormInput label="Tradução" v-model="translation.name" id="name" type="text" placeholder="Tradução" />
-
 
         <FormAutocomplete 
             id="language"
@@ -60,11 +59,12 @@ const updateModel = (property: string, action: string, item: any) => {
     }
 }
 
-const emit = defineEmits(['updateTranslationList'])
+const emit = defineEmits(['update'])
 
-const updateTranslation = (translation : Translation) => {
-    const { id, name } = translation
-    emit('updateTranslationList', { id, name })
+const updateParent = (translation : Translation) => {
+    emit('update', 'translations', 'add',  translation)
 }
+
+
 
 </script>

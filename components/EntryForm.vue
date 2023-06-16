@@ -32,11 +32,9 @@
             route="translations"
             :object-id="entry.id"
             label="Traduções" 
-            @update-translation="console.log('update-translation', $event)"
             >
-            
-  
-            <TranslationForm :entry-id="entry.id" />
+    
+            <TranslationForm :entry-id="entry.id" @update="updateModel" />
         
         </FormModalAuxiliaryForm>
 
@@ -57,7 +55,6 @@
             :media="entry.media" 
             label="Imagens" 
             :object-id="entry.id" 
-            @remove:media="removeMedia"
             @update="updateModel"
             v-if="entry.id !== 0" />
 
@@ -91,12 +88,9 @@ const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
         })),
 });
 
-
-const removeMedia = (media: Media) => {
-    props.entry.media = props.entry.media.filter((m: Media) => m.id !== media.id);
-}
-
 const updateModel = (property: string, action: string, item: any) => {
+
+    console.log('updateModel', property, action, item);
 
     if (props.entry && props.entry[property]) {
 
