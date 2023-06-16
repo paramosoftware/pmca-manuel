@@ -22,6 +22,7 @@
     "prisma": "^4.13.0"
   },
   "dependencies": {
+    "@jledentu/vue-finder": "^4.1.1",
     "@prisma/client": "^4.13.0",
     "@vueup/vue-quill": "latest",
     "bcrypt": "^5.1.0",

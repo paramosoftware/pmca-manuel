@@ -665,6 +665,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@jledentu/vue-finder@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "@jledentu/vue-finder@npm:4.1.1"
+  dependencies:
+    lodash-es: ^4.17.20
+  peerDependencies:
+    vue: 3.x
+  checksum: e32542d105d3be50676addc983b38c2d0b0cafde47e451db5ea82eca377e1b99bdc9417de6135ddee86c3e5e01b02cb536291723febf1f31b935eba415abcb18
+  languageName: node
+  linkType: hard
+
 "@jridgewell/gen-mapping@npm:^0.3.0, @jridgewell/gen-mapping@npm:^0.3.2":
   version: 0.3.3
   resolution: "@jridgewell/gen-mapping@npm:0.3.3"
@@ -1735,25 +1746,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vueuse/core@npm:10.1.2, @vueuse/core@npm:^10.1.2":
-  version: 10.1.2
-  resolution: "@vueuse/core@npm:10.1.2"
+"@vueuse/core@npm:10.2.0, @vueuse/core@npm:^10.1.2":
+  version: 10.2.0
+  resolution: "@vueuse/core@npm:10.2.0"
   dependencies:
     "@types/web-bluetooth": ^0.0.17
-    "@vueuse/metadata": 10.1.2
-    "@vueuse/shared": 10.1.2
-    vue-demi: ">=0.14.0"
-  checksum: a18286495f4dc0783c3251455a1636d4913381204059e72e8d8ed02c63d4f911ebe2cbb1e9526fdca73640bb5b47bd6bd9b5842a501614f0aeab4bc721fc92a4
+    "@vueuse/metadata": 10.2.0
+    "@vueuse/shared": 10.2.0
+    vue-demi: ">=0.14.5"
+  checksum: 022b07ca097ca32eb8995ff17a8855d1ac641194aa89956a2f3bf62b7861caa72df39750e885e9b67e4a55ee9cb98ca54554450ee62b56445c6d587dc065c88f
   languageName: node
   linkType: hard
 
 "@vueuse/integrations@npm:^10.1.2":
-  version: 10.1.2
-  resolution: "@vueuse/integrations@npm:10.1.2"
+  version: 10.2.0
+  resolution: "@vueuse/integrations@npm:10.2.0"
   dependencies:
-    "@vueuse/core": 10.1.2
-    "@vueuse/shared": 10.1.2
-    vue-demi: ">=0.14.0"
+    "@vueuse/core": 10.2.0
+    "@vueuse/shared": 10.2.0
+    vue-demi: ">=0.14.5"
   peerDependencies:
     async-validator: "*"
     axios: "*"
@@ -1792,33 +1803,33 @@ __metadata:
       optional: true
     universal-cookie:
       optional: true
-  checksum: 6f4a1f5edaf213b2cc494fabb56ffbdee67a302b5c1062d8121e9454666f5bc8d8d7b68ccea8ad8721d6c45dfd43954a88d5633bece0d90be3938f449b8c2171
+  checksum: 54542a0d84119d44aee74b9d1606ee68d23746d0c12c5d73b1d8f6a27ecb9925d1fc163a349d54adf6f7b4a72f56e6b47b66f29b4055b512f852f1c6e37ba6e9
   languageName: node
   linkType: hard
 
 "@vueuse/math@npm:^10.1.2":
-  version: 10.1.2
-  resolution: "@vueuse/math@npm:10.1.2"
+  version: 10.2.0
+  resolution: "@vueuse/math@npm:10.2.0"
   dependencies:
-    "@vueuse/shared": 10.1.2
-    vue-demi: ">=0.14.0"
-  checksum: 0e5d76d878267469b390c12cb685f2161f846587fb227b5759934c501c6dc8cae1d48f21b836d9eab7e89548ee4b1857538d2cb8d8172df0953fc77b343df489
+    "@vueuse/shared": 10.2.0
+    vue-demi: ">=0.14.5"
+  checksum: d4c52457007c1799683c6dac1c26e2482fd2c22e5469df2e6ca6f24ba251270af96440a6316fba74e17b9b89fc2d4f56e07522cd154cae52adec80facdbcca6c
   languageName: node
   linkType: hard
 
-"@vueuse/metadata@npm:10.1.2":
-  version: 10.1.2
-  resolution: "@vueuse/metadata@npm:10.1.2"
-  checksum: b72470776ec6aeb88a21b4a60b6b365ad22559c965b7038ae8c68a6a2942631748f3beb4b715bdde3d8adb1dac06a5ebeb41255f24d60c8f28f19ac6fa3bc152
+"@vueuse/metadata@npm:10.2.0":
+  version: 10.2.0
+  resolution: "@vueuse/metadata@npm:10.2.0"
+  checksum: 01d98a3f6918442a919c6c875a0e467429e84db997eb4c74b8da5c524072969684e5443b938cace6a51f632ed328834ac1685fa4d8fc67d506f5373ef4829275
   languageName: node
   linkType: hard
 
-"@vueuse/shared@npm:10.1.2":
-  version: 10.1.2
-  resolution: "@vueuse/shared@npm:10.1.2"
+"@vueuse/shared@npm:10.2.0":
+  version: 10.2.0
+  resolution: "@vueuse/shared@npm:10.2.0"
   dependencies:
-    vue-demi: ">=0.14.0"
-  checksum: a134cc254bfef28ceca2c48c7532a4f1e2231dbb75304e43f896b41771f3d51b93897cc9a16bbd98c7aa6163fc44e001319bbf2478408382ef4d9788875301f2
+    vue-demi: ">=0.14.5"
+  checksum: b96884b82f315622639cbb186f6989d08527e2aa43236e91d6d454afb9a599b23e32af326351c8c9db9c7d7cc4a0797d44e4644d31de9615bba4f8371838e0e1
   languageName: node
   linkType: hard
 
@@ -1840,11 +1851,11 @@ __metadata:
   linkType: hard
 
 "acorn@npm:^8.6.0, acorn@npm:^8.8.2":
-  version: 8.8.2
-  resolution: "acorn@npm:8.8.2"
+  version: 8.9.0
+  resolution: "acorn@npm:8.9.0"
   bin:
     acorn: bin/acorn
-  checksum: f790b99a1bf63ef160c967e23c46feea7787e531292bb827126334612c234ed489a0dc2c7ba33156416f0ffa8d25bf2b0fdb7f35c2ba60eb3e960572bece4001
+  checksum: 25dfb94952386ecfb847e61934de04a4e7c2dc21c2e700fc4e2ef27ce78cb717700c4c4f279cd630bb4774948633c3859fc16063ec8573bda4568e0a312e6744
   languageName: node
   linkType: hard
 
@@ -2249,16 +2260,16 @@ __metadata:
   linkType: hard
 
 "browserslist@npm:^4.0.0, browserslist@npm:^4.21.3, browserslist@npm:^4.21.4, browserslist@npm:^4.21.5":
-  version: 4.21.8
-  resolution: "browserslist@npm:4.21.8"
+  version: 4.21.9
+  resolution: "browserslist@npm:4.21.9"
   dependencies:
-    caniuse-lite: ^1.0.30001502
-    electron-to-chromium: ^1.4.428
+    caniuse-lite: ^1.0.30001503
+    electron-to-chromium: ^1.4.431
     node-releases: ^2.0.12
     update-browserslist-db: ^1.0.11
   bin:
     browserslist: cli.js
-  checksum: 20ab0adafb1832bdfb19153d09a140b779b8e883ce504221c580094cc2adec691515ed304c9091300996ad35fc24e957fbfde169ba0c4a7d219b0794ad2e1556
+  checksum: 80d3820584e211484ad1b1a5cfdeca1dd00442f47be87e117e1dda34b628c87e18b81ae7986fa5977b3e6a03154f6d13cd763baa6b8bf5dd9dd19f4926603698
   languageName: node
   linkType: hard
 
@@ -2415,7 +2426,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001464, caniuse-lite@npm:^1.0.30001502":
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001464, caniuse-lite@npm:^1.0.30001503":
   version: 1.0.30001503
   resolution: "caniuse-lite@npm:1.0.30001503"
   checksum: cd5f0af37655ff71ec4ab3c49124d75e0b8b68de625d07ea80e9a82329e616b5203d5dad6865192653be9da50081c06878f081ab069dac0be35adf29aa1599cd
@@ -3264,9 +3275,9 @@ __metadata:
   linkType: hard
 
 "dotenv@npm:^16.0.3":
-  version: 16.1.4
-  resolution: "dotenv@npm:16.1.4"
-  checksum: c1b2e13df4d374a6a29e134c56c7b040ba20500677fe8b9939ea654f3b3badb9aaa0b172e40e4dfa1233a4177dbb8fb79d84cc79a50ac9c9641fe2ad98c14876
+  version: 16.3.0
+  resolution: "dotenv@npm:16.3.0"
+  checksum: 43a90ec87868c8b962a028b69cbe86e71621c76837249a9d65fb131b03ee69817b019d34a5456174cb04095052a496b4e1b5da72e4af2393df6083513ab62d4b
   languageName: node
   linkType: hard
 
@@ -3310,10 +3321,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron-to-chromium@npm:^1.4.428":
-  version: 1.4.431
-  resolution: "electron-to-chromium@npm:1.4.431"
-  checksum: 51b76599b1e8141ced50339e873fe961aa56369cd622fb8a26964c084722204866fadbde94219a432398dab1317a5afd79843ba97cdcd5819dfc98be0e47c0a1
+"electron-to-chromium@npm:^1.4.431":
+  version: 1.4.432
+  resolution: "electron-to-chromium@npm:1.4.432"
+  checksum: 1034e0cdd4aeaf1d326ae9baf7bf7207baa81806ee4c4b05432caa566e215e9103daccdad54e4007aa093341f257c1b668330fd5a410fce262ee40dc4c80bde9
   languageName: node
   linkType: hard
 
@@ -5096,7 +5107,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:^4.17.21":
+"lodash-es@npm:^4.17.20, lodash-es@npm:^4.17.21":
   version: 4.17.21
   resolution: "lodash-es@npm:4.17.21"
   checksum: 05cbffad6e2adbb331a4e16fbd826e7faee403a1a04873b82b42c0f22090f280839f85b95393f487c1303c8a3d2a010048bf06151a6cbe03eee4d388fb0a12d2
@@ -6189,8 +6200,8 @@ __metadata:
   linkType: hard
 
 "openapi-typescript@npm:^6.2.4":
-  version: 6.2.7
-  resolution: "openapi-typescript@npm:6.2.7"
+  version: 6.2.8
+  resolution: "openapi-typescript@npm:6.2.8"
   dependencies:
     ansi-colors: ^4.1.3
     fast-glob: ^3.2.12
@@ -6200,7 +6211,7 @@ __metadata:
     yargs-parser: ^21.1.1
   bin:
     openapi-typescript: bin/cli.js
-  checksum: 488bb7949a7a0bc8cd58c93b52bec1832c13b18496d5de6887c1799a674d1619bed493bdbd4b3fd5bdffb0a36d3e2f5a8f634414724d8b3d230a05624e4031fc
+  checksum: 7a98ebd8af83d1c12049489553f1b6d35cbca8a517d6e8734c4b241d6aeca11d95047a1891608051443560cc559c4e04ecc556939f018a1d5351f67d037c9706
   languageName: node
   linkType: hard
 
@@ -6457,6 +6468,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "pmca-thesaurus-starter@workspace:."
   dependencies:
+    "@jledentu/vue-finder": ^4.1.1
     "@nuxthq/ui": ^2.3.0
     "@prisma/client": ^4.13.0
     "@types/bcrypt": ^5.0.0
@@ -7484,13 +7496,13 @@ __metadata:
   linkType: hard
 
 "semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.8, semver@npm:^7.5.0, semver@npm:^7.5.1":
-  version: 7.5.1
-  resolution: "semver@npm:7.5.1"
+  version: 7.5.2
+  resolution: "semver@npm:7.5.2"
   dependencies:
     lru-cache: ^6.0.0
   bin:
     semver: bin/semver.js
-  checksum: d16dbedad53c65b086f79524b9ef766bf38670b2395bdad5c957f824dcc566b624988013564f4812bcace3f9d405355c3635e2007396a39d1bffc71cfec4a2fc
+  checksum: 3fdf5d1e6f170fe8bcc41669e31787649af91af7f54f05c71d0865bb7aa27e8b92f68b3e6b582483e2c1c648008bc84249d2cd86301771fe5cbf7621d1fe5375
   languageName: node
   linkType: hard
 
@@ -8597,7 +8609,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue-demi@npm:>=0.14.0":
+"vue-demi@npm:>=0.14.5":
   version: 0.14.5
   resolution: "vue-demi@npm:0.14.5"
   peerDependencies:

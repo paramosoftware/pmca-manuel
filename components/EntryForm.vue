@@ -15,7 +15,13 @@
 
         <FormQuillEditor label="Notas" v-model="entry.notes" id="notes" />
 
-        <FormSelect v-model="entry.categoryId" :label="'Categoria'" :options="categories" />
+        <FormFinder 
+            label="Categoria" 
+            v-model="entry.categoryId"
+            :default-expanded="entry.categoryId ?? undefined"
+            id="category"
+            :tree="tree" />
+
 
         <FormAutocomplete 
             id="relatedEntries" 
@@ -85,8 +91,13 @@ const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
         categories.map((category: Category) => ({
             id: category.id,
             name: category.name,
+            parentId: category.parentId,
         })),
 });
+
+const tree = ref({});
+
+tree.value = useConvertToTreeData(categories.value);
 
 const updateModel = (property: string, action: string, item: any) => {
 
@@ -102,6 +113,5 @@ const updateModel = (property: string, action: string, item: any) => {
         }
     }
 }
-
 
 </script>

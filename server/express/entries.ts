@@ -170,7 +170,7 @@ router.put('/:id', async (req, res, next) => {
             data.code = normalizeString(data.name);
         }
 
-        if (data.category) {
+        if (data.category || data.category === null) {
             data.category = undefined;
         }
 
