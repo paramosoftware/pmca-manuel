@@ -19,10 +19,10 @@
 
         <FormAutocomplete 
             id="relatedEntries" 
+            route="entries"
             :modelValue="entry.relatedEntries"
-            @update:modelValue="entry.relatedEntries = $event" 
-            label="Verbetes relacionados"  
-            :searchFunction="searchEntries" 
+            @update="updateModel"
+            label="Verbetes relacionados"
             placeholder="Digite o nome de um verbete..."  />
 
 
@@ -42,16 +42,13 @@
 
 
         <FormAutocomplete 
-            id="references" 
+            id="references"
+            route="references" 
             :modelValue="entry.references"
-            @update:modelValue="entry.references = $event" 
+            @update="updateModel"
             label="Referências"  
-            :searchFunction="searchReferences"
             placeholder="Adicione referências..."
             :allow-create=true
-            :create-function="createReference"
-            
-            
             />
 
 
@@ -93,37 +90,23 @@ const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
         })),
 });
 
-const searchEntries = async (searchTerm:string) => {
- 
-  const { data: entries } = await useFetchWithBaseUrl('api/entries/autocomplete', {params: {q: searchTerm}})
-
-  return entries.value.map((entry: Entry) => ({
-        id: entry.id,
-        name: entry.name,
-    })).filter((entry: Entry) =>
-        props.entry ? entry.id !== props.entry.id : true
-    )
-
-}
-
-const searchReferences = async (searchTerm:string) => {
- 
-  const { data: references } = await useFetchWithBaseUrl('api/references/autocomplete', {params: {q: searchTerm}})
-
-  return references.value.map((reference: Reference) => ({
-        id: reference.id,
-        name: reference.name,
-    }))
-
-}
-
-const createReference = async (reference: string) => {
-    const { data: language } = await useFetchWithBaseUrl('api/references', {method: 'POST', body: {name: reference}})
-    return language.value
-}
 
 const removeMedia = (media: Media) => {
     props.entry.media = props.entry.media.filter((m: Media) => m.id !== media.id);
 }
+
+const updateModel = (property: string, action: string, item: any) => {
+
+    if (props.entry && props.entry[property]) {
+
+        if (action === 'add') {
+            props.entry[property].push(item);
+
+        } else if (action === 'remove') {
+            props.entry[property] = props.entry[property].filter((e) => e.id !== item.id);
+        }
+    }
+}
+
 
 </script>

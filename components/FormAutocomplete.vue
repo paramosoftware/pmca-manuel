@@ -7,14 +7,16 @@
 
             <div class="flex flex-wrap mb-2" v-if="computedModelValue.length > 0">
                 <div v-for="item in computedModelValue" :key="item.id"
-                    class="text-red-900 px-2 border-2 border-red-900 p-1 mt-2 mr-2">
-                    {{ item.name }}
-                    <button @click="removeItem(item.id)" class="bg-white text-red-900">
+                    class="flex justify-between items-center text-gray-800 px-2 border-2 border-red-900 p-1 mt-2 mr-2">
+                    
+                    <div>{{ item.name }}</div>
+
+                    <button @click="removeItem(item.id)" class="ml-2">
                         <Icon name="ph:trash-simple" class="text-black w-6 h-6" title="Remover" />
                     </button>
+
                 </div>
             </div>
-
             <span v-if="multiple || (!multiple && computedModelValue.length < max)">
 
                 <div class="relative block text-gray-400 focus-within:text-red-900">
@@ -56,25 +58,23 @@
 
 <script setup lang="ts">
 const props = defineProps({
-    id: String,
+    id: {
+        type: String,
+        required: true
+    },
+    route: {
+        type: String,
+        required: true
+    },
     label: String,
     modelValue: {
-        type: Array as PropType<{ id: number, name: string }[]> | Object as PropType<{ id: number, name: string }> | undefined,
-        default: () => [],
+        type: Object as PropType<{ id: number, name: string }>,
         required: true
     },
     placeholder: String,
-    searchFunction: {
-        type: Function as PropType<Function>,
-        required: true
-    },
     allowCreate: {
         type: Boolean,
         default: false
-    },
-    createFunction: {
-        type: Function as PropType<Function>,
-        required: false
     },
     multiple: {
         type: Boolean,
@@ -83,6 +83,14 @@ const props = defineProps({
     max: {
         type: Number,
         default: 1
+    },
+    createFunction: {
+        type: Function as PropType<Function>,
+        required: false
+    },
+    searchFunction: {
+        type: Function as PropType<Function>,
+        required: false
     }
 })
 
@@ -92,45 +100,35 @@ let timeoutId: NodeJS.Timeout = setTimeout(() => { }, 0);
 let searching = ref(false);
 let show = ref(false);
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update"]);
 
 const computedModelValue = computed(() => {
-  if (Array.isArray(props.modelValue)) {
-    return props.modelValue;
-  } else if (typeof props.modelValue === "object" && props.modelValue !== null) {
+    if (Array.isArray(props.modelValue)) {
+        return props.modelValue;
 
-    if (props.modelValue.id == 0) {
-        return [];
+    } else if (typeof props.modelValue === "object" && props.modelValue !== null) {
+        if (props.modelValue.id == 0) {
+            return [];
+        }
+        return [props.modelValue];
     }
 
-    return [props.modelValue];
-  }
-  return [];
+    return [];
 });
 
 const selectItem = (id: number, item: string) => {
-  if (computedModelValue.value.find((element) => element.id === id)) {
+    if (computedModelValue.value.find((element) => element.id === id)) {
+        searchTerm.value = "";
+        return;
+    }
+
+    emit("update", props.id, 'add', { id, name: item });
     searchTerm.value = "";
-    return;
-  }
-
-  if (typeof props.modelValue === "object" && props.modelValue !== null) {
-    emit("update:modelValue", { id, name: item });
-  } else {
-    emit("update:modelValue", [...computedModelValue.value, { id, name: item }]);
-  }
-    
-  searchTerm.value = "";
-
 };
 
 const removeItem = (id: number) => {
-  emit(
-    "update:modelValue",
-    computedModelValue.value.filter((item) => item.id !== id)
-  );
+    emit("update", props.id, 'remove', { id, name: "" });
 };
-
 
 const searchItems = async () => {
     if (searchTerm.value === '') {
@@ -141,11 +139,23 @@ const searchItems = async () => {
     clearTimeout(timeoutId);
 
     timeoutId = setTimeout(async () => {
-        searching.value = true
-        results.value = await props.searchFunction(searchTerm.value)
+
+        if (props.searchFunction) {
+            const data = await props.searchFunction(searchTerm.value)
+            results.value = data
+            return
+        }
+
+        const { data } = await useFetchWithBaseUrl('api/' + props.route + '/autocomplete', {
+            params: {
+                q: searchTerm.value
+            }
+        })
+
+        results.value = data.value
         results.value = results.value.slice(0, 10)
-        searching.value = false
-    }, 500);
+
+    }, 300);
 
     if (results.value.length === 0 && !searching.value) {
         show.value = true
@@ -157,19 +167,31 @@ const searchItems = async () => {
 
 }
 
-
 const createItem = async (value: string) => {
     if (!props.allowCreate) {
         return
     }
 
-    const result = await props.createFunction(value)
+    if (props.createFunction) {
+        const result = await props.createFunction(value)
+        selectItem(result.id, result.name)
+        return
+    }
+
+
+    const { data } = await useFetchWithBaseUrl('api/' + props.route, {
+        method: 'POST',
+        body: {
+            name: value
+        }
+    })
+
+    const result = data.value
 
 
     if (result) {
         selectItem(result.id, result.name)
     }
 }
-
 
 </script>

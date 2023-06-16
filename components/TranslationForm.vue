@@ -17,14 +17,13 @@
 
 
         <FormAutocomplete 
-            id="language" 
+            id="language"
+            route="languages" 
             :modelValue="translation.language"
-            @update:modelValue="translation.language = $event" 
+            @update="updateModel"
             label="Idioma"  
-            :searchFunction="searchLanguages" 
             :allowCreate="true"
             :multiple="false"
-            :createFunction="createLanguage"
             placeholder="Digite um idioma..."  />
 
 
@@ -34,21 +33,6 @@
 <script setup lang="ts">
 
 const props = defineProps<{ translation?: Translation, entryId: number }>();
-
-const searchLanguages = async (searchTerm:string) => {
- 
- const { data: languages } = await useFetchWithBaseUrl('api/languages/autocomplete', {params: {q: searchTerm}})
-
- return languages.value.map((language: Language) => ({
-   id: language.id,
-   name: language.name,
-   }))
-}
-
-const createLanguage = async (languageName: string) => {
-    const { data: language } = await useFetchWithBaseUrl('api/languages', {method: 'POST', body: {name: languageName}})
-    return language.value
-}
 
 const translation = ref<Translation>(
     props.translation ?? {
@@ -65,6 +49,16 @@ const translation = ref<Translation>(
     }
 );
 
+const updateModel = (property: string, action: string, item: any) => {
+    if (translation.value) {
+        if (action === 'add') {
+            translation.value[property] = item;
+            
+        } else if (action === 'remove') {
+            translation.value[property] = {id: 0, name: ''}
+        }
+    }
+}
 
 const emit = defineEmits(['updateTranslationList'])
 
