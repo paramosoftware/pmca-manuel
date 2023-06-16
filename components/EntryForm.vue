@@ -58,6 +58,7 @@
             label="Imagens" 
             :object-id="entry.id" 
             @remove:media="removeMedia"
+            @update="updateModel"
             v-if="entry.id !== 0" />
 
     </Form>

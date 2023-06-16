@@ -24,7 +24,7 @@
                             </span>
                         </template>
 
-                        <FormDropzone :entry-id="objectId" />
+                        <FormDropzone :id="id" :entry-id="objectId" @update="addMedia" />
 
                     </UCard>
                 </UModal>
@@ -57,7 +57,10 @@ onUpdated(() => {
 })
 
 const props = defineProps({
-    id: String,
+    id: {
+        type: String,
+        required: true,
+    },
     objectId: {
         type: Number,
         required: true,
@@ -70,7 +73,7 @@ const props = defineProps({
 })
 
 
-const emit = defineEmits(['remove:media'])
+const emit = defineEmits(['update'])
 
 const deleteMedia = async (id: number) => {
 
@@ -79,7 +82,11 @@ const deleteMedia = async (id: number) => {
     })
 
     if (data) {
-        emit('remove:media', data.value)
+        emit('update', props.id, 'remove', data.value)
     }
+}
+
+const addMedia = (media: Media) => {
+    emit('update', props.id, 'add', media)
 }
 </script>

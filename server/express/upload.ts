@@ -27,7 +27,7 @@ const upload = multer({
 
 const saveMedia = async (entryId: string, fileName: string, res: express.Response) => {
     try {
-        await prisma.media.create({
+        return await prisma.media.create({
             data: {
                 entries: {
                     connect: {
@@ -54,9 +54,9 @@ router.post('/', upload, async (req, res, next) => {
             throw new UploadError('No file was sent');
         }
 
-        await saveMedia(req.body.entryId, req.file?.filename, res)
+        const data = await saveMedia(req.body.entryId, req.file?.filename, res)
 
-        res.json({ message: 'File uploaded' });
+        res.json(data);
 
     } catch (error) {
         const filePath = path.join('public', req.file?.filename);
