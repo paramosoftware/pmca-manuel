@@ -11,11 +11,11 @@
           <span class="text-2xl p-5 hover:underline text-black">Verbetes</span>
         </NuxtLink>
 
-        <NuxtLink to="/logged">
+        <NuxtLink to="/logged" v-show="isUserLogged">
           <span class="text-2xl p-5 hover:underline text-black">Gerenciar</span>
         </NuxtLink>
 
-        <Button label="Logout" :on-click="logout">
+        <Button label="Logout" v-show="isUserLogged" :on-click="logout">
         </Button>
       </div>
 
@@ -58,7 +58,6 @@ const searchHandler = (e: Event) => {
 };
 
 const logout = async () => {
-
   const { data, error } = await useFetchWithBaseUrl('/api/auth/logout', {
       method: 'POST',
   });
@@ -69,5 +68,26 @@ const logout = async () => {
       path: '/login'
   });
 };
+
+</script>
+
+<script lang="ts">
+
+export default {
+  data() {
+    return {
+      isUserLogged: true
+    }
+  },
+  created() {
+    this.checkUserIsLogged();
+  },
+  methods: {
+      async checkUserIsLogged() {
+          const { isAuthenticated }  = useAuth();
+          this.isUserLogged = await isAuthenticated();
+      }
+  }
+}
 
 </script>
