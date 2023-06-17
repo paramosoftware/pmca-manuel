@@ -6,13 +6,21 @@
             <p class="text-xl text-black">
                 <span v-if="Array.isArray(content)">
                     <span v-for="item in content" :key="item.name">
-                        <a  class="hover:underline"  :href="item.link">{{ item.name }}</a> 
-                        <span v-if="content.indexOf(item) !== content.length - 1"> | </span>
+                        <NuxtLink v-if="hasLink && !isOneLine" class="hover:underline" :to="item.link">
+                            {{ item.name }}
+                        </NuxtLink>
+                        <span v-else-if="!isOneLine">{{ item.name }}</span>
+                        <span v-if="!isOneLine && content.indexOf(item) !== content.length - 1"> | </span>
+
+                        <p v-if="isOneLine" class="text-xl text-black">
+                            <div v-if="isHtml" v-html="item.name" class="mb-2"></div>
+                        </p>
                     </span>
                 </span>
-                <span v-else>
-                    {{ content }}
-                </span>
+
+                <div v-else-if="isHtml" v-html="content"></div>
+
+                <span v-else>{{ content }}</span>
             </p>
         </div>
     </div>
@@ -25,8 +33,19 @@ defineProps({
         required: true
     },
     content: {
-        // TODO: make this a type
-        type: [String, Array],
+        type: [String, Array, Object],
+    },
+    isHtml: {
+        type: Boolean,
+        default: false
+    },
+    hasLink: {
+        type: Boolean,
+        default: false
+    },
+    isOneLine: {
+        type: Boolean,
+        default: false
     }
 })
 </script>

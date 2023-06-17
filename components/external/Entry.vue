@@ -1,10 +1,7 @@
 <template>
   <article class="container max-w-screen-xl mx-auto p-5 md:flex bg-white border border-neutral my-5">
     <section class="w-full md:w-1/5 mx-auto">
-      <a href="#" class="text-red-900 text-lg uppercase hover:underline">{{ entry.category.name ?? 'sem categoria' }}</a>
       <h1 class="text-5xl text-black"> {{ entry.name }} </h1>
-      <p class="text-lg text-black mt-4"><a href="#">Paper</a> (en) | <a href="#">Papier</a> (fr) | <a
-          href="#">Papel</a>(es)</p>
       <ExternalEntryActions />
     </section>
     <section class="w-full md:w-4/5 md:pl-10 py-6 md:pt-0">
@@ -13,13 +10,15 @@
 
       <div class="flex flex-col">
 
-        <ExternalEntryAttribute :title="'Definição'" :content="entry.definition" />
+        <ExternalEntryAttribute title="Traduções" :content="translations" />
 
-        <ExternalEntryAttribute :title="'Termos relacionados'" :content="terms" />
+        <ExternalEntryAttribute title="Definição" :content="entry.definition" :is-html=true />
 
-        <ExternalEntryAttribute :title="'Notas'" :content="entry.notes" />
+        <ExternalEntryAttribute title="Verbetes relacionados" :content="relatedTerms" :has-link="true" />
 
-        <ExternalEntryAttribute :title="'Referências'" :content="entry.references" />
+        <ExternalEntryAttribute title="Notas" :content="entry.notes" :is-html=true />
+
+        <ExternalEntryAttribute title="Referências" :content="references" :is-html=true :is-one-line="true" />
 
       </div>
     </section>
@@ -35,26 +34,45 @@ const props = defineProps({
   }
 })
 
+const relatedTerms = ref<Array<{ name: string, link: string }>>([])
 const images = ref([])
+const translations = ref([])
+const references = ref([])
 
-props.entry.media.forEach((media: Media) => {
-  images.value.push('/' + media.name)
-})
 
-const terms = [
-  {
-    name: 'Papelão',
-    link: '#'
-  },
-  {
-    name: 'Celulose',
-    link: '#'
-  },
-  {
-    name: 'Papel reciclado',
-    link: '#'
-  }
-]
+if (props.entry.media) {
+  props.entry.media.forEach((media: Media) => {
+    images.value.push('/' + media.name)
+  })
+}
+
+if (props.entry.relatedEntries) {
+  props.entry.relatedEntries.forEach((entry: Entry) => {
+    relatedTerms.value.push({
+      name: entry.name,
+      link: '/verbetes/' + entry.code
+    })
+  })
+}
+
+if (props.entry.references) {
+  props.entry.references.forEach((reference: Reference) => {
+    references.value.push ({
+      name: reference.name,
+    })
+  })
+}
+
+if (props.entry.translations) {
+  props.entry.translations.forEach(async (translation: Translation) => {
+    const language = translation.languageId
+    const { data } = await useFetchWithBaseUrl('/api/languages/' + language)
+    translations.value.push({
+      name: translation.name + ' (' + data.value.name + ')',
+      link: ''
+    })
+  })
+}
 
 </script>
 
