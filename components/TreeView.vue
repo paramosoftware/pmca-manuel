@@ -2,8 +2,8 @@
   <div class="w-full h-full">
     <ul>
       <li>
-        <div v-for="node in tree" class="mb-2">
-          <TreeNode :node="node" :level="1" />
+        <div v-for="node in treeRef" class="mb-2">
+          <TreeNode :node="node" :level="1" @toggle-children="toggleNodeChildren" />
         </div>
       </li>
     </ul>
@@ -11,10 +11,18 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
   tree: {
     type: Object,
     required: true
   }
 });
+
+// TODO: review this
+const treeRef = ref(props.tree);
+
+const toggleNodeChildren = (node: any) => {
+  node.isOpen = !node.isOpen;
+};
+
 </script>

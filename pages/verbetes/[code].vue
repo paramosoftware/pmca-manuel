@@ -3,7 +3,7 @@
    <ExternalNavbar />
 
    <div class="flex-shrink flex">
-      <ExternalSidebar />
+      <ExternalSidebar :open-entry-id="entry.id" />
       <ExternalEntry :entry="entry" />
    </div>
 
