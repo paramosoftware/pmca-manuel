@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser'
 import multer from 'multer'
 import auth from './auth'
 import categories from './categories'
+import users from './users'
 import entries from './entries'
 import languages from './languages'
 import media from './media'
@@ -26,6 +27,7 @@ function useApiRoute(app: any, route: string, handler: any) {
 
 useApiRoute(app, '/auth', auth);
 useApiRoute(app, '/categories', categories);
+useApiRoute(app, '/users', users);
 useApiRoute(app, '/entries', entries);
 useApiRoute(app, '/languages', languages);
 useApiRoute(app, '/media', media);

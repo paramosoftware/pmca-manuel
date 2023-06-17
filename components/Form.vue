@@ -18,6 +18,7 @@
 
 
 <script setup lang="ts">
+
 const props = defineProps({
     singularName: {
         type: String,

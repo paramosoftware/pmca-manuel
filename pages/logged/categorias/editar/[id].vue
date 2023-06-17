@@ -13,5 +13,3 @@ const { data } = await useFetchWithBaseUrl(`/api/categories/${router.currentRout
 category.value = data.value;
 
 </script>
-
-
