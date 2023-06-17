@@ -35,10 +35,10 @@ const tree = ref({});
 
 const { data: categories } = await useFetchWithBaseUrl('/api/categories');
 
-tree.value = useConvertToTreeData(categories.value, category.value.id);
+tree.value = useConvertToTreeData(categories.value, true, false, category.value.id);
 
 watch(categories, (newVal) => {
-    tree.value = useConvertToTreeData(newVal, category.value.id);
+    tree.value = useConvertToTreeData(newVal, true, false, category.value.id);
 });
 
 </script>

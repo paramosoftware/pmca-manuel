@@ -1,4 +1,10 @@
-export const useConvertToTreeData = (categories: Category[], exclude: number | null = null) => {
+export const useConvertToTreeData = (
+  categories: Category[], 
+  hasSingleRoot: boolean = true,
+  hasLeafs: boolean = false,
+  exclude: number | null = null
+  ) => {
+
   const treeData = {
     id: "root",
     label: "Root",
@@ -20,40 +26,52 @@ export const useConvertToTreeData = (categories: Category[], exclude: number | n
     return null;
   };
 
-  const createNode = (id: string, label: string, parentId: string | null) => {
-
+  const createNode = (id: string, label: string, parentId: string | null, entries: Entry[]) => {
     if (findNode(id, treeData)) {
       return;
     }
-
+  
     const treeItem = {
       id,
       label,
       children: []
     };
-
+  
     if (parentId === null) {
       treeData.children.push(treeItem);
     } else {
       let parentTreeItem = findNode(parentId, treeData);
-
+  
       if (!parentTreeItem) {
         const parentCategory = categories.find((c) => c.id === parentId);
-
+  
         if (parentCategory) {
-          createNode(parentCategory.id, parentCategory.name, parentCategory.parentId);
+          createNode(parentCategory.id, parentCategory.name, parentCategory.parentId, parentCategory.entries);
           parentTreeItem = findNode(parentId, treeData);
         }
       }
-
+  
       if (parentTreeItem) {
         parentTreeItem.children.push(treeItem);
       }
     }
-  };
+  
+    if (hasLeafs) {
+      entries.forEach((entry) => {
+        const entryNode = {
+          id: entry.id,
+          label: entry.name,
+          link: `/verbetes/${entry.code}`,
+          children: []
+        };
+        treeItem.children.push(entryNode);
+      });
+    }
 
+  };
+  
   categories.forEach((category) => {
-    createNode(category.id, category.name, category.parentId);
+    createNode(category.id, category.name, category.parentId, category.entries);
   });
 
 
@@ -64,6 +82,10 @@ export const useConvertToTreeData = (categories: Category[], exclude: number | n
     }
   }
 
+  if (!hasSingleRoot) {
+    return treeData.children;
+  }
 
-  return treeData;
+  return treeData
+
 };
