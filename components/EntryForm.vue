@@ -97,7 +97,7 @@ const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
 
 const tree = ref({});
 
-tree.value = useConvertToTreeData(categories.value);
+tree.value = useConvertToTreeData(categories.value, true, false, null);
 
 const updateModel = (property: string, action: string, item: any) => {
 
