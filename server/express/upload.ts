@@ -1,8 +1,10 @@
 import express from 'express';
 import multer from 'multer';
-import UploadError  from './errors/UploadError'
+import UploadError from './errors/UploadError'
+import ServerError from './errors/ServerError'
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../prisma/prisma';
+import fs from 'fs';
 import path from 'path';
 
 
@@ -25,7 +27,7 @@ const upload = multer({
 
 const saveMedia = async (entryId: string, fileName: string, res: express.Response) => {
     try {
-        await prisma.media.create({
+        return await prisma.media.create({
             data: {
                 entries: {
                     connect: {
@@ -52,12 +54,21 @@ router.post('/', upload, async (req, res, next) => {
             throw new UploadError('No file was sent');
         }
 
-        await saveMedia(req.body.entryId, req.file?.filename, res)
+        const data = await saveMedia(req.body.entryId, req.file?.filename, res)
 
-        res.json({ message: 'File uploaded' });
+        res.json(data);
 
     } catch (error) {
-        // TODO: delete file from disk
+        const filePath = path.join('public', req.file?.filename);
+
+        if (fs.existsSync(filePath)) {
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    throw new ServerError('Error deleting file');
+                }
+            });
+        }
+
         next(error);
     }
     

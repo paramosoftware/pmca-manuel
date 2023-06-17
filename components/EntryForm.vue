@@ -1,46 +1,73 @@
 <template>
-    <Form singular-name="entry" plural-name="entries" singular-name-pt="verbete" plural-name-pt="verbetes" :object=entry
-        :is-create="entry.id == 0">
+    <Form 
+        singular-name="entry" 
+        plural-name="entries"
+        singular-name-pt="verbete" 
+        plural-name-pt="verbetes" 
+        :object=entry
+        :is-create="entry.id == 0"
+        @auxiliary-saved="console.log('auxiliary-saved', $event)"
+        >
 
         <FormInput label="Nome" v-model="entry.name" id="name" type="text" placeholder="Nome do verbete" />
 
-        <FormInput label="Descrição" v-model="entry.definition" id="definition" type="text" textarea
-            placeholder="Definição do verbete" />
+        <FormQuillEditor label="Definição" v-model="entry.definition" id="definition" />
 
-        <FormInput label="Notas" v-model="entry.notes" id="notes" type="text" textarea placeholder="Notas do verbete" />
+        <FormQuillEditor label="Notas" v-model="entry.notes" id="notes" />
 
-        <FormInput label="Referências" v-model="entry.references" id="references" type="text" textarea
-            placeholder="Referências do verbete" />
+        <FormFinder 
+            label="Categoria" 
+            v-model="entry.categoryId"
+            :default-expanded="entry.categoryId ?? undefined"
+            id="category"
+            :tree="tree" />
 
-        <FormSelect v-model="entry.categoryId" :label="'Categoria'" :options="categories" />
 
-        <span v-if="entry.id !== 0">
+        <FormAutocomplete 
+            id="relatedEntries" 
+            route="entries"
+            :modelValue="entry.relatedEntries"
+            @update="updateModel"
+            label="Verbetes relacionados"
+            placeholder="Digite o nome de um verbete..."  />
 
-            <div>
-                <Button label="ADICIONAR ARQUIVOS" @click="isOpen = true" />
-                <UModal v-model="isOpen" :ui = "{ width: 'max-w-5xl', rounded: '' }">
-                    <UCard :ui="{ rounded: '' }">
-                        <template #header>
-                            <span class="text-2xl text-black">
-                                Upload de arquivos
-                            </span>
-                        </template>
 
-                        <FormDropzone :entry-id="entry.id" />
+        <FormModalAuxiliaryForm
+            id="translations"
+            :items="entry.translations"
+            route="translations"
+            :object-id="entry.id"
+            label="Traduções" 
+            >
+    
+            <TranslationForm :entry-id="entry.id" @update="updateModel" />
+        
+        </FormModalAuxiliaryForm>
 
-                    </UCard>
-                </UModal>
-            </div>
 
-        </span>
+        <FormAutocomplete 
+            id="references"
+            route="references" 
+            :modelValue="entry.references"
+            @update="updateModel"
+            label="Referências"  
+            placeholder="Adicione referências..."
+            :allow-create=true
+            />
+
+
+        <FormMedia 
+            id="media" 
+            :media="entry.media" 
+            label="Imagens" 
+            :object-id="entry.id" 
+            @update="updateModel"
+            v-if="entry.id !== 0" />
 
     </Form>
 </template>
 
 <script setup lang="ts">
-
-const isOpen = ref(false)
-
 
 const props = defineProps<{ entry?: Entry }>();
 
@@ -51,7 +78,7 @@ const entry = ref<Entry>(
         code: '',
         definition: '',
         notes: '',
-        references: '',
+        references: [],
         categoryId: 0,
         media: [],
         translations: [],
@@ -64,10 +91,27 @@ const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
         categories.map((category: Category) => ({
             id: category.id,
             name: category.name,
+            parentId: category.parentId,
         })),
 });
 
+const tree = ref({});
+
+tree.value = useConvertToTreeData(categories.value);
+
+const updateModel = (property: string, action: string, item: any) => {
+
+    console.log('updateModel', property, action, item);
+
+    if (props.entry && props.entry[property]) {
+
+        if (action === 'add') {
+            props.entry[property].push(item);
+
+        } else if (action === 'remove') {
+            props.entry[property] = props.entry[property].filter((e) => e.id !== item.id);
+        }
+    }
+}
+
 </script>
-
-
-<style scoped></style>

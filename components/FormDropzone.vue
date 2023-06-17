@@ -2,7 +2,6 @@
     <div>
         <vue-dropzone ref="myVueDropzone" id="dropzone" 
         :options="dropzoneOptions" 
-        @vdropzone-error="uploadError" 
         />
         <input type="hidden" name="entryId" :value="entryId">
         
@@ -18,6 +17,7 @@
 import vueDropzone from 'vue2-dropzone-vue3';
 
 const myVueDropzone = ref(null);
+const emit = defineEmits(['update']);
 
 const dropzoneOptions = {
     url: '/api/upload',
@@ -39,15 +39,10 @@ const dropzoneOptions = {
             document.querySelector('input[name=entryId]').value
         );
     },
+    success: function (file, response) {
+        emit('update', response);
+    },
 
-};
-
-const uploadError = (file, message, xhr) => {
-    if (message instanceof Object) {
-        file.previewElement.querySelectorAll(
-            '.dz-error-message span'
-        )[0].textContent = message.message;
-    }
 };
 
 const uploadFiles = () => {
@@ -62,6 +57,10 @@ defineComponent({
 });
 
 defineProps({
+    id : {
+        type: String,
+        required: true
+    },
     entryId: {
         type: Number,
         required: true
@@ -77,7 +76,7 @@ defineProps({
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-.vue-dropzone > .dz-preview .dz-success-mark, .vue-dropzone > .dz-preview .dz-error-mark {
+.vue-dropzone > .dz-preview .dz-error-mark {
     width: auto;
     pointer-events: none;
     opacity: 0;
@@ -94,24 +93,6 @@ defineProps({
 
 .vue-dropzone > .dz-preview .dz-success-mark {
     background: green;
-}
-
-
-.vue-dropzone > .dz-preview .dz-remove {
-    position: absolute;
-    z-index: 30;
-    color: white;
-    background-color: #b10606;
-    left: 10%;
-    padding: 10px;
-    top: 0px;
-    border: 1px white solid;
-    text-decoration: none;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    font-weight: 800;
-    letter-spacing: 1.1px;
-    opacity: 0;
 }
 
 </style>

@@ -16,11 +16,11 @@ declare global {
     
     export interface Entry {
         id: number;
-        code: string;
+        code?: string;
         name: string;
         definition?: string;
         notes?: string;
-        references?: string;
+        references?: Reference[];
         media?: Media[];
         translations?: Translation[];
         relatedEntries?: Entry[];
@@ -78,5 +78,14 @@ declare global {
         entry: Entry;
         createdAt?: Date;
         updatedAt?: Date;   
+    }
+
+
+    export interface Reference {
+        id: number;
+        name: string;
+
+        createdAt?: Date;
+        updatedAt?: Date;
     }
 }

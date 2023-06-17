@@ -9,7 +9,7 @@
     </section>
     <section class="w-full md:w-4/5 md:pl-10 py-6 md:pt-0">
 
-      <ExternalEntryMedia />
+      <ExternalEntryMedia :images=images v-if="images.length > 0" />
 
       <div class="flex flex-col">
 
@@ -35,6 +35,11 @@ const props = defineProps({
   }
 })
 
+const images = ref([])
+
+props.entry.media.forEach((media: Media) => {
+  images.value.push('/' + media.name)
+})
 
 const terms = [
   {
