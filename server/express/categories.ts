@@ -77,4 +77,21 @@ router.post('/', async (req, res) => {
   }
 });
 
+
+router.delete('/:id', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const category = await prisma.category.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+    res.json(category);
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
