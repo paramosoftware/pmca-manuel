@@ -18,6 +18,25 @@ router.get('/', async (req, res, next) => {
     }
 });
 
+router.get('/:id', async (req, res, next) => {
+
+    const { id } = req.params;
+
+    try {
+        const language = await prisma.language.findUnique({
+            where: {
+                id: parseInt(id)
+            }
+        });
+        
+        res.json(language);
+
+    } catch (error) {
+        next(error);
+    }
+});
+
+
 router.post('/', async (req, res, next) => {
     
     const data: any = prepareRequestBodyForPrisma(req.body);
