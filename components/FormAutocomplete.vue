@@ -182,7 +182,7 @@ const createItem = async (value: string) => {
     const { data } = await useFetchWithBaseUrl('api/' + props.route, {
         method: 'POST',
         body: {
-            name: value
+            name: value.trim()
         }
     })
 

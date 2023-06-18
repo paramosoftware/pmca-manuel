@@ -12,7 +12,7 @@
         <FormQuillEditor
             id="name"
             required
-            v-model="reference.name"
+            v-model.trim="reference.name"
             label="Referência" 
             />
 

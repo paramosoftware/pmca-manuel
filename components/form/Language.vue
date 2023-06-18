@@ -14,14 +14,14 @@
             label="Nome" 
             type="text" 
             required
-            v-model="language.name" 
+            v-model.trim="language.name" 
             />
 
         <FormInput 
             id="code"
             label="Sigla" 
             type="text" 
-            v-model="language.code" 
+            v-model.trim="language.code" 
             />
 
     </Form>

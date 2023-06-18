@@ -12,7 +12,7 @@
         <FormInput 
             id="name" 
             label="Nome" 
-            v-model="category.name" 
+            v-model.trim="category.name" 
             type="text" 
             required
             />
@@ -20,7 +20,7 @@
         <FormInput 
             id="description" 
             label="Descrição" 
-            v-model="category.description" 
+            v-model.trim="category.description" 
             type="text" 
             textarea
         

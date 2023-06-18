@@ -14,7 +14,7 @@
         <FormInput 
             id="name"
             label="Nome" 
-            v-model="entry.name"  
+            v-model.trim="entry.name"  
             type="text" 
             required
             placeholder="Nome do verbete" />
