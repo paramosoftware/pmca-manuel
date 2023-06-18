@@ -5,6 +5,7 @@
     class="text-white bg-red-900 p-2 focus:outline-none focus:border-transparent hover:bg-red-950"
   >
     {{ label }}
+    <slot />
   </button>
 </template>
 

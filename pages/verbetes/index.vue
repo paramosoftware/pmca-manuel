@@ -3,11 +3,11 @@
   <main class="container max-w-screen-xl mx-auto p-5 bg-white border border-neutral mt-5">
     <div class="flex items-center justify-between">
       <div class="flex flex-col">
-        <h1 class="text-5xl text-black">Verbetes</h1>
+        <h1 class="text-4xl text-black">Verbetes</h1>
         <p class="text-black">{{ filteredEntries.length }} resultados</p>
       </div>
 
-      <button class="flex flex-col items-end justify-center" @click="handleSort">
+      <button v-if="listMode != 'hierarchical'"  class="flex flex-col items-end justify-center" @click="handleSort">
         <Icon class="text-black w-20" :name="sortOrder === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending'" />
       </button>
     </div>
@@ -29,53 +29,19 @@
         <select v-model="listMode" @input=handleMode
           class="w-full  text-md text-black border-black bg-transparent focus:outline-none focus:ring-red-900 focus:border-transparent"
           id="list-mode">
-          <option value="category">Por categoria</option>
+          <option value="hierarchical">Hierárquica</option>
           <option value="alphabetical">Alfabética</option>
-          <option value="list">Lista</option>
         </select>
       </div>
-
-      <div class="w-full sm:w-1/10 mt-4 md:mt-0 md:ml-5">
-        <label class="text-lg uppercase text-red-900" for="list-mode">
-          Categoria
-        </label>
-        <select v-model="category" @input=handleCategory
-          class="w-full  text-md text-black border-black bg-transparent focus:outline-none focus:ring-red-900 focus:border-transparent"
-          id="list-mode">
-          <option value="0">Todas</option>
-          <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
-        </select>
-      </div>
-      
 
     </div>
-
 
     <span v-if="filteredEntries.length === 0" class="text-black text-xl">
       Nenhum resultado encontrado
     </span>
 
-    <div v-if="listMode !== 'list'" id="accordion-flush" data-accordion="collapse" class="mt-5"
-      data-active-classes="text-black" data-inactive-classes="text-black">
-
-      <div v-for="(entries, key, index) in filteredEntriesByMode">
-        <h2 :key="key" :id="'accordion-flush-heading-' + index" class="cursor-pointer mb-5">
-          <button type="button"
-            class="flex items-center justify-between border-b border-b-red-900 w-full p-5 text-3xl text-black text-left bg-white"
-            :data-accordion-target="'#accordion-flush-body-' + index" aria-expanded="false"
-            :aria-controls="'accordion-flush-body-' + index">
-            <span>{{ key }}</span>
-            <Icon data-accordion-icon class="w-20 shrink-0 text-black" name="ph:caret-down" />
-          </button>
-        </h2>
-
-        <div :id="'accordion-flush-body-' + index" class="hidden px-10"
-          :aria-labelledby="'accordion-flush-heading-' + index">
-          <ExternalEntryList v-for="entry in entries" :key="entry.id" :entry="entry"
-            :show-category="listMode !== 'category'" class="pl-4" />
-        </div>
-
-      </div>
+    <div v-else-if="listMode === 'hierarchical'">
+        <TreeView :tree="tree" class="mt-5 p-2" />
     </div>
 
     <div v-else class="mt-5">
@@ -110,11 +76,25 @@ const query = computed(() => {
 
 const entries = ref([])
 const entriesByCategory = ref([])
-const filter = ref('');
-const listMode = ref('category'); // category, alphabetical, list
 const sortOrder = ref('asc');
+const filter = ref('');
+const listMode = ref('hierarchical'); // hierarchical, alphabetical
 const categories = ref([]);
 const category = ref("0");
+const tree = ref({});
+
+
+const { data: hierarchy } = await useFetchWithBaseUrl('/api/categories', {
+    transform: (categories) =>
+        categories.map((category: Category) => ({
+            id: category.id,
+            name: category.name,
+            parentId: category.parentId,
+            entries: category.entries,
+        })),
+});
+
+tree.value = useConvertToTreeData(hierarchy.value, false, true, null);
 
 const fetchEntries = async (query) => {
   const { data } = await useFetchWithBaseUrl('/api/entries/search', {
@@ -214,6 +194,9 @@ const handleCategory = (event: Event) => {
 };
 
 const handleFilter = (event: Event) => {
+
+  listMode.value = 'alphabetical';
+
   filter.value = event.target.value;
 };
 

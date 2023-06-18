@@ -73,7 +73,8 @@ declare global {
     export interface Translation {
         id: number;
         name: string;
-        language: Language;
+        language?: Language;
+        languageId: number;
         entry: Entry;
         createdAt?: Date;
         updatedAt?: Date;   

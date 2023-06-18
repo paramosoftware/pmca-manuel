@@ -2,12 +2,17 @@
 
     <div class="flex flex-col justify-center items-center mt-10">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
-            <AnchorReturn v-if="isStandalone"  :href="`/logged/${pluralNamePt}`" />
+
+            <AnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
 
             <div class="justify-between flex flex-row items-center mt-4">
+
                 <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
 
-                <Button v-if=!isCreate label="NOVA" :on-click="() => $router.push(`/logged/${pluralNamePt}/criar`)" />
+                <NuxtLink :to="'/logged/' + urlPath + '/criar'">
+                    <Button>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</Button>
+                </NuxtLink>
+
             </div>
 
             <div class="mt-2 align-center" v-show="backFromSaving">
@@ -28,6 +33,9 @@
 <script setup lang="ts">
 
 const props = defineProps({
+    genderNoun: {
+        type: String,
+    },
     singularName: {
         type: String,
         default: 'object'
@@ -43,6 +51,10 @@ const props = defineProps({
     pluralNamePt: {
         type: String,
         default: 'objetos'
+    },
+    urlPath: {
+        type: String,
+        required: true  
     },
     isCreate: {
         type: Boolean,
@@ -68,7 +80,7 @@ const backFromSaving = ref(false);
 
 const save = async () => {
 
-    let url = `/api/${props.pluralName}/${props.object.id}`;
+    let url = '/api/' + props.pluralName + '/' + props.object.id;
     let method = 'PUT';
 
     if (props.object.id === 0) {

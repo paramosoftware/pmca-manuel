@@ -1,11 +1,13 @@
 <template>
     <Form 
+        gender-noun="m"
         singular-name="entry" 
         plural-name="entries"
         singular-name-pt="verbete" 
         plural-name-pt="verbetes" 
         :object=entry
         :is-create="entry.id == 0"
+        url-path="verbetes"
         @auxiliary-saved="console.log('auxiliary-saved', $event)"
         >
 
@@ -97,7 +99,7 @@ const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
 
 const tree = ref({});
 
-tree.value = useConvertToTreeData(categories.value);
+tree.value = useConvertToTreeData(categories.value, true, false, null);
 
 const updateModel = (property: string, action: string, item: any) => {
 
