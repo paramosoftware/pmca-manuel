@@ -1,13 +1,16 @@
 <template>
+
     <Form 
         gender-noun="m"
-        singular-name="user" 
-        plural-name="users" 
-        singular-name-pt="usuário" 
+        singular-name="user"
+        plural-name="users"
+        singular-name-pt="usuário"
         plural-name-pt="usuarios"
-        :object=user 
+        :object=user
         :is-create="user.id == 0"
         url-path="usuarios"
+        :showNewButton="!isChangingPassword"
+        @changeUserFormState="isChangingPassword = false"
     >
         <FormInput label="Nome" v-if=!isChangingPassword v-model="user.name" id="name" ref="name" type="text" placeholder="Nome do usuário" />
 
@@ -15,7 +18,7 @@
 
         <FormSelect label="Tipo" v-if=!isChangingPassword v-model="user.role" id="role" :options="options" :mandatory="true" />
            
-        <FormInput label="Senha" v-model="user.password" v-if="(!user.id || isChangingPassword)" id="password" type="password" placeholder="Senha" />
+        <FormInput label="Senha" v-model="user.password" v-if="(!user.id || isChangingPassword)" id="password" ref="password" type="password" placeholder="Senha" />
 
         <FormInput label="Confirmação da senha" v-model="passwordConfirmation" v-if="(!user.id || isChangingPassword)" id="password_confirmation" type="password" placeholder="Digite a senha novamente" />
 
@@ -25,20 +28,20 @@
             <Button label="ALTERAR SENHA" :on-click="changeUserPassword" />
         </div>
     </Form>
+
 </template>
 
 <script setup lang="ts">
 
 const props = defineProps<{ user?: User }>();
 const passwordConfirmation = ref("");
-let isChangingPassword = ref(false);
 
 const user = ref<User>(
     props.user ?? {
         id: 0,
         name: '',
         email: '',
-        role: '2',
+        role: 2,
         password: '',
         refreshToken: ''
     }
@@ -51,9 +54,28 @@ const options = computed(() => {
     ];
 });
 
-const changeUserPassword = () => {
-    props.user.password = "";
-    isChangingPassword.value = true;
-}
+</script>
 
+<script lang="ts">
+
+export default {
+    data() {
+        return {
+            isChangingPassword: false
+        }
+    },
+    mounted () {
+        this.$nextTick(() => this.$refs["name"].$el.children[1].focus());
+    },
+    methods: {
+        changeUserPassword() {
+            this.$props.user.password = "";
+            this.$refs.passwordConfirmation = "";
+            this.isChangingPassword = true;
+
+            this.$nextTick(() => this.$refs["password"].$el.children[1].focus());
+        }
+    }
+} 
+ 
 </script>

@@ -4,20 +4,20 @@
     <div class="flex flex-col justify-center items-center mt-10">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
 
-            <AnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
+            <AnchorReturn v-if="isStandalone" :href="'/logged/' + urlPath" />
 
             <div class="justify-between flex flex-row items-center mt-4">
 
                 <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
 
-                <NuxtLink :to="'/logged/' + urlPath + '/criar'">
+                <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if=showNewButton>
                     <Button>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</Button>
                 </NuxtLink>
 
             </div>
 
-            <div class="mt-2 align-center" v-show="backFromSaving">
-                <h1>Registro salvo com sucesso.</h1>
+            <div class="mt-2 text-center" v-show="backFromSaving">
+                <h1>Dados salvos com sucesso.</h1>
             </div>
 
             <slot />
@@ -72,11 +72,15 @@ const props = defineProps({
                 id: 0
             }
         }
-    }
+    },
+    showNewButton: {
+        type: Boolean,
+        default: true
+    },
 });
 
 const router = useRouter();
-const emit = defineEmits(['auxiliarySaved']);
+const emit = defineEmits(['auxiliarySaved', 'changeUserFormState']);
 const backFromSaving = ref(false);
 
 const save = async () => {
@@ -100,11 +104,12 @@ const save = async () => {
         {
             const navigationResult = await router.push('/logged/' + props.pluralNamePt + '/editar/' + saved.value.id);
             backFromSaving.value = true;
+
+            emit('changeUserFormState');
         } else {
             emit('auxiliarySaved', saved.value);
         }
     }
-    
 };
 
 </script>
