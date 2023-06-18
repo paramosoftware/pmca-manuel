@@ -1,0 +1,98 @@
+<template>
+    <div class="flex flex-col justify-center items-center mt-10">
+        <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
+            <div class="flex flex-row justify-start items-center">
+                <AnchorReturn href="/logged" />
+            </div>
+
+            <div class="justify-between flex flex-row items-center my-4">
+                <h1 class="text-3xl text-black first-letter:uppercase">{{ pluralNamePt }}</h1>
+                <NuxtLink :to="'/logged/' + pluralNamePt + '/criar'">
+                    <Button>{{ gender === 'f' ? 'NOVA' : 'NOVO' }}</Button>
+                </NuxtLink>
+            </div>
+
+            <div class="mt-4">
+                <FormInput 
+                    label="Filtrar" 
+                    v-model="filter" 
+                    @input="filteredObjects" 
+                    id="filter"
+                    type="text"
+                    :placeholder="'Filtrar ' + pluralNamePt" />
+            </div>
+
+            <div v-for="object in filteredObjects" :key="object.id" class="w-full py-4 border-b border-red-900 last:border-b-0">
+                <ListCard 
+                    :object="object" 
+                    :singularNamePt="singularNamePt"
+                    :pluralNamePt="pluralNamePt"
+                    @open-modal="openModalDelete"
+                    />
+            </div>
+
+            <ListModalDelete  
+                :pluralName="pluralName"
+                :singularNamePt="singularNamePt"
+                :pluralNamePt="pluralNamePt"
+                v-model="isModalDeleteOpen"
+                :objectIdToDelete="objectIdToDelete"
+                @delete="removeFromList"
+             />
+
+
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+const props = defineProps({
+    gender: {
+        type: String,
+        required: true,
+    },
+    singularName: {
+        type: String,
+        required: true,
+    },
+    pluralName: {
+        type: String,
+        required: true,
+    },
+    singularNamePt: {
+        type: String,
+    },
+    pluralNamePt: {
+        type: String,
+    },
+});
+
+
+const isModalDeleteOpen = ref(false);
+const objectIdToDelete = ref(0);
+const objects = ref<{ id: number, name: string }[]>([]);
+const filter = ref('')
+const { data } = await useFetchWithBaseUrl('/api/' + props.pluralName);
+
+objects.value = data.value;
+
+const removeFromList = (id: number) => {
+    objects.value = objects.value.filter(object => object.id !== id);
+}
+
+const openModalDelete = (id: number) => {
+    isModalDeleteOpen.value = true;
+    objectIdToDelete.value = id;
+}
+
+
+const filteredObjects = computed(() => {
+    if (!filter.value) {
+        return objects.value;
+    }
+
+    return objects.value.filter(object => object.name.toLowerCase().includes(filter.value.toLowerCase()));
+});
+
+
+</script>
