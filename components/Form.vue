@@ -1,10 +1,17 @@
 <template>
+
     <div class="flex flex-col justify-center items-center mt-10">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
             <AnchorReturn v-if="isStandalone"  :href="`/logged/${pluralNamePt}`" />
+
             <div class="justify-between flex flex-row items-center mt-4">
                 <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
+
                 <Button v-if=!isCreate label="NOVA" :on-click="() => $router.push(`/logged/${pluralNamePt}/criar`)" />
+            </div>
+
+            <div class="mt-2 align-center" v-show="backFromSaving">
+                <h1>Registro salvo com sucesso.</h1>
             </div>
 
             <slot />
@@ -14,6 +21,7 @@
             </div>
         </div>
     </div>
+
 </template>
 
 
@@ -56,6 +64,7 @@ const props = defineProps({
 
 const router = useRouter();
 const emit = defineEmits(['auxiliarySaved']);
+const backFromSaving = ref(false);
 
 const save = async () => {
 
@@ -74,8 +83,10 @@ const save = async () => {
     });
 
     if (saved) {
-        if (props.isStandalone) {
-            router.push('/logged/' + props.pluralNamePt + '/editar/' + saved.value.id);
+        if (props.isStandalone) 
+        {
+            const navigationResult = await router.push('/logged/' + props.pluralNamePt + '/editar/' + saved.value.id);
+            backFromSaving.value = true;
         } else {
             emit('auxiliarySaved', saved.value);
         }

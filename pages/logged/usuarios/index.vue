@@ -32,7 +32,9 @@
             <div v-for="user in filteredUsers" :key="user.id" class="w-full py-4 border-b border-red-900 last:border-b-0">
                 <div class="w-full h-full flex items-center justify-between">
                     <div>
-                        <h1 class="text-2xl text-black">{{ user.name }}</h1>
+                        <h1 class="text-2xl text-black" @click="() => editUser(user.id)">
+                            {{ user.name }}
+                        </h1>
                     </div>
 
                     <div>

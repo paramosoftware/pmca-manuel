@@ -12,7 +12,8 @@ router.get('/:id', async (req, res) => {
       select: {
         id: true,
         name: true,
-        email: true
+        email: true,
+        role: true
       },
       where: {
         id: parseInt(id),
@@ -28,21 +29,27 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const id = req.params.id;
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   try {
-    const password_hash = bcrypt.hashSync(password, 10);
 
+    let dataToSave = {};
+
+    if (password)
+    {
+        const password_hash = bcrypt.hashSync(password, 10);
+        dataToSave = {name, email, role, password: password_hash};
+    }
+    else
+        dataToSave = {name, email, role};
+    
     const user = await prisma.user.update({
       where: {
         id: parseInt(id),
       },
-      data: {
-        name,
-        email,
-        password: password_hash
-      },
+      data: dataToSave,
     });
+
     res.json(user);
   } catch (error: any) {
     console.error(error);
@@ -66,7 +73,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   try {
 
@@ -76,7 +83,8 @@ router.post('/', async (req, res) => {
       data: {
         name,
         email,
-        password: password_hash
+        password: password_hash,
+        role
       },
     });
 

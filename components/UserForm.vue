@@ -5,8 +5,10 @@
         <FormInput label="Nome" v-model="user.name" id="name" ref="name" type="text" placeholder="Nome do usuário" />
 
         <FormInput label="E-mail" v-model="user.email" id="email" type="text" placeholder="E-mail" />
+
+        <FormSelect label="Tipo" v-model="user.role" id="role" :options="options" :mandatory="true" />
            
-        <FormInput label="Senha" v-model="user.password" id="password" type="text" placeholder="Senha" />
+        <FormInput label="Senha" v-model="user.password" v-if="user.id" id="password" type="password" placeholder="Senha" />
     </Form>
 </template>
 
@@ -19,11 +21,17 @@ const user = ref<User>(
         id: 0,
         name: '',
         email: '',
+        role: '1',
         password: '',
         refreshToken: ''
     }
 );
 
-const { data: users } = await useFetchWithBaseUrl('/api/users');
+const options = computed(() => {
+    return [
+        {id: "2", textValue: "padrão"},
+        {id: "1", textValue: "administrador"}
+    ];
+})
 
 </script>

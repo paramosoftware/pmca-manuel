@@ -98,7 +98,7 @@ model User {
   firstName     String?     @map("first_name")
   lastName      String?     @map("last_name")
 
-  role         String?      @default("user")
+  role         String?      @default("1")
 
   refreshToken  String?     @unique @map("refresh_token")
 
