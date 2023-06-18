@@ -1,6 +1,13 @@
 <template>
-    <Form singular-name="category" plural-name="categories" singular-name-pt="categoria" plural-name-pt="categorias"
-        :object=category :is-create="category.id == 0">
+    <Form
+        gender-noun="f" 
+        singular-name="category" 
+        plural-name="categories" 
+        singular-name-pt="categoria" 
+        plural-name-pt="categorias"
+        url-path="categorias"
+        :object=category 
+        :is-create="category.id == 0">
 
         <FormInput label="Nome" v-model="category.name" id="name" type="text" placeholder="Nome da categoria" />
 

@@ -1,11 +1,13 @@
 <template>
     <Form 
+        gender-noun="m"
         singular-name="entry" 
         plural-name="entries"
         singular-name-pt="verbete" 
         plural-name-pt="verbetes" 
         :object=entry
         :is-create="entry.id == 0"
+        url-path="verbetes"
         @auxiliary-saved="console.log('auxiliary-saved', $event)"
         >
 
