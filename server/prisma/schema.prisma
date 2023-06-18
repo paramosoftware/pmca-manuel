@@ -93,16 +93,19 @@ model Media {
 model User {
   id            Int         @id @default(autoincrement())
   email         String      @unique @map("email") 
+  name          String      @unique @default("")
   password      String   
   firstName     String?     @map("first_name")
   lastName      String?     @map("last_name")
 
-  role         String?     @default("user")
+  role         String?      @default("1")
 
   refreshToken  String?     @unique @map("refresh_token")
 
   createdAt     DateTime?   @default(now()) @map("created_at")
   updatedAt     DateTime?   @updatedAt @map("updated_at")
+
+  @@map("users")
 }
   
 

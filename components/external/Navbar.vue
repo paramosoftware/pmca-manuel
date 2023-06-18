@@ -1,16 +1,22 @@
 <template>
     <nav id="navbar" class="sticky w-full top-0 left-0 right-0 z-10 p-4 border-b border-neutral-400 bg-neutral-100">
+
     <div class="flex flex-col md:flex-row items-center justify-between">
       <div class="flex flex-row items-center mb-5">
         <NuxtLink to="/">
           <span class="text-2xl p-5 hover:underline text-black">Início</span>
         </NuxtLink>
+
         <NuxtLink to="/verbetes">
           <span class="text-2xl p-5 hover:underline text-black">Verbetes</span>
         </NuxtLink>
-        <NuxtLink to="/logged">
-          <span class="text-2xl p-5 hover:underline text-black">Cadastrar</span>
+
+        <NuxtLink to="/logged" v-show="isUserLogged">
+          <span class="text-2xl p-5 hover:underline text-black">Gerenciar</span>
         </NuxtLink>
+
+        <Button label="Logout" v-show="isUserLogged" :on-click="logout">
+        </Button>
       </div>
 
       <div class="flex items-center">
@@ -41,6 +47,7 @@ const search = ref(router.currentRoute.value.query.termo || '');
 const searchHandler = (e: Event) => {
   if (search.value) {
     e.preventDefault();
+    
     router.push({
       path: '/busca',
       query: {
@@ -50,5 +57,37 @@ const searchHandler = (e: Event) => {
   }
 };
 
+const logout = async () => {
+  const { data, error } = await useFetchWithBaseUrl('/api/auth/logout', {
+      method: 'POST',
+  });
+
+  //console.log(data);
+
+  router.push({
+      path: '/login'
+  });
+};
+
+</script>
+
+<script lang="ts">
+
+export default {
+  data() {
+    return {
+      isUserLogged: true
+    }
+  },
+  created() {
+    this.checkUserIsLogged();
+  },
+  methods: {
+      async checkUserIsLogged() {
+          const { isAuthenticated }  = useAuth();
+          this.isUserLogged = await isAuthenticated();
+      }
+  }
+}
 
 </script>

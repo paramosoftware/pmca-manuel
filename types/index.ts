@@ -12,7 +12,6 @@ declare global {
         createdAt?: Date;
         updatedAt?: Date;
     }
-
     
     export interface Entry {
         id: number;
@@ -53,7 +52,6 @@ declare global {
         updatedAt?: Date;
     }
 
-
     export interface User {
         id: number;
         email: string;
@@ -61,6 +59,8 @@ declare global {
 
         refreshToken: string;
 
+        name: string;
+        
         firstName?: string;
         lastName?: string;
 
@@ -69,7 +69,6 @@ declare global {
         createdAt?: Date;
         updatedAt?: Date;
     }
-
 
     export interface Translation {
         id: number;
@@ -80,7 +79,6 @@ declare global {
         createdAt?: Date;
         updatedAt?: Date;   
     }
-
 
     export interface Reference {
         id: number;

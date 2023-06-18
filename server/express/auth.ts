@@ -7,7 +7,6 @@ import { User } from '@prisma/client';
 
 const router = express.Router();
 
-
 const generateAccessToken = (user: User) => {
     const expiresIn = '10m';
     const accessToken = process.env.ACCESS_TOKEN_SECRET!;

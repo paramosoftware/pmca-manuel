@@ -30,10 +30,12 @@ const errorMessage = ref("");
 const router = useRouter();
 
 const submit = async () => {
+
   if (!email.value || !password.value) {
     errorMessage.value = "E-mail e senha são obrigatórios";
     return;
   }
+
   const { data, error } = await useFetchWithBaseUrl('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({
@@ -51,4 +53,5 @@ const submit = async () => {
   }
   
 };
+
 </script>
