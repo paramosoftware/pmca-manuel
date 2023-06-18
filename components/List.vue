@@ -7,8 +7,8 @@
 
             <div class="justify-between flex flex-row items-center my-4">
                 <h1 class="text-3xl text-black first-letter:uppercase">{{ pluralNamePt }}</h1>
-                <NuxtLink :to="'/logged/' + pluralNamePt + '/criar'">
-                    <Button>{{ gender === 'f' ? 'NOVA' : 'NOVO' }}</Button>
+                <NuxtLink :to="'/logged/' + urlPath + '/criar'">
+                    <Button>{{ genderNoun === 'f' ? 'NOVA' : 'NOVO' }}</Button>
                 </NuxtLink>
             </div>
 
@@ -23,20 +23,23 @@
             </div>
 
             <div v-for="object in filteredObjects" :key="object.id" class="w-full py-4 border-b border-red-900 last:border-b-0">
+
                 <ListCard 
                     :object="object" 
-                    :singularNamePt="singularNamePt"
-                    :pluralNamePt="pluralNamePt"
+                    :singular-name-pt="singularNamePt"
+                    :plural-name-pt="pluralNamePt"
                     @open-modal="openModalDelete"
+                    :url-path="urlPath"
+                    :is-html="isHtml"
                     />
             </div>
 
             <ListModalDelete  
-                :pluralName="pluralName"
-                :singularNamePt="singularNamePt"
-                :pluralNamePt="pluralNamePt"
+                :plural-name="pluralName"
+                :singular-name-pt="singularNamePt"
+                :plural-name-pt="pluralNamePt"
                 v-model="isModalDeleteOpen"
-                :objectIdToDelete="objectIdToDelete"
+                :object-id-to-delete="objectIdToDelete"
                 @delete="removeFromList"
              />
 
@@ -47,7 +50,7 @@
 
 <script setup lang="ts">
 const props = defineProps({
-    gender: {
+    genderNoun: {
         type: String,
         required: true,
     },
@@ -65,6 +68,13 @@ const props = defineProps({
     pluralNamePt: {
         type: String,
     },
+    urlPath: {
+        type: String
+    },
+    isHtml: {
+        type: Boolean,
+        default: false
+    }
 });
 
 

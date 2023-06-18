@@ -6,12 +6,9 @@
 
                 <h1 class="text-5xl text-black">Cadastros</h1>
 
-
-                <NuxtLink to="/logged/verbetes">
-                    <p class="text-2xl pt-5 hover:underline text-red-900 ">Verbetes</p>
-                </NuxtLink>
-                <NuxtLink to="/logged/categorias">
-                    <p class="text-2xl pt-5 hover:underline text-red-900">Categorias</p>
+                <NuxtLink v-for="link in links" :key="link.name" :to="link.path" 
+                    class="text-2xl pt-5 hover:underline text-red-900">
+                    {{ link.name }}
                 </NuxtLink>
 
             </div>
@@ -27,6 +24,22 @@
 definePageMeta({
     middleware: 'auth'
 })
+
+
+const links = [
+    {
+        name: 'Verbetes',
+        path: '/logged/verbetes'
+    },
+    {
+        name: 'Categorias',
+        path: '/logged/categorias'
+    },
+    {
+        name: 'Referências',
+        path: '/logged/referencias'
+    }
+]
 
 
 </script>
