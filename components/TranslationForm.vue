@@ -1,19 +1,27 @@
 <template>
-    <Form 
+    <Form
+        gender-noun="f"
         singular-name="translation" 
         plural-name="translations" 
         singular-name-pt="tradução" 
         plural-name-pt="traduções"
+        url-path="traducoes"
         :object=translation 
         :is-create="translation.id == 0" 
         :is-standalone=false
         @auxiliary-saved="updateParent"
         >
 
-
         <input type="hidden" v-model="translation.entry.id" id="entryId" />
 
-        <FormInput label="Tradução" v-model="translation.name" id="name" type="text" placeholder="Tradução" />
+        <FormInput 
+            id="name" 
+            type="text"  
+            label="Tradução" 
+            required
+            v-model="translation.name"
+            placeholder="Tradução" 
+            />
 
         <FormAutocomplete 
             id="language"
@@ -37,6 +45,7 @@ const translation = ref<Translation>(
     props.translation ?? {
         id: 0,
         name: '',
+        languageId: 0,
         language: {
             id: 0,
             name: ''
