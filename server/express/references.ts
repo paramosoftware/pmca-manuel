@@ -21,6 +21,22 @@ router.get('/', async (req, res, next) => {
 
 });
 
+router.get('/:id', async (req, res, next) => {
+    const { id } = req.params;
+
+    try {
+        const reference = await prisma.reference.findUnique({
+            where: {
+                id: parseInt(id)
+            }
+        });
+        res.json(reference);
+
+    } catch (error) {
+        next(error);
+    }
+});
+
 router.post('/', async (req, res, next) => {
     
     const data: any = prepareRequestBodyForPrisma(req.body, true);
