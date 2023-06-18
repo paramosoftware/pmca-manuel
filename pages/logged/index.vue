@@ -38,6 +38,10 @@ const links = [
     {
         name: 'Referências',
         path: '/logged/referencias'
+    },
+    {
+        name: 'Idiomas',
+        path: '/logged/idiomas'
     }
 ]
 
