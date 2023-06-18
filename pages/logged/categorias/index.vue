@@ -42,11 +42,35 @@
                             @click="() => editCategory(category.id)" />
                         <span class="sr-only">Excluir categoria</span>
                         <Icon name="ph:trash-simple" class="text-black w-6 h-6 m-1" title="Excluir categoria"
-                            @click="() => deleteCategory(category.id)" />
+                            @click="openModalDelete(category.id)" />
                     </div>
 
                 </div>
             </div>
+
+
+
+            <UModal v-model="isModalDeleteOpen" :ui="{ width: 'max-w-md', rounded: '' }">
+                <UCard :ui="{ rounded: '' }">
+                    <template #header>
+                        <span class="text-2xl text-black">
+                            Excluir categoria
+                        </span>
+                    </template>
+
+                    Você tem certeza que deseja excluir?
+
+                    <template #footer>
+                        <div class="flex flex-row justify-end items-center">
+                            <Button @click="closeModalDelete" label="CANCELAR" type="button" class="mr-2" />
+                            <Button @click="deleteCategory(categoryToDelete)" label="EXCLUIR" type="button" />
+                        </div>
+                    </template>
+                </UCard>
+            </UModal>
+
+
+
         </div>
     </div>
 </template>
@@ -54,6 +78,8 @@
 <script setup lang="ts">
 
 const categories = ref<Category[]>([]);
+const isModalDeleteOpen = ref(false);
+const categoryToDelete = ref(0);
 
 const { data } = await useFetchWithBaseUrl('/api/categories');
 
@@ -67,6 +93,16 @@ const createCategory = () => {
 
 const editCategory = (id: number) => {
     router.push(`/logged/categorias/editar/${id}`);
+}
+
+const openModalDelete = (id: number) => {
+    isModalDeleteOpen.value = true;
+    categoryToDelete.value = id;
+}
+
+const closeModalDelete = () => {
+    isModalDeleteOpen.value = false;
+    categoryToDelete.value = 0;
 }
 
 const deleteCategory = async (id: number) => {

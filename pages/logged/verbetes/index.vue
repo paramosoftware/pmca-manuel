@@ -25,7 +25,8 @@
                     id="filter" type="text" placeholder="Filtrar verbetes">
             </div>
 
-            <div v-for="entry in filteredEntries" :key="entry.id" class="w-full py-4 border-b border-red-900 last:border-b-0">
+            <div v-for="entry in filteredEntries" :key="entry.id"
+                class="w-full py-4 border-b border-red-900 last:border-b-0">
                 <div class="w-full h-full flex items-center justify-between">
                     <div>
                         <h1 class="text-2xl text-black">{{ entry.name }}</h1>
@@ -36,14 +37,34 @@
                     <div>
                         <span class="sr-only">Editar verbete</span>
                         <Icon name="ph:pencil-simple" class="text-black w-6 h-6 m-1" title="Editar verbete"
-                            @click="() => edit(entry.id)" />
+                            @click="edit(entry.id)" />
                         <span class="sr-only">Excluir verbete</span>
                         <Icon name="ph:trash-simple" class="text-black w-6 h-6 m-1" title="Excluir verbete"
-                            @click="() => deleteCategory(entry.id)" />
+                            @click="openModalDelete(entry.id)" />
                     </div>
-
                 </div>
             </div>
+
+            <UModal v-model="isModalDeleteOpen" :ui="{ width: 'max-w-md', rounded: '' }">
+                <UCard :ui="{ rounded: '' }">
+                    <template #header>
+                        <span class="text-2xl text-black">
+                            Excluir verbete
+                        </span>
+                    </template>
+
+                    Você tem certeza que deseja excluir?
+
+                    <template #footer>
+                        <div class="flex flex-row justify-end items-center">
+                            <Button @click="closeModalDelete" label="CANCELAR" type="button" class="mr-2" />
+                            <Button @click="deleteEntry(entryToDelete)" label="EXCLUIR" type="button" />
+                        </div>
+                    </template>
+                </UCard>
+            </UModal>
+
+
         </div>
     </div>
 </template>
@@ -51,6 +72,9 @@
 <script setup lang="ts">
 
 const entries = ref<Entry[]>([]);
+
+const isModalDeleteOpen = ref(false);
+const entryToDelete = ref(0);
 
 const { data } = await useFetchWithBaseUrl('/api/entries');
 
@@ -66,13 +90,25 @@ const edit = (id: number) => {
     router.push(`/logged/verbetes/editar/${id}`);
 }
 
-const deleteCategory = async (id: number) => {
+const openModalDelete = (id: number) => {
+    isModalDeleteOpen.value = true;
+    entryToDelete.value = id;
+}
+
+const closeModalDelete = () => {
+    isModalDeleteOpen.value = false;
+    entryToDelete.value = 0;
+}
+
+
+const deleteEntry = async (id: number) => {
     const { data } = await useFetchWithBaseUrl(`/api/entries/${id}`, {
         method: 'DELETE'
     });
 
     if (data) {
         entries.value = entries.value.filter(entry => entry.id !== id);
+        closeModalDelete();
     }
 }
 
@@ -88,6 +124,3 @@ const filteredEntries = computed(() => {
 
 
 </script>
-
-
-<style scoped></style>
