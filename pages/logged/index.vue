@@ -1,7 +1,7 @@
 <template>
     <ExternalNavbar />
 
-    <main class="container max-w-screen-xl mx-auto p-5 bg-white border border-neutral mt-5 h-80">
+    <main class="container max-w-screen-xl mx-auto p-5 bg-white border border-neutral mt-5 h-full">
         <div class="flex items-center justify-between">
             <div class="flex flex-col">
 
@@ -10,6 +10,7 @@
                 <NuxtLink v-for="link in links" :key="link.name" :to="link.path" 
                     class="text-2xl pt-5 hover:underline text-red-900">
                     {{ link.name }}
+                </NuxtLink>
 
             </div>
         </div>
