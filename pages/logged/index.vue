@@ -10,7 +10,7 @@
                 <NuxtLink v-for="link in links" :key="link.name" :to="link.path" 
                     class="text-2xl pt-5 hover:underline text-red-900">
                     {{ link.name }}
-
+                </NuxtLink>
             </div>
         </div>
     </main>
