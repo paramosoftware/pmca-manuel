@@ -5,7 +5,7 @@
         <h1 class="text-3xl text-black">Login</h1>
       </div>
       <form @submit.prevent="submit" class="mt-5">
-        <FormInput label="E-mail" v-model="email" type="email" placeholder="Digite seu e-mail" />
+        <FormInput label="E-mail" v-model="email" type="text" placeholder="Digite seu e-mail" />
         <FormInput label="Senha" v-model="password" type="password" placeholder="Digite sua senha" />
         <div v-if="errorMessage" class="text-red-500">{{ errorMessage }}</div>
         <div class="mt-5 text-end">

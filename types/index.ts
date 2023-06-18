@@ -64,7 +64,7 @@ declare global {
         firstName?: string;
         lastName?: string;
 
-        role?: string;
+        role?: number;
 
         createdAt?: Date;
         updatedAt?: Date;
