@@ -7,9 +7,10 @@
 
                 <h1 class="text-5xl text-black">Cadastros</h1>
 
-                <NuxtLink v-for="link in links" :key="link.name" :to="link.path" 
+                <NuxtLink v-for="link in availableLinks" :key="link.name" :to="link.path"
                     class="text-2xl pt-5 hover:underline text-red-900">
                     {{ link.name }}
+                </NuxtLink>
 
             </div>
         </div>
@@ -24,28 +25,52 @@ definePageMeta({
     middleware: 'auth'
 })
 
+const { isAuthenticated, isAdmin } = useAuth();
+const _isAdmin = await isAdmin();
+
 const links = [
     {
         name: 'Verbetes',
-        path: '/logged/verbetes'
+        path: '/logged/verbetes',
+        restrictedToAdmin: false
     },
     {
         name: 'Categorias',
-        path: '/logged/categorias'
+        path: '/logged/categorias',
+        restrictedToAdmin: false
     },
     {
         name: 'Referências',
-        path: '/logged/referencias'
+        path: '/logged/referencias',
+        restrictedToAdmin: false
     },
     {
         name: 'Idiomas',
-        path: '/logged/idiomas'
+        path: '/logged/idiomas',
+        restrictedToAdmin: false
     },
     {
         name: 'Usuários',
-        path: '/logged/usuarios'
+        path: '/logged/usuarios',
+        restrictedToAdmin: true
     }
 ]
+
+const availableLinks = computed(() => {
+    
+    var temp = [];
+
+    if (_isAdmin)
+        return links;
+
+    for (var i = 0; i < links.length; i++)
+    {
+        if (!links[i].restrictedToAdmin)
+            temp.push(links[i]);
+    }
+
+    return temp;
+});
 
 </script>
    

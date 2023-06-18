@@ -84,7 +84,7 @@ export default {
   },
   methods: {
       async checkUserIsLogged() {
-          const { isAuthenticated }  = useAuth();
+          const { isAuthenticated, isAdmin } = useAuth();
           this.isUserLogged = await isAuthenticated();
       }
   }
