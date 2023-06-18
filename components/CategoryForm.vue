@@ -9,10 +9,22 @@
         :object=category 
         :is-create="category.id == 0">
 
-        <FormInput label="Nome" v-model="category.name" id="name" type="text" placeholder="Nome da categoria" />
+        <FormInput 
+            id="name" 
+            label="Nome" 
+            v-model="category.name" 
+            type="text" 
+            required
+            />
 
-        <FormInput label="Descrição" v-model="category.description" id="description" type="text" textarea
-            placeholder="Descrição da categoria" />
+        <FormInput 
+            id="description" 
+            label="Descrição" 
+            v-model="category.description" 
+            type="text" 
+            textarea
+        
+            />
 
         <FormFinder 
             label="Localização hierárquica" 

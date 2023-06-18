@@ -9,7 +9,13 @@
         :object=reference 
         :is-create="reference.id == 0">
 
-        <FormQuillEditor v-model="reference.name" label="Referência" id="name" />
+        <FormQuillEditor
+            id="name"
+            required
+            v-model="reference.name"
+            label="Referência" 
+            />
+
     </Form>
 </template>
 

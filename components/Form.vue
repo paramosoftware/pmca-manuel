@@ -2,28 +2,30 @@
 
     <div class="flex flex-col justify-center items-center mt-10">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
+            <form @submit.prevent="save">
+                <AnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
 
-            <AnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
+                <div class="justify-between flex flex-row items-center mt-4">
 
-            <div class="justify-between flex flex-row items-center mt-4">
+                    <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
 
-                <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
+                    <NuxtLink :to="'/logged/' + urlPath + '/criar'">
+                        <Button>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</Button>
+                    </NuxtLink>
 
-                <NuxtLink :to="'/logged/' + urlPath + '/criar'">
-                    <Button>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</Button>
-                </NuxtLink>
+                </div>
 
-            </div>
+                <div class="mt-2 align-center" v-show="backFromSaving">
+                    <h1>Registro salvo com sucesso.</h1>
+                </div>
 
-            <div class="mt-2 align-center" v-show="backFromSaving">
-                <h1>Registro salvo com sucesso.</h1>
-            </div>
+                <slot />
 
-            <slot />
+                <div class="mt-5 text-end">
+                    <Button :type='"submit"' >SALVAR</Button>
+                </div>
 
-            <div class="mt-5 text-end">
-                <Button label="SALVAR" :on-click="save" />
-            </div>
+            </form>
         </div>
     </div>
 
@@ -35,22 +37,26 @@
 const props = defineProps({
     genderNoun: {
         type: String,
+        required: true,
+        validator: (value: string) => {
+            return ['m', 'f'].includes(value);
+        }  
     },
     singularName: {
         type: String,
-        default: 'object'
+        required: true  
     },
     pluralName: {
         type: String,
-        default: 'objects'
+        required: true  
     },
     singularNamePt: {
         type: String,
-        default: 'objeto'
+        required: true  
     },
     pluralNamePt: {
         type: String,
-        default: 'objetos'
+        required: true  
     },
     urlPath: {
         type: String,
@@ -94,10 +100,11 @@ const save = async () => {
         body: JSON.stringify(props.object),
     });
 
+    
+
     if (saved) {
-        if (props.isStandalone) 
-        {
-            const navigationResult = await router.push('/logged/' + props.pluralNamePt + '/editar/' + saved.value.id);
+        if (props.isStandalone) {
+            const navigationResult = await router.push('/logged/' + props.urlPath + '/editar/' + saved.value.id);
             backFromSaving.value = true;
         } else {
             emit('auxiliarySaved', saved.value);

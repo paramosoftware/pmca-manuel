@@ -9,9 +9,20 @@
         :object=language
         :is-create="language.id == 0">
 
-        <FormInput label="Nome" type="text" v-model="language.name" />
+        <FormInput 
+            id="name"
+            label="Nome" 
+            type="text" 
+            required
+            v-model="language.name" 
+            />
 
-        <FormInput label="Sigla" type="text" v-model="language.code" />
+        <FormInput 
+            id="code"
+            label="Sigla" 
+            type="text" 
+            v-model="language.code" 
+            />
 
     </Form>
 </template>

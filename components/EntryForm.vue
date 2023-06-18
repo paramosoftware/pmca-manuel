@@ -11,7 +11,13 @@
         @auxiliary-saved="console.log('auxiliary-saved', $event)"
         >
 
-        <FormInput label="Nome" v-model="entry.name" id="name" type="text" placeholder="Nome do verbete" />
+        <FormInput 
+            id="name"
+            label="Nome" 
+            v-model="entry.name"  
+            type="text" 
+            required
+            placeholder="Nome do verbete" />
 
         <FormQuillEditor label="Definição" v-model="entry.definition" id="definition" />
 
