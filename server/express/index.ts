@@ -42,8 +42,12 @@ app.get('/api/test', (req, res) => {
 });
 
 
-app.use((err: Error , req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (err instanceof multer.MulterError) { 
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(err);
+  };
+
+  if (err instanceof multer.MulterError) {
     res.status(400).json({ error: err.message });
   } else if (err instanceof PrismaClientKnownRequestError) {
     if (err.code === 'P2002') {
@@ -54,7 +58,7 @@ app.use((err: Error , req: express.Request, res: express.Response, next: express
     } else {
       res.status(500).json({ error: 'An unexpected error occurred' });
     }
-  } else if (err instanceof InvalidCredentialError || err instanceof UploadError || err instanceof ServerError ) {
+  } else if (err instanceof InvalidCredentialError || err instanceof UploadError || err instanceof ServerError) {
     res.status(err.statusCode).json({ error: err.message });
   } else {
     res.status(500).json({ error: 'An unexpected error occurred' });
