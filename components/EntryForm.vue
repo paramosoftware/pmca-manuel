@@ -9,9 +9,17 @@
         :is-create="entry.id == 0"
         url-path="verbetes"
         @auxiliary-saved="console.log('auxiliary-saved', $event)"
+        @error="handleError"
         >
 
-        <FormInput label="Nome" v-model="entry.name" id="name" type="text" placeholder="Nome do verbete" />
+        <FormInput 
+            id="name"
+            ref="nameRef"
+            label="Nome" 
+            v-model.trim="entry.name"  
+            type="text" 
+            required
+            placeholder="Nome do verbete" />
 
         <FormQuillEditor label="Definição" v-model="entry.definition" id="definition" />
 
@@ -115,5 +123,14 @@ const updateModel = (property: string, action: string, item: any) => {
         }
     }
 }
+
+const nameRef = ref(null);
+const handleError = (error: { error: string, field: string }) => {
+    const field = error.field;
+    if (field == 'name') {
+        nameRef.value.showError = true;
+        nameRef.value.$el.children[1].focus();
+    }
+};
 
 </script>

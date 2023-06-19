@@ -7,11 +7,25 @@
         plural-name-pt="idiomas"
         url-path="idiomas"
         :object=language
-        :is-create="language.id == 0">
+        :is-create="language.id == 0"
+        @error="handleError"
+        >
 
-        <FormInput label="Nome" type="text" v-model="language.name" />
+        <FormInput 
+            id="name"
+            ref="nameRef"
+            label="Nome" 
+            type="text" 
+            required
+            v-model.trim="language.name" 
+            />
 
-        <FormInput label="Sigla" type="text" v-model="language.code" />
+        <FormInput 
+            id="code"
+            label="Sigla" 
+            type="text" 
+            v-model.trim="language.code" 
+            />
 
     </Form>
 </template>
@@ -27,4 +41,15 @@ const language = ref<Language>(
         code: ''
     }
 );
+
+const nameRef = ref(null);
+const handleError = (error: { error: string, field: string }) => {
+    const field = error.field;
+    if (field == 'name') {
+        nameRef.value.showError = true;
+        nameRef.value.$el.children[1].focus();
+    }
+};
+
+
 </script>

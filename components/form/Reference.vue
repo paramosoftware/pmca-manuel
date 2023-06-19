@@ -7,9 +7,18 @@
         plural-name-pt="referências"
         url-path="referencias"
         :object=reference 
-        :is-create="reference.id == 0">
+        :is-create="reference.id == 0"
+        @error="handleError"
+        >
 
-        <FormQuillEditor v-model="reference.name" label="Referência" id="name" />
+        <FormQuillEditor
+            id="name"
+            ref="nameRef"
+            required
+            v-model.trim="reference.name"
+            label="Referência" 
+            />
+
     </Form>
 </template>
 
@@ -23,4 +32,15 @@ const reference = ref<Reference>(
         name: '',
     }
 );
+
+const nameRef = ref(null);
+const handleError = (error: { error: string, field: string }) => {
+    const field = error.field;
+    if (field == 'name') {
+        hasError.value = true;
+        nameRef.value.showError = true;
+        nameRef.value.$el.children[1].focus();
+    }
+};
+
 </script>

@@ -7,12 +7,27 @@
         plural-name-pt="categorias"
         url-path="categorias"
         :object=category 
-        :is-create="category.id == 0">
+        :is-create="category.id == 0"
+        @error="handleError"
+        >
 
-        <FormInput label="Nome" v-model="category.name" id="name" type="text" placeholder="Nome da categoria" />
+        <FormInput 
+            id="name"
+            ref="nameRef" 
+            label="Nome" 
+            v-model.trim="category.name" 
+            type="text" 
+            required
+            />
 
-        <FormInput label="Descrição" v-model="category.description" id="description" type="text" textarea
-            placeholder="Descrição da categoria" />
+        <FormInput 
+            id="description" 
+            label="Descrição" 
+            v-model.trim="category.description" 
+            type="text" 
+            textarea
+        
+            />
 
         <FormFinder 
             label="Localização hierárquica" 
@@ -26,8 +41,11 @@
 </template>
 
 <script setup lang="ts">
-
 const props = defineProps<{ category?: Category }>();
+
+
+const hasError = ref(false);
+
 
 const category = ref<Category>(
     props.category ?? {
@@ -47,5 +65,16 @@ tree.value = useConvertToTreeData(categories.value, true, false, category.value.
 watch(categories, (newVal) => {
     tree.value = useConvertToTreeData(newVal, true, false, category.value.id);
 });
+
+
+const nameRef = ref(null);
+const handleError = (error: { error: string, field: string }) => {
+    const field = error.field;
+    if (field == 'name') {
+        hasError.value = true;
+        nameRef.value.showError = true;
+        nameRef.value.$el.children[1].focus();
+    }
+};
 
 </script>

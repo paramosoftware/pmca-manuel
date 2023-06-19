@@ -3,8 +3,10 @@
     <label class="text-lg uppercase text-red-900" :for="id">
       {{ label }}
     </label>
-    <client-only placeholder="Carregando...">
 
+    <input v-show="false" v-if="required" :value="content" :required="required">
+
+    <client-only placeholder="Carregando...">
       <QuillEditor 
         theme="snow" 
         toolbar="essential" 
@@ -12,7 +14,6 @@
         content-type="html" />
 
     </client-only>
-
   </div>
 </template>
 
@@ -24,23 +25,27 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 const props = defineProps({
   label: String,
   id: String,
+  required: {
+    type: Boolean,
+    default: false
+  },
   modelValue: {
     type: String,
     required: true
   }
 })
 
-
-
 const content = ref(props.modelValue)
 
 const emit = defineEmits(['update:modelValue'])
 
 watch(content, (value) => {
+  if (value == '<p><br></p>') {
+    value = ''
+    content.value = ''
+  }
   emit('update:modelValue', value)
 })
-
-
 </script>
 
 
