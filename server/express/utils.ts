@@ -34,6 +34,9 @@ function replaceEmptyWithNull(obj: any) {
     for (const [key, value] of Object.entries(obj)) {
         newObj[key] = value === "" ? null : value;
         newObj[key] = value === 0 ? null : value;
+        if (key === 'id') {
+            newObj[key] = value === 0 ? undefined : value;
+        }
     }
     return newObj;
 }
