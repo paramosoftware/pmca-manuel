@@ -11,8 +11,8 @@
 
         <template #footer>
             <div class="flex flex-row justify-end items-center">
-                <Button @click="closeModal">CANCELAR</Button>
-                <Button @click="deleteObject(objectIdToDelete)" class="ml-2">EXCLUIR</Button>
+                <UIButton @click="closeModal">CANCELAR</UIButton>
+                <UIButton @click="deleteObject(objectIdToDelete)" class="ml-2">EXCLUIR</UIButton>
             </div>
         </template>
     </UCard>

@@ -12,20 +12,20 @@
         :showNewButton="!isChangingPassword"
         @changeUserFormState="isChangingPassword = false"
     >
-        <FormInput label="Nome" v-if=!isChangingPassword v-model="user.name" id="name" ref="name" type="text" placeholder="Nome do usuário" />
+        <FieldInput label="Nome" v-if=!isChangingPassword v-model="user.name" id="name" ref="name" type="text" placeholder="Nome do usuário" />
 
-        <FormInput label="E-mail" v-if=!isChangingPassword v-model="user.email" id="email" type="text" placeholder="E-mail" />
+        <FieldInput label="E-mail" v-if=!isChangingPassword v-model="user.email" id="email" type="text" placeholder="E-mail" />
 
-        <FormSelect label="Tipo" v-if=!isChangingPassword v-model="user.role" id="role" :options="options" :mandatory="true" />
+        <FieldSelect label="Tipo" v-if=!isChangingPassword v-model="user.role" id="role" :options="options" :mandatory="true" />
            
-        <FormInput label="Senha" v-model="user.password" v-if="(!user.id || isChangingPassword)" id="password" ref="password" type="password" placeholder="Senha" />
+        <FieldInput label="Senha" v-model="user.password" v-if="(!user.id || isChangingPassword)" id="password" ref="password" type="password" placeholder="Senha" />
 
-        <FormInput label="Confirmação da senha" v-model="passwordConfirmation" v-if="(!user.id || isChangingPassword)" id="password_confirmation" type="password" placeholder="Digite a senha novamente" />
+        <FieldInput label="Confirmação da senha" v-model="passwordConfirmation" v-if="(!user.id || isChangingPassword)" id="password_confirmation" type="password" placeholder="Digite a senha novamente" />
 
         <div v-if="(!user.id || isChangingPassword) && (user.password != passwordConfirmation)">Confirmação da senha inválida!</div>
 
         <div class="mt-5 text-end" v-if="(user.id && !isChangingPassword)">
-            <Button label="ALTERAR SENHA" :on-click="changeUserPassword" />
+            <UIButton label="ALTERAR SENHA" :on-click="changeUserPassword" />
         </div>
     </Form>
 

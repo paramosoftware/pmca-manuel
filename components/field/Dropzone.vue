@@ -6,7 +6,7 @@
         <input type="hidden" name="entryId" :value="entryId">
         
         <div class="mt-5 text-end">
-            <Button @click="uploadFiles" label="UPLOAD" class="mx-auto" />
+            <UIButton @click="uploadFiles" label="UPLOAD" class="mx-auto" />
         </div>
     </div>
 </template>

@@ -15,7 +15,7 @@
             :aria-labelledby="'accordion-collapse-heading-' + id">
 
             <div class="mb-4 text-right">
-                <Button label="ADICIONAR ARQUIVOS" @click="isOpen = true" />
+                <UIButton label="ADICIONAR ARQUIVOS" @click="isOpen = true" />
                 <UModal v-model="isOpen" :ui="{ width: 'max-w-5xl', rounded: '' }">
                     <UCard :ui="{ rounded: '' }">
                         <template #header>
@@ -24,7 +24,7 @@
                             </span>
                         </template>
 
-                        <FormDropzone :id="id" :entry-id="objectId" @update="addMedia" />
+                        <FieldDropzone :id="id" :entry-id="objectId" @update="addMedia" />
 
                     </UCard>
                 </UModal>

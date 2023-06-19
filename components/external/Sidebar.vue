@@ -15,7 +15,7 @@
          <span class="sr-only">Fechar menu</span>
       </button>
 
-      <TreeView :tree="tree" class="mt-2 p-2 overflow-y-scroll" />
+      <UITreeView :tree="tree" class="mt-2 p-2 overflow-y-scroll" />
    </USlideover>
 </template>
 

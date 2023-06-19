@@ -1,5 +1,5 @@
 <template>
-    <EntryForm />
+    <FormEntry />
 </template>
 
 <script setup lang="ts">

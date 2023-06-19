@@ -1,5 +1,5 @@
 <template>
-    <EntryForm :entry="entry" />
+    <FormEntry :entry="entry" />
 </template>
 
 <script setup lang="ts">
