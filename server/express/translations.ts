@@ -5,6 +5,36 @@ import { prepareRequestBodyForPrisma } from './utils';
 
 const router = express.Router();
 
+router.get('/autocomplete', async (req, res, next) => {
+    const { q } = req.query;
+
+    if (!q) {
+        return res.json([]);
+    }
+
+    try {
+        const translations = await prisma.translation.findMany({
+            where: {
+                name: {
+                    contains: q as string
+                }
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            orderBy: {
+                name: 'asc'
+            }
+        });
+        
+        res.json(translations);
+
+    } catch (error) {
+        next(error);
+    }
+});
+
 router.get('/', async (req, res, next) => {
     try {
         const translations = await prisma.translation.findMany({
@@ -81,35 +111,6 @@ router.delete('/:id', async (req, res, next) => {
     }
 });
 
-router.get('/autocomplete', async (req, res, next) => {
-    const { q } = req.query;
-
-    if (!q) {
-        return res.json([]);
-    }
-
-    try {
-        const translations = await prisma.translation.findMany({
-            where: {
-                name: {
-                    contains: q as string
-                }
-            },
-            select: {
-                id: true,
-                name: true,
-            },
-            orderBy: {
-                name: 'asc'
-            }
-        });
-        
-        res.json(translations);
-
-    } catch (error) {
-        next(error);
-    }
-});
 
 
 export default router;

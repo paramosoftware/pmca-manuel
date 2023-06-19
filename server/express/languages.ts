@@ -18,6 +18,36 @@ router.get('/', async (req, res, next) => {
     }
 });
 
+router.get('/autocomplete', async (req, res, next) => {
+    const { q } = req.query;
+
+    if (!q) {
+        return res.json([]);
+    }
+
+    try {
+        const languages = await prisma.language.findMany({
+            where: {
+                name: {
+                    contains: q as string
+                }
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            orderBy: {
+                name: 'asc'
+            }
+        });
+
+        res.json(languages);
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
+
 router.get('/:id', async (req, res, next) => {
 
     const { id } = req.params;
@@ -84,35 +114,6 @@ router.delete('/:id', async (req, res, next) => {
         res.json(language);
     } catch (error) {
         next(error);
-    }
-});
-
-router.get('/autocomplete', async (req, res, next) => {
-    const { q } = req.query;
-
-    if (!q) {
-        return res.json([]);
-    }
-
-    try {
-        const languages = await prisma.language.findMany({
-            where: {
-                name: {
-                    contains: q as string
-                }
-            },
-            select: {
-                id: true,
-                name: true,
-            },
-            orderBy: {
-                name: 'asc'
-            }
-        });
-
-        res.json(languages);
-    } catch (error) {
-      next(error);
     }
 });
 

@@ -79,7 +79,6 @@ const nameRef = ref(null);
 const handleError = (error: { error: string, field: string }) => {
     const field = error.field;
     if (field == 'name') {
-        hasError.value = true;
         nameRef.value.showError = true;
         nameRef.value.$el.children[1].focus();
     }
