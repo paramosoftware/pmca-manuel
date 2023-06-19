@@ -51,6 +51,8 @@ app.use((err: Error , req: express.Request, res: express.Response, next: express
         message: 'unique',
         field: err.meta.target[0]
       });
+    } else {
+      res.status(500).json({ error: 'An unexpected error occurred' });
     }
   } else if (err instanceof InvalidCredentialError || err instanceof UploadError || err instanceof ServerError ) {
     res.status(err.statusCode).json({ error: err.message });

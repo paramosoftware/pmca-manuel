@@ -10,19 +10,20 @@
 
                     <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
 
-                    <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="!isCreate">
+                    <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="showNewButton && !isCreate">
                         <Button>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</Button>
                     </NuxtLink>
 
                 </div>
 
-
                 <div class="mt-2 text-center" v-show="backFromSaving">
                     <h1>Dados salvos com sucesso.</h1>
                 </div>
 
+                <slot />
+
                 <div class="mt-5 text-end">
-                    <Button :type='"submit"' >SALVAR</Button>
+                    <Button :type='"submit"'>SALVAR</Button>
                 </div>
 
             </form>
