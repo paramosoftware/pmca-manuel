@@ -11,7 +11,7 @@
         @error="handleError"
         >
 
-        <FormInput 
+        <FieldInput 
             id="name"
             ref="nameRef" 
             label="Nome" 
@@ -20,7 +20,7 @@
             required
             />
 
-        <FormInput 
+        <FieldInput 
             id="description" 
             label="Descrição" 
             v-model.trim="category.description" 
@@ -29,7 +29,7 @@
         
             />
 
-        <FormFinder 
+        <FieldFinder 
             label="Localização hierárquica" 
             v-model="category.parentId" 
             :default-expanded="category.parentId ?? undefined"

@@ -12,7 +12,7 @@
         @error="handleError"
         >
 
-        <FormInput 
+        <FieldInput 
             id="name"
             ref="nameRef"
             label="Nome" 
@@ -21,11 +21,11 @@
             required
             placeholder="Nome do verbete" />
 
-        <FormQuillEditor label="Definição" v-model="entry.definition" id="definition" />
+        <FieldQuillEditor label="Definição" v-model="entry.definition" id="definition" />
 
-        <FormQuillEditor label="Notas" v-model="entry.notes" id="notes" />
+        <FieldQuillEditor label="Notas" v-model="entry.notes" id="notes" />
 
-        <FormFinder 
+        <FieldFinder 
             label="Categoria" 
             v-model="entry.categoryId"
             :default-expanded="entry.categoryId ?? undefined"
@@ -33,7 +33,7 @@
             :tree="tree" />
 
 
-        <FormAutocomplete 
+        <FieldAutocomplete 
             id="relatedEntries" 
             route="entries"
             :modelValue="entry.relatedEntries"
@@ -42,7 +42,7 @@
             placeholder="Digite o nome de um verbete..."  />
 
 
-        <FormModalAuxiliaryForm
+        <FieldModalAuxiliaryForm
             id="translations"
             :items="entry.translations"
             route="translations"
@@ -50,12 +50,12 @@
             label="Traduções" 
             >
     
-            <TranslationForm :entry-id="entry.id" @update="updateModel" />
+            <FormTranslation :entry-id="entry.id" @update="updateModel" />
         
-        </FormModalAuxiliaryForm>
+        </FieldModalAuxiliaryForm>
 
 
-        <FormAutocomplete 
+        <FieldAutocomplete 
             id="references"
             route="references" 
             :modelValue="entry.references"
@@ -66,7 +66,7 @@
             />
 
 
-        <FormMedia 
+        <FieldMedia 
             id="media" 
             :media="entry.media" 
             label="Imagens" 

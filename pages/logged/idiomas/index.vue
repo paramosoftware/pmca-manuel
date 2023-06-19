@@ -1,6 +1,6 @@
 <template>
     
-    <List
+    <UIList
         gender-noun="m"
         singular-name="language" 
         plural-name="languages"

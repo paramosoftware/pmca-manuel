@@ -14,7 +14,7 @@
     </div>
     <ul v-if="node.showChildren || node.isOpen" class="mt-1 pl-5 mb-3">
         <li v-for="child in node.children" :key="child.id" class="mb-1">
-            <TreeNode :node="child" :level="level + 1" @toggle-children="$emit('toggle-children', $event)" />
+            <UITreeNode :node="child" :level="level + 1" @toggle-children="$emit('toggle-children', $event)" />
         </li>
 
     </ul>

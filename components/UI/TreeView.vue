@@ -3,7 +3,7 @@
     <ul>
       <li>
         <div v-for="node in treeRef" class="mb-2">
-          <TreeNode :node="node" :level="1" @toggle-children="toggleNodeChildren" />
+          <UITreeNode :node="node" :level="1" @toggle-children="toggleNodeChildren" />
         </div>
       </li>
     </ul>

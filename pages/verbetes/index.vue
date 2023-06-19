@@ -41,7 +41,7 @@
     </span>
 
     <div v-else-if="listMode === 'hierarchical'">
-        <TreeView :tree="tree" class="mt-5 p-2" />
+        <UITreeView :tree="tree" class="mt-5 p-2" />
     </div>
 
     <div v-else class="mt-5">

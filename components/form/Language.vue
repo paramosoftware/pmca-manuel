@@ -11,7 +11,7 @@
         @error="handleError"
         >
 
-        <FormInput 
+        <FieldInput 
             id="name"
             ref="nameRef"
             label="Nome" 
@@ -20,7 +20,7 @@
             v-model.trim="language.name" 
             />
 
-        <FormInput 
+        <FieldInput 
             id="code"
             label="Sigla" 
             type="text" 

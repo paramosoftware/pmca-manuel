@@ -22,7 +22,7 @@
         id="filter" type="text" placeholder="Filtrar verbetes">
     </div>
 
-    <Pagination v-if="totalPages > 1" :currentPage="currentPage" :totalPages="totalPages"
+    <UIPagination v-if="totalPages > 1" :currentPage="currentPage" :totalPages="totalPages"
       @update:currentPage="updateCurrentPage" />
 
     <span v-if="filteredEntries.length === 0" class="text-black text-xl">
@@ -32,7 +32,7 @@
       <ExternalEntryList v-for="entry in filteredEntries" :key="entry.id" :entry="entry" />
     </span>
 
-    <Pagination v-if="totalPages > 1" :currentPage="currentPage" :totalPages="totalPages"
+    <UIPagination v-if="totalPages > 1" :currentPage="currentPage" :totalPages="totalPages"
       @update:currentPage="updateCurrentPage" />
 
   </main>

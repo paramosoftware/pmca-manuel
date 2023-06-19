@@ -1,5 +1,5 @@
 <template>
-    <CategoryForm :category="category" />
+    <FormCategory :category="category" />
 </template>
 
 <script setup lang="ts">

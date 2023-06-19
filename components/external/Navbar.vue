@@ -15,8 +15,8 @@
           <span class="text-2xl p-5 hover:underline text-black">Gerenciar</span>
         </NuxtLink>
 
-        <Button label="Logout" v-show="isUserLogged" :on-click="logout">
-        </Button>
+        <UIButton label="Logout" v-show="isUserLogged" :on-click="logout">
+        </UIButton>
       </div>
 
       <div class="flex items-center">

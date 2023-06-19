@@ -4,14 +4,14 @@
     <div class="flex flex-col justify-center items-center mt-10">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
             <form @submit.prevent="save">
-                <AnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
+                <UIAnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
 
                 <div class="justify-between flex flex-row items-center mt-4">
 
                     <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
 
                     <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="showNewButton && !isCreate">
-                        <Button>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</Button>
+                        <UIButton>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</UIButton>
                     </NuxtLink>
 
                 </div>
@@ -23,7 +23,7 @@
                 <slot />
 
                 <div class="mt-5 text-end">
-                    <Button :type='"submit"'>SALVAR</Button>
+                    <UIButton :type='"submit"'>SALVAR</UIButton>
                 </div>
 
             </form>

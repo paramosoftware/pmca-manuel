@@ -15,7 +15,7 @@
 
         <input type="hidden" v-model="translation.entry.id" id="entryId" />
 
-        <FormInput 
+        <FieldInput 
             id="name" 
             type="text"  
             label="Tradução" 
@@ -24,7 +24,7 @@
             placeholder="Tradução" 
             />
 
-        <FormAutocomplete 
+        <FieldAutocomplete 
             id="language"
             route="languages" 
             :modelValue="translation.language"
