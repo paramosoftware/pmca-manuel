@@ -9,10 +9,12 @@
         :is-create="entry.id == 0"
         url-path="verbetes"
         @auxiliary-saved="console.log('auxiliary-saved', $event)"
+        @error="handleError"
         >
 
         <FormInput 
             id="name"
+            ref="nameRef"
             label="Nome" 
             v-model.trim="entry.name"  
             type="text" 
@@ -121,5 +123,14 @@ const updateModel = (property: string, action: string, item: any) => {
         }
     }
 }
+
+const nameRef = ref(null);
+const handleError = (error: { error: string, field: string }) => {
+    const field = error.field;
+    if (field == 'name') {
+        nameRef.value.showError = true;
+        nameRef.value.$el.children[1].focus();
+    }
+};
 
 </script>

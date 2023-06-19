@@ -7,10 +7,13 @@
         plural-name-pt="idiomas"
         url-path="idiomas"
         :object=language
-        :is-create="language.id == 0">
+        :is-create="language.id == 0"
+        @error="handleError"
+        >
 
         <FormInput 
             id="name"
+            ref="nameRef"
             label="Nome" 
             type="text" 
             required
@@ -38,4 +41,15 @@ const language = ref<Language>(
         code: ''
     }
 );
+
+const nameRef = ref(null);
+const handleError = (error: { error: string, field: string }) => {
+    const field = error.field;
+    if (field == 'name') {
+        nameRef.value.showError = true;
+        nameRef.value.$el.children[1].focus();
+    }
+};
+
+
 </script>

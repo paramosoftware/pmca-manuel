@@ -10,6 +10,7 @@
         :is-create="translation.id == 0" 
         :is-standalone=false
         @auxiliary-saved="updateParent"
+        @error="handleError"
         >
 
         <input type="hidden" v-model="translation.entry.id" id="entryId" />
@@ -74,6 +75,15 @@ const updateParent = (translation : Translation) => {
     emit('update', 'translations', 'add',  translation)
 }
 
+const nameRef = ref(null);
+const handleError = (error: { error: string, field: string }) => {
+    const field = error.field;
+    if (field == 'name') {
+        hasError.value = true;
+        nameRef.value.showError = true;
+        nameRef.value.$el.children[1].focus();
+    }
+};
 
 
 </script>

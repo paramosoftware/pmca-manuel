@@ -14,6 +14,7 @@ import media from './media'
 import translations from './translations'
 import references from './references'
 import upload from './upload'
+import { PrismaClientKnownRequestError} from '@prisma/client/runtime/library'
 
 const app = express();
 
@@ -44,6 +45,13 @@ app.get('/api/test', (req, res) => {
 app.use((err: Error , req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err instanceof multer.MulterError) { 
     res.status(400).json({ error: err.message });
+  } else if (err instanceof PrismaClientKnownRequestError) {
+    if (err.code === 'P2002') {
+      res.status(400).json({
+        message: 'unique',
+        field: err.meta.target[0]
+      });
+    }
   } else if (err instanceof InvalidCredentialError || err instanceof UploadError || err instanceof ServerError ) {
     res.status(err.statusCode).json({ error: err.message });
   } else {

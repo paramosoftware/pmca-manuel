@@ -9,7 +9,7 @@
 
                     <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
 
-                    <NuxtLink :to="'/logged/' + urlPath + '/criar'">
+                    <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="!isCreate">
                         <Button>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</Button>
                     </NuxtLink>
 
@@ -81,7 +81,7 @@ const props = defineProps({
 });
 
 const router = useRouter();
-const emit = defineEmits(['auxiliarySaved']);
+const emit = defineEmits(['auxiliarySaved', 'error']);
 const backFromSaving = ref(false);
 
 const save = async () => {
@@ -94,18 +94,25 @@ const save = async () => {
         method = 'POST';
     }
 
-    const { data: saved } = await useFetchWithBaseUrl(url, {
+    const { data: saved, error } = await useFetchWithBaseUrl(url, {
         // @ts-ignore
         method: method,
         body: JSON.stringify(props.object),
     });
 
-    
 
-    if (saved) {
+    if (error.value) {
+        emit('error', error.value.data);
+    }
+
+    if (saved.value) {
         if (props.isStandalone) {
-            const navigationResult = await router.push('/logged/' + props.urlPath + '/editar/' + saved.value.id);
+            router.push('/logged/' + props.urlPath + '/editar/' + saved.value.id);
+
             backFromSaving.value = true;
+            setTimeout(() => {
+                backFromSaving.value = false;
+            }, 8000);
         } else {
             emit('auxiliarySaved', saved.value);
         }

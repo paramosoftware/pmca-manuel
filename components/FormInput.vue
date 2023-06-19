@@ -16,15 +16,15 @@
       >
     </component>
 
-    <div v-if="error" class="text-sm text-red-900">
-      {{ errorMessage }}
+    <div v-if="showError" class="text-sm text-red-800">
+       Já existe um registro salvo com esse valor.
     </div>
 
   </div>
 </template>
   
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
   label: String,
   modelValue: [String, Number],
   id: String,
@@ -44,13 +44,23 @@ defineProps({
     type: Boolean,
     default: false
   },
-  error: {
-    type: Boolean,
-    default: false
-  },
   errorMessage: {
     type: String,
     default: ''
   }
 })
+
+
+watch (() => props.modelValue, () => {
+  showError.value = false;
+})
+
+
+const showError = ref(false);
+
+defineExpose({
+  showError
+})
+
+
 </script>

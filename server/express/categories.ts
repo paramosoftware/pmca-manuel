@@ -3,7 +3,7 @@ import { prisma } from '../prisma/prisma';
 
 const router = express.Router();
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   const id = req.params.id;
 
   try {
@@ -13,13 +13,12 @@ router.get('/:id', async (req, res) => {
       },
     });
     res.json(category);
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+  } catch (error) {
+    next(error);
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
   const id = req.params.id;
   const { name, description, parentId } = req.body;
 
@@ -35,13 +34,12 @@ router.put('/:id', async (req, res) => {
       },
     });
     res.json(category);
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+  } catch (error) {
+    next(error);
   }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const categories = await prisma.category.findMany({
       include: {
@@ -53,13 +51,12 @@ router.get('/', async (req, res) => {
       },
     });
     res.json(categories);
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+  } catch (error) {
+    next(error);
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   const { name, description, parentId } = req.body;
 
   try {
@@ -71,14 +68,13 @@ router.post('/', async (req, res) => {
       },
     });
     res.json(category);
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+  } catch (error) {
+    next(error);
   }
 });
 
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   const id = req.params.id;
 
   try {
@@ -88,9 +84,8 @@ router.delete('/:id', async (req, res) => {
       },
     });
     res.json(category);
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+  } catch (error) {
+    next(error);
   }
 });
 
