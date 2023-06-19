@@ -23,7 +23,6 @@ const generateRefreshToken = (user: User) => {
     return jwt.sign({ email }, refreshToken, { expiresIn });
 }
 
-
 const setAccessTokenCookie = (res: express.Response, accessToken: string) => { 
     res.cookie('token', accessToken, { // TODO: set flags to true in production
         secure: false, 
@@ -107,6 +106,28 @@ router.get('/refresh', async (req, res, next) => {
 
         setAccessTokenCookie(res, newAccessToken);
         res.json({ message: 'Access token is refreshed' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/isadmin', async (req, res, next) => {
+    try {
+        const accessToken = req.cookies.token;
+        if (!accessToken) {
+            throw new InvalidCredentialError('Invalid credentials');
+        }
+  
+        const { email } = jwt.decode(accessToken) as { email: string };
+        const user = await findUserByEmail(email);
+        
+        if (!user) {
+            throw new InvalidCredentialError('Invalid credentials');
+        }
+
+        const isAdmin = (user.role == 1);
+
+        res.json(isAdmin);
     } catch (error) {
         next(error);
     }

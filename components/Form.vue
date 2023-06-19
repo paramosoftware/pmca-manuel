@@ -1,5 +1,6 @@
 <template>
-
+    <ExternalNavbar />
+    
     <div class="flex flex-col justify-center items-center mt-10">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
             <form @submit.prevent="save">
@@ -15,11 +16,10 @@
 
                 </div>
 
-                <div class="mt-2 align-center" v-show="backFromSaving">
-                    <h1>Registro salvo com sucesso.</h1>
-                </div>
 
-                <slot />
+                <div class="mt-2 text-center" v-show="backFromSaving">
+                    <h1>Dados salvos com sucesso.</h1>
+                </div>
 
                 <div class="mt-5 text-end">
                     <Button :type='"submit"' >SALVAR</Button>
@@ -77,11 +77,16 @@ const props = defineProps({
                 id: 0
             }
         }
-    }
+    },
+    showNewButton: {
+        type: Boolean,
+        default: true
+    },
 });
 
 const router = useRouter();
-const emit = defineEmits(['auxiliarySaved', 'error']);
+const emit = defineEmits(['auxiliarySaved', 'error', 'changeUserFormState']);
+
 const backFromSaving = ref(false);
 
 const save = async () => {
@@ -113,6 +118,7 @@ const save = async () => {
             setTimeout(() => {
                 backFromSaving.value = false;
             }, 8000);
+            emit('changeUserFormState');
         } else {
             emit('auxiliarySaved', saved.value);
         }
