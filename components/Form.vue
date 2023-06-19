@@ -1,5 +1,5 @@
 <template>
-    <ExternalNavbar />
+    <ExternalNavbar v-if="isStandalone" />
     
     <div class="flex flex-col justify-center items-center mt-10">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
@@ -83,6 +83,10 @@ const props = defineProps({
         type: Boolean,
         default: true
     },
+    saveObject: {
+        type: Boolean,
+        default: true
+    },
 });
 
 const router = useRouter();
@@ -92,28 +96,38 @@ const backFromSaving = ref(false);
 
 const save = async () => {
 
-    let url = '/api/' + props.pluralName + '/' + props.object.id;
-    let method = 'PUT';
+    let savedObject;
 
-    if (props.object.id === 0) {
-        url = '/api/' + props.pluralName;
-        method = 'POST';
+    if (props.saveObject)
+    {
+        let url = '/api/' + props.pluralName + '/' + props.object.id;
+        let method = 'PUT';
+
+        if (props.object.id === 0) {
+            url = '/api/' + props.pluralName;
+            method = 'POST';
+        }
+
+        const { data: saved, error } = await useFetchWithBaseUrl(url, {
+            // @ts-ignore
+            method: method,
+            body: JSON.stringify(props.object),
+        });
+    
+        if (error.value) {
+            emit('error', error.value.data);
+        }
+
+        savedObject = saved.value;
+    }
+    else
+    {
+        savedObject = props.object;
     }
 
-    const { data: saved, error } = await useFetchWithBaseUrl(url, {
-        // @ts-ignore
-        method: method,
-        body: JSON.stringify(props.object),
-    });
-
-
-    if (error.value) {
-        emit('error', error.value.data);
-    }
-
-    if (saved.value) {
+    if (savedObject) {
         if (props.isStandalone) {
-            router.push('/logged/' + props.urlPath + '/editar/' + saved.value.id);
+            router.push('/logged/' + props.urlPath + '/editar/' + savedObject.id);
 
             backFromSaving.value = true;
             setTimeout(() => {
@@ -121,7 +135,7 @@ const save = async () => {
             }, 8000);
             emit('changeUserFormState');
         } else {
-            emit('auxiliarySaved', saved.value);
+            emit('auxiliarySaved', savedObject);
         }
     }
 };

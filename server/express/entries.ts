@@ -83,6 +83,7 @@ router.post('/search', async (req, res, next) => {
             where: whereConditions,
             include: {
                 category: true,
+                variations: true,
                 translations: true
             },
             orderBy: {
@@ -109,6 +110,7 @@ router.post('/by-code', async (req, res, next) => {
                 category: true,
                 media: true,
                 relatedEntries: true,
+                variations: true,
                 translations: true,
                 references: true
             }
@@ -147,6 +149,7 @@ router.get('/:id', async (req, res, next) => {
             },
             include: {
                 category: true,
+                variations: true,
                 translations: true,
                 relatedEntries: true,
                 entries: true,
@@ -167,6 +170,8 @@ router.put('/:id', async (req, res, next) => {
 
     try {
 
+        var va_variations = req.body.variations;
+
         let data:any = prepareRequestBodyForPrisma(req.body);
 
         if (data.name) {
@@ -177,12 +182,33 @@ router.put('/:id', async (req, res, next) => {
             data.category = undefined;
         }
 
+        data.variations = { deleteMany: {} }
+
         const savedEntry = await prisma.entry.update({
             where: {
                 id: parseInt(id)
             },
             data
         });
+
+        if (req.body.variations.length > 0)
+        {
+            for (var i = 0; i < va_variations.length; i++)
+            {
+                const savedEntry = await prisma.entry.update({
+                    where: {
+                        id: parseInt(id)
+                    },
+                    data: {
+                        variations: {
+                            create: [
+                                {name: va_variations[i].name}
+                            ]
+                        }
+                    }
+                });
+            }
+        }
 
         res.json(savedEntry);
 
@@ -198,6 +224,7 @@ router.get('/', async (req, res, next) => {
         const entries = await prisma.entry.findMany({
             include: {
                 category: true,
+                variations: true,
                 translations: true,
                 relatedEntries: true,
                 entries: true

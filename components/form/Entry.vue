@@ -9,6 +9,7 @@
         :is-create="entry.id == 0"
         url-path="verbetes"
         @auxiliary-saved="console.log('auxiliary-saved', $event)"
+        
         @error="handleError"
         >
 
@@ -41,6 +42,20 @@
             label="Verbetes relacionados"
             placeholder="Digite o nome de um verbete..."  />
 
+        
+        <FieldModalAuxiliaryForm
+            id="variations"
+            :items="entry.variations"
+            route="variations"
+            :object-id="entry.id"
+            label="Variações do termo"
+            ref="fieldVariations"
+            >
+    
+            <FormVariation :entry-id="entry.id" @update="updateModel" />
+        
+        </FieldModalAuxiliaryForm>
+
 
         <FieldModalAuxiliaryForm
             id="translations"
@@ -53,7 +68,7 @@
             <FormTranslation :entry-id="entry.id" @update="updateModel" />
         
         </FieldModalAuxiliaryForm>
-
+        
 
         <FieldAutocomplete 
             id="references"
@@ -91,6 +106,7 @@ const entry = ref<Entry>(
         references: [],
         categoryId: 0,
         media: [],
+        variations: [],
         translations: [],
         relatedEntries: []
     }
@@ -109,6 +125,8 @@ const tree = ref({});
 
 tree.value = useConvertToTreeData(categories.value, true, false, null);
 
+const fieldVariations = ref(null);
+
 const updateModel = (property: string, action: string, item: any) => {
 
     console.log('updateModel', property, action, item);
@@ -122,9 +140,12 @@ const updateModel = (property: string, action: string, item: any) => {
             props.entry[property] = props.entry[property].filter((e) => e.id !== item.id);
         }
     }
+
+    fieldVariations.value.isOpenModal = false;
 }
 
 const nameRef = ref(null);
+
 const handleError = (error: { error: string, field: string }) => {
     const field = error.field;
     if (field == 'name') {
