@@ -75,7 +75,7 @@ declare global {
         id: number;
         name: string;
         language?: Language;
-        languageId: number;
+        languageId?: number;
         entry: Entry;
         createdAt?: Date;
         updatedAt?: Date;   
