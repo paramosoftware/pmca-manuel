@@ -18,22 +18,20 @@
         <FieldInput 
             id="name" 
             type="text"  
-            label="Tradução" 
+            label="Termo traduzido" 
             required
             v-model="translation.name"
-            placeholder="Tradução" 
+            placeholder=""
+            ref="name"
             />
 
-        <FieldAutocomplete 
-            id="language"
-            route="languages" 
-            :modelValue="translation.language"
-            @update="updateModel"
-            label="Idioma"  
-            :allowCreate="true"
-            :multiple="false"
-            placeholder="Digite um idioma..."  />
-
+        <FieldSelect 
+            label="Idioma" 
+            v-model="translation.language.id" 
+            id="language" 
+            :options="languageOptions" 
+            :mandatory="true"
+        />
 
     </Form>
 </template>
@@ -46,10 +44,9 @@ const translation = ref<Translation>(
     props.translation ?? {
         id: 0,
         name: '',
-        languageId: 0,
         language: {
             id: 0,
-            name: ''
+            name: '',
         },
         entry: {
             id: props.entryId,
@@ -57,6 +54,20 @@ const translation = ref<Translation>(
         }
     }
 );
+
+const { data: languages } = await useFetchWithBaseUrl('/api/languages');
+
+const languageOptions = computed(() => {
+    const arrLanguages = [];
+
+    for (var i = 0; i < languages.value.length; i++) {           
+        arrLanguages.push({id: languages.value[i].id, textValue: languages.value[i].name});
+    }
+
+    translation.value.language.id = languages.value[0].id;
+
+    return arrLanguages;
+});
 
 const updateModel = (property: string, action: string, item: any) => {
     if (translation.value) {
@@ -84,5 +95,14 @@ const handleError = (error: { error: string, field: string }) => {
     }
 };
 
+</script>
 
+<script lang="ts">
+
+export default {
+    mounted () {
+        this.$nextTick(() => this.$refs["name"].$el.children[1].focus());
+    }
+} 
+ 
 </script>

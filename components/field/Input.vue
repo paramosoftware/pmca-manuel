@@ -1,6 +1,6 @@
 <template>
   <div class="mt-4">
-    <label class="text-lg uppercase text-red-900" :for="id">
+    <label class="text-lg uppercase text-red-900" :for="id" v-if="showLabel">
       {{ label }}
     </label>
 
@@ -47,6 +47,10 @@ const props = defineProps({
   errorMessage: {
     type: String,
     default: ''
+  },
+  showLabel: {
+    type: Boolean,
+    default: true
   }
 })
 

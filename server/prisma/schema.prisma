@@ -40,6 +40,8 @@ model Entry {
   references      Reference[] @relation("entries_references")
 
   media           Media[]   @relation("media_entries")
+  
+  variations      Variation[]
   translations    Translation[]
 
   entries         Entry[]   @relation("entries_entries")
@@ -108,6 +110,15 @@ model User {
   @@map("users")
 }
   
+model Variation {
+  id          Int       @id @default(autoincrement())
+  name        String
+
+  entryId     Int       @map("entry_id")
+  entry       Entry     @relation(fields: [entryId], references: [id])
+
+  @@map("variations")
+}
 
 model Translation {
   id          Int       @id @default(autoincrement())

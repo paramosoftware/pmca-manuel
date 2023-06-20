@@ -6,7 +6,9 @@
 
         <select
             class="w-full text-md text-gray-800 border-gray-300 bg-transparent focus:outline-none focus:ring-red-900 focus:border-transparent"
-            :id="id">
+            :id="id"
+            @input="$emit('update:modelValue', $event.target.value)"
+        >
 
             <option value="0" v-if="!mandatory"></option>
 
