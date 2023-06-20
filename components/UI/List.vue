@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col justify-center items-center mt-5">
+    <div class="flex flex-col justify-center items-center mt-5 mb-auto">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral rounded-sm">
             <div class="flex flex-row justify-start items-center">
                 <UIAnchorReturn href="/logged" />
