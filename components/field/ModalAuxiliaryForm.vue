@@ -7,7 +7,7 @@
             </UILabel>
 
 
-            <button class="border ml-2 bg-pmca-accent hover:bg-pmca-primary p-1" @click="isOpenModal = true">
+            <button type="button" class="border ml-2 bg-pmca-accent hover:bg-pmca-primary p-1" @click="isOpenModal = true">
                 <Icon name="ph:plus" class="w-5 h-5 text-white" title="Adicionar" />
             </button>
 
