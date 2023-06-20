@@ -8,7 +8,7 @@
 
                 <div class="justify-between flex flex-row items-center mt-4">
 
-                    <h1 class="text-3xl text-black">{{ isCreate ? 'Criar' : 'Editar' }} {{ singularNamePt }}</h1>
+                    <h1 class="text-3xl text-black">{{ saveObject ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</h1>
 
                     <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="showNewButton && !isCreate">
                         <UIButton>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</UIButton>
@@ -23,7 +23,7 @@
                 <slot />
 
                 <div class="mt-5 text-end">
-                    <UIButton :type='"submit"'>SALVAR</UIButton>
+                    <UIButton :type='"submit"'>{{ (saveObject ? 'SALVAR' : 'ADICIONAR') }}</UIButton>
                 </div>
 
             </form>
@@ -130,9 +130,11 @@ const save = async () => {
             router.push('/logged/' + props.urlPath + '/editar/' + savedObject.id);
 
             backFromSaving.value = true;
+
             setTimeout(() => {
                 backFromSaving.value = false;
             }, 8000);
+            
             emit('changeUserFormState');
         } else {
             emit('auxiliarySaved', savedObject);

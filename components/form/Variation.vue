@@ -13,7 +13,7 @@
 
         <input type="hidden" v-model="variation.entry.id" id="entryId" />
 
-        <FieldInput label="Variação" v-model="variation.name" id="name" type="text" placeholder="Variação" />
+        <FieldInput label="Variação" v-model="variation.name" id="name" type="text" placeholder="Variação" :show-label="false" />
 
     </Form>
 </template>
