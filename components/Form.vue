@@ -9,7 +9,7 @@
                     <h1 class="text-3xl text-black">{{ saveObject ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</h1>
 
                     <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="showNewButton && !isCreate">
-                        <UIButton>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</UIButton>
+                        <UIButton>{{ genderNoun == 'm' ? 'Novo' : 'Nova' }}</UIButton>
                     </NuxtLink>
 
                 </div>
@@ -21,7 +21,7 @@
                 <slot />
 
                 <div class="mt-5 text-end">
-                    <UIButton :type='"submit"'>{{ (saveObject ? 'SALVAR' : 'ADICIONAR') }}</UIButton>
+                    <UIButton :type='"submit"'>{{ (saveObject ? 'Salvar' : 'Adicionar') }}</UIButton>
                 </div>
 
             </form>
