@@ -1,6 +1,6 @@
 <template>
-    <div class=" mt-4 w-3/4">
-        <p class="text-lg uppercase text-red-900">Compartilhar</p>
+    <div class="mt-4 w-3/4">
+        <UITitle>Compartilhar</UITitle>
         <div class="flex flex-row mt-2">
             <a v-for="item in socialMedia" :key="item.name" :href="item.link" class="mr-2">
                 <span class="sr-only">{{ "Compartilhar no " + item.name }}</span>
@@ -11,7 +11,7 @@
         </div>
     </div>
     <div class="mt-4 w-1/4">
-        <p class="text-lg uppercase text-red-900">Baixar</p>
+        <UITitle>Baixar</UITitle>
         <div class="flex flex-row mt-2">
             <a href="#" class="mr-2">
                 <Icon name="ph:file-pdf" />

@@ -1,18 +1,20 @@
 <template>
     <div class="flex flex-col mt-4">
-        <p class="text-lg uppercase text-red-900">{{ title }}</p>
+        
+        <UITitle>{{ title }}</UITitle>
+        
         <div class="flex flex-col">
 
-            <p class="text-xl text-black">
+            <p>
                 <span v-if="Array.isArray(content)">
                     <span v-for="item in content" :key="item.name">
-                        <NuxtLink v-if="hasLink && !isOneLine" class="hover:underline" :to="item.link">
+                        <UILink v-if="hasLink && !isOneLine" :href="item.link">
                             {{ item.name }}
-                        </NuxtLink>
+                        </UILink>
                         <span v-else-if="!isOneLine">{{ item.name }}</span>
                         <span v-if="!isOneLine && content.indexOf(item) !== content.length - 1"> | </span>
 
-                        <p v-if="isOneLine" class="text-xl text-black">
+                        <p v-if="isOneLine">
                             <div v-if="isHtml" v-html="item.name" class="mb-2"></div>
                         </p>
                     </span>

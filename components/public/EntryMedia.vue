@@ -1,7 +1,7 @@
 <template>
     <div class="container">
         <Viewer :images="images" @inited=inited class="viewer">
-            <div class="snap-x w-full overflow-x-scroll flex mt-0 sm:mt-0 scrollbar-hide h-60">
+            <div class="snap-x w-full overflow-x-auto flex mt-0 sm:mt-0 scrollbar-hide h-60">
                 <img v-for="image in images" :src="image" :key="image" class="snap-start p-2 flex-none object-contain">
             </div>
         </Viewer>

@@ -1,47 +1,66 @@
 <template>
-  <ExternalNavbar />
-  <main class="container max-w-screen-xl mx-auto p-5 bg-white border border-neutral mt-5">
-    <div class="flex items-center justify-between">
-      <div class="flex flex-col">
-        <h1 class="text-5xl text-black">Busca</h1>
-        <p class="text-black">{{ filteredEntries.length }} resultados</p>
+  <NuxtLayout name="public">
+    <main class="container max-w-screen-xl mx-auto mb-auto p-2 md:p-0">
+      <div class="flex items-center justify-between">
+        <div class="flex flex-col">
+          <h1 class="text-4xl font-semibold">Busca</h1>
+        </div>
       </div>
 
-      <div class="flex flex-col items-end justify-center">
-        <Icon name="bi:sort-alpha-up" class="text-black" />
+      <div class="flex flex-col md:flex-row mt-5">
+        <div class="w-full md:w-7/10">
+          <label class="text-lg text-pmca-secondary" for="filter">
+            Filtrar
+          </label>
+          <input v-model="filter" @input=handleFilter
+            class="w-full bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm leading-none"
+            id="filter" type="text" placeholder="Filtrar verbetes">
+        </div>
       </div>
-    </div>
 
 
-    <div class="mt-4">
-      <label class="text-lg uppercase text-red-900" for="filter">
-        Filtrar
-      </label>
-      <input v-model="filter" @input=handleInput
-        class="w-full text-sm text-black border-black bg-transparent focus:outline-none focus:ring-red-900 focus:border-transparent"
-        id="filter" type="text" placeholder="Filtrar verbetes">
-    </div>
+      <div class="mt-6">
 
-    <UIPagination v-if="totalPages > 1" :currentPage="currentPage" :totalPages="totalPages"
-      @update:currentPage="updateCurrentPage" />
+        <div class="flex flex-row justify-between">
+          <div class="flex flex-row text-xl">
+            <p  v-if="filteredEntries.length > 0">
+              {{ filteredEntries.length }} 
+              <span v-if="filteredEntries.length === 1">verbete </span> 
+              <span v-else>verbetes </span>
+              <span v-if="filter.length > 0"> encontrado<span v-if="filteredEntries.length > 1">s </span></span>
+            </p>
+            <p v-if="filteredEntries.length === 0">
+              Nenhum resultado encontrado
+            </p>
+          </div>
+          <div class="flex flex-row">
+            <button class="flex flex-col items-end justify-center" @click="handleSort">
+              <Icon class="w-8 h-8" :name="sortOrder === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending'" />
+            </button>
+          </div>
+        </div>
 
-    <span v-if="filteredEntries.length === 0" class="text-black text-xl">
-      Nenhum resultado encontrado
-    </span>
-    <span v-else>
-      <ExternalEntryList v-for="entry in filteredEntries" :key="entry.id" :entry="entry" />
-    </span>
+        <div class="flex flex-col mt-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div v-for="entry in filteredEntries" :key="entry.id" :entry="entry">
+              <PublicEntryCard :entry="entry" />
+            </div>
+          </div>
+        </div>
 
-    <UIPagination v-if="totalPages > 1" :currentPage="currentPage" :totalPages="totalPages"
-      @update:currentPage="updateCurrentPage" />
-
-  </main>
+      </div>
 
 
-  <Footer />
+    </main>
+  </NuxtLayout>
 </template>
- 
+   
 <script setup lang="ts">
+
+definePageMeta({
+   layout: false,
+});
+
 
 const router = useRouter();
 
@@ -50,13 +69,14 @@ const query = computed(() => {
 });
 
 const entries = ref([])
+const entriesByCategory = ref([])
+const sortOrder = ref('asc');
+const filter = ref('');
+
 
 const fetchEntries = async (query) => {
   const { data } = await useFetchWithBaseUrl('/api/entries/search', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
     body: JSON.stringify({
       query: query
     })
@@ -65,7 +85,7 @@ const fetchEntries = async (query) => {
   entries.value = data.value;
 }
 
-fetchEntries(query.value);
+await fetchEntries(query.value);
 
 // TODO: for some reason, watch is not triggered when the URL is changed directly, 
 // so the fetchEntries need to be called at least once
@@ -73,13 +93,8 @@ watch(() => query.value, async (newQuery) => {
   await fetchEntries(newQuery)
 });
 
-const filter = ref('');
-
-const handleInput = (event: Event) => {
-  filter.value = event.target.value;
-};
-
 const filteredEntries = computed(() => {
+
   if (!filter.value) {
     return entries.value;
   }
@@ -87,23 +102,15 @@ const filteredEntries = computed(() => {
   return entries.value?.filter(entry => entry.name.toLowerCase().includes(filter.value.toLowerCase()));
 });
 
-const totalResults = computed(() => filteredEntries.value?.length)
+const handleFilter = (event: Event) => {
 
-const currentPage = ref(1)
+  filter.value = event.target.value;
+};
 
-// TODO: Paginate results and fix pagination
-
-const totalPages = computed(() => {
-  if (totalResults.value === 0) {
-    return 1
-  }
-  return Math.ceil(totalResults.value / 10)
-})
-
-const updateCurrentPage = (newPage: number) => {
-  currentPage.value = newPage
-}
+const handleSort = () => {
+  sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+  entries.value = entries.value.reverse();
+};
 
 </script>
- 
-<style scoped></style>
+  

@@ -60,11 +60,6 @@ router.post('/search', async (req, res, next) => {
                 notes: {
                     contains: search
                 }
-            },
-            {
-                references: {
-                    contains: search
-                }
             }
         ];
     }
