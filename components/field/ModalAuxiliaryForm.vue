@@ -1,6 +1,7 @@
 <template>
     <div class="mt-4">
         <div class="w-full relative">
+
             <label class="text-lg uppercase text-red-900" :for="id">
                 {{ label }}
             </label>
@@ -24,12 +25,9 @@
 
             </UModal>
 
-
         </div>
     </div>
 </template>
-
-
 
 <script setup lang="ts">
 
@@ -68,5 +66,7 @@ const removeItem = async (id: number) => {
         props.items.splice(index, 1)
     }
 }
+
+defineExpose({isOpenModal});
 
 </script>

@@ -57,6 +57,7 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
     
+    var a = req.body;
     const data: any = prepareRequestBodyForPrisma(req.body, true);
 
     try {
@@ -66,9 +67,9 @@ router.post('/', async (req, res, next) => {
         const translation = await prisma.translation.create({
             data
         });
-
+        
         res.json(translation);
-
+                
     } catch (error) {
         console.log(error);
         next(error);
@@ -90,6 +91,7 @@ router.put('/:id', async (req, res, next) => {
             },
             data
         });
+
         res.json(translation);
     } catch (error) {
         next(error);

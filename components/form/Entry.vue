@@ -9,6 +9,7 @@
         :is-create="entry.id == 0"
         url-path="verbetes"
         @auxiliary-saved="console.log('auxiliary-saved', $event)"
+        
         @error="handleError"
         >
 
@@ -41,19 +42,34 @@
             label="Verbetes relacionados"
             placeholder="Digite o nome de um verbete..."  />
 
+        
+        <FieldModalAuxiliaryForm
+            id="variations"
+            :items="entry.variations"
+            route="variations"
+            :object-id="entry.id"
+            label="Variações do termo"
+            ref="fieldVariations"
+            >
+    
+            <FormVariation :entry-id="entry.id" @update="updateModel" />
+        
+        </FieldModalAuxiliaryForm>
+
 
         <FieldModalAuxiliaryForm
             id="translations"
             :items="entry.translations"
             route="translations"
             :object-id="entry.id"
-            label="Traduções" 
+            label="Traduções do termo em outras línguas"
+            ref="fieldTranslations"
             >
     
             <FormTranslation :entry-id="entry.id" @update="updateModel" />
         
         </FieldModalAuxiliaryForm>
-
+        
 
         <FieldAutocomplete 
             id="references"
@@ -91,6 +107,7 @@ const entry = ref<Entry>(
         references: [],
         categoryId: 0,
         media: [],
+        variations: [],
         translations: [],
         relatedEntries: []
     }
@@ -109,9 +126,21 @@ const tree = ref({});
 
 tree.value = useConvertToTreeData(categories.value, true, false, null);
 
+if(!entry.value.categoryId)
+{
+    for (var i = 0; i < categories.value.length; i++)
+    {
+        if (categories.value[i].parentId == null)
+            entry.value.categoryId = categories.value[i].id;
+    }
+}
+
+const fieldVariations = ref(null);
+const fieldTranslations = ref(null);
+
 const updateModel = (property: string, action: string, item: any) => {
 
-    console.log('updateModel', property, action, item);
+    //console.log('updateModel', property, action, item);
 
     if (props.entry && props.entry[property]) {
 
@@ -122,9 +151,15 @@ const updateModel = (property: string, action: string, item: any) => {
             props.entry[property] = props.entry[property].filter((e) => e.id !== item.id);
         }
     }
+
+    if (property == "variations")
+        fieldVariations.value.isOpenModal = false;
+    else if (property == "translations")
+        fieldTranslations.value.isOpenModal = false;
 }
 
 const nameRef = ref(null);
+
 const handleError = (error: { error: string, field: string }) => {
     const field = error.field;
     if (field == 'name') {
