@@ -25,16 +25,14 @@
         <select v-model="listMode" @input=handleMode
           class="w-full text-md bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm"
           id="list-mode">
-          <option value="hierarchical">Hierárquica</option>
-          <option value="alphabetical">Alfabética</option>
+          <option value="hier">Hierárquica</option>
+          <option value="alfa">Alfabética</option>
         </select>
       </div>
 
     </div>
 
-
-
-    <div v-if="listMode === 'hierarchical'">
+    <div v-if="listMode === 'hier'">
         <UITreeView :tree="tree" class="mt-6" />
     </div>
 
@@ -90,10 +88,14 @@ const entries = ref([])
 const entriesByCategory = ref([])
 const sortOrder = ref('asc');
 const filter = ref('');
-const listMode = ref('hierarchical'); // hierarchical, alphabetical
-const categories = ref([]);
 const category = ref("0");
 const tree = ref({});
+
+
+// hierarchical (hier) or alphabetical (alfa)
+const listMode = computed(() => {
+  return query.value?.modo || 'hier';
+});
 
 
 const { data: hierarchy } = await useFetchWithBaseUrl('/api/categories', {
@@ -148,6 +150,13 @@ const handleFilter = (event: Event) => {
 };
 
 const handleMode = (event: Event) => {
+
+  router.push({
+    query: {
+      ...query.value,
+      modo: event.target.value
+    }
+  });
 
   listMode.value = event.target.value;
 
