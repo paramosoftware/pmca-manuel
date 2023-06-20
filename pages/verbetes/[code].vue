@@ -1,25 +1,19 @@
 <template>
-
-   <ExternalNavbar />
-
-   <div class="flex-shrink flex">
-      <ExternalSidebar :open-entry-id="entry.id" />
-      <ExternalEntry :entry="entry" />
+<NuxtLayout name="public">
+   <div class="px-2 md:px-0 mb-auto">
+      <PublicEntry :entry="entry" />
    </div>
-
-   <Footer />
+</NuxtLayout>
 
  </template>
  
  <script setup lang="ts">
- 
- import { initFlowbite } from 'flowbite'
- 
- onMounted(() => {
-    initFlowbite();
- })
 
+definePageMeta({
+   layout: false,
+});
 
+ 
 const router = useRouter();
 const { data, pending, error } = await useFetchWithBaseUrl(`/api/entries/by-code`, {
     method: 'POST',
@@ -31,6 +25,3 @@ const { data, pending, error } = await useFetchWithBaseUrl(`/api/entries/by-code
 const entry = data.value;
 
  </script>
- 
- 
- <style scoped></style>
