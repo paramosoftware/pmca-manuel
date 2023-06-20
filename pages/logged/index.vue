@@ -19,6 +19,9 @@
 </template>
    
 <script setup lang="ts">
+definePageMeta({
+    middleware: 'auth'
+});
 
 const { isAuthenticated, isAdmin } = useAuth();
 const _isAdmin = await isAdmin();
