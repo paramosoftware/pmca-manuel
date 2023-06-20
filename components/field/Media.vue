@@ -3,7 +3,7 @@
         data-inactive-classes="text-black">
         <h2 :id="'accordion-collapse-heading-' + id" class="cursor-pointer">
             <button type="button"
-                class="flex items-center justify-between w-full mt-4 text-lg uppercase text-red-900 text-left bg-white border border-gray-300 p-2"
+                class="flex items-center justify-between w-full mt-4 text-lg text-pmca-secondary first-letter:uppercase text-left bg-white border border-gray-300 p-2"
                 :data-accordion-target="'#accordion-collapse-body-' + id" aria-expanded="false"
                 :aria-controls="'accordion-collapse-body-' + id">
                 <span>{{ label }}</span>

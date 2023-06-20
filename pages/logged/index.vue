@@ -1,15 +1,16 @@
 <template>
     
-    <main class="container max-w-screen-xl mx-auto p-5 bg-white border border-neutral mt-5 h-full">
+    <main class="container max-w-screen-xl mx-auto h-full">
         <div class="flex items-center justify-between">
             <div class="flex flex-col">
 
-                <h1 class="text-5xl text-black">Cadastros</h1>
+                <h1 class="text-4xl">Cadastros</h1>
 
-                <NuxtLink v-for="link in availableLinks" :key="link.name" :to="link.path"
-                    class="text-2xl pt-5 hover:underline text-red-900">
-                    {{ link.name }}
-                </NuxtLink>
+                <span v-for="link in links" :key="link.name" class="text-2xl my-2">
+                    <UILink  v-if="!link.restrictedToAdmin" :href="link.path">
+                        {{ link.name }}
+                    </UILink>
+                </span>
 
             </div>
         </div>
@@ -46,26 +47,9 @@ const links = [
     {
         name: 'Usuários',
         path: '/logged/usuarios',
-        restrictedToAdmin: true
+        restrictedToAdmin: !_isAdmin
     }
 ]
-
-const availableLinks = computed(() => {
-    
-    var temp = [];
-
-    if (_isAdmin)
-        return links;
-
-    for (var i = 0; i < links.length; i++)
-    {
-        if (!links[i].restrictedToAdmin)
-            temp.push(links[i]);
-    }
-
-    return temp;
-});
-
 </script>
    
 <style scoped></style>

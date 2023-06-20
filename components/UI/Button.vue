@@ -1,7 +1,7 @@
 <template>
   <button
     :type="type"
-    class="text-white bg-red-900 p-2 focus:outline-none focus:border-transparent hover:bg-red-950"
+    class="bg-pmca-accent hover:bg-pmca-primary text-white font-bold py-2 px-4 rounded-sm first-letter:uppercase"
   >
     {{ label }}
     <slot />

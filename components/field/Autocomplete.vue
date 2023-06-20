@@ -1,29 +1,29 @@
 <template>
     <div class="mt-4">
         <div class="w-full relative">
-            <label class="text-lg uppercase text-red-900" :for="id">
+            <UILabel :for="id">
                 {{ label }}
-            </label>
+            </UILabel>
 
             <div class="flex flex-wrap mb-2" v-if="computedModelValue.length > 0">
                 <div v-for="item in computedModelValue" :key="item.id"
-                    class="flex justify-between items-center text-gray-800 px-2 border-2 border-red-900 p-1 mt-2 mr-2">
-                    
+                    class="flex justify-between items-center px-2 border border-pmca-accent p-1 my-1 mr-2 rounded-sm">
+
                     <div>{{ item.name }}</div>
 
                     <button @click="removeItem(item.id)" class="ml-2">
-                        <Icon name="ph:trash-simple" class="text-black w-6 h-6" title="Remover" />
+                        <Icon name="ph:trash-simple" class="w-6 h-6" title="Remover" />
                     </button>
 
                 </div>
             </div>
             <span v-if="multiple || (!multiple && computedModelValue.length < max)">
 
-                <div class="relative block text-gray-400 focus-within:text-red-900">
+                <div class="relative block text-gray-400 focus-within:text-pmca-accent">
                     <Icon name="ph:magnifying-glass"
                         class="pointer-events-none w-5 h-5 absolute top-1/2 transform -translate-y-1/2 right-3" />
                     <input type="text" id="search" v-model="searchTerm" :placeholder="placeholder"
-                        class="w-full block text-sm text-black border-black bg-transparent focus:outline-none focus:ring-red-900 focus:border-transparent placeholder-gray-400"
+                        class="w-full bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm leading-none"
                         @input="searchItems">
                 </div>
 
@@ -45,7 +45,7 @@
                     <button @click="createItem(searchTerm)">
                         Cadastrar: {{ searchTerm }}
 
-                        <Icon name="ph:plus-circle" class="text-red-900 w-6 h-6" title="Criar" />
+                        <Icon name="ph:plus-circle" class="text-pmca-accent w-6 h-6" title="Criar" />
 
                     </button>
                 </li>
