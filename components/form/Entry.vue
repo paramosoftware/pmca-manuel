@@ -162,7 +162,7 @@ const nameRef = ref(null);
 
 const handleError = (error: { error: string, field: string }) => {
     const field = error.field;
-    if (field == 'name') {
+    if (field == 'name' || field == 'code') {
         nameRef.value.showError = true;
         nameRef.value.$el.children[1].focus();
     }
