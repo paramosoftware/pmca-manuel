@@ -2,15 +2,20 @@
     <div class="flex flex-col justify-center items-center">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
             <form @submit.prevent="save">
-                <UIAnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
+        
+                <div class="text-end flex justify-between" :class="{ 'mt-5 mb-10' : isStandalone }">
+                    <UIAnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
+
+                    <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="showNewButton && !isCreate">
+                        <UIButton class="justify-items-start content-start items-start">{{ genderNoun == 'm' ? 'Novo' : 'Nova' }}</UIButton>
+                    </NuxtLink>
+                </div>
 
                 <div class="justify-between flex flex-row items-center mt-4">
 
                     <h1 class="text-3xl text-black">{{ saveObject ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</h1>
 
-                    <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="showNewButton && !isCreate">
-                        <UIButton>{{ genderNoun == 'm' ? 'Novo' : 'Nova' }}</UIButton>
-                    </NuxtLink>
+                    <UIButton v-if="isStandalone" :type='"submit"'>{{ (saveObject ? 'Salvar' : 'Adicionar') }}</UIButton>
 
                 </div>
 
