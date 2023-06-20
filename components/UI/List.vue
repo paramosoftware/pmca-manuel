@@ -8,7 +8,7 @@
             <div class="justify-between flex flex-row items-center my-4">
                 <h1 class="text-4xl first-letter:uppercase">{{ pluralNamePt }}</h1>
                 <NuxtLink :to="'/logged/' + urlPath + '/criar'">
-                    <UIButton>{{ genderNoun === 'f' ? 'NOVA' : 'NOVO' }}</UIButton>
+                    <UIButton>{{ genderNoun === 'f' ? 'Nova' : 'Novo' }}</UIButton>
                 </NuxtLink>
             </div>
 
