@@ -1,12 +1,12 @@
 <template>
-    <div class="flex flex-col justify-center items-center mt-10">
-        <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
+    <div class="flex flex-col justify-center items-center mt-5">
+        <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral rounded-sm">
             <div class="flex flex-row justify-start items-center">
                 <UIAnchorReturn href="/logged" />
             </div>
 
             <div class="justify-between flex flex-row items-center my-4">
-                <h1 class="text-3xl text-black first-letter:uppercase">{{ pluralNamePt }}</h1>
+                <h1 class="text-4xl first-letter:uppercase">{{ pluralNamePt }}</h1>
                 <NuxtLink :to="'/logged/' + urlPath + '/criar'">
                     <UIButton>{{ genderNoun === 'f' ? 'NOVA' : 'NOVO' }}</UIButton>
                 </NuxtLink>
@@ -22,7 +22,7 @@
                     :placeholder="'Filtrar ' + pluralNamePt" />
             </div>
 
-            <div v-for="object in filteredObjects" :key="object.id" class="w-full py-4 border-b border-red-900 last:border-b-0">
+            <div v-for="object in filteredObjects" :key="object.id" class="w-full py-4 border-b border-pmca-accent last:border-b-0">
 
                 <UIListCard 
                     :object="object" 

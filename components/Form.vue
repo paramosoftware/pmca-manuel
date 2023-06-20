@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col justify-center items-center mt-10">
+    <div class="flex flex-col justify-center items-center">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
             <form @submit.prevent="save">
                 <UIAnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />

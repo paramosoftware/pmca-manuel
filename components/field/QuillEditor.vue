@@ -1,8 +1,8 @@
 <template>
   <div class="mt-4" :id="id">
-    <label class="text-lg uppercase text-red-900" :for="id">
-      {{ label }}
-    </label>
+    <UILabel :for="id">
+        {{ label }}
+    </UILabel>
 
     <input v-show="false" v-if="required" :value="content" :required="required">
 

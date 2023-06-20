@@ -1,8 +1,9 @@
 <template>
   <div class="mt-4">
-    <label class="text-lg uppercase text-red-900" :for="id" v-if="showLabel">
+
+    <UILabel :for="id" :showLabel="showLabel">
       {{ label }}
-    </label>
+    </UILabel>
 
     <component 
       :is="textarea ? 'textarea' : 'input'" 
@@ -11,7 +12,7 @@
       :value="modelValue"
       :required="required"
       @input="$emit('update:modelValue', $event.target.value)"
-      class="w-full text-sm text-gray-800 placeholder:text-gray-400 border-gray-300  bg-transparent focus:outline-none focus:ring-red-900 focus:border-transparent"
+      class="w-full bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm leading-none"
       :placeholder="placeholder"
       >
     </component>
