@@ -25,8 +25,8 @@
         <select v-model="listMode" @input=handleMode
           class="w-full text-md bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm"
           id="list-mode">
-          <option value="hier">Hierárquica</option>
-          <option value="alfa">Alfabética</option>
+          <option value="hier">Hierárquico</option>
+          <option value="alfa">Alfabético</option>
         </select>
       </div>
 

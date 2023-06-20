@@ -11,21 +11,24 @@
         url-path="usuarios"
         :showNewButton="!isChangingPassword"
         @changeUserFormState="isChangingPassword = false"
-    >
+        >
+        
         <FieldInput label="Nome" v-if=!isChangingPassword v-model="user.name" id="name" ref="name" type="text" placeholder="Nome do usuário" />
 
         <FieldInput label="E-mail" v-if=!isChangingPassword v-model="user.email" id="email" type="text" placeholder="E-mail" />
 
         <FieldSelect label="Tipo" v-if=!isChangingPassword v-model="user.role" id="role" :options="options" :mandatory="true" />
            
-        <FieldInput label="Senha" v-model="user.password" v-if="(!user.id || isChangingPassword)" id="password" ref="password" type="password" placeholder="Senha" />
+        <FieldInput label="Senha" v-model="user.password" v-if="(!user.id || isChangingPassword)" id="password" ref="password" type="password" placeholder="Senha" :required="true" />
 
-        <FieldInput label="Confirmação da senha" v-model="passwordConfirmation" v-if="(!user.id || isChangingPassword)" id="password_confirmation" type="password" placeholder="Digite a senha novamente" />
+        <FieldInput label="Confirmação da senha" v-model="passwordConfirmation" v-if="(!user.id || isChangingPassword)" id="password_confirmation" type="password" placeholder="Digite a senha novamente" :required="true" />
 
-        <div v-if="(!user.id || isChangingPassword) && (user.password != passwordConfirmation)">Confirmação da senha inválida!</div>
+        <div v-if="(!user.id || isChangingPassword) && (user.password != passwordConfirmation) && (passwordConfirmation !== '') ">Confirmação da senha inválida!</div>
 
         <div class="mt-5 text-end" v-if="(user.id && !isChangingPassword)">
-            <UIButton label="ALTERAR SENHA" :on-click="changeUserPassword" />
+            <UIButton @click="changeUserPassword" >
+                Alterar senha
+            </UIButton>
         </div>
     </Form>
 

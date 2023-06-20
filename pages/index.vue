@@ -21,13 +21,13 @@
               <div class="flex justify-evenly mt-6">
                 <NuxtLink to="/verbetes?modo=hier">
                   <PublicButton>
-                      <span class="text-xl">Hierárquica</span>
+                      <span class="text-xl">Arranjo hierárquico</span>
                   </PublicButton>
                 </NuxtLink>
                 
                 <NuxtLink to="/verbetes?modo=alfa">
                   <PublicButton>
-                      <span class="text-xl">Alfabética</span>
+                      <span class="text-xl">Lista alfabética</span>
                   </PublicButton>
                 </NuxtLink>
               </div>

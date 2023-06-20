@@ -10,8 +10,8 @@
             </NuxtLink>
           </div>
           <div class="col-span-2 md:col-span-6">
-              <div class="flex justify-center">
-                <UILink v-for="link in links" :key="link.name" :href="link.path" class="text-2xl mr-5">
+              <div class="flex justify-evenly">
+                <UILink v-for="link in links" :key="link.name" :href="link.path" class="text-2xl">
                   {{ link.name }}
                 </UILink>
               </div>

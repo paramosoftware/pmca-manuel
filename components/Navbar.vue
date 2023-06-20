@@ -55,16 +55,20 @@ const items = [
   [{
     label: 'Nome',
     disabled: true,
-    click: () => {
-      console.log('Edit')
-    }
   }],
   [{
     label: 'Sair',
     click: () => {
-      console.log('Edit')
+      logout();
     }
   }]
 ]
 
+const logout = async () => {
+  const { data, error } = await useFetchWithBaseUrl('/api/auth/logout', {
+      method: 'POST',
+  });
+  
+  navigateTo('/')
+};
 </script>
