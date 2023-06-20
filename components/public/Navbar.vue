@@ -4,9 +4,9 @@
     <div class="container max-w-screen-xl mx-auto border-b-2 pb-4 border-b-pmca-primary">
 
       <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
-        <div class="mb-1">
+        <div class="mt-1">
           <NuxtLink to="/">
-            <img src="/logo-pmca.png" alt="Logo" class="w-30 h-30 p-2" />
+            <img src="/logo-pmca.png" alt="Logo" class="w-14 h-14" />
           </NuxtLink>
         </div>
         <div class="col-span-3 md:col-span-4">
@@ -53,14 +53,22 @@ const search = ref(router.currentRoute.value.query.termo || '');
 
 
 const links = ref([
-  {
-    name: 'Início',
-    path: '/'
-  },
-  {
-    name: 'Verbetes',
-    path: '/verbetes'
-  }
+    {
+      name: 'Verbetes',
+      path: '/verbetes'
+    },
+    {
+      name: 'Sobre',
+      path: ''
+    },
+    {
+      name: 'Software',
+      path: ''
+    },
+    {
+      name: 'PMCA',
+      path: ''
+    }
 ]);
 
 

@@ -3,9 +3,9 @@
         <div class="container max-w-screen-xl mx-auto">
             <div class="grid md:grid-cols-2 bg-pmca-primary-light p-4">
                 <div class="flex flex-col">
-                    <p class="text-lg">
-                        Glossário de conservação-restauro de livros e documentos
-                    </p>
+                    <h1 class="text-lg">Glossário de conservação-restauro
+                        <span class="block">de livros e documentos</span>
+                    </h1>
                     <Icon name="ci:github" class="text-white p-1" />
                     <div class="text-start mt-5">
                         <p class="text-sm  text-start">Projeto Manuel Correia de Andrade (PMCA)</p>
