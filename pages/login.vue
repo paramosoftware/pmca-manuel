@@ -1,17 +1,27 @@
 <template>
-  <div class="flex flex-col justify-center items-center h-screen">
-    <div class="container max-w-screen-sm mx-auto p-5 bg-white border border-neutral">
-      <div class="justify-between flex flex-row items-center mt-4">
-        <h1 class="text-3xl text-black">Login</h1>
-      </div>
-      <form @submit.prevent="submit" class="mt-5">
-        <FieldInput label="E-mail" v-model="email" type="text" placeholder="Digite seu e-mail" />
-        <FieldInput label="Senha" v-model="password" type="password" placeholder="Digite sua senha" />
-        <div v-if="errorMessage" class="text-red-500">{{ errorMessage }}</div>
-        <div class="mt-5 text-end">
-          <UIButton label="ENTRAR" type="submit" />
+  <div class="flex flex-col justify-center items-center h-screen mx-10">
+    <div class="container max-w-screen-lg mx-auto p-4 border border-neutral rounded-sm m-5">
+
+      <div class="grid grid-cols-2 gap-2 content-center items-center">
+        <div class="col-span-2 md:col-span-1 flex justify-center">
+          <img src="/logo-pmca-big.png" alt="Logo" class="w-72" />
         </div>
-      </form>
+        <div class="col-span-2 md:col-span-1 mt-5 md:mt-0 items-center">
+          <div>
+            <h1 class="text-4xl">Login</h1>
+          </div>
+          <form @submit.prevent="submit" class="mt-5 mx-auto">
+            <FieldInput label="E-mail" v-model="email" type="text" placeholder="Digite seu e-mail" />
+            <FieldInput label="Senha" v-model="password" type="password" placeholder="Digite sua senha" />
+            <div v-if="errorMessage" class="text-red-500">{{ errorMessage }}</div>
+            <div class="mt-5 text-end">
+              <UIButton label="Entrar" type="submit" />
+            </div>
+          </form>
+        </div>
+      </div>
+
+
     </div>
   </div>
 </template>
@@ -19,7 +29,8 @@
 <script setup lang="ts">
 
 definePageMeta({
-    middleware: 'auth'
+  layout: false,
+  middleware: 'auth'
 })
 
 
@@ -51,7 +62,7 @@ const submit = async () => {
   if (error.value) {
     errorMessage.value = "E-mail ou senha inválidos";
   }
-  
+
 };
 
 </script>

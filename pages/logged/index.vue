@@ -1,6 +1,5 @@
 <template>
-    <PublicNavbar />
-
+    
     <main class="container max-w-screen-xl mx-auto p-5 bg-white border border-neutral mt-5 h-full">
         <div class="flex items-center justify-between">
             <div class="flex flex-col">
@@ -16,14 +15,9 @@
         </div>
     </main>
 
-    <Footer />
 </template>
    
 <script setup lang="ts">
-
-definePageMeta({
-    middleware: 'auth'
-})
 
 const { isAuthenticated, isAdmin } = useAuth();
 const _isAdmin = await isAdmin();

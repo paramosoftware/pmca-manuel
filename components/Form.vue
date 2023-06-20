@@ -1,6 +1,4 @@
 <template>
-    <ExternalNavbar v-if="isStandalone" />
-    
     <div class="flex flex-col justify-center items-center mt-10">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
             <form @submit.prevent="save">
