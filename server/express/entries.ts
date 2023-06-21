@@ -121,13 +121,29 @@ router.delete('/:id', async (req, res, next) => {
     const id = req.params.id;
 
     try {
-        const deleteEntry = await prisma.entry.delete({
-            where: {
-                id: parseInt(id)
-            }
-        });
 
-        res.json(deleteEntry);
+        const deletedEntry = await prisma.$transaction([
+
+            prisma.entry.update({
+                where: {
+                    id: parseInt(id)
+                },
+                data: {
+                    relatedEntries: {set: []},
+                    variations: {deleteMany: {}},
+                    translations: {deleteMany: {}},
+                }
+            }),
+
+            prisma.entry.delete({
+                where: {
+                    id: parseInt(id)
+                }
+            })             
+        ])
+
+
+        res.json(deletedEntry);
 
     } catch (error) {
       next(error);
