@@ -11,22 +11,25 @@
                     </NuxtLink>
                 </div>
 
+                <div class="mt-2 text-center" v-show="backFromSaving">
+                        <h1>Dados salvos com sucesso.</h1>
+                </div>
+
+
                 <div class="justify-between flex flex-row items-center mt-4">
 
-                    <h1 class="text-3xl text-black">{{ saveObject ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</h1>
 
-                    <UIButton v-if="isStandalone" :type='"submit"'>{{ (saveObject ? 'Salvar' : 'Adicionar') }}</UIButton>
+                    <h1 class="text-2xl">{{ isStandalone ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</h1>
+
+                    <UIButton v-if="isStandalone" :type='"submit"'>Salvar</UIButton>
 
                 </div>
 
-                <div class="mt-2 text-center" v-show="backFromSaving">
-                    <h1>Dados salvos com sucesso.</h1>
-                </div>
 
                 <slot />
 
                 <div class="mt-5 text-end">
-                    <UIButton :type='"submit"'>{{ (saveObject ? 'Salvar' : 'Adicionar') }}</UIButton>
+                    <UIButton :type='"submit"'>{{ (isStandalone ? 'Salvar' : 'Adicionar') }}</UIButton>
                 </div>
 
             </form>
@@ -86,23 +89,17 @@ const props = defineProps({
         type: Boolean,
         default: true
     },
-    saveObject: {
-        type: Boolean,
-        default: true
-    },
 });
 
 const router = useRouter();
-const emit = defineEmits(['auxiliarySaved', 'error', 'changeUserFormState']);
+const emit = defineEmits(['formSubmitted', 'error', 'changeUserFormState']);
 
 const backFromSaving = ref(false);
 
 const save = async () => {
 
-    let savedObject;
+    if (props.isStandalone) {
 
-    if (props.saveObject)
-    {
         let url = '/api/' + props.pluralName + '/' + props.object.id;
         let method = 'PUT';
 
@@ -119,30 +116,25 @@ const save = async () => {
     
         if (error.value) {
             emit('error', error.value.data);
+            return;
         }
 
-        savedObject = saved.value;
-    }
-    else
-    {
-        savedObject = props.object;
-    }
-
-    if (savedObject) {
-        if (props.isStandalone) {
-            router.push('/logged/' + props.urlPath + '/editar/' + savedObject.id);
+        if (saved.value) {
+            router.push('/logged/' + props.urlPath + '/editar/' + saved.value.id);
 
             backFromSaving.value = true;
 
             setTimeout(() => {
                 backFromSaving.value = false;
             }, 8000);
-            
+
             emit('changeUserFormState');
-        } else {
-            emit('auxiliarySaved', savedObject);
+
         }
+    } else {
+        emit('formSubmitted', props.object);
     }
+
 };
 
 </script>

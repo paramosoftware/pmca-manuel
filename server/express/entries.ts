@@ -165,7 +165,8 @@ router.put('/:id', async (req, res, next) => {
 
     try {
 
-        var va_variations = req.body.variations;
+        const variations = req.body.variations || [];
+        const translations = req.body.translations || [];
 
         let data:any = prepareRequestBodyForPrisma(req.body);
 
@@ -177,7 +178,39 @@ router.put('/:id', async (req, res, next) => {
             data.category = undefined;
         }
 
-        data.variations = { deleteMany: {} }
+        data.variations = { 
+            deleteMany: {},
+            connectOrCreate: variations.map((variation: Variation) => {
+                return {
+                    where: {
+                        id: parseInt(variation.id)
+                    },
+                    create: {
+                        name: variation.name,
+                    }
+                }
+            }
+        )};
+
+
+        data.translations = {
+            deleteMany: {},
+            connectOrCreate: translations.map((translation: Translation) => {
+                return {
+                    where: {
+                        id: translation.id
+                    },
+                    create: {
+                        name: translation.name,
+                        language: {
+                            connect: {
+                                id: parseInt(translation.languageId)
+                            }
+                        }
+                    }
+                }
+            })
+        };
 
         const savedEntry = await prisma.entry.update({
             where: {
@@ -186,24 +219,6 @@ router.put('/:id', async (req, res, next) => {
             data
         });
 
-        if (req.body.variations.length > 0)
-        {
-            for (var i = 0; i < va_variations.length; i++)
-            {
-                const savedEntry = await prisma.entry.update({
-                    where: {
-                        id: parseInt(id)
-                    },
-                    data: {
-                        variations: {
-                            create: [
-                                {name: va_variations[i].name}
-                            ]
-                        }
-                    }
-                });
-            }
-        }
 
         res.json(savedEntry);
 
@@ -244,6 +259,8 @@ router.post('/', async (req, res, next) => {
     try {
 
         let data:any = prepareRequestBodyForPrisma(req.body, true);
+        const variations = req.body.variations || [];
+        const translations = req.body.translations || [];
 
         data.id = undefined;
        
@@ -251,9 +268,41 @@ router.post('/', async (req, res, next) => {
             data.code = normalizeString(data.name);
         }
 
-        if (data.category) {
+        if (data.category || data.category === null) {
             data.category = undefined;
         }
+
+        data.variations = { 
+            connectOrCreate: variations.map((variation: Variation) => {
+                return {
+                    where: {
+                        id: parseInt(variation.id)
+                    },
+                    create: {
+                        name: variation.name,
+                    }
+                }
+            }
+        )};
+
+
+        data.translations = {
+            connectOrCreate: translations.map((translation: Translation) => {
+                return {
+                    where: {
+                        id: translation.id
+                    },
+                    create: {
+                        name: translation.name,
+                        language: {
+                            connect: {
+                                id: parseInt(translation.languageId)
+                            }
+                        }
+                    }
+                }
+            })
+        };
 
         const savedEntry = await prisma.entry.create({
             data
@@ -266,5 +315,8 @@ router.post('/', async (req, res, next) => {
     }
 
 });
+
+
+  
 
 export default router;

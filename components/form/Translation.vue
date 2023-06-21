@@ -9,11 +9,9 @@
         :object=translation 
         :is-create="translation.id == 0" 
         :is-standalone=false
-        @auxiliary-saved="updateParent"
+        @form-submitted="updateParent"
         @error="handleError"
         >
-
-        <input type="hidden" v-model="translation.entry.id" id="entryId" />
 
         <FieldInput 
             id="name" 
@@ -29,7 +27,7 @@
             label="Idioma" 
             v-model="translation.language.id" 
             id="language" 
-            :options="languageOptions" 
+            :options="languages" 
             :mandatory="true"
         />
 
@@ -55,35 +53,20 @@ const translation = ref<Translation>(
     }
 );
 
-const { data: languages } = await useFetchWithBaseUrl('/api/languages');
-
-const languageOptions = computed(() => {
-    const arrLanguages = [];
-
-    for (var i = 0; i < languages.value.length; i++) {           
-        arrLanguages.push({id: languages.value[i].id, textValue: languages.value[i].name});
-    }
-
-    translation.value.language.id = languages.value[0].id;
-
-    return arrLanguages;
+const { data: languages } = await useFetchWithBaseUrl('/api/languages', {
+    transform: (languages) =>
+        languages.map((language: Language) => ({
+            id: language.id,
+            name: language.name
+        })),
 });
-
-const updateModel = (property: string, action: string, item: any) => {
-    if (translation.value) {
-        if (action === 'add') {
-            translation.value[property] = item;
-            
-        } else if (action === 'remove') {
-            translation.value[property] = {id: 0, name: ''}
-        }
-    }
-}
 
 const emit = defineEmits(['update'])
 
 const updateParent = (translation : Translation) => {
-    emit('update', 'translations', 'add',  translation)
+    emit('update', 'translations', 'add',  {
+        id: translation.id, name: translation.name, languageId: translation.language.id
+    })
 }
 
 const nameRef = ref(null);

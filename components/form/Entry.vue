@@ -7,9 +7,7 @@
         plural-name-pt="verbetes" 
         :object=entry
         :is-create="entry.id == 0"
-        url-path="verbetes"
-        @auxiliary-saved="console.log('auxiliary-saved', $event)"
-        
+        url-path="verbetes"        
         @error="handleError"
         >
 
@@ -46,10 +44,9 @@
         <FieldModalAuxiliaryForm
             id="variations"
             :items="entry.variations"
-            route="variations"
-            :object-id="entry.id"
             label="Variações do termo"
             ref="fieldVariations"
+            @update="updateModel"
             >
     
             <FormVariation :entry-id="entry.id" @update="updateModel" />
@@ -60,12 +57,11 @@
         <FieldModalAuxiliaryForm
             id="translations"
             :items="entry.translations"
-            route="translations"
-            :object-id="entry.id"
             label="Traduções do termo em outras línguas"
             ref="fieldTranslations"
+            @update="updateModel"
             >
-    
+
             <FormTranslation :entry-id="entry.id" @update="updateModel" />
         
         </FieldModalAuxiliaryForm>
@@ -140,15 +136,19 @@ const fieldTranslations = ref(null);
 
 const updateModel = (property: string, action: string, item: any) => {
 
-    //console.log('updateModel', property, action, item);
 
-    if (props.entry && props.entry[property]) {
+    if (entry.value && entry.value[property]) {
 
         if (action === 'add') {
-            props.entry[property].push(item);
+
+            const exists = entry.value[property].find((e) => e.name.toLowerCase() === item.name.toLowerCase());
+
+            if (!exists) {
+                entry.value[property].push(item);
+            }
 
         } else if (action === 'remove') {
-            props.entry[property] = props.entry[property].filter((e) => e.id !== item.id);
+            entry.value[property] = entry.value[property].filter((e) => e.id !== item.id);
         }
     }
 
@@ -167,5 +167,4 @@ const handleError = (error: { error: string, field: string }) => {
         nameRef.value.$el.children[1].focus();
     }
 };
-
 </script>
