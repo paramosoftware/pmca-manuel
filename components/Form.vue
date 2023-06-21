@@ -11,20 +11,13 @@
                     </NuxtLink>
                 </div>
 
-                <div class="mt-2 text-center" v-show="backFromSaving">
-                        <h1>Dados salvos com sucesso.</h1>
-                </div>
-
-
                 <div class="justify-between flex flex-row items-center mt-4">
-
 
                     <h1 class="text-2xl">{{ isStandalone ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</h1>
 
                     <UIButton v-if="isStandalone" :type='"submit"'>Salvar</UIButton>
 
                 </div>
-
 
                 <slot />
 
@@ -93,8 +86,7 @@ const props = defineProps({
 
 const router = useRouter();
 const emit = defineEmits(['formSubmitted', 'error', 'changeUserFormState']);
-
-const backFromSaving = ref(false);
+const toast = useToast()
 
 const save = async () => {
 
@@ -122,13 +114,25 @@ const save = async () => {
         if (saved.value) {
             router.push('/logged/' + props.urlPath + '/editar/' + saved.value.id);
 
-            backFromSaving.value = true;
-
-            setTimeout(() => {
-                backFromSaving.value = false;
-            }, 8000);
 
             emit('changeUserFormState');
+
+
+            toast.add({ 
+                title: 'Dados salvos com sucesso.',
+                ui: { rounded: 'rounded-sm', padding: 'p-5' }
+            })
+
+            if (process.client) {
+                window.scrollTo(
+                    {
+                        top: 0,
+                        behavior: 'smooth'
+                    }
+                );
+            }
+
+            return;
 
         }
     } else {
