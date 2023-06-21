@@ -101,7 +101,18 @@ const filteredObjects = computed(() => {
         return objects.value;
     }
 
-    return objects.value.filter(object => object.name.toLowerCase().includes(filter.value.toLowerCase()));
+    const normalizedFilterValue = filter.value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+
+    return objects.value.filter(object =>
+        object.name
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .includes(normalizedFilterValue)
+    );
 });
 
 

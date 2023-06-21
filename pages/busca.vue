@@ -99,7 +99,19 @@ const filteredEntries = computed(() => {
     return entries.value;
   }
 
-  return entries.value?.filter(entry => entry.name.toLowerCase().includes(filter.value.toLowerCase()));
+  const normalizedFilterValue = filter.value
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase();
+
+    return entries.value.filter(entry =>
+          entry.name
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .includes(normalizedFilterValue)
+    );
+
 });
 
 const handleFilter = (event: Event) => {
