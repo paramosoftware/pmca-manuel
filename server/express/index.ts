@@ -14,7 +14,7 @@ import media from './media'
 import translations from './translations'
 import references from './references'
 import upload from './upload'
-import { PrismaClientKnownRequestError} from '@prisma/client/runtime/library'
+import { PrismaClientKnownRequestError} from '@prisma/client/runtime/library.js'
 
 const app = express();
 

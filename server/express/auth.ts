@@ -26,7 +26,7 @@ const generateRefreshToken = (user: User) => {
 const setAccessTokenCookie = (res: express.Response, accessToken: string) => { 
     res.cookie('token', accessToken, { // TODO: set flags to true in production
         secure: false, 
-        sameSite: 'strict',
+        sameSite: false,
         httpOnly: false,
         maxAge: 1000 * 60 * 60 * 24 * 2
     });
