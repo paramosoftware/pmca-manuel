@@ -52,8 +52,8 @@ const user = ref<User>(
 
 const options = computed(() => {
     return [
-        {id: "2", textValue: "padrão"},
-        {id: "1", textValue: "administrador"}
+        {id: "2", name: "padrão"},
+        {id: "1", name: "administrador"}
     ];
 });
 

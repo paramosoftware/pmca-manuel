@@ -88,9 +88,7 @@ const entries = ref([])
 const entriesByCategory = ref([])
 const sortOrder = ref('asc');
 const filter = ref('');
-const category = ref("0");
 const tree = ref({});
-
 
 // hierarchical (hier) or alphabetical (alfa)
 const listMode = computed(() => {
@@ -131,15 +129,23 @@ watch(() => query.value, async (newQuery) => {
 
 const filteredEntries = computed(() => {
 
-  if (!filter.value && !category.value) {
+  if (!filter.value) {
     return entries.value;
   }
 
-  if (category.value != "0") {
-    return entriesByCategory.value?.filter(entry => entry.name.toLowerCase().includes(filter.value.toLowerCase()) && entry.category?.id === parseInt(category.value));
-  } 
+    const normalizedFilterValue = filter.value
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase();
 
-  return entries.value?.filter(entry => entry.name.toLowerCase().includes(filter.value.toLowerCase()));
+    return entries.value.filter(entry =>
+          entry.name
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .includes(normalizedFilterValue)
+    );
+
 });
 
 const handleFilter = (event: Event) => {

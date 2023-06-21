@@ -8,7 +8,7 @@
             <div class="justify-between flex flex-row items-center my-4">
                 <h1 class="text-4xl first-letter:uppercase">{{ pluralNamePt }}</h1>
                 <NuxtLink :to="'/logged/' + urlPath + '/criar'">
-                    <UIButton>{{ genderNoun === 'f' ? 'NOVA' : 'NOVO' }}</UIButton>
+                    <UIButton>{{ genderNoun === 'f' ? 'Nova' : 'Novo' }}</UIButton>
                 </NuxtLink>
             </div>
 
@@ -101,7 +101,18 @@ const filteredObjects = computed(() => {
         return objects.value;
     }
 
-    return objects.value.filter(object => object.name.toLowerCase().includes(filter.value.toLowerCase()));
+    const normalizedFilterValue = filter.value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+
+    return objects.value.filter(object =>
+        object.name
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .includes(normalizedFilterValue)
+    );
 });
 
 

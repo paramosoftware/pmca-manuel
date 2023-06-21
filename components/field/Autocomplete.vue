@@ -42,7 +42,7 @@
                 </li>
 
                 <li v-if="allowCreate && !results.length && searchTerm !== ''" class="text-gray-600 py-2">
-                    <button @click="createItem(searchTerm)">
+                    <button type="button" @click="createItem(searchTerm)">
                         Cadastrar: {{ searchTerm }}
 
                         <Icon name="ph:plus-circle" class="text-pmca-accent w-6 h-6" title="Criar" />

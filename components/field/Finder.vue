@@ -36,7 +36,7 @@ const props = defineProps({
         required: true
     },
     defaultExpanded: {
-        type: String,
+        type: [String, Number],
     },
     label: {
         type: String,

@@ -16,7 +16,7 @@
                 class="bg-white hover:bg-gray-100"
                 :value="option.id"
                 :selected="option.id === modelValue">
-                {{ option.textValue }}
+                {{ option.name }}
             </option>
         </select>
     </div>
@@ -25,9 +25,12 @@
 <script setup lang="ts">
 
 const props = defineProps({
-    label: String,
-    modelValue: String,
     id: String,
+    label: String,
+    modelValue: {
+        type: [Number, String],
+        required: true
+    },
     options: Array,
     mandatory: Boolean
 });

@@ -11,8 +11,8 @@
 
         <template #footer>
             <div class="flex flex-row justify-end items-center">
-                <UIButton @click="closeModal">CANCELAR</UIButton>
-                <UIButton @click="deleteObject(objectIdToDelete)" class="ml-2">EXCLUIR</UIButton>
+                <UIButton @click="closeModal">Cancelar</UIButton>
+                <UIButton @click="deleteObject(objectIdToDelete)" class="ml-2">Excluir</UIButton>
             </div>
         </template>
     </UCard>
@@ -51,6 +51,7 @@ watch(() => props.modelValue, (newValue) => {
 })
 
 
+const toast = useToast()
 const emit = defineEmits(['delete', 'update:modelValue']);
 
 const closeModal = () => {
@@ -59,11 +60,28 @@ const closeModal = () => {
 
 
 const deleteObject = async (id: number) => {
-    const { data } = await useFetchWithBaseUrl(`/api/${props.pluralName}/${id}`, {
+    const { data, error } = await useFetchWithBaseUrl(`/api/${props.pluralName}/${id}`, {
         method: 'DELETE'
     });
 
-    if (data) {
+
+    if (error.value) {
+        toast.add({ 
+            title: 'Aconteceu algum problema ao excluir ' + props.singularNamePt,
+            ui: { rounded: 'rounded-sm', padding: 'p-5' }
+        })
+
+        return;
+    }
+
+
+    if (data.value) {
+
+        toast.add({ 
+            title: 'Exclusão realizada com sucesso.',
+            ui: { rounded: 'rounded-sm', padding: 'p-5' }
+        })
+
         emit('delete', id);
         closeModal();
     }

@@ -1,12 +1,12 @@
 <template>
     <div>
-        <vue-dropzone ref="myVueDropzone" id="dropzone" 
-        :options="dropzoneOptions" 
-        />
+        <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions" />
         <input type="hidden" name="entryId" :value="entryId">
         
         <div class="mt-5 text-end">
-            <UIButton @click="uploadFiles" label="UPLOAD" class="mx-auto" />
+            <UIButton @click="uploadFiles" class="mx-auto">
+                Upload
+            </UIButton>
         </div>
     </div>
 </template>

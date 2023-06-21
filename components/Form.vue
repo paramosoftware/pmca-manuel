@@ -2,26 +2,27 @@
     <div class="flex flex-col justify-center items-center">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
             <form @submit.prevent="save">
-                <UIAnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
+        
+                <div class="text-end flex justify-between" :class="{ 'mt-5 mb-10' : isStandalone }">
+                    <UIAnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
+
+                    <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="showNewButton && !isCreate">
+                        <UIButton class="justify-items-start content-start items-start">{{ genderNoun == 'm' ? 'Novo' : 'Nova' }}</UIButton>
+                    </NuxtLink>
+                </div>
 
                 <div class="justify-between flex flex-row items-center mt-4">
 
-                    <h1 class="text-3xl text-black">{{ saveObject ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</h1>
+                    <h1 class="text-2xl">{{ isStandalone ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</h1>
 
-                    <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="showNewButton && !isCreate">
-                        <UIButton>{{ genderNoun == 'm' ? 'NOVO' : 'NOVA' }}</UIButton>
-                    </NuxtLink>
+                    <UIButton v-if="isStandalone" :type='"submit"'>Salvar</UIButton>
 
-                </div>
-
-                <div class="mt-2 text-center" v-show="backFromSaving">
-                    <h1>Dados salvos com sucesso.</h1>
                 </div>
 
                 <slot />
 
                 <div class="mt-5 text-end">
-                    <UIButton :type='"submit"'>{{ (saveObject ? 'SALVAR' : 'ADICIONAR') }}</UIButton>
+                    <UIButton :type='"submit"'>{{ (isStandalone ? 'Salvar' : 'Adicionar') }}</UIButton>
                 </div>
 
             </form>
@@ -81,23 +82,16 @@ const props = defineProps({
         type: Boolean,
         default: true
     },
-    saveObject: {
-        type: Boolean,
-        default: true
-    },
 });
 
 const router = useRouter();
-const emit = defineEmits(['auxiliarySaved', 'error', 'changeUserFormState']);
-
-const backFromSaving = ref(false);
+const emit = defineEmits(['formSubmitted', 'error', 'changeUserFormState']);
+const toast = useToast()
 
 const save = async () => {
 
-    let savedObject;
+    if (props.isStandalone) {
 
-    if (props.saveObject)
-    {
         let url = '/api/' + props.pluralName + '/' + props.object.id;
         let method = 'PUT';
 
@@ -114,30 +108,37 @@ const save = async () => {
     
         if (error.value) {
             emit('error', error.value.data);
+            return;
         }
 
-        savedObject = saved.value;
-    }
-    else
-    {
-        savedObject = props.object;
-    }
+        if (saved.value) {
+            router.push('/logged/' + props.urlPath + '/editar/' + saved.value.id);
 
-    if (savedObject) {
-        if (props.isStandalone) {
-            router.push('/logged/' + props.urlPath + '/editar/' + savedObject.id);
 
-            backFromSaving.value = true;
-
-            setTimeout(() => {
-                backFromSaving.value = false;
-            }, 8000);
-            
             emit('changeUserFormState');
-        } else {
-            emit('auxiliarySaved', savedObject);
+
+
+            toast.add({ 
+                title: 'Dados salvos com sucesso.',
+                ui: { rounded: 'rounded-sm', padding: 'p-5' }
+            })
+
+            if (process.client) {
+                window.scrollTo(
+                    {
+                        top: 0,
+                        behavior: 'smooth'
+                    }
+                );
+            }
+
+            return;
+
         }
+    } else {
+        emit('formSubmitted', props.object);
     }
+
 };
 
 </script>
