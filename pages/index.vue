@@ -35,6 +35,8 @@
           </div>
         </section>
 
+        
+        <HomeNetwork class="mt-10 h-96" />
 
         <!-- sobre -->
         <HomeSection title="Sobre" class="mt-10">
@@ -128,6 +130,4 @@ const searchHandler = (e: Event) => {
     });
   }
 };
-
-
 </script>

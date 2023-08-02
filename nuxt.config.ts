@@ -3,7 +3,8 @@ export default defineNuxtConfig({
     build: {
         transpile: [
             'jsonwebtoken',
-            'vue2-dropzone-vue3'
+            'vue2-dropzone-vue3',
+            'vis-network',
         ]
     },
     modules: [
