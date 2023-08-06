@@ -58,7 +58,7 @@
       </div>
 
       <div class="flex flex-col mt-5">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
           <div v-for="entry in filteredEntries" :key="entry.id" :entry="entry">
             <PublicEntryCard :entry="entry" />
           </div>

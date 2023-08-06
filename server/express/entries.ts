@@ -77,6 +77,7 @@ router.post('/search', async (req, res, next) => {
         const entries = await prisma.entry.findMany({
             where: whereConditions,
             include: {
+                media: true,
                 category: true,
                 variations: true,
                 translations: true
@@ -249,6 +250,7 @@ router.get('/', async (req, res, next) => {
     try {
         const entries = await prisma.entry.findMany({
             include: {
+                media: true,
                 category: true,
                 variations: true,
                 translations: true,
