@@ -24,6 +24,7 @@
   "dependencies": {
     "@jledentu/vue-finder": "^4.1.1",
     "@prisma/client": "^4.13.0",
+    "@splidejs/vue-splide": "^0.6.12",
     "@vueup/vue-quill": "latest",
     "bcrypt": "^5.1.0",
     "cookie-parser": "^1.4.6",
