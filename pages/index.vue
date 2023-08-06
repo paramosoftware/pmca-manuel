@@ -35,6 +35,9 @@
           </div>
         </section>
 
+
+        <HomeCarousel class="mt-10" />
+
         
         <HomeNetwork class="mt-10 h-96" />
 
