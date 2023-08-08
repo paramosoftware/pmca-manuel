@@ -6,7 +6,7 @@
                 <img :src="thumbnail" :alt="entry.name" class="object-cover w-full rounded-sm" :class="height" />
 
 
-                <div class="p-2">
+                <div :class="titlePadding">
                     <UITitle>
                         <span class="text-semibold" :class="titleSize">
                             {{ entry.name }}
