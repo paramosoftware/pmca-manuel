@@ -3,9 +3,20 @@
     <section class="w-full md:w-1/5">
       <PublicSidebar :open-entry-id="entry.id" class="mb-2" />
       <h1 class="text-4xl mt-5"> {{ entry.name }} </h1>
-      <PublicEntryActions />
+      <div class="mt-4 w-1/4">
+        <UITitle>Baixar</UITitle>
+        <div class="flex flex-row mt-2">
+            <a href="#" class="mr-2">
+                <Icon name="ph:file-pdf" />
+            </a>
+        </div>
+    </div>
     </section>
     <section class="w-full md:w-4/5 md:pt-0">
+
+      <div class="flex justify-end">
+        <PublicEntryActions class="text-right justify-end mb-2" :title="entry.name" />
+      </div>
 
       <PublicEntryMedia :images=images v-if="images.length > 0" />
 

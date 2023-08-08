@@ -7,5 +7,7 @@
 
         <Footer />
 
+        <UNotifications />
+
     </div>
 </template>
