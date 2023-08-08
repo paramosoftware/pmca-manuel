@@ -15,11 +15,11 @@
 
         <PublicEntryAttribute title="Definição" :content="entry.definition" :is-html=true />
 
-        <PublicEntryAttribute title="Verbetes relacionados" :content="relatedTerms" :has-link="true" />
-
         <PublicEntryAttribute title="Notas" :content="entry.notes" :is-html=true />
 
         <PublicEntryAttribute title="Referências" :content="references" :is-html=true :is-one-line="true" />
+
+        <PublicEntryRelatedEntries title="Verbetes relacionados" :entries="entry.relatedEntries" />
 
       </div>
     </section>
@@ -44,15 +44,6 @@ const references = ref([])
 if (props.entry.media) {
   props.entry.media.forEach((media: Media) => {
     images.value.push('/' + media.name)
-  })
-}
-
-if (props.entry.relatedEntries) {
-  props.entry.relatedEntries.forEach((entry: Entry) => {
-    relatedTerms.value.push({
-      name: entry.name,
-      link: '/verbetes/' + entry.code
-    })
   })
 }
 

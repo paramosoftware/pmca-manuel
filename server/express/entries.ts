@@ -105,7 +105,11 @@ router.post('/by-code', async (req, res, next) => {
             include: {
                 category: true,
                 media: true,
-                relatedEntries: true,
+                relatedEntries: {
+                    include: {
+                        media: true
+                    }
+                },
                 variations: true,
                 translations: true,
                 references: true
