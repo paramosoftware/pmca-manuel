@@ -22,6 +22,7 @@ router.get('/autocomplete', async (req, res, next) => {
             select: {
                 id: true,
                 name: true,
+                code: true
             },
             orderBy: {
                 name: 'asc'

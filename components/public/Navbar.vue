@@ -1,8 +1,6 @@
 <template>
   <nav id="navbar" class="py-4">
-
     <div class="container max-w-screen-xl mx-auto border-b-2 pb-4 border-b-pmca-primary">
-
       <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
         <div class="mt-1">
           <NuxtLink to="/">
@@ -23,22 +21,11 @@
             </div>
           </div>
         </div>
-        <div class="col-span-4 md:col-span-7">
-          <form class="flex flex-row justify-end align-bottom" @submit.prevent="searchHandler">
-            <input
-              v-model="search"
-              type="text"
-              name="termo"
-              placeholder="Pesquisar"
-              class="w-10/12 bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm leading-none"
-            />
-            <PublicButton type="submit">
-              <Icon name="ph:magnifying-glass" class="h-6 w-6"></Icon>
-            </PublicButton>
-          </form>
+        <div class="col-span-1 md:col-span-1">
         </div>
-
-
+        <div class="col-span-4 md:col-span-6 relative">
+          <PublicSearchBar />
+        </div>
       </div>
     </div>
 
@@ -47,42 +34,23 @@
 
 <script setup lang="ts">
 
-const router = useRouter();
-
-const search = ref(router.currentRoute.value.query.termo || '');
-
-
 const links = ref([
-    {
-      name: 'Verbetes',
-      path: '/verbetes'
-    },
-    {
-      name: 'Sobre',
-      path: ''
-    },
-    {
-      name: 'Software',
-      path: ''
-    },
-    {
-      name: 'PMCA',
-      path: ''
-    }
-]);
-
-
-const searchHandler = (e: Event) => {
-  if (search.value) {
-    e.preventDefault();
-
-    router.push({
-      path: '/busca',
-      query: {
-        termo: search.value
-      }
-    });
+  {
+    name: 'Verbetes',
+    path: '/verbetes'
+  },
+  {
+    name: 'Sobre',
+    path: ''
+  },
+  {
+    name: 'Software',
+    path: ''
+  },
+  {
+    name: 'PMCA',
+    path: ''
   }
-};
+]);
 
 </script>

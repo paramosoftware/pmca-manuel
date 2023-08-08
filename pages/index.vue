@@ -9,14 +9,8 @@
                 <span class="block">de livros e documentos</span>
               </h1>
               <p class="text-xl mt-4">Terminologia utilizada na área de conservação-restauro em papel</p>
-              <div class="col-span-4 md:col-span-7 mt-5">
-                <form class="flex flex-row justify-end align-bottom" @submit.prevent="searchHandler">
-                  <input v-model="search" type="text" name="termo" placeholder="Pesquisar"
-                    class="w-full bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm leading-none" />
-                  <PublicButton type="submit">
-                    <Icon name="ph:magnifying-glass" class="h-6 w-6"></Icon>
-                  </PublicButton>
-                </form>
+              <div class="col-span-4 md:col-span-7 mt-5 relative">
+                <PublicSearchBar />
               </div>
               <div class="flex justify-evenly mt-6">
                 <NuxtLink to="/verbetes?modo=hier">
