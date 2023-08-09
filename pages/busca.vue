@@ -1,6 +1,6 @@
 <template>
   <NuxtLayout name="public">
-    <main class="container mb-auto p-2 md:p-0">
+    <main class="container mb-auto p-2 md:p-0 mx-auto">
       <div class="flex items-center justify-between">
         <div class="flex flex-col">
           <h1 class="text-4xl font-semibold">Busca</h1>

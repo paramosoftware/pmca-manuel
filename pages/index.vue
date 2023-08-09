@@ -1,7 +1,7 @@
 <template>
   <div>
     <NuxtLayout name="home">
-      <div class="container md:my-5 mb-auto">
+      <div class="container md:my-5 mb-auto mx-auto">
         <section id="home" class="md:flex">
           <div class="p-2 md:p-4 mb-auto mx-auto">
             <div class="text-center">

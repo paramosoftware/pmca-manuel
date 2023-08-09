@@ -1,6 +1,6 @@
 <template>
 <NuxtLayout name="public">
-   <div class="px-2 md:px-0 mb-auto">
+   <div class="px-2 md:px-0 mb-auto mx-auto">
       <PublicEntry :entry="entry" />
    </div>
 </NuxtLayout>

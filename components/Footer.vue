@@ -1,5 +1,5 @@
 <template>
-    <footer class="m-2 text-white mt-6">
+    <footer class="m-2 text-white mt-6 mx-auto">
         <div class="container">
             <div class="grid md:grid-cols-2 bg-pmca-primary-light p-4">
                 <div class="flex flex-col">
