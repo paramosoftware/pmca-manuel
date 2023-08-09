@@ -24,48 +24,13 @@
           <PublicSearchBar />
         </div>
       </div>
-      <ul class="justify-evenly md:flex text-base mr-3 origin-top"
-        :class="{ 'block absolute border-b shadow-sm bg-white w-full p-2 top-52 ': showMenu, 'hidden': !showMenu }">
-        <li v-for="link in links" :key="link.name" :class="showMenu && 'py-1'">
-          <UILink :href="link.path" class="text-2xl">
-            {{ link.name }}
-          </UILink>
-        </li>
-      </ul>
+      <div class="mt-4">
+        <PublicNavLinks :show-menu="showMenu" @update:show-menu="showMenu = $event"/>
+      </div>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-
 const showMenu = ref(false);
-
-
- if (process.client) {
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
-      showMenu.value = false;
-    }
-  });
-}
-
-const links = ref([
-  {
-    name: 'Verbetes',
-    path: '/verbetes'
-  },
-  {
-    name: 'Sobre',
-    path: ''
-  },
-  {
-    name: 'Software',
-    path: ''
-  },
-  {
-    name: 'PMCA',
-    path: ''
-  }
-]);
-
 </script>

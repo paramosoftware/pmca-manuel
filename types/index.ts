@@ -19,7 +19,7 @@ declare global {
         name: string;
         definition?: string;
         notes?: string;
-        references?: Reference[];
+        references?: WebPage[];
         media?: Media[];
         variations?: Variation[];
         translations?: Translation[];
@@ -87,11 +87,19 @@ declare global {
         entry?: Entry;
     }
 
-    export interface Reference {
+
+    export interface WebPage {
         id: number;
         name: string;
+        menuName?: string;
+
+
+        code: string;
+
+        content?: string;
 
         createdAt?: Date;
         updatedAt?: Date;
+
     }
 }

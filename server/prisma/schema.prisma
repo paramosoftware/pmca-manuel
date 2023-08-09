@@ -147,3 +147,19 @@ model Reference {
 
   @@map("references")
 }
+
+
+model WebPage {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  menuName    String    @map("menu_name")
+
+  code        String    @unique
+
+  content     String
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("web_pages")
+}

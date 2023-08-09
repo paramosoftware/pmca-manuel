@@ -51,7 +51,13 @@ const links = [
         name: 'Usuários',
         path: '/logged/usuarios',
         restrictedToAdmin: !_isAdmin
-    }
+    },
+    {
+        name: 'Páginas',
+        path: '/logged/paginas',
+        restrictedToAdmin: !_isAdmin
+    },
+
 ]
 </script>
    

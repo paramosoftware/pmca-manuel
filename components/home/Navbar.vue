@@ -13,14 +13,7 @@
           <Icon name="ph:list" class="w-9 h-9" />
         </button>
         <div class="col-span-2 md:col-span-6">
-          <ul class="justify-evenly md:flex text-base mr-3 origin-top"
-            :class="{ 'block absolute top-18 border-b bg-white w-full p-2': showMenu, 'hidden': !showMenu }">
-            <li v-for="link in links" :key="link.name" :class="showMenu && 'py-1'">
-              <UILink :href="link.path" class="text-2xl">
-                {{ link.name }}
-              </UILink>
-            </li>
-          </ul>
+          <PublicNavLinks :show-menu="showMenu" @update:show-menu="showMenu = $event" />
         </div>
       </div>
     </div>
@@ -29,34 +22,4 @@
   
 <script setup lang="ts">
 const showMenu = ref(false);
-
-if (process.client) {
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
-      showMenu.value = false;
-    }
-  });
-}
-
-
-const links = ref([
-  {
-    name: 'Verbetes',
-    path: '/verbetes'
-  },
-  {
-    name: 'Sobre',
-    path: ''
-  },
-  {
-    name: 'Software',
-    path: ''
-  },
-  {
-    name: 'PMCA',
-    path: ''
-  }
-]);
-
-
 </script>

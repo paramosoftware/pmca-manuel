@@ -34,71 +34,6 @@
 
         
         <HomeNetwork class="mt-10 h-96" />
-
-        <!-- sobre -->
-        <HomeSection title="Sobre" class="mt-10">
-
-          <div class="flex flex-col justify-between">
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisl eget nunc
-              ullamcorper aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet
-              nunc, quis aliquam nisl nisl vitae nisl. Sed vitae nisl eget nunc ullamcorper
-              aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet nunc, quis
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisl eget nunc
-              ullamcorper aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet
-              nunc, quis aliquam nisl nisl vitae nisl. Sed vitae nisl eget nunc ullamcorper
-              aliquam.
-            </p>
-
-            <h1 class="text-2xl font-semibold flex-row my-5">
-              Projeto Manuel Correia de Andrade
-            </h1>
-
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisl eget nunc
-              ullamcorper aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet
-              nunc, quis aliquam nisl nisl vitae nisl. Sed vitae nisl eget nunc ullamcorper
-              aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet nunc, quis
-              aliquam nisl nisl vitae nisl. Sed vitae nisl eget nunc ullamcorper aliquam.
-            </p>
-
-            <h1 class="text-2xl font-semibold flex-row my-5">
-              Software
-            </h1>
-
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisl eget nunc
-              ullamcorper aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet
-              nunc, quis aliquam nisl nisl vitae nisl. Sed vitae nisl eget nunc ullamcorper
-              aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet nunc, quis
-              aliquam nisl nisl vitae nisl. Sed vitae nisl eget nunc ullamcorper aliquam.
-            </p>
-
-            <h1 class="text-2xl font-semibold flex-row my-5">
-              Terminologia de conservação-restauro
-            </h1>
-
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisl eget nunc
-              ullamcorper aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet
-              nunc, quis aliquam nisl nisl vitae nisl. Sed vitae nisl eget nunc ullamcorper
-              aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet nunc, quis
-              aliquam nisl nisl vitae nisl. Sed vitae nisl eget nunc ullamcorper aliquam.
-            </p>
-
-            <h1 class="text-2xl font-semibold flex-row my-5">
-              Ficha Técnica
-            </h1>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisl eget nunc
-              ullamcorper aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet
-              nunc, quis aliquam nisl nisl vitae nisl. Sed vitae nisl eget nunc ullamcorper
-              aliquam. Sed euismod, nisl quis aliquam ultricies, nunc nisl aliquet nunc, quis
-              aliquam nisl nisl vitae nisl. Sed vitae nisl eget nunc ullamcorper aliquam.
-            </p>
-          </div>
-
-        </HomeSection>
       </div>
 
     </NuxtLayout>
@@ -106,25 +41,7 @@
 </template>
  
 <script setup lang="ts">
-
-
 definePageMeta({
   layout: false,
 });
-
-const router = useRouter()
-
-const search = ref(router.currentRoute.value.query.termo || '');
-
-const searchHandler = (e: Event) => {
-  if (search.value) {
-    e.preventDefault();
-    router.push({
-      path: '/busca',
-      query: {
-        termo: search.value
-      }
-    });
-  }
-};
 </script>
