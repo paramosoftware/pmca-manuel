@@ -1,5 +1,5 @@
 <template>
-  <article class="container max-w-screen-xl mx-auto md:flex my-5">
+  <article class="container md:flex my-5">
     <section class="w-full md:w-1/5">
       <PublicSidebar :open-entry-id="entry.id" class="mb-2" />
       <h1 class="text-4xl mt-5"> {{ entry.name }} </h1>

@@ -1,6 +1,6 @@
 <template>
 <NuxtLayout name="public">
-  <main class="container max-w-screen-xl mx-auto mb-auto p-2 md:p-0">
+  <main class="container mb-auto p-2 md:p-0">
     <div class="flex items-center justify-between">
       <div class="flex flex-col">
         <h1 class="text-4xl font-semibold">Verbetes</h1>

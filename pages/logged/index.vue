@@ -1,6 +1,6 @@
 <template>
     
-    <main class="container max-w-screen-xl mx-auto h-full">
+    <main class="container h-full">
         <div class="flex items-center justify-between">
             <div class="flex flex-col">
 

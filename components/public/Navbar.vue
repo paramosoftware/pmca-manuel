@@ -1,6 +1,6 @@
 <template>
   <nav id="navbar" class="py-4">
-    <div class="container max-w-screen-xl mx-auto border-b-2 pb-4 border-b-pmca-primary">
+    <div class="container mx-auto border-b-2 pb-4 border-b-pmca-primary">
       <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
         <div class="mt-1">
           <NuxtLink to="/">
@@ -48,8 +48,6 @@ const showMenu = ref(false);
     }
   });
 }
-
-
 
 const links = ref([
   {

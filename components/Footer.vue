@@ -1,6 +1,6 @@
 <template>
     <footer class="m-2 text-white mt-6">
-        <div class="container max-w-screen-xl mx-auto">
+        <div class="container">
             <div class="grid md:grid-cols-2 bg-pmca-primary-light p-4">
                 <div class="flex flex-col">
                     <h1 class="text-lg">Glossário de conservação-restauro
