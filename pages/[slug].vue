@@ -21,7 +21,7 @@ definePageMeta({
 });
 
 const router = useRouter();
-const { data, pending, error } = await useFetchWithBaseUrl('/api/web-pages/by-code/' + router.currentRoute.value.params.code);
+const { data, pending, error } = await useFetchWithBaseUrl('/api/web-pages/by-slug/' + router.currentRoute.value.params.slug);
 
 const page = data.value;
 </script>

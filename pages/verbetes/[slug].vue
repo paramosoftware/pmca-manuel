@@ -15,10 +15,10 @@ definePageMeta({
 
  
 const router = useRouter();
-const { data, pending, error } = await useFetchWithBaseUrl(`/api/entries/by-code`, {
+const { data, pending, error } = await useFetchWithBaseUrl(`/api/entries/by-slug`, {
     method: 'POST',
     body: JSON.stringify({
-        code: router.currentRoute.value.params.code
+        slug: router.currentRoute.value.params.slug
     })
 });
 

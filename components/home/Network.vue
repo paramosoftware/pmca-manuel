@@ -83,8 +83,8 @@ onMounted(() => {
   network = new Network(container, data, options);
   network.on("click", function (event) {
     const entryId = event.nodes[0];
-    const entryCode = entries.value.find((entry) => entry.id === entryId).code;
-    router.push('/verbetes/' + entryCode);
+    const entrySlug = entries.value.find((entry) => entry.id === entryId).slug;
+    router.push('/verbetes/' + entrySlug);
   });
 });
 </script>

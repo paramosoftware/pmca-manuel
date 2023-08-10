@@ -97,7 +97,7 @@ const entry = ref<Entry>(
     props.entry ?? {
         id: 0,
         name: '',
-        code: '',
+        slug: '',
         definition: '',
         notes: '',
         references: [],
@@ -162,7 +162,7 @@ const nameRef = ref(null);
 
 const handleError = (error: { error: string, field: string }) => {
     const field = error.field;
-    if (field == 'name' || field == 'code') {
+    if (field == 'name' || field == 'slug') {
         nameRef.value.showError = true;
         nameRef.value.$el.children[1].focus();
     }

@@ -1,9 +1,17 @@
-function prepareRequestBodyForPrisma(data: any, create: boolean = false) {
+function prepareRequestBodyForPrisma(data: any, create: boolean = false, addNormalizedField: boolean = true) {
     
     let transformedData = {...data};
     
     Object.keys(transformedData).forEach(key => {
-        
+
+        if (addNormalizedField) {
+            transformedData = addNormalizedFields(key, transformedData);
+        }
+
+        if (key === 'slug') {
+            transformedData[key] = normalizeString(transformedData['name'], true);
+        }
+
         if (key.endsWith('Id')) {
 
             transformedData[key] = parseInt(transformedData[key]);
@@ -50,4 +58,28 @@ function replaceEmptyWithNull(obj: any) {
     return newObj;
 }
 
-export { prepareRequestBodyForPrisma, replaceEmptyWithNull };
+
+function addNormalizedFields(key: string, data: any) {
+
+    const normalizedFields = ['name', 'definition', 'notes'];
+
+    if (normalizedFields.includes(key)) {
+        data[`${key}Normalized`] = normalizeString(data[key]);
+    }
+
+    return data;
+}
+
+function normalizeString(str: string, slug: boolean = false) {
+    if (str === null) {
+        return;
+    }
+
+    str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    if (slug) {
+        str = str.replace(/\s/g, '-');
+    }
+    return str;
+}
+    
+export { prepareRequestBodyForPrisma, replaceEmptyWithNull, normalizeString};

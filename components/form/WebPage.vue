@@ -21,7 +21,7 @@
             />
 
         <FieldInput
-            id="code"
+            id="slug"
             ref="codeRef"
             label="Nome no menu"
             v-model.trim="webPage.menuName"

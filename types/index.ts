@@ -5,7 +5,7 @@ declare global {
     export interface Category {
         id: number;
         name: string;
-        description?: string;
+        definition?: string;
         parentId?: number;
         children?: Category[];
         entries?: Entry[];
@@ -15,7 +15,7 @@ declare global {
     
     export interface Entry {
         id: number;
-        code?: string;
+        slug?: string;
         name: string;
         definition?: string;
         notes?: string;
@@ -94,7 +94,7 @@ declare global {
         menuName?: string;
 
 
-        code: string;
+        slug: string;
 
         content?: string;
 

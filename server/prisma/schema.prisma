@@ -15,7 +15,9 @@ datasource db {
 model Category { 
   id        Int          @id @default(autoincrement())
   name      String       @unique
-  description String?
+  nameNormalized String? @unique  
+  definition String?
+  definitionNormalized String?           
 
   children  Category[]   @relation("SubCategories")
   parent    Category?    @relation("SubCategories", fields: [parentId], references: [id])
@@ -31,11 +33,14 @@ model Category {
 
 
 model Entry {
-  id              Int      @id @default(autoincrement())
-  code            String?  @unique
-  name            String   @unique
-  definition      String?
-  notes           String?
+  id                          Int      @id @default(autoincrement())
+  slug                        String   @unique
+  name                        String   @unique
+  nameNormalized              String?  @map("name_normalized")
+  definition                  String?
+  definitionNormalized        String?  @map("definition_normalized")
+  notes                       String?
+  notesNormalized             String?  @map("notes_normalized")
  
   references      Reference[] @relation("entries_references")
 
@@ -60,6 +65,7 @@ model Entry {
 model Language {
   id            Int       @id @default(autoincrement())
   name          String    @unique
+  nameNormalized String?  @map("name_normalized")
   abbreviation  String?   @unique
   code          String?   @unique
 
@@ -77,6 +83,7 @@ model Media {
   name        String
   path        String?
   subtitle    String?
+  subtitleNormalized String? @map("subtitle_normalized")
 
   private     Boolean?   @default(false)
   position    Int?
@@ -96,11 +103,11 @@ model User {
   id            Int         @id @default(autoincrement())
   email         String      @unique @map("email") 
   name          String      @unique @default("")
-  password      String   
-  firstName     String?     @map("first_name")
-  lastName      String?     @map("last_name")
+  nameNormalized String?    @map("name_normalized")
 
-  role         String?      @default("1")
+  password      String   
+
+  role          String?      @default("1")
 
   refreshToken  String?     @unique @map("refresh_token")
 
@@ -113,6 +120,7 @@ model User {
 model Variation {
   id          Int       @id @default(autoincrement())
   name        String
+  nameNormalized String? @map("name_normalized")
 
   entryId     Int       @map("entry_id")
   entry       Entry     @relation(fields: [entryId], references: [id])
@@ -123,6 +131,7 @@ model Variation {
 model Translation {
   id          Int       @id @default(autoincrement())
   name        String
+  nameNormalized String? @map("name_normalized")
 
   languageId  Int
   language    Language  @relation(fields: [languageId], references: [id])
@@ -139,6 +148,7 @@ model Translation {
 model Reference {
   id          Int       @id @default(autoincrement())
   name        String
+  nameNormalized String? @map("name_normalized")
   
   entries     Entry[]   @relation("entries_references")
 
@@ -154,7 +164,7 @@ model WebPage {
   name        String    @unique
   menuName    String    @map("menu_name")
 
-  code        String    @unique
+  slug        String    @unique
 
   content     String
 

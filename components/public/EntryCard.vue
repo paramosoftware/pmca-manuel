@@ -41,7 +41,7 @@ const props = defineProps({
 })
 
 const link = computed(() => {
-    return "/verbetes/" + props.entry.code
+    return "/verbetes/" + props.entry.slug
 })
 
 

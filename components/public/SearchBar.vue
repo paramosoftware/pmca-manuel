@@ -15,7 +15,7 @@
         <ul @click.away="entries = []" @keydown.escape="entries = []" v-if="searchTerm !== ''"
             class="bg-white border border-x-gray-300 border-b-gray-300 p-2 space-y-1 absolute z-10 w-full shadow-md text-left">
 
-            <li v-for="entry in entries" :key="entry.name" @click="selectEntry(entry.code)"
+            <li v-for="entry in entries" :key="entry.name" @click="selectEntry(entry.slug)"
                 class="cursor-pointer hover:bg-gray-100 p-2 rounded-sm hover:text-pmca-accent">
                 {{ entry.name }}
             </li>
@@ -49,9 +49,9 @@ const searchHandler = (e: Event) => {
   }
 };
 
-const selectEntry = (code: string) => {
+const selectEntry = (slug: string) => {
   router.push({
-    path: '/verbetes/' + code
+    path: '/verbetes/' + slug
   });
 
   search.value = '';

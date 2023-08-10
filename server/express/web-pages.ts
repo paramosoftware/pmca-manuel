@@ -1,7 +1,6 @@
 import express from 'express';
 import { prisma } from '../prisma/prisma';
 import { prepareRequestBodyForPrisma } from './utils';
-import { useNormalizeString } from '../../composables/useNormalizeString';
 
 const router = express.Router();
 
@@ -21,13 +20,13 @@ router.get('/', async (req, res, next) => {
 
 });
 
-router.get('/by-code/:code', async (req, res, next) => {
-    const { code } = req.params;
+router.get('/by-slug/:slug', async (req, res, next) => {
+    const { slug } = req.params;
 
     try {
         const webPage = await prisma.webPage.findUnique({
             where: {
-                code
+                slug
             }
         });
         res.json(webPage);
@@ -54,18 +53,12 @@ router.get('/:id', async (req, res, next) => {
 });
 
 router.post('/', async (req, res, next) => {
-
-    const { normalizeString } = useNormalizeString();
     
-    const data: any = prepareRequestBodyForPrisma(req.body, true);
+    const data: any = prepareRequestBodyForPrisma(req.body, true, false);
 
     try {
 
         data.id = undefined;
-        
-        if (data.name) {
-            data.code = normalizeString(data.name);
-        }
 
         const webPage = await prisma.webPage.create({
             data
@@ -83,19 +76,11 @@ router.post('/', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
 
-    const { normalizeString } = useNormalizeString();
-
     const { id } = req.params;
 
-    const data: any = prepareRequestBodyForPrisma(req.body, true);
+    const data: any = prepareRequestBodyForPrisma(req.body, true, false);
 
     try {
-
-        if (data.name) {
-            data.code = normalizeString(data.name);
-        }
-
-
         const webPage = await prisma.webPage.update({
             where: {
                 id: parseInt(id)

@@ -1,7 +1,6 @@
 import express from 'express';
 import { prisma } from '../prisma/prisma';
-import { prepareRequestBodyForPrisma } from './utils';
-import { useNormalizeString } from '../../composables/useNormalizeString';
+import { prepareRequestBodyForPrisma, normalizeString } from './utils';
 
 const router = express.Router();
 
@@ -15,14 +14,14 @@ router.get('/autocomplete', async (req, res, next) => {
     try {
         const entries = await prisma.entry.findMany({
             where: {
-                name: {
-                    contains: q as string
+                nameNormalized: {
+                    contains: normalizeString(q.toString())
                 }
             },
             select: {
                 id: true,
                 name: true,
-                code: true
+                slug: true
             },
             orderBy: {
                 name: 'asc'
@@ -39,7 +38,7 @@ router.post('/search', async (req, res, next) => {
 
     const { query } = req.body;
 
-    const search = query.termo ?? undefined;
+    const search = query.termo ? normalizeString(query.termo) : undefined;
     const category = query.categoria ?? undefined;
 
     const whereConditions = {};
@@ -48,17 +47,17 @@ router.post('/search', async (req, res, next) => {
         // @ts-ignore
         whereConditions.OR = [
             {
-                name: {
+                nameNormalized: {
                     contains: search
                 }
             },
             {
-                definition: {
+                definitionNormalized: {
                     contains: search
                 }
             },
             {
-                notes: {
+                notesNormalized: {
                     contains: search
                 }
             }
@@ -94,14 +93,14 @@ router.post('/search', async (req, res, next) => {
      }
 });
 
-router.post('/by-code', async (req, res, next) => {
+router.post('/by-slug', async (req, res, next) => {
 
-    const { code } = req.body;
+    const { slug } = req.body;
 
     try {
         const entry = await prisma.entry.findUnique({
             where: {
-                code: code
+                slug: slug
             },
             include: {
                 category: true,
@@ -183,18 +182,13 @@ router.get('/:id', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
     const { id } = req.params;
-    const { normalizeString } = useNormalizeString();
 
     try {
 
         const variations = req.body.variations || [];
         const translations = req.body.translations || [];
 
-        let data:any = prepareRequestBodyForPrisma(req.body);
-
-        if (data.name) {
-            data.code = normalizeString(data.name);
-        }
+        let data: any = prepareRequestBodyForPrisma(req.body);
 
         if (data.category || data.category === null) {
             data.category = undefined;
@@ -277,7 +271,6 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
 
-    const { normalizeString } = useNormalizeString();
 
     try {
 
@@ -287,10 +280,6 @@ router.post('/', async (req, res, next) => {
 
         data.id = undefined;
        
-        if (data.name) {
-            data.code = normalizeString(data.name);
-        }
-
         if (data.category || data.category === null) {
             data.category = undefined;
         }

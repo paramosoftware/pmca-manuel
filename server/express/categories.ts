@@ -1,5 +1,6 @@
 import express from 'express';
 import { prisma } from '../prisma/prisma';
+import { prepareRequestBodyForPrisma } from './utils';
 
 const router = express.Router();
 
@@ -20,20 +21,19 @@ router.get('/:id', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
   const id = req.params.id;
-  const { name, description, parentId } = req.body;
+
+  const data: any = prepareRequestBodyForPrisma(req.body, true);
 
   try {
     const category = await prisma.category.update({
       where: {
         id: parseInt(id),
       },
-      data: {
-        name,
-        description: description === '' ? null : description,
-        parentId: parentId == 0 ? null : parseInt(parentId),
-      },
+      data
     });
+
     res.json(category);
+
   } catch (error) {
     next(error);
   }
@@ -57,17 +57,18 @@ router.get('/', async (req, res, next) => {
 });
 
 router.post('/', async (req, res, next) => {
-  const { name, description, parentId } = req.body;
+ 
+  const data: any = prepareRequestBodyForPrisma(req.body, true);
+
+  data.id = undefined;
 
   try {
     const category = await prisma.category.create({
-      data: {
-        name,
-        description: description ? description : undefined,
-        parentId: parentId ? parseInt(parentId) : undefined,
-      },
+      data
     });
+
     res.json(category);
+
   } catch (error) {
     next(error);
   }
