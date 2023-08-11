@@ -1,3 +1,8 @@
+import jwt from 'jsonwebtoken';
+import { prisma } from '../prisma/prisma';
+
+
+
 function prepareRequestBodyForPrisma(data: any, create: boolean = false, addNormalizedField: boolean = true) {
     
     let transformedData = {...data};
@@ -58,7 +63,6 @@ function replaceEmptyWithNull(obj: any) {
     return newObj;
 }
 
-
 function addNormalizedFields(key: string, data: any) {
 
     const normalizedFields = ['name', 'definition', 'notes'];
@@ -81,5 +85,21 @@ function normalizeString(str: string, slug: boolean = false) {
     }
     return str;
 }
+
+async function getUserFromToken(token: string) {
+    const decodedToken: any = jwt.decode(token);
+
+    if (!decodedToken) {
+        return null;
+    }
+
+    const user = await prisma.user.findUnique({
+        where: {
+            email: decodedToken.email
+        },
+    });
+
+    return user;
+}
     
-export { prepareRequestBodyForPrisma, replaceEmptyWithNull, normalizeString};
+export { prepareRequestBodyForPrisma, replaceEmptyWithNull, normalizeString, getUserFromToken};

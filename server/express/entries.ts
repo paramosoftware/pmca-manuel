@@ -1,6 +1,6 @@
 import express from 'express';
 import { prisma } from '../prisma/prisma';
-import { prepareRequestBodyForPrisma, normalizeString } from './utils';
+import { prepareRequestBodyForPrisma, normalizeString, getUserFromToken } from './utils';
 
 const router = express.Router();
 
@@ -182,6 +182,9 @@ router.get('/:id', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
     const { id } = req.params;
+    const token = req.cookies.token;
+
+    const user = await getUserFromToken(token);
 
     try {
 
@@ -228,13 +231,14 @@ router.put('/:id', async (req, res, next) => {
             })
         };
 
+        trackChanges(req.body, user);
+
         const savedEntry = await prisma.entry.update({
             where: {
                 id: parseInt(id)
             },
             data
         });
-
 
         res.json(savedEntry);
 
@@ -329,6 +333,100 @@ router.post('/', async (req, res, next) => {
 });
 
 
+async function trackChanges(newData: any, user: any) {
+
+    const changes: any = {};
+
+    const fieldsToTrack = [
+        'name',
+        'definition',
+        'notes',
+        'category',
+        'relatedEntries',
+        'entries',
+        'variations',
+        'translations',
+        'references'
+    ];
+
+
+    const oldData = await prisma.entry.findUnique({
+        where: {
+            id: parseInt(newData.id)
+        },
+        include: {
+            category: true,
+            media: true,
+            relatedEntries: true,
+            entries: true,
+            variations: true,
+            translations: true,
+            references: true
+        }
+    });
+
+
+    fieldsToTrack.forEach((field: any) => {
+
+        if (typeof newData[field] === 'string') {
+            if (newData[field] !== oldData[field]) {
+                changes[field] = {
+                    old: oldData[field],
+                    new: newData[field]
+                }
+            }
+        }
+
+        if (typeof newData[field] === 'object') {
+            if (Array.isArray(newData[field])) {
+
+                const newNames = newData[field].map((item: any) => item.name);
+                const oldNames = oldData[field].map((item: any) => item.name);
+
+
+                const added = newNames.filter((name: any) => !oldNames.includes(name));
+                const removed = oldNames.filter((name: any) => !newNames.includes(name));
+
+
+                if (added.length > 0) {
+                    changes[field] = {
+                        added
+                    }
+                }
+
+                if (removed.length > 0) {
+                    changes[field] = {
+                        removed
+                    }
+                }
+
+            } else if (newData[field].name) {
+                if (newData[field].name !== oldData[field].name) {
+                    changes[field] = {
+                        added: [newData[field].name],
+                        removed: [oldData[field].name]
+                    }
+                }
+            }
+        }
+    })
+
+    if (Object.keys(changes).length === 0) {
+        return;
+    }
+
+    await prisma.entryChanges.create({
+        data: {
+            entry: {
+                connect: {
+                    id: parseInt(newData.id)
+                }
+            },
+            changes: JSON.stringify(changes),
+            userId: parseInt(user.id)
+        }
+    })
+}
   
 
 export default router;

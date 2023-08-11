@@ -24,8 +24,19 @@ declare global {
         variations?: Variation[];
         translations?: Translation[];
         relatedEntries?: Entry[];
+        entryChanges?: EntryChanges[];
         category?: Category;
         categoryId?: number;
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
+    export interface EntryChanges {
+        id: number;
+        entryId: number;
+        entry: Entry;
+        userId: number;
+        changes: string;
         createdAt?: Date;
         updatedAt?: Date;
     }

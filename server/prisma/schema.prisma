@@ -55,11 +55,27 @@ model Entry {
   categoryId      Int?       @map("category_id")
   category        Category?  @relation(fields: [categoryId], references: [id])
 
+  entryChanges    EntryChanges[]
 
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
   @@map("entries")
+}
+
+model EntryChanges {
+  id          Int       @id @default(autoincrement())
+  entryId     Int       @map("entry_id")
+  entry       Entry     @relation(fields: [entryId], references: [id])
+
+  userId      Int       @map("user_id")
+
+  changes     String    @map("changes")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("entries_changes")
 }
 
 model Language {
