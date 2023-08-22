@@ -112,7 +112,8 @@ router.post('/by-slug', async (req, res, next) => {
                 },
                 variations: true,
                 translations: true,
-                references: true
+                references: true,
+                entryChanges: true
             }
         });
         res.json(entry);
@@ -247,7 +248,6 @@ router.put('/:id', async (req, res, next) => {
     } 
 });
 
-
 router.get('/', async (req, res, next) => {
 
     try {
@@ -331,6 +331,39 @@ router.post('/', async (req, res, next) => {
     }
 
 });
+
+router.post('/find-many-by-id', async (req, res, next) => {
+
+    const { ids } = req.body;
+
+    try {
+        const entries = await prisma.entry.findMany({
+            where: {
+                id: {
+                    in: ids
+                }
+            },
+            include: {
+                media: true,
+                category: true,
+                variations: true,
+                translations: true,
+                relatedEntries: true,
+                entries: true
+            },
+            orderBy: {
+                name: 'asc'
+            }
+        });
+
+        res.json(entries);
+
+    } catch (error) {
+        next(error);
+    }
+
+});
+
 
 
 async function trackChanges(newData: any, user: any) {
@@ -428,5 +461,6 @@ async function trackChanges(newData: any, user: any) {
     })
 }
   
+
 
 export default router;

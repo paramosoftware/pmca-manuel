@@ -14,8 +14,8 @@
     </section>
     <section class="w-full md:w-4/5 md:pt-0">
 
-      <div class="flex justify-end">
-        <PublicEntryActions class="text-right justify-end mb-2" :title="entry.name" />
+      <div>
+        <PublicEntryActions class="mb-2" :entryId="entry.id" :title="entry.name" />
       </div>
 
       <PublicEntryMedia :images=images v-if="images.length > 0" />

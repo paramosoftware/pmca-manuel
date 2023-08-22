@@ -5,13 +5,24 @@
 
                 <img :src="thumbnail" :alt="entry.name" class="object-cover w-full rounded-sm" :class="height" />
 
-
                 <div :class="titlePadding">
-                    <UITitle>
-                        <span class="text-semibold" :class="titleSize">
-                            {{ entry.name }}
-                        </span>
-                    </UITitle>
+
+                    <div class="flex flex-row justify-between items-center">
+                        <UITitle>
+                            <span class="text-semibold break-words" :class="titleSize">
+                                {{ entry.name }}
+                            </span>
+                        </UITitle>  
+                        <div class="flex flex-row items-center">
+                            <client-only>
+                                <Icon
+                                    class="text-pmca-accent text-2xl cursor-pointer" 
+                                    :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'" 
+                                    @click="saveSelection(entry.id)"
+                                />
+                            </client-only>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -20,6 +31,7 @@
     
     
 <script setup lang="ts">
+const entrySelected = ref(false);
 
 const props = defineProps({
     entry: {
@@ -44,13 +56,47 @@ const link = computed(() => {
     return "/verbetes/" + props.entry.slug
 })
 
-
 const thumbnail = computed(() => {
     if (props.entry.media.length === 0) {
         return '/placeholder.png'
     }
     return '/' + props.entry.media[0].name
 })
+
+
+if (process.client) {
+    if (localStorage.getItem('selectedEntries') !== null) {
+        const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!)
+        if (selectedEntries.includes(props.entry.id)) {
+            entrySelected.value = true;
+        }
+    }
+}
+
+const saveSelection = (id: number) => {
+   
+    event.preventDefault();
+
+    if (localStorage.getItem('selectedEntries') === null) {
+        localStorage.setItem('selectedEntries', JSON.stringify([id]))
+        entrySelected.value = true;
+    } else {
+        const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!)
+        if (selectedEntries.includes(id)) {
+            const index = selectedEntries.indexOf(id)
+            selectedEntries.splice(index, 1)
+            localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries))
+            entrySelected.value = false;
+        } else {
+            selectedEntries.push(id)
+            localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries))
+            entrySelected.value = true;
+        }
+    }
+}
+
+
+
 </script>
     
     
