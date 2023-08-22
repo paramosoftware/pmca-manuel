@@ -2,7 +2,7 @@
   <article class="container md:flex my-5">
     <section class="w-full md:w-1/5">
       <PublicSidebar :open-entry-id="entry.id" class="mb-2" />
-      <h1 class="text-4xl mt-5"> {{ entry.name }} </h1>
+      <h1 class="text-4xl mt-5 break-words"> {{ entry.name }} </h1>
       <div class="mt-4 w-1/4">
         <UITitle>Baixar</UITitle>
         <div class="flex flex-row mt-2">
