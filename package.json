@@ -19,11 +19,11 @@
     "@types/uuid": "^9.0.2",
     "nuxt": "^3.6.5",
     "nuxt-icon": "^0.4.0",
-    "prisma": "^4.13.0"
+    "prisma": "latest"
   },
   "dependencies": {
     "@jledentu/vue-finder": "^4.1.1",
-    "@prisma/client": "^4.13.0",
+    "@prisma/client": "latest",
     "@splidejs/vue-splide": "^0.6.12",
     "@vueup/vue-quill": "latest",
     "bcrypt": "^5.1.0",
