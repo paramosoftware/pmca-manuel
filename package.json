@@ -1,14 +1,21 @@
 {
-  "name": "pmca-thesaurus-starter",
+  "name": "glossario-pmca",
+  "version": "0.3.0",
+  "author": "Páramo Software <email@email.com>",
+  "description": "Glossário de conservação-restauro de livros e documentos em papel do Projeto Manuel Correia de Andrade (PMCA)",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "electron:build": "nuxt build && electron-builder",
+    "electron:dev": "NODE_ENV=development electron-forge start --inspect-electron"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^6.2.1",
     "@nuxthq/ui": "^2.3.0",
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.3",
@@ -17,6 +24,8 @@
     "@types/multer": "^1.4.7",
     "@types/node": "^18",
     "@types/uuid": "^9.0.2",
+    "electron": "^25.2.0",
+    "electron-builder": "^24.4.0",
     "nuxt": "^3.6.5",
     "nuxt-icon": "^0.4.0",
     "prisma": "latest"

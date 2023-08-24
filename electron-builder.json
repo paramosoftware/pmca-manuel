@@ -1,0 +1,24 @@
+{
+  "appId": "glossario.pmca",
+  "asar": true,
+  "extraResources": [
+    ".output/**/*",
+    "server/prisma/app.sqlite"
+  ],
+  "directories": {
+    "output": "builds/${version}"
+  },
+  "linux": {
+    "target": [
+      "AppImage",
+      "deb"
+    ],
+    "artifactName": "${productName}_${version}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": false
+  }
+}
