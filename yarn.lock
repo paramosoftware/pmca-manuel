@@ -4680,16 +4680,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:latest":
-  version: 26.1.0
-  resolution: "electron@npm:26.1.0"
+"electron@npm:^25.7.0":
+  version: 25.7.0
+  resolution: "electron@npm:25.7.0"
   dependencies:
     "@electron/get": ^2.0.0
     "@types/node": ^18.11.18
     extract-zip: ^2.0.1
   bin:
     electron: cli.js
-  checksum: caad2f041433b488f7edf3eeae7754c19ed04b153ca5a8ea335756786a870ebc67fd9c77afb0a17bb73ece890b331e8092221fc87831684146ec2f9b622e5cf0
+  checksum: d3f5ff47357ecf9d6b6909d4a751b72df6fb09e2ea00cb621b6348ed3c6acb97e06ce886a0b6743f82565cda0f9a3ef6d4cbde825c01482e977823dab092a4bb
   languageName: node
   linkType: hard
 
@@ -5930,7 +5930,7 @@ __metadata:
     "@vueup/vue-quill": latest
     bcrypt: ^5.1.0
     cookie-parser: ^1.4.6
-    electron: latest
+    electron: ^25.7.0
     electron-builder: latest
     express: ^4.18.2
     flowbite: ^1.6.5
