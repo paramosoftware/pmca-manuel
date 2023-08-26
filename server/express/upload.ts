@@ -6,13 +6,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../prisma/prisma';
 import fs from 'fs';
 import path from 'path';
-
+import useElectron from '../../composables/useElectron';
 
 const router = express.Router();
 
+const isElectron = useElectron().isElectron;
+const userDataPath = isElectron ? process.env.USER_DATA_PATH! + '/media/' : 'public/media/';
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'public/')
+        cb(null, userDataPath)
     },
     filename: function (req, file, cb) {
         cb(null, uuidv4() + path.extname(file.originalname))

@@ -32,7 +32,7 @@
 
             <div class="grid grid-cols-6 gap-4">
                 <div v-for="image in media" :key="image" class="relative">
-                    <img class="h-40 max-w-sm" :src="'/' + image.name" />
+                    <UIImg class="h-40 max-w-sm" :src="image.name" />
                     <button type="button" class="text-black" @click="deleteMedia(image.id)">
                         <Icon class="absolute top-0 right-0 w-6 h-6 bg-white rounded-full" name="ph:trash-simple" />
                     </button>

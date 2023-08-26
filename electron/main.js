@@ -1,10 +1,13 @@
-const { app, BrowserWindow } = require('electron')
-const path =  require('path')
+const { app, BrowserWindow, protocol, net: electronNet } = require('electron')
 const { pathToFileURL } = require('url');
 const net = require('net');
+const fs = require('fs');
+const path = require('path');
+
 
 const isProduction = process.env.NODE_ENV !== 'development';
-const userPath = app.getPath('userData');
+const userDataPath = app.getPath('userData');
+process.env.USER_DATA_PATH = userDataPath;
 
 isProduction ?
   process.env.ROOT = path.join(process.resourcesPath) :
@@ -20,14 +23,35 @@ if (isProduction) {
 
 assignEnvsFromFile();
 
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      bypassCSP: true
+    }
+  }
+])
+
 app.whenReady().then(async () => {
+
+  protocol.handle('app', (request) => {
+    const filePath = request.url.slice('app://'.length);
+    const file = path.join(userDataPath, filePath);
+    const fileUrl = pathToFileURL(file).href;
+
+    return electronNet.fetch(fileUrl);
+  })
+    
   if (isProduction) {
     await startWebServer();
   }
 
   createWindow();
 })
-
 
 app.on('activate', function () {
     mainWindow.show()
@@ -39,17 +63,13 @@ app.on('window-all-closed', () => {
     }
 })
 
-
 function moveDatabaseFile() {
-  const fs = require('fs');
-  const path = require('path');
-
   if (!isProduction) {
     return;
   }
 
   const databasePath = path.join(process.env.ROOT, 'server/prisma/app.sqlite');
-  const userDatabasePath = path.join(userPath, 'app.sqlite');
+  const userDatabasePath = path.join(userDataPath, 'app.sqlite');
 
   if (app.isPackaged) {
     if (!fs.existsSync(userDatabasePath)) {
@@ -61,6 +81,8 @@ function moveDatabaseFile() {
 
   process.env.DATABASE_URL = "file:" + userDatabasePath;
 }
+
+// TODO: temporary for development and testing
 
 async function assignPort(port = 3458) {
   const server = net.createServer();
@@ -82,13 +104,10 @@ async function assignPort(port = 3458) {
 }
 
 function assignEnvsFromFile() {
-  const fs = require('fs');
-  const path = require('path');
-
   let envPath;
 
   if (isProduction) {
-    envPath = path.join(userPath, '.env');
+    envPath = path.join(userDataPath, '.env');
   } else {
     envPath = path.join(process.env.ROOT, '.env');
   }
@@ -108,14 +127,13 @@ function assignEnvsFromFile() {
 
 function generateEnvFile() {
   const crypto = require('crypto');
-  const { writeFileSync } = require('fs');
 
   const accessTokenSecret = crypto.randomBytes(64).toString('hex');
   const refreshTokenSecret = crypto.randomBytes(64).toString('hex');
   const authSecret = crypto.randomBytes(64).toString('hex');
 
-  writeFileSync(
-    path.join(userPath, '.env'),
+  fs.writeFileSync(
+    path.join(userDataPath, '.env'),
     `ACCESS_TOKEN_SECRET=${accessTokenSecret}\nREFRESH_TOKEN_SECRET=${refreshTokenSecret}\nAUTH_SECRET=${authSecret}`
   );
 
@@ -143,6 +161,7 @@ function createWindow () {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
+        webSecurity: false
       },
       autoHideMenuBar: true,
       title: 'Glossário de conservação-restauro de livros e documentos em papel',
