@@ -1,6 +1,9 @@
 {
   "appId": "glossario.pmca",
-  "asar": true,
+  "files": [
+    "electron/**/*",
+    "!node_modules/**/*"
+  ],
   "extraResources": [
     ".output/**/*",
     "server/prisma/app.sqlite"
