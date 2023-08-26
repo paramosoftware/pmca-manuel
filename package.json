@@ -11,11 +11,11 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "electron:build": "nuxt build && electron-builder",
-    "electron:dev": "NODE_ENV=development electron-forge start --inspect-electron"
+    "electron:build": "nuxt build && node build.js",
+    "electron:build-test": "nuxt build && NODE_ENV=development node build.js",
+    "electron:dev": "yarn dev & NODE_ENV=development electron electron/main.js"
   },
   "devDependencies": {
-    "@electron-forge/cli": "^6.2.1",
     "@nuxthq/ui": "^2.3.0",
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.3",
