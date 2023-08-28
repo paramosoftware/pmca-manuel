@@ -12,7 +12,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "electron:build": "nuxt build && node build.js",
-    "electron:build-test": "nuxt build && NODE_ENV=development node build.js",
+    "electron:build-test": "nuxt build && NODE_ENV=development DEBUG=electron-builder node build.js",
     "electron:dev": "yarn dev & NODE_ENV=development electron electron/main.js"
   },
   "devDependencies": {

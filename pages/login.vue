@@ -4,7 +4,7 @@
 
       <div class="grid grid-cols-2 gap-2 content-center items-center">
         <div class="col-span-2 md:col-span-1 flex justify-center">
-          <img src="/logo-pmca-big.png" alt="Logo" class="w-72" />
+          <img src="/icons/logo-pmca-full.png" alt="Logo" class="w-72" />
         </div>
         <div class="col-span-2 md:col-span-1 mt-5 md:mt-0 items-center">
           <div>

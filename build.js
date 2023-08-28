@@ -6,6 +6,7 @@ const Platform = builder.Platform;
 */
 const config = {
   appId: "pmca.glossario",
+  productName: "Glossário de conservação-restauro (PMCA)",
   compression: process.env.NODE_ENV === "development" ? "store" : "maximum",
   files: [
     "electron/**/*",
@@ -24,14 +25,14 @@ const config = {
       StartupNotify: "false",
       Encoding: "UTF-8",
     },
-    icon: "public/logo-pmca.png",
+    icon: "public/icons/icon.icns",
     target: ["AppImage", "deb"],
-    artifactName: "${productName}-${version}.${ext}"
+    artifactName: "${name}-${version}.${ext}"
   },
   win: {
     target: 'nsis',
-    artifactName: "${productName}-${version}.${ext}",
-    icon: "public/logo-pmca.png",
+    artifactName: "${name}-${version}.${ext}",
+    icon: "public/icons/favicon.ico",
   },
   nsis: {
     oneClick: false,

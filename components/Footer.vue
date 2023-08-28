@@ -16,18 +16,18 @@
                 <div class="grid grid-cols-5 mt-5 md:mt-0">
                     <div class="col-span-5 text-sm">Apoio:</div>
                     <div class="items-bottom justify-bottom flex">
-                        <img src="/logo-bndes.svg" alt="Logo" class="p-2 sm:p-4" />
+                        <img src="/icons/logo-bndes.svg" alt="Logo" class="p-2 sm:p-4" />
                     </div>
                     <div class="items-bottom justify-bottom flex">
-                        <img src="/logo-lic.svg" alt="Logo" class="sm:p-3" />
+                        <img src="/icons/logo-lic.svg" alt="Logo" class="sm:p-3" />
                     </div>
                     <div class="items-bottom justify-bottom flex">
-                        <img src="/logo-gf.svg" alt="Logo" class="p-2 sm:p-3" />
+                        <img src="/icons/logo-gf.svg" alt="Logo" class="p-2 sm:p-3" />
                     </div>
                     <div class="items-bottom justify-bottom flex">
-                        <img src="/logo-fusp.png" alt="Logo" class="p-4 object-scale-down" />
+                        <img src="/icons/logo-fusp.png" alt="Logo" class="p-4 object-scale-down" />
                     </div>
-                    <img src="/logo-ieb.png" alt="Logo" class="p-2 sm:p-4 h-13" />
+                    <img src="/icons/logo-ieb.png" alt="Logo" class="p-2 sm:p-4 h-13" />
                 </div>
             </div>
         </div>

@@ -165,7 +165,7 @@ function createWindow () {
       },
       autoHideMenuBar: true,
       title: 'Glossário de conservação-restauro de livros e documentos em papel',
-      icon: path.join(process.env.ROOT, '.output/public/logo-pmca.png'),
+      icon: path.join(process.env.ROOT, '.output/public/icons/icon-pmca.png'),
     })
 
     win.maximize()
