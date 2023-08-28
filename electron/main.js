@@ -36,6 +36,10 @@ protocol.registerSchemesAsPrivileged([
   }
 ])
 
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+}
+
 app.whenReady().then(async () => {
 
   protocol.handle('app', (request) => {
@@ -50,11 +54,37 @@ app.whenReady().then(async () => {
     await startWebServer();
   }
 
-  createWindow();
+  const win = createWindow();
+
+  if (!isProduction) {
+    win.webContents.openDevTools();
+  }
+
+  win.loadURL(process.env.NUXT_PUBLIC_BASE_URL)
+
+  win.once('ready-to-show', () => {
+    win.maximize();
+  })
+
+  win.webContents.setWindowOpenHandler(({ url }) => {
+      if (url.startsWith(process.env.NUXT_PUBLIC_BASE_URL)) {
+        return { action: 'allow' };
+      }
+      
+      require('electron').shell.openExternal(url);
+      return { action: 'deny' };
+  });
+
 })
 
-app.on('activate', function () {
-    mainWindow.show()
+app.on('second-instance', () => {
+  const openedWindow = BrowserWindow.getAllWindows()[0];
+
+  if (openedWindow.isMinimized()) {
+    openedWindow.restore();
+  }
+
+  openedWindow.focus();
 })
 
 app.on('window-all-closed', () => {
@@ -81,8 +111,6 @@ function moveDatabaseFile() {
 
   process.env.DATABASE_URL = "file:" + userDatabasePath;
 }
-
-// TODO: temporary for development and testing
 
 async function assignPort(port = 3458) {
   const server = net.createServer();
@@ -157,22 +185,14 @@ function createWindow () {
       show: false,
       minWidth: 800,
       minHeight: 600,
-      backgroundColor: '#fff',
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
-        webSecurity: false
       },
       autoHideMenuBar: true,
       title: 'Glossário de conservação-restauro de livros e documentos em papel',
-      icon: path.join(process.env.ROOT, '.output/public/icons/icon-pmca.png'),
+      icon: path.join(process.env.ROOT, '.output/public/icons/favicon.ico'),
     })
-
-    win.maximize()
-
-    if (!isProduction) {
-      win.webContents.openDevTools();
-    }
-
-    win.loadURL(process.env.NUXT_PUBLIC_BASE_URL)
+    
+    return win;
 }
