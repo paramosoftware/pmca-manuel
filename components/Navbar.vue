@@ -57,6 +57,12 @@ const items = [
     disabled: true,
   }],
   [{
+    label: 'Acesso público',
+    click: () => {
+      navigateTo('/');
+    }
+  }],
+  [{
     label: 'Sair',
     click: () => {
       logout();

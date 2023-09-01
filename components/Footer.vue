@@ -3,6 +3,15 @@
         <div class="container">
             <div class="grid md:grid-cols-2 bg-pmca-primary-light p-4">
                 <div class="flex flex-col">
+                    <div class="pb-2">
+                        <NuxtLink to="/login" v-if="showLoginButton">
+                            <UIButton class="col-auto">
+                                <Icon name="ph:sign-in" class="w-6 h-6" />
+                                <span class="text-lg">Acesso interno</span>
+                            </UIButton>
+                        </NuxtLink>
+                    </div>
+                    
                     <h1 class="text-lg">Glossário de conservação-restauro
                         <span class="block">de livros e documentos</span>
                     </h1>
@@ -33,3 +42,14 @@
         </div>
     </footer>
 </template>
+
+<script setup lang="ts">
+const router = useRouter();
+
+const showLoginButton = ref(false);
+const path = router.currentRoute.value.path;
+
+if (useElectron().isElectron && !path.includes('/logged')) {
+    showLoginButton.value = true;
+}
+</script>
