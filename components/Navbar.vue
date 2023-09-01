@@ -6,7 +6,7 @@
       <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
         <div class="mt-1">
           <NuxtLink to="/">
-            <img src="/logo-pmca.png" alt="Logo" class="w-14 h-14" />
+            <img src="/icons/icon-pmca.png " alt="Logo" class="w-14 h-14" />
           </NuxtLink>
         </div>
         <div class="col-span-3 md:col-span-4">
@@ -55,6 +55,12 @@ const items = [
   [{
     label: 'Nome',
     disabled: true,
+  }],
+  [{
+    label: 'Acesso público',
+    click: () => {
+      navigateTo('/');
+    }
   }],
   [{
     label: 'Sair',

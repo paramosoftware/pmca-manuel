@@ -3,7 +3,7 @@
         <Viewer :images="images" @inited=inited class="viewer">
             <Splide :options="options">
                 <SplideSlide v-for="image in images" :key="image">
-                    <img :src="image" class="flex-none object-contain">
+                    <UIImg :src="image" class="flex-none object-contain" />
                 </SplideSlide>
             </Splide>
         </Viewer>

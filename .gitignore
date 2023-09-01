@@ -26,3 +26,8 @@ dist
 *.sqlite
 *.db
 *.sqlite3
+*.*-journal
+
+
+# Electron
+builds

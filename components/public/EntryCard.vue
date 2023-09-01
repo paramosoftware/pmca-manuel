@@ -3,8 +3,7 @@
         <div class="max-w-sm w-full lg:max-w-full lg:flex shadow-sm hover:shadow-md">
             <div class="w-full border border-gray-200 rounded-sm flex flex-col justify-between">
 
-                <img :src="thumbnail" :alt="entry.name" class="object-cover w-full rounded-sm" :class="height" />
-
+                <UIImg :src="thumbnail" :alt="entry.name" class="object-cover w-full rounded-sm" :class="height" />
                 <div :class="titlePadding">
 
                     <div class="flex flex-row justify-between items-center">
@@ -58,9 +57,9 @@ const link = computed(() => {
 
 const thumbnail = computed(() => {
     if (props.entry.media.length === 0) {
-        return '/placeholder.png'
+        return ''
     }
-    return '/' + props.entry.media[0].name
+    return props.entry.media[0].name
 })
 
 
