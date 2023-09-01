@@ -136,7 +136,7 @@ const fieldTranslations = ref(null);
 
 const updateModel = (property: string, action: string, item: any) => {
 
-
+    
     if (entry.value && entry.value[property]) {
 
         if (action === 'add') {

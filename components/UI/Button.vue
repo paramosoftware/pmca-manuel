@@ -1,7 +1,8 @@
 <template>
   <button
     :type="type"
-    class="bg-pmca-accent hover:bg-pmca-primary text-white font-bold py-2 px-4 rounded-sm first-letter:uppercase"
+    class="bg-pmca-accent hover:bg-pmca-primary text-white font-bold rounded-sm first-letter:uppercase"
+    :class="padding"
   >
     {{ label }}
     <slot />
@@ -14,6 +15,10 @@ const props = defineProps({
   type: {
     type: String as () => 'button' | 'submit' | 'reset',
     default: 'button'
+  },
+  padding: {
+    type: String,
+    default: 'px-4 py-2'
   }
 });
 </script>

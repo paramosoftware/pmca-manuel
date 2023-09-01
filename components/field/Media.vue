@@ -1,12 +1,12 @@
 <template>
     <div class="mt-8">
-        <h2 class="cursor-pointer"  @click="isOpenAccordion = !isOpenAccordion">
+        <h2 class="cursor-pointer" @click="isOpenAccordion = !isOpenAccordion">
             <button type="button"
                 class="flex items-center justify-between w-full mt-4 text-lg text-pmca-secondary first-letter:uppercase text-left bg-white border border-gray-300 p-2">
                 <span>
                     {{ label }}
                     <span class="text-sm text-gray-400" v-if="media.length">
-                        ({{ media.length }} 
+                        ({{ media.length }}
                         arquivo{{ media.length > 1 ? 's' : '' }})
                     </span>
                 </span>
@@ -32,19 +32,24 @@
                 </UModal>
             </div>
 
-            <div class="grid grid-cols-6 gap-4">
-                <div v-for="image in media" :key="image.id" class="relative">
-                    <UIImg class="w-full h-32 object-cover rounded" :src="image.name" />
-                    <button type="button" class="text-black" @click="deleteMedia(image.id)">
-                        <Icon class="absolute top-0 right-0 w-6 h-6 bg-white rounded-full" name="ph:trash-simple" />
-                    </button>
-                </div>
-            </div>
+            <draggable class="grid grid-cols-6 gap-4" :list="media" @end="updateMediaPosition" :animation="200" item-key="id">
+                <template #item="{ element }">
+                    <div class="relative">
+                        <UIImg class="w-full h-32 object-cover rounded" :src="element.name" />
+                        <div class="absolute top-0 right-0">
+                            <UIButton @click="deleteMedia(element)" padding="p-1">
+                                <Icon class="w-4 h-4" name="ph:trash-simple" />
+                            </UIButton>
+                        </div>
+                    </div>
+                </template>
+            </draggable>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import draggable from 'vuedraggable';
 
 const isOpen = ref(false)
 const isOpenAccordion = ref(false)
@@ -65,21 +70,18 @@ const props = defineProps({
     }
 })
 
-
 const emit = defineEmits(['update'])
 
-const deleteMedia = async (id: number) => {
-
-    const { data } = await useFetchWithBaseUrl('api/media/' + id, {
-        method: 'DELETE'
-    })
-
-    if (data) {
-        emit('update', props.id, 'remove', data.value)
-    }
+const deleteMedia = async (media: Media) => {
+    emit('update', props.id, 'remove', media)
 }
 
 const addMedia = (media: Media) => {
     emit('update', props.id, 'add', media)
 }
+
+const updateMediaPosition = (event: any) => {
+    return;
+}
+
 </script>
