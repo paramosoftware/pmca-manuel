@@ -1,12 +1,19 @@
 <template>
-  <div class="flex flex-col justify-center items-center h-screen mx-10 text-pmca-primary">
-    <div class="container max-w-screen-lg mx-auto p-4 border border-neutral rounded-sm m-5">
+  <div class="flex flex-col justify-center items-center h-screen mx-3 text-pmca-primary">
+    <div class="container max-w-screen-md mx-auto p-5 border border-neutral rounded-sm m-5">
 
-      <div class="grid grid-cols-2 gap-2 content-center items-center">
-        <div class="col-span-2 md:col-span-1 flex justify-center">
-          <img src="/icons/logo-pmca-full.png" alt="Logo" class="w-72" />
+      <div class="grid grid-cols-2 gap-2">
+
+        <div class="col-span-2 md:col-span-1 mt-3 md:mt-0">
+          <div class="mb-10">
+            <UIAnchorReturn href="/" />
+          </div>
+          <div class="flex flex-col justify-center items-center">
+            <img src="/icons/logo-pmca-full.png" alt="Logo" class="w-72 mx-auto align-middle" />
+          </div>
         </div>
-        <div class="col-span-2 md:col-span-1 mt-5 md:mt-0 items-center">
+
+        <div class="col-span-2 md:col-span-1 mt-5 md:mt-0">
           <div>
             <h1 class="text-4xl">Login</h1>
           </div>
