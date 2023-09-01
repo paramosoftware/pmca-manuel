@@ -26,8 +26,8 @@
     "@types/uuid": "^9.0.2",
     "electron": "^25.7.0",
     "electron-builder": "latest",
-    "nuxt": "^3.6.5",
-    "nuxt-icon": "^0.4.0",
+    "nuxt": "^3.7.0",
+    "nuxt-icon": "^0.5.0",
     "prisma": "latest"
   },
   "dependencies": {
@@ -35,10 +35,10 @@
     "@prisma/client": "latest",
     "@splidejs/vue-splide": "^0.6.12",
     "@vueup/vue-quill": "latest",
-    "bcrypt": "^5.1.0",
+    "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.0",
+    "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "uuid": "^9.0.0",
     "v-viewer": "next",
