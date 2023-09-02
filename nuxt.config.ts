@@ -22,6 +22,7 @@ export default defineNuxtConfig({
             'jsonwebtoken',
             'vue2-dropzone-vue3',
             'vis-network',
+            'v-viewer'
         ]
     },
     modules: [
