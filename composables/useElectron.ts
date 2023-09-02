@@ -1,8 +1,11 @@
 export default function useElectron() {
-  const isRenderer = !process.server && window.process && window.process.type === 'renderer'
-  const isBrowser = process.type === 'browser'
+  let isElectron = false
 
-  const isElectron = isRenderer || isBrowser
+  const isRenderer = !process.server && window.process && window.process.type === 'renderer'
+  const isBrowser = !process.client && process.type === 'browser'
+
+  isElectron = isRenderer || isBrowser
+  
 
   return {
     isElectron

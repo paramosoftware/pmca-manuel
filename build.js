@@ -7,7 +7,7 @@ const Platform = builder.Platform;
 const config = {
   appId: "pmca.glossario",
   productName: process.env.APP_NAME,
-  compression: process.env.NODE_ENV === "development" ? "store" : "maximum",
+  compression: process.env.NODE_ENV === "development" ? "store" : "normal",
   files: [
     "electron/**/*",
     "!node_modules/**/*"

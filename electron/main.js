@@ -156,18 +156,22 @@ function assignEnvsFromFile() {
 function generateEnvFile() {
   const crypto = require('crypto');
 
-  const accessTokenSecret = crypto.randomBytes(64).toString('hex');
-  const refreshTokenSecret = crypto.randomBytes(64).toString('hex');
-  const authSecret = crypto.randomBytes(64).toString('hex');
+  const env = {
+    APP_NAME: 'Glossário de conservação-restauro de livros e documentos',
+    APP_DESCRIPTION: '',
+    ACCESS_TOKEN_SECRET: crypto.randomBytes(64).toString('hex'),
+    REFRESH_TOKEN_SECRET: crypto.randomBytes(64).toString('hex'),
+    AUTH_SECRET: crypto.randomBytes(64).toString('hex'),
+  }
 
   fs.writeFileSync(
     path.join(userDataPath, '.env'),
-    `ACCESS_TOKEN_SECRET=${accessTokenSecret}\nREFRESH_TOKEN_SECRET=${refreshTokenSecret}\nAUTH_SECRET=${authSecret}`
+    Object.entries(env).map(([key, value]) => `${key}=${value}`).join('\n')
   );
 
-  process.env.ACCESS_TOKEN_SECRET = accessTokenSecret;
-  process.env.REFRESH_TOKEN_SECRET = refreshTokenSecret;
-  process.env.AUTH_SECRET = authSecret;
+  for (const [key, value] of Object.entries(env)) {
+    process.env[key] = value;
+  }
 }
 
 async function startWebServer() {
@@ -190,7 +194,7 @@ function createWindow () {
         contextIsolation: false,
       },
       autoHideMenuBar: true,
-      title: 'Glossário de conservação-restauro de livros e documentos em papel',
+      title: process.env.APP_NAME,
       icon: path.join(process.env.ROOT, '.output/public/favicon.ico'),
     })
     
