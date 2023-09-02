@@ -24,6 +24,8 @@
 
         <PublicEntryAttribute title="Traduções" :content="translations" />
 
+        <PublicEntryAttribute title="Variações" :content="entry.variations" />
+
         <PublicEntryAttribute title="Definição" :content="entry.definition" :is-html=true />
 
         <PublicEntryAttribute title="Notas" :content="entry.notes" :is-html=true />
