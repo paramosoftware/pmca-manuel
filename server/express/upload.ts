@@ -6,16 +6,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../prisma/prisma';
 import fs from 'fs';
 import path from 'path';
-import useElectron from '../../composables/useElectron';
+import useMedia  from '../../composables/useMedia';
 
 const router = express.Router();
 
-const isElectron = useElectron().isElectron;
-const userDataPath = isElectron ? process.env.USER_DATA_PATH! + '/media/' : 'public/media/';
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, userDataPath)
+        cb(null, useMedia().mediaPath + '/')
     },
     filename: function (req, file, cb) {
         cb(null, uuidv4() + path.extname(file.originalname))
@@ -30,16 +27,31 @@ const upload = multer({
 
 const saveMedia = async (entryId: string, fileName: string, res: express.Response) => {
     try {
-        return await prisma.media.create({
+        const media = await prisma.media.create({
             data: {
+                name: fileName,
                 entries: {
-                    connect: {
-                        id: parseInt(entryId)
+                    create: {
+                        entry: {
+                            connect: {
+                                id: parseInt(entryId)
+                            }
+                        }
                     }
-                },
-                name: fileName
+                }
+            },
+            include: {
+                entries: {
+                    include: {
+                        media: true
+                    }
+                }
             }
         });
+
+
+        return media.entries[0];
+        
     } catch (error) {
         throw new UploadError('Error saving media to database')
     }

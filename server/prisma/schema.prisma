@@ -44,7 +44,7 @@ model Entry {
  
   references      Reference[] @relation("entries_references")
 
-  media           Media[]   @relation("media_entries")
+  media           EntryMedia[]
   
   variations      Variation[]
   translations    Translation[]
@@ -78,6 +78,23 @@ model EntryChanges {
   @@map("entries_changes")
 }
 
+model EntryMedia {
+  id          Int       @id @default(autoincrement())
+  
+  entryId     Int       @map("entry_id")
+  entry       Entry     @relation(fields: [entryId], references: [id])
+
+  mediaId     Int       @map("media_id")
+  media       Media     @relation(fields: [mediaId], references: [id])
+
+  position    Int?
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("entries_media")
+}
+
 model Language {
   id            Int       @id @default(autoincrement())
   name          String    @unique
@@ -102,12 +119,10 @@ model Media {
   subtitleNormalized String? @map("subtitle_normalized")
 
   private     Boolean?   @default(false)
-  position    Int?
-
   // TODO: create a media type model
   type        String?
 
-  entries     Entry[]   @relation("media_entries")
+  entries     EntryMedia[]
 
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")

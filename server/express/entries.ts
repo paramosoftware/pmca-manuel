@@ -1,6 +1,6 @@
 import express from 'express';
 import { prisma } from '../prisma/prisma';
-import { prepareRequestBodyForPrisma, normalizeString, getUserFromToken } from './utils';
+import { prepareRequestBodyForPrisma, normalizeString, getUserFromToken, deleteMedia } from './utils';
 
 const router = express.Router();
 
@@ -77,7 +77,14 @@ router.post('/search', async (req, res, next) => {
         const entries = await prisma.entry.findMany({
             where: whereConditions,
             include: {
-                media: true,
+                media: {
+                    orderBy: {
+                        position: 'asc'
+                    },
+                    include: {
+                        media: true
+                    }
+                },
                 category: true,
                 variations: true,
                 translations: true
@@ -104,7 +111,14 @@ router.post('/by-slug', async (req, res, next) => {
             },
             include: {
                 category: true,
-                media: true,
+                media: {
+                    orderBy: {
+                        position: 'asc'
+                    },
+                    include: {
+                        media: true
+                    }
+                },
                 relatedEntries: {
                     include: {
                         media: true
@@ -127,8 +141,29 @@ router.delete('/:id', async (req, res, next) => {
     const id = req.params.id;
 
     try {
+        const entryMedia = await prisma.entryMedia.findMany({
+            where: {
+                entryId: parseInt(id)
+            },
+            include: {
+                media: true
+            }
+        });
+
 
         const deletedEntry = await prisma.$transaction([
+
+            prisma.entryChanges.deleteMany({
+                where: {
+                    entryId: parseInt(id)
+                }
+            }),
+
+            prisma.entryMedia.deleteMany({
+                where: {
+                    entryId: parseInt(id)
+                }
+            }),
 
             prisma.entry.update({
                 where: {
@@ -147,6 +182,11 @@ router.delete('/:id', async (req, res, next) => {
                 }
             })             
         ])
+
+
+        if (entryMedia.length > 0) {
+            deleteMedia(entryMedia);
+        }
 
 
         res.json(deletedEntry);
@@ -171,7 +211,14 @@ router.get('/:id', async (req, res, next) => {
                 relatedEntries: true,
                 entries: true,
                 references: true,
-                media: true
+                media: {
+                    orderBy: {
+                        position: 'asc'
+                    },
+                    include: {
+                        media: true
+                    }
+                },
             }
         });
         res.json(entry);
@@ -191,8 +238,11 @@ router.put('/:id', async (req, res, next) => {
 
         const variations = req.body.variations || [];
         const translations = req.body.translations || [];
+        const media = req.body.media || [];
 
         let data: any = prepareRequestBodyForPrisma(req.body);
+
+        data.media = undefined;
 
         if (data.category || data.category === null) {
             data.category = undefined;
@@ -234,6 +284,8 @@ router.put('/:id', async (req, res, next) => {
 
         trackChanges(req.body, user);
 
+        handleMedia(media, id);
+
         const savedEntry = await prisma.entry.update({
             where: {
                 id: parseInt(id)
@@ -253,7 +305,14 @@ router.get('/', async (req, res, next) => {
     try {
         const entries = await prisma.entry.findMany({
             include: {
-                media: true,
+                media: {
+                    orderBy: {
+                        position: 'asc'
+                    },
+                    include: {
+                        media: true
+                    }
+                },
                 category: true,
                 variations: true,
                 translations: true,
@@ -344,7 +403,14 @@ router.post('/find-many-by-id', async (req, res, next) => {
                 }
             },
             include: {
-                media: true,
+                media: {
+                    orderBy: {
+                        position: 'asc'
+                    },
+                    include: {
+                        media: true
+                    }
+                },
                 category: true,
                 variations: true,
                 translations: true,
@@ -459,6 +525,32 @@ async function trackChanges(newData: any, user: any) {
             userId: parseInt(user.id)
         }
     })
+}
+
+
+async function handleMedia(media: any[], entryId: string) {
+
+    const oldMedia = await prisma.entryMedia.findMany({
+        where: {
+            entryId: parseInt(entryId)
+        },
+        include: {
+            media: true
+        }
+    });
+
+    const mediaToDelete = oldMedia.filter((oldMediaItem: any) => {
+        return !media.find((newMediaItem: EntryMedia) => {
+            return newMediaItem.id === oldMediaItem.id;
+        })
+    });
+
+    deleteMedia(mediaToDelete);
+
+    media.map(async (item: any) => {
+        // Workaround for Prisma bug: Timed out during query execution
+        await prisma.$executeRaw`UPDATE entries_media SET position = ${item.position} WHERE id = ${item.id}`;
+    });
 }
   
 

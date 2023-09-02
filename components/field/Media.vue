@@ -35,7 +35,7 @@
             <draggable class="grid grid-cols-6 gap-4" :list="media" @end="updateMediaPosition" :animation="200" item-key="id">
                 <template #item="{ element }">
                     <div class="relative">
-                        <UIImg class="w-full h-32 object-cover rounded" :src="element.name" />
+                        <UIImg class="w-full h-32 object-cover rounded" :src="element.media.name" />
                         <div class="absolute top-0 right-0">
                             <UIButton @click="deleteMedia(element)" padding="p-1">
                                 <Icon class="w-4 h-4" name="ph:trash-simple" />
@@ -65,23 +65,29 @@ const props = defineProps({
     },
     label: String,
     media: {
-        type: Array as PropType<Media[]>,
+        type: Array as PropType<EntryMedia[]>,
         default: () => []
     }
 })
 
 const emit = defineEmits(['update'])
 
-const deleteMedia = async (media: Media) => {
+const deleteMedia = async (media: EntryMedia) => {
     emit('update', props.id, 'remove', media)
 }
 
-const addMedia = (media: Media) => {
+const addMedia = (media: EntryMedia) => {
     emit('update', props.id, 'add', media)
 }
 
 const updateMediaPosition = (event: any) => {
-    return;
+    if (event.oldIndex !== event.newIndex) {
+        const media = [...props.media];
+        media.map((item, index) => {
+            item.position = index;
+        });
+        emit('update', props.id, 'update', media)
+    }
 }
 
 </script>

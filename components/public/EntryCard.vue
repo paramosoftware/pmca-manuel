@@ -59,7 +59,7 @@ const thumbnail = computed(() => {
     if (props.entry.media.length === 0) {
         return ''
     }
-    return props.entry.media[0].name
+    return props.entry.media[0].media.name
 })
 
 

@@ -53,8 +53,8 @@ const references = ref([])
 
 
 if (props.entry.media) {
-  props.entry.media.forEach((media: Media) => {
-    images.value.push(media.name)
+  props.entry.media.forEach((media: EntryMedia) => {
+    images.value.push(media.media.name)
   })
 }
 

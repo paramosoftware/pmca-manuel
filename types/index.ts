@@ -20,7 +20,7 @@ declare global {
         definition?: string;
         notes?: string;
         references?: WebPage[];
-        media?: Media[];
+        media?: EntryMedia[];
         variations?: Variation[];
         translations?: Translation[];
         relatedEntries?: Entry[];
@@ -51,6 +51,19 @@ declare global {
         updatedAt?: Date;
     }
 
+    export interface EntryMedia {
+        id: number;
+        mediaId: number;
+        entryId: number;
+        position?: number;
+
+        media?: Media;
+        entry?: Entry;
+
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
     export interface Media {
         id: number;
         name: string;
@@ -59,10 +72,11 @@ declare global {
         private?: boolean;
         position?: number;
         type?: string;
-        entries?: Entry[];
+        entries?: EntryMedia[];
         createdAt?: Date;
         updatedAt?: Date;
     }
+
 
     export interface User {
         id: number;

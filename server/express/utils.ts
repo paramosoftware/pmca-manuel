@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { prisma } from '../prisma/prisma';
+import fs from 'fs';
+import useMedia from '../../composables/useMedia';
 
 
 
@@ -101,5 +103,45 @@ async function getUserFromToken(token: string) {
 
     return user;
 }
+
+async function deleteMedia(entryMedia: Array<EntryMedia>) {
+
+    const mediaIds: number[] = [];
+    const relationsIds: number[] = [];
+
+    entryMedia.forEach((media: EntryMedia) => {
+
+        const mediaPath = useMedia().mediaPath + '/' + media.media.name;
+        
+        if (fs.existsSync(mediaPath)) {
+            fs.unlinkSync(mediaPath);
+        }
+
+        mediaIds.push(media.mediaId);
+        relationsIds.push(media.id);
+    });
+
+    const transaction = await prisma.$transaction([
+        prisma.entryMedia.deleteMany({
+            where: {
+                id: {
+                    in: relationsIds
+                }
+            }
+        }),
+
+        prisma.media.deleteMany({
+            where: {
+                id: {
+                    in: mediaIds
+                }
+            }
+        })
+    ]);
+
+    return transaction;
+
+}
+
     
-export { prepareRequestBodyForPrisma, replaceEmptyWithNull, normalizeString, getUserFromToken};
+export { prepareRequestBodyForPrisma, replaceEmptyWithNull, normalizeString, getUserFromToken, deleteMedia};

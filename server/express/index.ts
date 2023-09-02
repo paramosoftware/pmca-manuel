@@ -10,7 +10,6 @@ import categories from './categories'
 import users from './users'
 import entries from './entries'
 import languages from './languages'
-import media from './media'
 import translations from './translations'
 import references from './references'
 import upload from './upload'
@@ -32,7 +31,6 @@ useApiRoute(app, '/categories', categories);
 useApiRoute(app, '/users', users);
 useApiRoute(app, '/entries', entries);
 useApiRoute(app, '/languages', languages);
-useApiRoute(app, '/media', media);
 useApiRoute(app, '/translations', translations);
 useApiRoute(app, '/references', references);
 useApiRoute(app, '/upload', upload);
