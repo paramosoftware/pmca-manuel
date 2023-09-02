@@ -191,7 +191,7 @@ function createWindow () {
       },
       autoHideMenuBar: true,
       title: 'Glossário de conservação-restauro de livros e documentos em papel',
-      icon: path.join(process.env.ROOT, '.output/public/icons/favicon.ico'),
+      icon: path.join(process.env.ROOT, '.output/public/favicon.ico'),
     })
     
     return win;

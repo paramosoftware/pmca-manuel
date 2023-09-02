@@ -12,14 +12,17 @@
                         </NuxtLink>
                     </div>
                     
-                    <h1 class="text-lg">Glossário de conservação-restauro
-                        <span class="block">de livros e documentos</span>
+                    <h1 class="text-lg">
+                        {{title}}
+                        <span class="block" v-if="blockTitle">
+                            {{ blockTitle }}
+                        </span>
                     </h1>
                     <Icon name="ci:github" class="text-white p-1" />
                     <div class="text-start mt-5">
-                        <p class="text-sm  text-start">Projeto Manuel Correia de Andrade (PMCA)</p>
-                        <p class="text-sm  text-start">Desenvolvimento por Páramo </p>
-                        <p class="text-sm  text-start">2023</p>
+                        <p class="text-sm text-start">Projeto Manuel Correia de Andrade (PMCA)</p>
+                        <p class="text-sm text-start">Desenvolvimento por Páramo Software</p>
+                        <p class="text-sm text-start">2023</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-5 mt-5 md:mt-0">
@@ -51,5 +54,14 @@ const path = router.currentRoute.value.path;
 
 if (useElectron().isElectron && !path.includes('/logged')) {
     showLoginButton.value = true;
+}
+
+const config = useRuntimeConfig();
+const title = ref(config.public.appName);
+const blockTitle = ref('');
+
+if (title.value.length > 30) {
+  title.value = title.value.substring(0, title.value.indexOf(' ', 30));
+  blockTitle.value = config.public.appName.replace(title.value, '');
 }
 </script>

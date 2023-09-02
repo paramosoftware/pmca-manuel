@@ -6,7 +6,7 @@ const Platform = builder.Platform;
 */
 const config = {
   appId: "pmca.glossario",
-  productName: "Glossário de conservação-restauro (PMCA)",
+  productName: process.env.APP_NAME,
   compression: process.env.NODE_ENV === "development" ? "store" : "maximum",
   files: [
     "electron/**/*",
@@ -32,7 +32,7 @@ const config = {
   win: {
     target: 'nsis',
     artifactName: "${name}-${version}.${ext}",
-    icon: "public/icons/favicon.ico",
+    icon: "public/favicon.ico",
   },
   nsis: {
     oneClick: false,

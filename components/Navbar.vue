@@ -13,7 +13,7 @@
           <div class="flex flex-col justify-between">
             <div>
               <h1 class="text-2xl font-semibold flex-row mb-2">
-                Glossário de conservação-restauro de livros e documentos
+                {{title}}
               </h1>
             </div>
             <div>
@@ -42,6 +42,8 @@
 </template>
 
 <script setup lang="ts">
+const config = useRuntimeConfig();
+const title = ref(config.public.appName);
 
 const links = ref([
     {
