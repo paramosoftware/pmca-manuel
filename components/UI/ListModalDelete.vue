@@ -1,17 +1,17 @@
 <template>
-<UModal v-model="isModalDeleteOpen">
+<UModal v-model="isModalDeleteOpen" @close="closeModal">
     <UCard :ui="{ rounded: '' }">
         <template #header>
-            <span class="text-2xl text-black">
+            <UICloseButton @click="closeModal" />
+            <UITitle>
                 Excluir {{ singularNamePt }}
-            </span>
+            </UITitle>
         </template>
 
-        <p>Você tem certeza que deseja excluir?</p>
+        <p>Tem certeza que deseja excluir?</p>
 
         <template #footer>
             <div class="flex flex-row justify-end items-center">
-                <UIButton @click="closeModal">Cancelar</UIButton>
                 <UIButton @click="deleteObject(objectIdToDelete)" class="ml-2">Excluir</UIButton>
             </div>
         </template>

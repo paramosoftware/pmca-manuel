@@ -21,18 +21,21 @@
                 <UModal v-model="isOpen" :ui="{ width: 'max-w-5xl', rounded: '' }">
                     <UCard :ui="{ rounded: '' }">
                         <template #header>
-                            <span class="text-2xl text-black">
+                            <UICloseButton @click="isOpen = false" />
+
+                            <UITitle>
                                 Upload de arquivos
-                            </span>
+                            </UITitle>
                         </template>
 
-                        <FieldDropzone :id="id" :entry-id="objectId" @update="addMedia" />
+                        <FieldDropzone :id="id" :entry-id="objectId" @update="addMedia" @close="isOpen = false" />
 
                     </UCard>
                 </UModal>
             </div>
 
-            <draggable class="grid grid-cols-6 gap-4" :list="media" @end="updateMediaPosition" :animation="200" item-key="id">
+            <draggable class="grid grid-cols-6 gap-4" :list="media" @end="updateMediaPosition" :animation="200"
+                item-key="id">
                 <template #item="{ element }">
                     <div class="relative">
                         <UIImg class="w-full h-32 object-cover rounded" :src="element.media.name" />

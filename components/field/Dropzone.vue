@@ -17,7 +17,7 @@
 import vueDropzone from 'vue2-dropzone-vue3';
 
 const myVueDropzone = ref(null);
-const emit = defineEmits(['update']);
+const emit = defineEmits(['update', 'close']);
 
 const dropzoneOptions = {
     url: '/api/upload',
@@ -28,7 +28,7 @@ const dropzoneOptions = {
     acceptedFiles: 'image/*',
     dictInvalidFileType: 'Tipo de arquivo inválido',
     dictFileTooBig:' Arquivo maior que o permitido: {{maxFilesize}} MB',
-    dictRemoveFile: 'REMOVER',
+    dictRemoveFile: 'Remover',
     dictDefaultMessage: 'Clique ou arraste e solte os arquivos aqui para fazer upload',
     clickable: true,
     autoProcessQueue: false,
@@ -41,8 +41,10 @@ const dropzoneOptions = {
     },
     success: function (file, response) {
         emit('update', response);
-    },
-
+        if (myVueDropzone.value.getUploadingFiles().length === 0 && myVueDropzone.value.getQueuedFiles().length === 0) {
+            emit('close');
+        }
+    }
 };
 
 const uploadFiles = () => {
@@ -78,7 +80,7 @@ defineProps({
 
 .vue-dropzone > .dz-preview .dz-error-mark {
     width: auto;
-    pointer-events: none;
+    cursor: pointer;
     opacity: 0;
     z-index: 500;
     position: absolute;
@@ -87,12 +89,25 @@ defineProps({
     left: 50%;
     margin-left: -27px;
     margin-top: -27px;
-    background: #b10606;
+    background: #c71c1cd0;
     border-radius: 50%;
 }
 
+.dropzone .dz-preview .dz-error-message {
+    top: 10%;
+    background: #c71c1cc5;
+}
+
+
 .vue-dropzone > .dz-preview .dz-success-mark {
     background: green;
+}
+
+.vue-dropzone > .dz-preview .dz-remove {
+    right: 28%;
+    text-transform: capitalize;
+    background: #c71c1cc5;
+    
 }
 
 </style>
