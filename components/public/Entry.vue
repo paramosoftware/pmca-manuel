@@ -1,41 +1,47 @@
 <template>
-  <article class="container md:flex my-5">
-    <section class="w-full md:w-1/5">
-      <PublicSidebar :open-entry-id="entry.id" class="mb-2" />
-      <h1 class="text-4xl mt-5 break-words"> {{ entry.name }} </h1>
-      <div class="mt-4 w-1/4">
-        <UITitle>Baixar</UITitle>
-        <div class="flex flex-row mt-2">
-            <a href="#" class="mr-2">
-                <Icon name="ph:file-pdf" />
-            </a>
-        </div>
+  <article class="container flex">
+    <div class="w-full">
+      <div class="sm:flex sm:justify-between sm:items-center">
+        <UIPageTitle>
+          {{ entry.name }}
+          <client-only>
+            <Icon class="text-pmca-accent cursor-pointer"
+              :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'" @click="saveSelection(entry.id)" />
+          </client-only>
+        </UIPageTitle>
+        <PublicEntryActions :entryId="entry.id" :title="entry.name" />
+      </div>
+
+      <UITab :tabs="['Verbete', 'Hierárquica', 'Histórico de alterações']" @change="handleTabChange">
+        <template #tabPanel-1>
+          <div class="flex flex-col">
+
+            <PublicEntryMedia :images=images v-if="images.length > 0" />
+
+            <PublicEntryAttribute title="Traduções" :content="translations" />
+
+            <PublicEntryAttribute title="Variações" :content="entry.variations" />
+
+            <PublicEntryAttribute title="Definição" :content="entry.definition" :is-html=true />
+
+            <PublicEntryAttribute title="Notas" :content="entry.notes" :is-html=true />
+
+            <PublicEntryAttribute title="Referências" :content="references" :is-html=true :is-one-line="true" />
+
+            <PublicEntryRelatedEntries title="Verbetes relacionados" :entries="entry.relatedEntries" />
+          </div>
+        </template>
+        <template #tabPanel-2>
+          <div class="flex flex-col">
+              <UITreeView :tree="tree" class="p-3 overflow-y-auto text-pmca-primary" />
+          </div>
+        </template>
+        <template #tabPanel-3>
+          <div class="flex flex-col">
+          </div>
+        </template>
+      </UITab>
     </div>
-    </section>
-    <section class="w-full md:w-4/5 md:pt-0">
-
-      <div>
-        <PublicEntryActions class="mb-2" :entryId="entry.id" :title="entry.name" />
-      </div>
-
-      <PublicEntryMedia :images=images v-if="images.length > 0" />
-
-      <div class="flex flex-col">
-
-        <PublicEntryAttribute title="Traduções" :content="translations" />
-
-        <PublicEntryAttribute title="Variações" :content="entry.variations" />
-
-        <PublicEntryAttribute title="Definição" :content="entry.definition" :is-html=true />
-
-        <PublicEntryAttribute title="Notas" :content="entry.notes" :is-html=true />
-
-        <PublicEntryAttribute title="Referências" :content="references" :is-html=true :is-one-line="true" />
-
-        <PublicEntryRelatedEntries title="Verbetes relacionados" :entries="entry.relatedEntries" />
-
-      </div>
-    </section>
   </article>
 </template>
 
@@ -48,10 +54,42 @@ const props = defineProps({
   }
 })
 
-const relatedTerms = ref<Array<{ name: string, link: string }>>([])
-const images = ref([])
-const translations = ref([])
-const references = ref([])
+const images = ref([]);
+const translations = ref([]);
+const references = ref([]);
+const entrySelected = ref(false);
+const tree = ref([]);
+
+if (process.client) {
+  if (localStorage.getItem('selectedEntries') !== null) {
+    const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!)
+    if (selectedEntries.includes(props.entry.id)) {
+      entrySelected.value = true;
+    }
+  }
+}
+
+const saveSelection = (id: number) => {
+
+  event.preventDefault();
+
+  if (localStorage.getItem('selectedEntries') === null) {
+    localStorage.setItem('selectedEntries', JSON.stringify([id]))
+    entrySelected.value = true;
+  } else {
+    const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!)
+    if (selectedEntries.includes(id)) {
+      const index = selectedEntries.indexOf(id)
+      selectedEntries.splice(index, 1)
+      localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries))
+      entrySelected.value = false;
+    } else {
+      selectedEntries.push(id)
+      localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries))
+      entrySelected.value = true;
+    }
+  }
+}
 
 
 if (props.entry.media) {
@@ -62,7 +100,7 @@ if (props.entry.media) {
 
 if (props.entry.references) {
   props.entry.references.forEach((reference: Reference) => {
-    references.value.push ({
+    references.value.push({
       name: reference.name,
     })
   })
@@ -79,6 +117,23 @@ if (props.entry.translations) {
   })
 }
 
-</script>
+const handleTabChange = async (value: number) => {
+  if (value === 2 && tree.value.length === 0) {
+    await fetchHierarchy();
+  }
+}
 
-<style scoped></style>
+const fetchHierarchy = async () => {
+  const { data: hierarchy } = await useFetchWithBaseUrl('/api/categories', {
+    transform: (categories) =>
+      categories.map((category: Category) => ({
+        id: category.id,
+        name: category.name,
+        parentId: category.parentId,
+        entries: category.entries,
+      })),
+  });
+
+  tree.value = useConvertToTreeData(hierarchy.value, false, true, null, props.entry.id);
+}
+</script>

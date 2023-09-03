@@ -2,9 +2,9 @@
     <NuxtLayout name="public">
         <article class="container mx-auto mb-auto">
             <div class="flex flex-col justify-left">
-                <h1 class="text-4xl font-semibold flex-row">
+                <UIPageTitle>
                     {{ page.name }}
-                </h1>
+                </UIPageTitle>
                 <p class="text-sm text-end text-gray-500 mb-5">
                    Atualizado em {{ new Date(page.updatedAt).toLocaleDateString('pt-BR') }} às {{ new Date(page.updatedAt).toLocaleTimeString('pt-BR') }}
                 </p>

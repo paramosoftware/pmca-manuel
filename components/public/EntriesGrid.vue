@@ -3,7 +3,7 @@
         <main class="container mb-auto p-2 md:p-0 mx-auto">
             <div class="flex items-center justify-between">
                 <div class="flex flex-col">
-                    <h1 class="text-4xl font-semibold">{{ title }}</h1>
+                    <UIPageTitle>{{ title }}</UIPageTitle>
                 </div>
             </div>
 
