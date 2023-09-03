@@ -38,6 +38,7 @@
         </template>
         <template #tabPanel-3>
           <div class="flex flex-col">
+            <PublicEntryChanges :entryId="entry.id" />
           </div>
         </template>
       </UITab>

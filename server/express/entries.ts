@@ -196,6 +196,33 @@ router.delete('/:id', async (req, res, next) => {
     }
 });
 
+router.get('/:id/changes', async (req, res, next) => {
+    const id = req.params.id;
+
+    try {
+        const changes = await prisma.entryChanges.findMany({
+            where: {
+                entryId: parseInt(id)
+            },
+            orderBy: {
+                createdAt: 'desc'
+            },
+            include: {
+                user: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
+        });
+
+        res.json(changes);
+
+    } catch (error) {
+        next(error);
+    }
+});
+
 router.get('/:id', async (req, res, next) => {
     const id = req.params.id;
 
@@ -522,7 +549,11 @@ async function trackChanges(newData: any, user: any) {
                 }
             },
             changes: JSON.stringify(changes),
-            userId: parseInt(user.id)
+            user: {
+                connect: {
+                    id: parseInt(user.id)
+                }
+            }
         }
     })
 }

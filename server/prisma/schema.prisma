@@ -69,6 +69,7 @@ model EntryChanges {
   entry       Entry     @relation(fields: [entryId], references: [id])
 
   userId      Int       @map("user_id")
+  user        User      @relation(fields: [userId], references: [id])
 
   changes     String    @map("changes")
 
@@ -141,6 +142,8 @@ model User {
   role          String?      @default("1")
 
   refreshToken  String?     @unique @map("refresh_token")
+
+  EntryChanges  EntryChanges[]
 
   createdAt     DateTime?   @default(now()) @map("created_at")
   updatedAt     DateTime?   @updatedAt @map("updated_at")

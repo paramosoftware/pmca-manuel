@@ -1794,6 +1794,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/diff@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "@types/diff@npm:5.0.3"
+  checksum: d8a7d4de12f1aba0bd0c17b0b0d1e45c83824d3d6cc65763fbad371cd8315361a7e16fbae3f260a83bfdf30cebe1c876b42cec4518698055bc430fb09db1cbc8
+  languageName: node
+  linkType: hard
+
 "@types/estree@npm:*, @types/estree@npm:^1.0.0":
   version: 1.0.1
   resolution: "@types/estree@npm:1.0.1"
@@ -4006,6 +4013,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"diff@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "diff@npm:5.1.0"
+  checksum: c7bf0df7c9bfbe1cf8a678fd1b2137c4fb11be117a67bc18a0e03ae75105e8533dbfb1cda6b46beb3586ef5aed22143ef9d70713977d5fb1f9114e21455fba90
+  languageName: node
+  linkType: hard
+
 "dir-compare@npm:^3.0.0":
   version: 3.3.0
   resolution: "dir-compare@npm:3.3.0"
@@ -5256,6 +5270,7 @@ __metadata:
     "@splidejs/vue-splide": ^0.6.12
     "@types/bcrypt": ^5.0.0
     "@types/cookie-parser": ^1.4.3
+    "@types/diff": ^5.0.3
     "@types/express": ^4.17.17
     "@types/jsonwebtoken": ^9.0.1
     "@types/multer": ^1.4.7
@@ -5264,6 +5279,7 @@ __metadata:
     "@vueup/vue-quill": latest
     bcrypt: ^5.1.1
     cookie-parser: ^1.4.6
+    diff: ^5.1.0
     electron: ^25.7.0
     electron-builder: latest
     express: ^4.18.2

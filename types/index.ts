@@ -12,6 +12,13 @@ declare global {
         createdAt?: Date;
         updatedAt?: Date;
     }
+
+    export interface Change {
+        added?: string[];
+        removed?: string[];
+        new?: string,
+        old?: string
+    }
     
     export interface Entry {
         id: number;
@@ -36,6 +43,7 @@ declare global {
         entryId: number;
         entry: Entry;
         userId: number;
+        user?: User;
         changes: string;
         createdAt?: Date;
         updatedAt?: Date;
