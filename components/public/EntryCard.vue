@@ -17,8 +17,7 @@
                                 <Icon
                                     class="text-pmca-accent text-2xl cursor-pointer" 
                                     :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'" 
-                                    @click="saveSelection(entry.id)"
-                                />
+                                    @click="entrySelected = handleEntrySelection($event, entry.id)" />
                             </client-only>
                         </div>
                     </div>
@@ -30,7 +29,7 @@
     
     
 <script setup lang="ts">
-const entrySelected = ref(false);
+
 
 const props = defineProps({
     entry: {
@@ -50,6 +49,9 @@ const props = defineProps({
         default: 'p-4'
     }
 })
+
+const { isSelected, handleEntrySelection } = useEntrySelection();
+const entrySelected = ref(isSelected(props.entry.id));
 
 const link = computed(() => {
     return "/verbetes/" + props.entry.slug
@@ -74,30 +76,6 @@ if (process.client) {
         }
     }
 }
-
-const saveSelection = (id: number) => {
-   
-    event.preventDefault();
-
-    if (localStorage.getItem('selectedEntries') === null) {
-        localStorage.setItem('selectedEntries', JSON.stringify([id]))
-        entrySelected.value = true;
-    } else {
-        const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!)
-        if (selectedEntries.includes(id)) {
-            const index = selectedEntries.indexOf(id)
-            selectedEntries.splice(index, 1)
-            localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries))
-            entrySelected.value = false;
-        } else {
-            selectedEntries.push(id)
-            localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries))
-            entrySelected.value = true;
-        }
-    }
-}
-
-
 
 </script>
     

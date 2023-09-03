@@ -421,6 +421,10 @@ router.post('/', async (req, res, next) => {
 router.post('/find-many-by-id', async (req, res, next) => {
 
     const { ids } = req.body;
+    
+    if (!ids) {
+        return res.json([]);
+    }
 
     try {
         const entries = await prisma.entry.findMany({

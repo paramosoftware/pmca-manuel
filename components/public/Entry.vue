@@ -6,7 +6,8 @@
           {{ entry.name }}
           <client-only>
             <Icon class="text-pmca-accent cursor-pointer"
-              :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'" @click="saveSelection(entry.id)" />
+              :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'" 
+              @click="entrySelected = handleEntrySelection($event, entry.id)" />
           </client-only>
         </UIPageTitle>
         <PublicEntryActions :entryId="entry.id" :title="entry.name" />
@@ -55,42 +56,12 @@ const props = defineProps({
   }
 })
 
+const { isSelected, handleEntrySelection } = useEntrySelection();
 const images = ref([]);
 const translations = ref([]);
 const references = ref([]);
-const entrySelected = ref(false);
+const entrySelected = ref(isSelected(props.entry.id));
 const tree = ref([]);
-
-if (process.client) {
-  if (localStorage.getItem('selectedEntries') !== null) {
-    const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!)
-    if (selectedEntries.includes(props.entry.id)) {
-      entrySelected.value = true;
-    }
-  }
-}
-
-const saveSelection = (id: number) => {
-
-  event.preventDefault();
-
-  if (localStorage.getItem('selectedEntries') === null) {
-    localStorage.setItem('selectedEntries', JSON.stringify([id]))
-    entrySelected.value = true;
-  } else {
-    const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!)
-    if (selectedEntries.includes(id)) {
-      const index = selectedEntries.indexOf(id)
-      selectedEntries.splice(index, 1)
-      localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries))
-      entrySelected.value = false;
-    } else {
-      selectedEntries.push(id)
-      localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries))
-      entrySelected.value = true;
-    }
-  }
-}
 
 
 if (props.entry.media) {

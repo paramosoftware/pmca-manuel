@@ -130,9 +130,9 @@ if (props.userSelection) {
         entries.value = fetch.data.value;
     };
 
-    if (process.client) {
-        const ids = JSON.parse(localStorage.getItem('selectedEntries') || '[]');
-        await fetchEntries(ids);
+    const { selectedEntries } = useEntrySelection();
+    if (selectedEntries.length > 0) {
+        await fetchEntries(selectedEntries);
     }
 
 } else {
