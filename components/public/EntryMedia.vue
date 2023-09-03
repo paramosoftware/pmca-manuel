@@ -2,7 +2,7 @@
     <div class="container">
         <Viewer :images="images" @inited=inited class="viewer">
             <Splide :options="options">
-                <SplideSlide v-for="image in images" :key="image">
+                <SplideSlide v-for="image in images" :key="image" class="items-center flex">
                     <UIImg :src="image" class="flex-none object-contain" />
                 </SplideSlide>
             </Splide>
@@ -36,6 +36,7 @@ const options = {
     perMove: 1,
     gap: '1rem',
     pagination: false,
+    height: '20rem',
     breakpoints: {
         640: {
             perPage: 1,

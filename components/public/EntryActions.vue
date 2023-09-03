@@ -1,11 +1,7 @@
 <template>
         <div class="flex justify-between mb-4 mt-4 sm:mt-0">
             <div>
-                <client-only>
-                    <Icon class="text-pmca-accent cursor-pointer" 
-                        :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'" 
-                        @click="saveSelection(entryId)" />
-                </client-only>
+
             </div>
             <div>
                 <a v-for="item in socialMedia" :key="item.name" class="mr-2 cursor-pointer" @click="share(item.name)">
@@ -18,7 +14,7 @@
 
 
 <script setup lang="ts">
-const entrySelected = ref(false);
+
 
 const props = defineProps({
     title: {
@@ -35,6 +31,11 @@ const toast = useToast()
 
 
 const socialMedia = [
+    {
+        name: 'Baixar',
+        icon: 'ph:file-pdf',
+        shareUrl: ''
+    },
     {
         name: 'Facebook',
         icon: 'ph:facebook-logo',
@@ -54,7 +55,7 @@ const socialMedia = [
     {
         name: 'Link',
         icon: 'ph:link',
-    }
+    },
 ]
 
 
@@ -82,39 +83,4 @@ const share = (name: String) => {
         }
     }
 }
-
-if (process.client) {
-    if (localStorage.getItem('selectedEntries') !== null) {
-        const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!)
-        if (selectedEntries.includes(props.entryId)) {
-            entrySelected.value = true;
-        }
-    }
-}
-
-const saveSelection = (id: number) => {
-   
-    event.preventDefault();
-
-    if (localStorage.getItem('selectedEntries') === null) {
-        localStorage.setItem('selectedEntries', JSON.stringify([id]))
-        entrySelected.value = true;
-    } else {
-        const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!)
-        if (selectedEntries.includes(id)) {
-            const index = selectedEntries.indexOf(id)
-            selectedEntries.splice(index, 1)
-            localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries))
-            entrySelected.value = false;
-        } else {
-            selectedEntries.push(id)
-            localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries))
-            entrySelected.value = true;
-        }
-    }
-}
-
-
-
-
 </script>
