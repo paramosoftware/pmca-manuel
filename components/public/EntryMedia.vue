@@ -16,7 +16,7 @@ import '@splidejs/vue-splide/css';
 import { component as Viewer } from "v-viewer"
 import { Splide, SplideSlide } from '@splidejs/vue-splide';
 
-defineProps({
+const props = defineProps({
     images: {
         type: Array,
         required: true,
@@ -37,20 +37,24 @@ const options = {
     gap: '1rem',
     pagination: false,
     height: '20rem',
+    drag: props.images.length > 5,
     breakpoints: {
         640: {
             perPage: 1,
             gap: '1rem',
             arrows: false,
-            pagination: true
+            pagination: true,
+            drag: props.images.length > 1
         },
         768: {
             perPage: 2,
             gap: '1rem',
+            drag: props.images.length > 2
         },
         1024: {
             perPage: 3,
             gap: '1rem',
+            drag: props.images.length > 3
         },
     },
 };

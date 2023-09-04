@@ -1,6 +1,6 @@
 <template>
     <NuxtLayout name="public">
-        <article class="container mx-auto mb-auto">
+        <article class="container mx-auto mb-auto p-2">
             <div class="flex flex-col justify-left">
                 <UIPageTitle>
                     {{ page.name }}

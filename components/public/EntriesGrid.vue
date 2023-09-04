@@ -1,6 +1,6 @@
 <template>
     <NuxtLayout name="public">
-        <main class="container mb-auto p-2 md:p-0 mx-auto">
+        <main class="container mb-auto p-2 mx-auto">
             <div class="flex items-center justify-between">
                 <div class="flex flex-col">
                     <UIPageTitle>{{ title }}</UIPageTitle>
@@ -60,7 +60,7 @@
                 </div>
 
                 <div class="flex flex-col mt-5">
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 mx-auto">
                         <div v-for="entry in filteredEntries" :key="entry.id" :entry="entry">
                             <PublicEntryCard :entry="entry" />
                         </div>

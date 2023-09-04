@@ -64,7 +64,7 @@ const options = ref({
 
 </script>
 
-<style scoped>
+<style>
 .splide__arrow {
     background: none;
     top: 60%;
@@ -78,5 +78,13 @@ const options = ref({
 
 .splide:not(.is-overflow) .splide__arrows {
     display: none;
+}
+
+.splide__pagination {
+    bottom: -0.15rem;
+}
+
+.splide__pagination__page.is-active {
+    background: #aacc4459;
 }
 </style>

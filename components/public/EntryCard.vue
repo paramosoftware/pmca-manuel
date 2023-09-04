@@ -1,6 +1,6 @@
 <template>
     <NuxtLink :to="link">
-        <div class="max-w-sm w-full lg:max-w-full lg:flex shadow-sm hover:shadow-md">
+        <div class="max-w-md w-full lg:max-w-full lg:flex shadow-sm hover:shadow-md">
             <div class="w-full border border-gray-200 rounded-sm flex flex-col justify-between">
 
                 <UIImg :src="thumbnail" :alt="entry.name" class="object-cover w-full rounded-sm" :class="height" />

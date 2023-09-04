@@ -1,5 +1,5 @@
 <template>
-  <article class="container flex">
+  <article class="container">
     <div class="w-full">
       <div class="sm:flex sm:justify-between sm:items-center">
         <UIPageTitle>
