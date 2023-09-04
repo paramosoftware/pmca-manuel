@@ -102,7 +102,8 @@ router.post('/search', async (req, res, next) => {
 
 router.post('/by-slug', async (req, res, next) => {
 
-    const { slug } = req.body;
+    const slug = req.body.slug || '';
+    const countAccess = req.body.countAccess || false;
 
     try {
         const entry = await prisma.entry.findUnique({
@@ -130,6 +131,21 @@ router.post('/by-slug', async (req, res, next) => {
                 entryChanges: true
             }
         });
+
+
+        if (countAccess && entry) {
+            await prisma.entry.update({
+                where: {
+                    id: entry.id
+                },
+                data: {
+                    accessCount: {
+                        increment: 1
+                    }
+                }
+            });
+        }
+
         res.json(entry);
 
     } catch (error) {
@@ -587,7 +603,6 @@ async function handleMedia(media: any[], entryId: string) {
         await prisma.$executeRaw`UPDATE entries_media SET position = ${item.position} WHERE id = ${item.id}`;
     });
 }
-  
 
 
 export default router;

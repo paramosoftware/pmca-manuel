@@ -26,7 +26,7 @@ declare global {
         name: string;
         definition?: string;
         notes?: string;
-        references?: WebPage[];
+        references?: Reference[];
         media?: EntryMedia[];
         variations?: Variation[];
         translations?: Translation[];
@@ -99,6 +99,16 @@ declare global {
         lastName?: string;
 
         role?: number;
+
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
+    export interface Reference {
+        id: number;
+        name: string;
+
+        entries?: Entry[];
 
         createdAt?: Date;
         updatedAt?: Date;

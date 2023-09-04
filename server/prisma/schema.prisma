@@ -41,6 +41,7 @@ model Entry {
   definitionNormalized        String?  @map("definition_normalized")
   notes                       String?
   notesNormalized             String?  @map("notes_normalized")
+  accessCount                 Int      @default(0) @map("access_count")
  
   references      Reference[] @relation("entries_references")
 
