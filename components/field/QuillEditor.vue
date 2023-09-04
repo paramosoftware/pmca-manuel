@@ -9,9 +9,10 @@
     <client-only placeholder="Carregando...">
       <QuillEditor 
         theme="snow" 
-        toolbar="essential" 
+        :toolbar="toolbarOptions"
         v-model:content="content"
-        content-type="html" />
+        content-type="html"
+        />
 
     </client-only>
   </div>
@@ -34,6 +35,16 @@ const props = defineProps({
     required: true
   }
 })
+
+const toolbarOptions = [
+  ['bold', 'italic', 'underline', 'strike'],
+  ['blockquote', 'link'],
+
+  [{ header: [1, 2, 3, false] }],               
+  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+
+  ['clean']                                  
+]
 
 const content = ref(props.modelValue)
 
