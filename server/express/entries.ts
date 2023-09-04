@@ -122,7 +122,14 @@ router.post('/by-slug', async (req, res, next) => {
                 },
                 relatedEntries: {
                     include: {
-                        media: true
+                        media: {
+                            include: {
+                                media: true
+                            },
+                            orderBy: {
+                                position: 'asc'
+                            }
+                        },
                     }
                 },
                 variations: true,
