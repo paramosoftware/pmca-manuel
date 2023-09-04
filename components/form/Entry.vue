@@ -75,6 +75,7 @@
             label="Referências"  
             placeholder="Adicione referências..."
             :allow-create=true
+            :is-html=true
             />
 
 

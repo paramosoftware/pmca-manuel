@@ -197,11 +197,13 @@ model Reference {
 model WebPage {
   id          Int       @id @default(autoincrement())
   name        String    @unique
+  nameNormalized String? @map("name_normalized")
   menuName    String    @map("menu_name")
 
   slug        String    @unique
 
   content     String
+  contentNormalized String? @map("content_normalized")
 
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")

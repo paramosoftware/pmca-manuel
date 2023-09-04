@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../prisma/prisma';
 import fs from 'fs';
 import useMedia from '../../composables/useMedia';
-
+import sanitizeHtml from 'sanitize-html'
 
 
 function prepareRequestBodyForPrisma(data: any, create: boolean = false, addNormalizedField: boolean = true) {
@@ -11,12 +11,20 @@ function prepareRequestBodyForPrisma(data: any, create: boolean = false, addNorm
     
     Object.keys(transformedData).forEach(key => {
 
+        if (getNormalizedFields().includes(key)) {
+            transformedData[key] = sanitizeHtml(transformedData[key]);
+        }
+
         if (addNormalizedField) {
             transformedData = addNormalizedFields(key, transformedData);
         }
 
         if (key === 'slug') {
             transformedData[key] = normalizeString(transformedData['name'], true);
+        }
+
+        if (!create && key === 'id') {
+            transformedData[key] = undefined;
         }
 
         if (key.endsWith('Id')) {
@@ -67,7 +75,7 @@ function replaceEmptyWithNull(obj: any) {
 
 function addNormalizedFields(key: string, data: any) {
 
-    const normalizedFields = ['name', 'definition', 'notes'];
+    const normalizedFields = getNormalizedFields();
 
     if (normalizedFields.includes(key)) {
         data[`${key}Normalized`] = normalizeString(data[key]);
@@ -82,9 +90,16 @@ function normalizeString(str: string, slug: boolean = false) {
     }
 
     str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+    str = sanitizeHtml(str, {
+        allowedTags: [],
+        allowedAttributes: {}
+    });
+
     if (slug) {
         str = str.replace(/\s/g, '-');
     }
+
     return str;
 }
 
@@ -143,5 +158,8 @@ async function deleteMedia(entryMedia: Array<EntryMedia>) {
 
 }
 
+function getNormalizedFields() {
+    return ['name', 'definition', 'notes', 'content'];
+}
     
 export { prepareRequestBodyForPrisma, replaceEmptyWithNull, normalizeString, getUserFromToken, deleteMedia};

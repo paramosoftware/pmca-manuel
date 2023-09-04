@@ -30,8 +30,7 @@
             />
 
         <FieldQuillEditor
-            id="name"
-            ref="nameRef"
+            id="content"
             required
             v-model.trim="webPage.content"
             label="Conteúdo"
@@ -50,7 +49,7 @@ const webPage = ref<WebPage>(
         name: '',
         menuName: '',
         content: '',
-        code: ''
+        slug: ''
     }
 );
 

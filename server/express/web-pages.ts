@@ -78,7 +78,7 @@ router.put('/:id', async (req, res, next) => {
 
     const { id } = req.params;
 
-    const data: any = prepareRequestBodyForPrisma(req.body, true, false);
+    const data: any = prepareRequestBodyForPrisma(req.body, false, true);
 
     try {
         const webPage = await prisma.webPage.update({
