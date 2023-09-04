@@ -31,7 +31,7 @@ const inited = (viewerInstance) => {
 }
 
 const options = {
-    type: 'loop',
+    type: 'slide',
     perPage: 5,
     perMove: 1,
     gap: '1rem',
