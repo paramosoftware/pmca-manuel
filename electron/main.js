@@ -16,6 +16,7 @@ isProduction ?
 
 if (isProduction) {
   moveDatabaseFile();
+  moveMediaFolder();
   assignPort();
 
   process.env.NUXT_PUBLIC_BASE_URL = "http://localhost:" + process.env.PORT;
@@ -111,6 +112,33 @@ function moveDatabaseFile() {
 
   process.env.DATABASE_URL = "file:" + userDatabasePath;
 }
+
+
+// TODO: while there is no import/export feature
+function moveMediaFolder() {
+  if (!isProduction) {
+    return;
+  }
+
+  const mediaPath = path.join(process.env.ROOT, '.output/public/media');
+  const userMediaPath = path.join(process.env.USER_DATA_PATH, 'media');
+
+  if (app.isPackaged) {
+    if (!fs.existsSync(userMediaPath) && fs.existsSync(mediaPath)) {
+
+      fs.mkdirSync(userMediaPath);
+
+      fs.readdirSync(mediaPath).forEach((file) => {
+        fs.copyFileSync(path.join(mediaPath, file), path.join(userMediaPath, file));
+      });
+
+    }
+  }
+}
+
+
+
+
 
 async function assignPort(port = 3458) {
   const server = net.createServer();
