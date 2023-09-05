@@ -5,27 +5,46 @@ declare global {
     export interface Category {
         id: number;
         name: string;
-        description?: string;
+        definition?: string;
         parentId?: number;
         children?: Category[];
         entries?: Entry[];
         createdAt?: Date;
         updatedAt?: Date;
     }
+
+    export interface Change {
+        added?: string[];
+        removed?: string[];
+        new?: string,
+        old?: string
+    }
     
     export interface Entry {
         id: number;
-        code?: string;
+        slug?: string;
         name: string;
         definition?: string;
         notes?: string;
         references?: Reference[];
-        media?: Media[];
+        media?: EntryMedia[];
         variations?: Variation[];
         translations?: Translation[];
         relatedEntries?: Entry[];
+        entryChanges?: EntryChanges[];
         category?: Category;
         categoryId?: number;
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
+    export interface EntryChanges {
+        id: number;
+        entryId: number;
+        entry: Entry;
+        userId: number;
+        user?: User;
+        changes: string;
         createdAt?: Date;
         updatedAt?: Date;
     }
@@ -40,6 +59,19 @@ declare global {
         updatedAt?: Date;
     }
 
+    export interface EntryMedia {
+        id: number;
+        mediaId: number;
+        entryId: number;
+        position?: number;
+
+        media?: Media;
+        entry?: Entry;
+
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
     export interface Media {
         id: number;
         name: string;
@@ -48,10 +80,11 @@ declare global {
         private?: boolean;
         position?: number;
         type?: string;
-        entries?: Entry[];
+        entries?: EntryMedia[];
         createdAt?: Date;
         updatedAt?: Date;
     }
+
 
     export interface User {
         id: number;
@@ -66,6 +99,16 @@ declare global {
         lastName?: string;
 
         role?: number;
+
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
+    export interface Reference {
+        id: number;
+        name: string;
+
+        entries?: Entry[];
 
         createdAt?: Date;
         updatedAt?: Date;
@@ -87,11 +130,19 @@ declare global {
         entry?: Entry;
     }
 
-    export interface Reference {
+
+    export interface WebPage {
         id: number;
         name: string;
+        menuName?: string;
+
+
+        slug: string;
+
+        content?: string;
 
         createdAt?: Date;
         updatedAt?: Date;
+
     }
 }

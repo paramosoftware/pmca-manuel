@@ -1,6 +1,6 @@
 <template>
     
-    <main class="container max-w-screen-xl mx-auto h-full">
+    <main class="container h-full">
         <div class="flex items-center justify-between">
             <div class="flex flex-col">
 
@@ -51,7 +51,13 @@ const links = [
         name: 'Usuários',
         path: '/logged/usuarios',
         restrictedToAdmin: !_isAdmin
-    }
+    },
+    {
+        name: 'Páginas',
+        path: '/logged/paginas',
+        restrictedToAdmin: !_isAdmin
+    },
+
 ]
 </script>
    

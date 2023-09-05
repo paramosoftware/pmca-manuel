@@ -9,7 +9,10 @@
                 <div v-for="item in computedModelValue" :key="item.id"
                     class="flex justify-between items-center px-2 border border-pmca-accent p-1 my-1 mr-2 rounded-sm">
 
-                    <div>{{ item.name }}</div>
+                    <div v-if="isHtml" v-html="item.name"></div>
+                    <div v-else>
+                        {{ item.name }}
+                    </div>
 
                     <button @click="removeItem(item.id)" class="ml-2">
                         <Icon name="ph:trash-simple" class="w-6 h-6" title="Remover" />
@@ -32,9 +35,14 @@
             <ul @click.away="results = []" @keydown.escape="results = []" v-if="searchTerm !== ''"
                 class="w-full bg-white border border-x-gray-300 border-b-gray-300 px-4 space-y-1 absolute z-10">
 
-                <li v-for="item in results" :key="item.name" @click="selectItem(item.id, item.name)"
-                    class="cursor-pointer hover:bg-gray-100  p-1">
-                    {{ item.name }}
+                <li v-for="item in results" :key="item.name" 
+                    @click="selectItem(item.id, item.name)" 
+                    class="cursor-pointer hover:bg-gray-100 p-1">
+
+                    <span v-if="isHtml" v-html="item.name"></span>
+                    <span v-else>
+                        {{ item.name }}
+                    </span>
                 </li>
 
                 <li v-if="show && !results.length" class="text-gray-400 py-2" @click="searchTerm = ''">
@@ -91,6 +99,10 @@ const props = defineProps({
     searchFunction: {
         type: Function as PropType<Function>,
         required: false
+    },
+    isHtml: {
+        type: Boolean,
+        default: false
     }
 })
 

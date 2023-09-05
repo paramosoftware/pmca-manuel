@@ -1,6 +1,6 @@
 import express from 'express';
 import { prisma } from '../prisma/prisma';
-import { prepareRequestBodyForPrisma } from './utils';
+import { prepareRequestBodyForPrisma, normalizeString } from './utils';
 
 
 const router = express.Router();
@@ -15,8 +15,8 @@ router.get('/autocomplete', async (req, res, next) => {
     try {
         const translations = await prisma.translation.findMany({
             where: {
-                name: {
-                    contains: q as string
+                nameNormalized: {
+                    contains: normalizeString(q.toString())
                 }
             },
             select: {
@@ -57,7 +57,6 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
     
-    var a = req.body;
     const data: any = prepareRequestBodyForPrisma(req.body, true);
 
     try {

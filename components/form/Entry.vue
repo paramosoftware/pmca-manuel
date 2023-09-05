@@ -75,6 +75,7 @@
             label="Referências"  
             placeholder="Adicione referências..."
             :allow-create=true
+            :is-html=true
             />
 
 
@@ -97,7 +98,7 @@ const entry = ref<Entry>(
     props.entry ?? {
         id: 0,
         name: '',
-        code: '',
+        slug: '',
         definition: '',
         notes: '',
         references: [],
@@ -136,19 +137,30 @@ const fieldTranslations = ref(null);
 
 const updateModel = (property: string, action: string, item: any) => {
 
-
     if (entry.value && entry.value[property]) {
 
         if (action === 'add') {
 
-            const exists = entry.value[property].find((e) => e.name.toLowerCase() === item.name.toLowerCase());
+            let exists = false;
+
+            if (item.name) {
+                exists = entry.value[property].find((e) => e.name.toLowerCase() === item.name.toLowerCase());
+            } else {
+                exists = entry.value[property].find((e) => e.id === item.id);
+            }   
 
             if (!exists) {
                 entry.value[property].push(item);
             }
 
         } else if (action === 'remove') {
+            
             entry.value[property] = entry.value[property].filter((e) => e.id !== item.id);
+
+        } else if (action === 'update') {
+
+            const index = entry.value[property].findIndex((e) => e.id === item.id);
+            entry.value[property][index] = item;
         }
     }
 
@@ -162,7 +174,7 @@ const nameRef = ref(null);
 
 const handleError = (error: { error: string, field: string }) => {
     const field = error.field;
-    if (field == 'name' || field == 'code') {
+    if (field == 'name' || field == 'slug') {
         nameRef.value.showError = true;
         nameRef.value.$el.children[1].focus();
     }

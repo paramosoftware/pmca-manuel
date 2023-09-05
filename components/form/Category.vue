@@ -23,7 +23,7 @@
         <FieldInput 
             id="description" 
             label="Descrição" 
-            v-model.trim="category.description" 
+            v-model.trim="category.definition" 
             type="text" 
             textarea
         
@@ -51,7 +51,7 @@ const category = ref<Category>(
     props.category ?? {
         id: 0,
         name: '',
-        description: '',
+        definition: '',
         parentId: 0,
     }
 );

@@ -13,7 +13,7 @@
 
                 <div class="justify-between flex flex-row items-center mt-4">
 
-                    <h1 class="text-2xl">{{ isStandalone ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</h1>
+                    <UITitle>{{ isStandalone ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</UITitle>
 
                     <UIButton v-if="isStandalone" :type='"submit"'>Salvar</UIButton>
 

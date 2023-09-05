@@ -1,6 +1,6 @@
 import express from 'express';
 import { prisma } from '../prisma/prisma';
-import { prepareRequestBodyForPrisma } from './utils';
+import { prepareRequestBodyForPrisma, normalizeString } from './utils';
 
 
 const router = express.Router();
@@ -15,8 +15,8 @@ router.get('/autocomplete', async (req, res, next) => {
     try {
         const references = await prisma.reference.findMany({
             where: {
-                name: {
-                    contains: q as string
+                nameNormalized: {
+                    contains: normalizeString(q.toString())
                 }
             },
             select: {

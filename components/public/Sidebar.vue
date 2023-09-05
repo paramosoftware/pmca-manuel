@@ -1,5 +1,5 @@
 <template>
-   <div class="container max-w-screen-xl mx-auto">
+   <div class="container">
       <PublicButton :type="'button'" @click="sidebarIsOpen = true">
             {{ title }}
             <Icon name="ph:caret-right" class="w-5 h-5" />

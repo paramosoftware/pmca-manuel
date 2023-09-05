@@ -1,60 +1,61 @@
 <template>
-    <div id="accordion-collapse" class="mt-8" data-accordion="collapse" data-active-classes="text-black"
-        data-inactive-classes="text-black">
-        <h2 :id="'accordion-collapse-heading-' + id" class="cursor-pointer">
+    <div class="mt-8">
+        <h2 class="cursor-pointer" @click="isOpenAccordion = !isOpenAccordion">
             <button type="button"
-                class="flex items-center justify-between w-full mt-4 text-lg text-pmca-secondary first-letter:uppercase text-left bg-white border border-gray-300 p-2"
-                :data-accordion-target="'#accordion-collapse-body-' + id" aria-expanded="false"
-                :aria-controls="'accordion-collapse-body-' + id">
-                <span>{{ label }}</span>
-                <Icon data-accordion-icon class="w-10 rotate-180 text-gray-300" name="ph:caret-down" />
+                class="flex items-center justify-between w-full mt-4 text-lg text-pmca-secondary first-letter:uppercase text-left bg-white border border-gray-300 p-2">
+                <span>
+                    {{ label }}
+                    <span class="text-sm text-gray-400" v-if="media.length">
+                        ({{ media.length }}
+                        arquivo{{ media.length > 1 ? 's' : '' }})
+                    </span>
+                </span>
+
+                <Icon class="w-10 text-gray-300" :name="isOpenAccordion ? 'ph:caret-up' : 'ph:caret-down'" />
             </button>
         </h2>
 
-        <div :id="'accordion-collapse-body-' + id" class="hidden p-2 border border-gray-300"
-            :aria-labelledby="'accordion-collapse-heading-' + id">
-
+        <div class="p-2 border border-gray-300" v-show="isOpenAccordion">
             <div class="mb-4 text-right">
                 <UIButton label="ADICIONAR ARQUIVOS" @click="isOpen = true" />
                 <UModal v-model="isOpen" :ui="{ width: 'max-w-5xl', rounded: '' }">
                     <UCard :ui="{ rounded: '' }">
                         <template #header>
-                            <span class="text-2xl text-black">
+                            <UICloseButton @click="isOpen = false" />
+
+                            <UITitle>
                                 Upload de arquivos
-                            </span>
+                            </UITitle>
                         </template>
 
-                        <FieldDropzone :id="id" :entry-id="objectId" @update="addMedia" />
+                        <FieldDropzone :id="id" :entry-id="objectId" @update="addMedia" @close="isOpen = false" />
 
                     </UCard>
                 </UModal>
             </div>
 
-            <div class="grid grid-cols-6 gap-4">
-                <div v-for="image in media" :key="image" class="relative">
-                    <img class="h-40 max-w-sm" :src="'/' + image.name" />
-                    <button class="text-black" @click="deleteMedia(image.id)">
-                        <Icon class="absolute top-0 right-0 w-6 h-6 bg-white rounded-full" name="ph:trash-simple" />
-                    </button>
-                </div>
-            </div>
+            <draggable class="grid grid-cols-6 gap-4" :list="media" @end="updateMediaPosition" :animation="200"
+                item-key="id">
+                <template #item="{ element }">
+                    <div class="relative">
+                        <UIImg class="w-full h-32 object-cover rounded" :src="element.media.name" />
+                        <div class="absolute top-0 right-0">
+                            <UIButton @click="deleteMedia(element)" padding="p-1">
+                                <Icon class="w-4 h-4" name="ph:trash-simple" />
+                            </UIButton>
+                        </div>
+                    </div>
+                </template>
+            </draggable>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import draggable from 'vuedraggable';
 
 const isOpen = ref(false)
-
-import { initFlowbite } from 'flowbite'
-
-onMounted(() => {
-    initFlowbite();
-})
-
-onUpdated(() => {
-    initFlowbite();
-})
+const isOpenAccordion = ref(false)
 
 const props = defineProps({
     id: {
@@ -67,26 +68,29 @@ const props = defineProps({
     },
     label: String,
     media: {
-        type: Array as PropType<Media[]>,
+        type: Array as PropType<EntryMedia[]>,
         default: () => []
     }
 })
 
-
 const emit = defineEmits(['update'])
 
-const deleteMedia = async (id: number) => {
+const deleteMedia = async (media: EntryMedia) => {
+    emit('update', props.id, 'remove', media)
+}
 
-    const { data } = await useFetchWithBaseUrl('api/media/' + id, {
-        method: 'DELETE'
-    })
+const addMedia = (media: EntryMedia) => {
+    emit('update', props.id, 'add', media)
+}
 
-    if (data) {
-        emit('update', props.id, 'remove', data.value)
+const updateMediaPosition = (event: any) => {
+    if (event.oldIndex !== event.newIndex) {
+        const media = [...props.media];
+        media.map((item, index) => {
+            item.position = index;
+        });
+        emit('update', props.id, 'update', media)
     }
 }
 
-const addMedia = (media: Media) => {
-    emit('update', props.id, 'add', media)
-}
 </script>

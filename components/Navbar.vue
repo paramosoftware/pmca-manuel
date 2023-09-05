@@ -1,19 +1,19 @@
 <template>
   <nav id="navbar" class="py-4">
 
-    <div class="container max-w-screen-xl mx-auto border-b-2 pb-4 border-b-pmca-primary">
+    <div class="container mx-auto border-b-2 pb-4 border-b-pmca-primary">
 
       <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
         <div class="mt-1">
           <NuxtLink to="/">
-            <img src="/logo-pmca.png" alt="Logo" class="w-14 h-14" />
+            <img src="/icons/icon-pmca.png " alt="Logo" class="w-14 h-14" />
           </NuxtLink>
         </div>
         <div class="col-span-3 md:col-span-4">
           <div class="flex flex-col justify-between">
             <div>
               <h1 class="text-2xl font-semibold flex-row mb-2">
-                Glossário de conservação-restauro de livros e documentos
+                {{title}}
               </h1>
             </div>
             <div>
@@ -42,6 +42,8 @@
 </template>
 
 <script setup lang="ts">
+const config = useRuntimeConfig();
+const title = ref(config.public.appName);
 
 const links = ref([
     {
@@ -55,6 +57,12 @@ const items = [
   [{
     label: 'Nome',
     disabled: true,
+  }],
+  [{
+    label: 'Acesso público',
+    click: () => {
+      navigateTo('/');
+    }
   }],
   [{
     label: 'Sair',

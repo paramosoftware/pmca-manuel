@@ -82,7 +82,7 @@ export const useConvertToTreeData = (
         const entryNode = {
           id: entry.id,
           label: entry.name,
-          link: `/verbetes/${entry.code}`,
+          link: `/verbetes/${entry.slug}`,
           children: []
         };
         treeItem.children.push(entryNode);

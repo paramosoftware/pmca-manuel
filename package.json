@@ -1,39 +1,54 @@
 {
-  "name": "pmca-thesaurus-starter",
+  "name": "glossario-pmca",
+  "version": "0.3.0",
+  "author": "Páramo Software <email@email.com>",
+  "description": "Glossário de conservação-restauro de livros e documentos em papel do Projeto Manuel Correia de Andrade (PMCA)",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "electron:build": "nuxt build && node build.js",
+    "electron:build-test": "nuxt build && NODE_ENV=development DEBUG=electron-builder node build.js",
+    "electron:dev": "yarn dev & NODE_ENV=development electron electron/main.js"
   },
   "devDependencies": {
     "@nuxthq/ui": "^2.3.0",
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.3",
+    "@types/diff": "^5.0.3",
     "@types/express": "^4.17.17",
     "@types/jsonwebtoken": "^9.0.1",
     "@types/multer": "^1.4.7",
     "@types/node": "^18",
+    "@types/sanitize-html": "^2.9.0",
     "@types/uuid": "^9.0.2",
-    "nuxt": "^3.6.5",
-    "nuxt-icon": "^0.4.0",
-    "prisma": "^4.13.0"
+    "electron": "^25.7.0",
+    "electron-builder": "latest",
+    "nuxt": "^3.7.0",
+    "nuxt-icon": "^0.5.0",
+    "prisma": "latest"
   },
   "dependencies": {
     "@jledentu/vue-finder": "^4.1.1",
-    "@prisma/client": "^4.13.0",
+    "@prisma/client": "latest",
+    "@splidejs/vue-splide": "^0.6.12",
     "@vueup/vue-quill": "latest",
-    "bcrypt": "^5.1.0",
+    "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
+    "diff": "^5.1.0",
     "express": "^4.18.2",
-    "flowbite": "^1.6.5",
-    "jsonwebtoken": "^9.0.0",
+    "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
+    "sanitize-html": "^2.11.0",
     "uuid": "^9.0.0",
     "v-viewer": "next",
-    "vue2-dropzone-vue3": "^1.1.0"
+    "vis-network": "^9.1.6",
+    "vue2-dropzone-vue3": "^1.1.0",
+    "vuedraggable": "next"
   },
   "prisma": {
     "schema": "server/prisma/schema.prisma"

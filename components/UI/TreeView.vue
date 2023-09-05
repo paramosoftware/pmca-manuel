@@ -18,8 +18,11 @@ const props = defineProps({
   }
 });
 
-// TODO: review this
 const treeRef = ref(props.tree);
+
+watch(() => props.tree, (value) => {
+  treeRef.value = value;
+});
 
 const toggleNodeChildren = (node: any) => {
   node.isOpen = !node.isOpen;

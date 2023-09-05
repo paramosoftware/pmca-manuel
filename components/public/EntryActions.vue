@@ -1,47 +1,86 @@
 <template>
-    <div class="mt-4 w-3/4">
-        <UITitle>Compartilhar</UITitle>
-        <div class="flex flex-row mt-2">
-            <a v-for="item in socialMedia" :key="item.name" :href="item.link" class="mr-2">
-                <span class="sr-only">{{ "Compartilhar no " + item.name }}</span>
-                <Icon :name="item.icon" />
-            </a>
+        <div class="flex justify-between mb-4 mt-4 sm:mt-0">
+            <div>
 
-
+            </div>
+            <div>
+                <a v-for="item in socialMedia" :key="item.name" class="mr-2 cursor-pointer" @click="share(item.name)">
+                    <span class="sr-only">{{ "Compartilhar no " + item.name }}</span>
+                    <Icon :name="item.icon" />
+                </a>
+            </div>
         </div>
-    </div>
-    <div class="mt-4 w-1/4">
-        <UITitle>Baixar</UITitle>
-        <div class="flex flex-row mt-2">
-            <a href="#" class="mr-2">
-                <Icon name="ph:file-pdf" />
-            </a>
-        </div>
-    </div>
 </template>
 
 
 <script setup lang="ts">
+
+
+const props = defineProps({
+    title: {
+        type: String,
+        required: true
+    },
+    entryId : {
+         type: Number,
+         required: true
+    }
+})
+
+const toast = useToast()
+
+
 const socialMedia = [
+    {
+        name: 'Baixar',
+        icon: 'ph:file-pdf',
+        shareUrl: ''
+    },
     {
         name: 'Facebook',
         icon: 'ph:facebook-logo',
-        link: '#'
+        shareUrl: 'https://www.facebook.com/sharer/sharer.php?u={url}',
     },
     {
         name: 'Twitter',
         icon: 'ph:twitter-logo',
-        link: '#'
+        shareUrl: 'https://twitter.com/intent/tweet?url={url}&text={title}',
+
     },
     {
         name: 'WhatsApp',
         icon: 'ph:whatsapp-logo',
-        link: '#'
+        shareUrl: 'https://api.whatsapp.com/send?text={title} {url}',
     },
     {
         name: 'Link',
         icon: 'ph:link',
-        link: '#'
-    }
+    },
 ]
+
+
+const share = (name: String) => {
+
+    let url = window.location.href
+    let title = props.title
+
+    if (name === 'Link') {
+        navigator.clipboard.writeText(url)
+        toast.add({ 
+            title: 'Link copiado',
+            ui: { rounded: 'rounded-sm', padding: 'p-5' }
+        })
+        return;
+    }
+
+    for (let item of socialMedia) {
+        if (item.name === name) {
+            if (item.shareUrl) {
+                url = item.shareUrl.replace('{url}', url).replace('{title}', title)
+                window.open(url, '_blank')
+                return;
+            }
+        }
+    }
+}
 </script>

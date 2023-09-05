@@ -2,6 +2,7 @@
     <div class="mt-4">
         <div class="w-full relative">
 
+
             <UILabel :for="id">
                 {{ label }}
             </UILabel>
@@ -21,6 +22,7 @@
             </div>
 
             <UModal id="modal-form" v-model="isOpenModal" :ui="{ width: 'max-w-lg', rounded: 'border-sm' }">
+                <UICloseButton @click="isOpenModal = false" />
 
                 <slot />
 
