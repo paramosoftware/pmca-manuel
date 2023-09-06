@@ -47,12 +47,13 @@
 </template>
 
 <script setup lang="ts">
+import { ROUTES } from '~/config';
 const router = useRouter();
 
 const showLoginButton = ref(false);
 const path = router.currentRoute.value.path;
 
-if (useElectron().isElectron && !path.includes('/logged')) {
+if (useElectron().isElectron && !path.includes(ROUTES.restricted)) {
     showLoginButton.value = true;
 }
 

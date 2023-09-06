@@ -4,7 +4,7 @@
         <template #header>
             <UICloseButton @click="closeModal" />
             <UITitle>
-                Excluir {{ singularNamePt }}
+                Excluir {{ label }}
             </UITitle>
         </template>
 
@@ -24,14 +24,14 @@
 <script setup lang="ts">
 
 const props = defineProps({
-    pluralName: {
+    objectNamePlural: {
         type: String,
         required: true,
     },
-    singularNamePt: {
+    label: {
         type: String,
     },
-    pluralNamePt: {
+    labelPlural: {
         type: String,
     },
     objectIdToDelete: {
@@ -60,14 +60,14 @@ const closeModal = () => {
 
 
 const deleteObject = async (id: number) => {
-    const { data, error } = await useFetchWithBaseUrl(`/api/${props.pluralName}/${id}`, {
+    const { data, error } = await useFetchWithBaseUrl(`/api/${props.objectNamePlural}/${id}`, {
         method: 'DELETE'
     });
 
 
     if (error.value) {
         toast.add({ 
-            title: 'Aconteceu algum problema ao excluir ' + props.singularNamePt,
+            title: 'Aconteceu algum problema ao excluir ' + props.label,
             ui: { rounded: 'rounded-sm', padding: 'p-5' }
         })
 

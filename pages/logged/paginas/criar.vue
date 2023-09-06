@@ -1,4 +1,0 @@
-<template>
-    <FormWebPage />
-</template>
-

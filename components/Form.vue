@@ -4,17 +4,16 @@
             <form @submit.prevent="save">
         
                 <div class="text-end flex justify-between" :class="{ 'mt-5 mb-10' : isStandalone }">
-                    <UIAnchorReturn v-if="isStandalone"  :href="'/logged/' + urlPath" />
+                    <UIAnchorReturn v-if="isStandalone"  :href=urlList />
 
-                    <NuxtLink :to="'/logged/' + urlPath + '/criar'" v-if="showNewButton && !isCreate">
+                    <NuxtLink :to=urlCreate  v-if="showNewButton && !isCreate">
                         <UIButton class="justify-items-start content-start items-start">{{ genderNoun == 'm' ? 'Novo' : 'Nova' }}</UIButton>
                     </NuxtLink>
                 </div>
 
                 <div class="justify-between flex flex-row items-center mt-4">
 
-                    <UITitle>{{ isStandalone ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ singularNamePt }}</UITitle>
-
+                    <UITitle>{{ isStandalone ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ label }}</UITitle>
                     <UIButton v-if="isStandalone" :type='"submit"'>Salvar</UIButton>
 
                 </div>
@@ -33,6 +32,7 @@
 
 
 <script setup lang="ts">
+import { ROUTES } from '~/config';
 
 const props = defineProps({
     genderNoun: {
@@ -42,19 +42,19 @@ const props = defineProps({
             return ['m', 'f'].includes(value);
         }  
     },
-    singularName: {
+    objectName: {
         type: String,
         required: true  
     },
-    pluralName: {
+    objectNamePlural: {
         type: String,
         required: true  
     },
-    singularNamePt: {
+    label: {
         type: String,
         required: true  
     },
-    pluralNamePt: {
+    labelPlural: {
         type: String,
         required: true  
     },
@@ -88,15 +88,19 @@ const router = useRouter();
 const emit = defineEmits(['formSubmitted', 'error', 'changeUserFormState']);
 const toast = useToast()
 
+const urlList = ROUTES.list + props.urlPath;
+const urlCreate = ROUTES.create  + props.urlPath;
+const urlEdit = ROUTES.edit + props.urlPath;
+
 const save = async () => {
 
     if (props.isStandalone) {
 
-        let url = '/api/' + props.pluralName + '/' + props.object.id;
+        let url = '/api/' + props.objectNamePlural + '/' + props.object.id;
         let method = 'PUT';
 
         if (props.object.id === 0) {
-            url = '/api/' + props.pluralName;
+            url = '/api/' + props.objectNamePlural;
             method = 'POST';
         }
 
@@ -112,11 +116,9 @@ const save = async () => {
         }
 
         if (saved.value) {
-            router.push('/logged/' + props.urlPath + '/editar/' + saved.value.id);
-
+            router.push(urlEdit + '/' + saved.value.id);
 
             emit('changeUserFormState');
-
 
             toast.add({ 
                 title: 'Dados salvos com sucesso.',
@@ -124,16 +126,13 @@ const save = async () => {
             })
 
             if (process.client) {
-                window.scrollTo(
-                    {
-                        top: 0,
-                        behavior: 'smooth'
-                    }
-                );
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
             }
 
             return;
-
         }
     } else {
         emit('formSubmitted', props.object);

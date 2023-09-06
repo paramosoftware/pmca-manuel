@@ -1,3 +1,5 @@
+import { ROUTES } from '~/config';
+
 export default defineNuxtRouteMiddleware(async (to, from) => {
     
     const { isAuthenticated }  = useAuth();
@@ -5,7 +7,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     const authenticated = await isAuthenticated();
 
     if (to.path === '/login' && authenticated) {
-        return navigateTo('/logged');
+        return navigateTo(ROUTES.restricted);
     }
 
     if (to.path !== '/login' && !authenticated) {

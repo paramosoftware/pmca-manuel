@@ -1,13 +1,13 @@
 <template>
     <Form 
-        gender-noun="m"
-        singular-name="language" 
-        plural-name="languages"
-        singular-name-pt="idioma"
-        plural-name-pt="idiomas"
-        url-path="idiomas"
-        :object=language
-        :is-create="language.id == 0"
+        :object=object
+        :gender-noun=objectConfig.genderNoun 
+        :object-name=objectConfig.singular
+        :object-name-plural=objectConfig.plural
+        :label=objectConfig.label
+        :label-plural=objectConfig.labelPlural
+        :url-path=urlPath
+        :is-create="object.id == 0"
         @error="handleError"
         >
 
@@ -17,25 +17,29 @@
             label="Nome" 
             type="text" 
             required
-            v-model.trim="language.name" 
+            v-model.trim="object.name" 
             />
 
         <FieldInput 
             id="code"
             label="Sigla" 
             type="text" 
-            v-model.trim="language.code" 
+            v-model.trim="object.code" 
             />
 
     </Form>
 </template>
 
 <script setup lang="ts">
+import { OBJECTS } from '~/config';
 
-const props = defineProps<{ language?: Language }>();
+const urlPath = 'idioma';
+const objectConfig = OBJECTS[urlPath];
 
-const language = ref<Language>(
-    props.language ?? {
+const props = defineProps<{ object?: Language }>();
+
+const object = ref<Language>(
+    props.object ?? {
         id: 0,
         name: '',
         code: ''

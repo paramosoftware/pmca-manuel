@@ -1,28 +1,32 @@
 <template>
     <Form 
-        gender-noun="f"
-        singular-name="variation" 
-        plural-name="variations" 
-        singular-name-pt="variação" 
-        plural-name-pt="variações"
-        url-path="variacoes"
-        :object=variation 
-        :is-create="variation.id == 0" 
+        :object=object
+        :gender-noun=objectConfig.genderNoun 
+        :object-name=objectConfig.singular
+        :object-name-plural=objectConfig.plural
+        :label=objectConfig.label
+        :label-plural=objectConfig.labelPlural
+        :url-path=urlPath
+        :is-create="object.id == 0" 
         :is-standalone=false
         @form-submitted="updateParent"
         >
 
-        <FieldInput label="Variação" v-model="variation.name" id="name" type="text" placeholder="Variação" :show-label="false" :required="true" />
+        <FieldInput label="Variação" v-model="object.name" id="name" type="text" placeholder="Variação" :show-label="false" :required="true" />
 
     </Form>
 </template>
 
 <script setup lang="ts">
+import { OBJECTS } from '~/config';
 
-const props = defineProps<{ variation?: Variation }>();
+const urlPath = 'variacao';
+const objectConfig = OBJECTS[urlPath];
 
-const variation = ref<Variation>(
-    props.variation ?? {
+const props = defineProps<{ object?: Variation }>();
+
+const object = ref<Variation>(
+    props.object ?? {
         id: 0,
         name: ''
     }

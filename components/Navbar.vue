@@ -42,13 +42,14 @@
 </template>
 
 <script setup lang="ts">
+import { ROUTES } from '~/config';
 const config = useRuntimeConfig();
 const title = ref(config.public.appName);
 
 const links = ref([
     {
       name: 'Gerenciar',
-      path: '/logged'
+      path: ROUTES.restricted
     },
 ]);
 

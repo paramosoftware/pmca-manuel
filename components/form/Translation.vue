@@ -1,13 +1,13 @@
 <template>
     <Form
-        gender-noun="f"
-        singular-name="translation" 
-        plural-name="translations" 
-        singular-name-pt="tradução" 
-        plural-name-pt="traduções"
-        url-path="traducoes"
-        :object=translation 
-        :is-create="translation.id == 0" 
+    :object=object
+        :gender-noun=objectConfig.genderNoun 
+        :object-name=objectConfig.singular
+        :object-name-plural=objectConfig.plural
+        :label=objectConfig.label
+        :label-plural=objectConfig.labelPlural
+        :url-path=urlPath
+        :is-create="object.id == 0" 
         :is-standalone=false
         @form-submitted="updateParent"
         @error="handleError"
@@ -18,14 +18,14 @@
             type="text"  
             label="Termo traduzido" 
             required
-            v-model="translation.name"
+            v-model="object.name"
             placeholder=""
             ref="name"
             />
 
         <FieldSelect 
             label="Idioma" 
-            v-model="translation.language.id" 
+            v-model="object.language.id" 
             id="language" 
             :options="languages" 
             :mandatory="true"
@@ -35,11 +35,15 @@
 </template>
 
 <script setup lang="ts">
+import { OBJECTS } from '~/config';
 
-const props = defineProps<{ translation?: Translation, entryId: number }>();
+const urlPath = 'traducao';
+const objectConfig = OBJECTS[urlPath];
 
-const translation = ref<Translation>(
-    props.translation ?? {
+const props = defineProps<{ object?: Translation, entryId: number }>();
+
+const object = ref<Translation>(
+    props.object ?? {
         id: 0,
         name: '',
         language: {

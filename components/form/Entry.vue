@@ -1,13 +1,13 @@
 <template>
     <Form 
-        gender-noun="m"
-        singular-name="entry" 
-        plural-name="entries"
-        singular-name-pt="verbete" 
-        plural-name-pt="verbetes" 
-        :object=entry
-        :is-create="entry.id == 0"
-        url-path="verbetes"        
+        :object=object
+        :gender-noun=objectConfig.genderNoun 
+        :object-name=objectConfig.singular
+        :object-name-plural=objectConfig.plural
+        :label=objectConfig.label
+        :label-plural=objectConfig.labelPlural
+        :url-path=urlPath
+        :is-create="object.id == 0"
         @error="handleError"
         >
 
@@ -15,19 +15,19 @@
             id="name"
             ref="nameRef"
             label="Nome" 
-            v-model.trim="entry.name"  
+            v-model.trim="object.name"  
             type="text" 
             required
             placeholder="Nome do verbete" />
 
-        <FieldQuillEditor label="Definição" v-model="entry.definition" id="definition" />
+        <FieldQuillEditor label="Definição" v-model="object.definition" id="definition" />
 
-        <FieldQuillEditor label="Notas" v-model="entry.notes" id="notes" />
+        <FieldQuillEditor label="Notas" v-model="object.notes" id="notes" />
 
         <FieldFinder 
             label="Categoria" 
-            v-model="entry.categoryId"
-            :default-expanded="entry.categoryId ?? undefined"
+            v-model="object.categoryId"
+            :default-expanded="object.categoryId ?? undefined"
             id="category"
             :tree="tree" />
 
@@ -35,7 +35,7 @@
         <FieldAutocomplete 
             id="relatedEntries" 
             route="entries"
-            :modelValue="entry.relatedEntries"
+            :modelValue="object.relatedEntries"
             @update="updateModel"
             label="Verbetes relacionados"
             placeholder="Digite o nome de um verbete..."  />
@@ -43,26 +43,26 @@
         
         <FieldModalAuxiliaryForm
             id="variations"
-            :items="entry.variations"
+            :items="object.variations"
             label="Variações do termo"
             ref="fieldVariations"
             @update="updateModel"
             >
     
-            <FormVariation :entry-id="entry.id" @update="updateModel" />
+            <FormVariation :entry-id="object.id" @update="updateModel" />
         
         </FieldModalAuxiliaryForm>
 
 
         <FieldModalAuxiliaryForm
             id="translations"
-            :items="entry.translations"
+            :items="object.translations"
             label="Traduções do termo em outras línguas"
             ref="fieldTranslations"
             @update="updateModel"
             >
 
-            <FormTranslation :entry-id="entry.id" @update="updateModel" />
+            <FormTranslation :entry-id="object.id" @update="updateModel" />
         
         </FieldModalAuxiliaryForm>
         
@@ -70,7 +70,7 @@
         <FieldAutocomplete 
             id="references"
             route="references" 
-            :modelValue="entry.references"
+            :modelValue="object.references"
             @update="updateModel"
             label="Referências"  
             placeholder="Adicione referências..."
@@ -81,21 +81,25 @@
 
         <FieldMedia 
             id="media" 
-            :media="entry.media" 
+            :media="object.media" 
             label="Imagens" 
-            :object-id="entry.id" 
+            :object-id="object.id" 
             @update="updateModel"
-            v-if="entry.id !== 0" />
+            v-if="object.id !== 0" />
 
     </Form>
 </template>
 
 <script setup lang="ts">
+import { OBJECTS } from '~/config';
 
-const props = defineProps<{ entry?: Entry }>();
+const urlPath = 'verbete';
+const objectConfig = OBJECTS[urlPath];
 
-const entry = ref<Entry>(
-    props.entry ?? {
+const props = defineProps<{ object?: Entry }>();
+
+const object = ref<Entry>(
+    props.object ?? {
         id: 0,
         name: '',
         slug: '',
@@ -123,12 +127,12 @@ const tree = ref({});
 
 tree.value = useConvertToTreeData(categories.value, true, false, null);
 
-if(!entry.value.categoryId)
+if(!object.value.categoryId)
 {
     for (var i = 0; i < categories.value.length; i++)
     {
         if (categories.value[i].parentId == null)
-            entry.value.categoryId = categories.value[i].id;
+            object.value.categoryId = categories.value[i].id;
     }
 }
 
@@ -137,30 +141,30 @@ const fieldTranslations = ref(null);
 
 const updateModel = (property: string, action: string, item: any) => {
 
-    if (entry.value && entry.value[property]) {
+    if (object.value && object.value[property]) {
 
         if (action === 'add') {
 
             let exists = false;
 
             if (item.name) {
-                exists = entry.value[property].find((e) => e.name.toLowerCase() === item.name.toLowerCase());
+                exists = object.value[property].find((e) => e.name.toLowerCase() === item.name.toLowerCase());
             } else {
-                exists = entry.value[property].find((e) => e.id === item.id);
+                exists = object.value[property].find((e) => e.id === item.id);
             }   
 
             if (!exists) {
-                entry.value[property].push(item);
+                object.value[property].push(item);
             }
 
         } else if (action === 'remove') {
             
-            entry.value[property] = entry.value[property].filter((e) => e.id !== item.id);
+            object.value[property] = object.value[property].filter((e) => e.id !== item.id);
 
         } else if (action === 'update') {
 
-            const index = entry.value[property].findIndex((e) => e.id === item.id);
-            entry.value[property][index] = item;
+            const index = object.value[property].findIndex((e) => e.id === item.id);
+            object.value[property][index] = item;
         }
     }
 

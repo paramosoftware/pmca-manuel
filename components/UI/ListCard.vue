@@ -1,15 +1,15 @@
 <template>
     <div class="w-full h-full flex items-center justify-between">
-        <NuxtLink :to="'/logged/' + urlPath + '/editar/' + object.id">
+        <NuxtLink :to="editUrl">
             <h1 v-if="isHtml" v-html="object.name"></h1>
             <h1 v-else>{{ object.name }}</h1>
         </NuxtLink>
         <div>
-            <span class="sr-only">Editar {{ singularNamePt }}</span>
-            <NuxtLink :to="'/logged/' + urlPath + '/editar/' + object.id">
+            <span class="sr-only">Editar {{ label }}</span>
+            <NuxtLink :to="editUrl">
                 <Icon name="ph:pencil-simple" class="w-6 h-6 m-1" />
             </NuxtLink>
-            <span class="sr-only">Excluir {{ singularNamePt }}</span>
+            <span class="sr-only">Excluir {{ label }}</span>
             <Icon name="ph:trash-simple" class="w-6 h-6 m-1 cursor-pointer" @click="openModal(object.id)" />
         </div>
     </div>
@@ -17,13 +17,13 @@
 
 
 <script setup lang="ts">
-
-defineProps({
-    singularNamePt: {
+import { ROUTES } from '~/config';
+const props = defineProps({
+    label: {
         type: String,
         required: true
     },
-    pluralNamePt: {
+    labelPlural: {
         type: String,
         required: true
     },
@@ -39,7 +39,10 @@ defineProps({
         type: Boolean,
         default: false
     }
+})
 
+const editUrl = computed(() => {
+    return ROUTES.edit + props.urlPath + '/' + props.object.id;
 })
 
 const emit = defineEmits(['openModal']);

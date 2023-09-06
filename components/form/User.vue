@@ -1,31 +1,31 @@
 <template>
 
     <Form 
-        gender-noun="m"
-        singular-name="user"
-        plural-name="users"
-        singular-name-pt="usuário"
-        plural-name-pt="usuarios"
-        :object=user
-        :is-create="user.id == 0"
-        url-path="usuarios"
+        :object=object
+        :gender-noun=objectConfig.genderNoun 
+        :object-name=objectConfig.singular
+        :object-name-plural=objectConfig.plural
+        :label=objectConfig.label
+        :label-plural=objectConfig.labelPlural
+        :url-path=urlPath
+        :is-create="object.id == 0"
         :showNewButton="!isChangingPassword"
         @changeUserFormState="isChangingPassword = false"
         >
         
-        <FieldInput label="Nome" v-if=!isChangingPassword v-model="user.name" id="name" ref="name" type="text" placeholder="Nome do usuário" />
+        <FieldInput label="Nome" v-if=!isChangingPassword v-model="object.name" id="name" ref="name" type="text" placeholder="Nome do usuário" />
 
-        <FieldInput label="E-mail" v-if=!isChangingPassword v-model="user.email" id="email" type="text" placeholder="E-mail" />
+        <FieldInput label="E-mail" v-if=!isChangingPassword v-model="object.email" id="email" type="text" placeholder="E-mail" />
 
-        <FieldSelect label="Tipo" v-if=!isChangingPassword v-model="user.role" id="role" :options="options" :mandatory="true" />
+        <FieldSelect label="Tipo" v-if=!isChangingPassword v-model="object.role" id="role" :options="options" :mandatory="true" />
            
-        <FieldInput label="Senha" v-model="user.password" v-if="(!user.id || isChangingPassword)" id="password" ref="password" type="password" placeholder="Senha" :required="true" />
+        <FieldInput label="Senha" v-model="object.password" v-if="(!object.id || isChangingPassword)" id="password" ref="password" type="password" placeholder="Senha" :required="true" />
 
-        <FieldInput label="Confirmação da senha" v-model="passwordConfirmation" v-if="(!user.id || isChangingPassword)" id="password_confirmation" type="password" placeholder="Digite a senha novamente" :required="true" />
+        <FieldInput label="Confirmação da senha" v-model="passwordConfirmation" v-if="(!object.id || isChangingPassword)" id="password_confirmation" type="password" placeholder="Digite a senha novamente" :required="true" />
 
-        <div v-if="(!user.id || isChangingPassword) && (user.password != passwordConfirmation) && (passwordConfirmation !== '') ">Confirmação da senha inválida!</div>
+        <div v-if="(!object.id || isChangingPassword) && (object.password != passwordConfirmation) && (passwordConfirmation !== '') ">Confirmação da senha inválida!</div>
 
-        <div class="mt-5 text-end" v-if="(user.id && !isChangingPassword)">
+        <div class="mt-5 text-end" v-if="(object.id && !isChangingPassword)">
             <UIButton @click="changeUserPassword" >
                 Alterar senha
             </UIButton>
@@ -35,12 +35,16 @@
 </template>
 
 <script setup lang="ts">
+import { OBJECTS } from '~/config';
 
-const props = defineProps<{ user?: User }>();
+const urlPath = 'usuario';
+const objectConfig = OBJECTS[urlPath];
+
+const props = defineProps<{ object?: User }>();
 const passwordConfirmation = ref("");
 
-const user = ref<User>(
-    props.user ?? {
+const object = ref<User>(
+    props.object ?? {
         id: 0,
         name: '',
         email: '',
@@ -72,7 +76,7 @@ export default {
     },
     methods: {
         changeUserPassword() {
-            this.$props.user.password = "";
+            this.$props.object.password = "";
             this.$refs.passwordConfirmation = "";
             this.isChangingPassword = true;
 

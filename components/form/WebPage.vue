@@ -1,13 +1,13 @@
 <template>
     <Form 
-        gender-noun="f"
-        singular-name="web-page" 
-        plural-name="web-pages"
-        singular-name-pt="página"
-        plural-name-pt="páginas"
-        url-path="paginas"
-        :object=webPage 
-        :is-create="webPage.id == 0"
+        :object=object
+        :gender-noun=objectConfig.genderNoun 
+        :object-name=objectConfig.singular
+        :object-name-plural=objectConfig.plural
+        :label=objectConfig.label
+        :label-plural=objectConfig.labelPlural
+        :url-path=urlPath
+        :is-create="object.id == 0"
         @error="handleError"
         >
 
@@ -15,7 +15,7 @@
             id="name"
             ref="nameRef" 
             label="Título" 
-            v-model.trim="webPage.name"
+            v-model.trim="object.name"
             type="text" 
             required
             />
@@ -24,7 +24,7 @@
             id="slug"
             ref="codeRef"
             label="Nome no menu"
-            v-model.trim="webPage.menuName"
+            v-model.trim="object.menuName"
             type="text"
             required
             />
@@ -32,7 +32,7 @@
         <FieldQuillEditor
             id="content"
             required
-            v-model.trim="webPage.content"
+            v-model.trim="object.content"
             label="Conteúdo"
             />
 
@@ -40,11 +40,15 @@
 </template>
 
 <script setup lang="ts">
+import { OBJECTS } from '~/config';
 
-const props = defineProps<{ webPage?: WebPage }>();
+const urlPath = 'pagina';
+const objectConfig = OBJECTS[urlPath];
 
-const webPage = ref<WebPage>(
-    props.webPage ?? {
+const props = defineProps<{ object?: WebPage }>();
+
+const object = ref<WebPage>(
+    props.object ?? {
         id: 0,
         name: '',
         menuName: '',

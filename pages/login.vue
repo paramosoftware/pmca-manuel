@@ -34,6 +34,7 @@
 </template>
 
 <script setup lang="ts">
+import { ROUTES } from '~/config';
 
 definePageMeta({
   layout: false,
@@ -63,7 +64,7 @@ const submit = async () => {
   });
 
   if (data.value) {
-    router.push('/logged');
+    router.push(ROUTES.restricted);
   }
 
   if (error.value) {

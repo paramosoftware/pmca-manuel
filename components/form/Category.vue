@@ -1,13 +1,13 @@
 <template>
     <Form
-        gender-noun="f" 
-        singular-name="category" 
-        plural-name="categories" 
-        singular-name-pt="categoria" 
-        plural-name-pt="categorias"
-        url-path="categorias"
-        :object=category 
-        :is-create="category.id == 0"
+        :object=object
+        :gender-noun=objectConfig.genderNoun 
+        :object-name=objectConfig.singular
+        :object-name-plural=objectConfig.plural
+        :label=objectConfig.label
+        :label-plural=objectConfig.labelPlural
+        :url-path=urlPath
+        :is-create="object.id == 0"
         @error="handleError"
         >
 
@@ -15,7 +15,7 @@
             id="name"
             ref="nameRef" 
             label="Nome" 
-            v-model.trim="category.name" 
+            v-model.trim="object.name" 
             type="text" 
             required
             />
@@ -23,7 +23,7 @@
         <FieldInput 
             id="description" 
             label="Descrição" 
-            v-model.trim="category.definition" 
+            v-model.trim="object.definition" 
             type="text" 
             textarea
         
@@ -31,24 +31,27 @@
 
         <FieldFinder 
             label="Localização hierárquica" 
-            v-model="category.parentId" 
-            :default-expanded="category.parentId ?? undefined"
+            v-model="object.parentId" 
+            :default-expanded="object.parentId ?? undefined"
             id="parent"
-            :item-id="category.id"
+            :item-id="object.id"
             :tree="tree" />
 
     </Form>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ category?: Category }>();
+import { OBJECTS } from '~/config';
 
+const urlPath = 'categoria';
+const objectConfig = OBJECTS[urlPath];
+
+const props = defineProps<{ object?: Category }>();
 
 const hasError = ref(false);
 
-
-const category = ref<Category>(
-    props.category ?? {
+const object = ref<Category>(
+    props.object ?? {
         id: 0,
         name: '',
         definition: '',
@@ -60,10 +63,10 @@ const tree = ref({});
 
 const { data: categories } = await useFetchWithBaseUrl('/api/categories');
 
-tree.value = useConvertToTreeData(categories.value, true, false, category.value.id);
+tree.value = useConvertToTreeData(categories.value, true, false, object.value.id);
 
 watch(categories, (newVal) => {
-    tree.value = useConvertToTreeData(newVal, true, false, category.value.id);
+    tree.value = useConvertToTreeData(newVal, true, false, object.value.id);
 });
 
 
