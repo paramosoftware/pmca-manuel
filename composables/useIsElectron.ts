@@ -1,4 +1,4 @@
-export default function useElectron() {
+export default function useIsElectron() {
   let isElectron = false
 
   const isRenderer = !process.server && window.process && window.process.type === 'renderer'
@@ -6,8 +6,5 @@ export default function useElectron() {
 
   isElectron = isRenderer || isBrowser
   
-
-  return {
-    isElectron
-  }
+  return isElectron
 }

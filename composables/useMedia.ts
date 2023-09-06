@@ -1,10 +1,9 @@
-import useElectron from './useElectron';
+import useIsElectron from './useIsElectron';
 
 export default function useMedia() {
 
     const folder = 'media';
-    const isElectron = useElectron().isElectron;
-    const mediaPath = isElectron ? process.env.USER_DATA_PATH! + '/' + folder + '/' : 'public/' + folder;
+    const mediaPath = useIsElectron() ? process.env.USER_DATA_PATH! + '/' + folder + '/' : 'public/' + folder;
 
     return {
         mediaPath

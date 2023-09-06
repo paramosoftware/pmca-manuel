@@ -53,7 +53,7 @@ const router = useRouter();
 const showLoginButton = ref(false);
 const path = router.currentRoute.value.path;
 
-if (useElectron().isElectron && !path.includes(ROUTES.restricted)) {
+if (useIsElectron() && !path.includes(ROUTES.restricted)) {
     showLoginButton.value = true;
 }
 
