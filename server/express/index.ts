@@ -1,9 +1,11 @@
 import { fromNodeMiddleware } from 'h3'
 import InvalidCredentialError  from './errors/InvalidCredentialError'
+import csrf from './middleware/csrf'
 import ServerError from './errors/ServerError'
 import UploadError from './errors/UploadError'
 import express from 'express'
 import cookieParser from 'cookie-parser'
+import helmet from 'helmet'
 import multer from 'multer'
 import auth from './auth'
 import categories from './categories'
@@ -18,9 +20,10 @@ import { PrismaClientKnownRequestError} from '@prisma/client/runtime/library.js'
 
 const app = express();
 
+app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
-
+app.use(csrf);
 
 function useApiRoute(app: any, route: string, handler: any) {
   app.use(`/api${route}`, handler);
@@ -43,6 +46,7 @@ app.get('/api/test', (req, res) => {
 
 
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // TODO: Create log file
   if (process.env.NODE_ENV === 'development') {
     console.log(err);
   };
@@ -61,7 +65,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   } else if (err instanceof InvalidCredentialError || err instanceof UploadError || err instanceof ServerError) {
     res.status(err.statusCode).json({ error: err.message });
   } else {
-    res.status(500).json({ error: 'An unexpected error occurred' });
+    res.status(500).json({ error: true ? err : 'An unexpected error occurred' });
   }
 });
 
