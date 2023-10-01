@@ -232,7 +232,6 @@ function convertStringToObject(string: string) {
     return object;
 }
 
-
 function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery) {
 
     const prismaQuery = convertQueryToPrismaQuery(request);
@@ -279,7 +278,7 @@ function convertQueryToPrismaQuery(query: Query) {
     }
 
     if (query.orderBy) {
-        prismaQuery.orderBy = query.orderBy;
+        prismaQuery.orderBy = convertOrderToPrismaQuery(query.orderBy);
     }
 
     return prismaQuery;
@@ -394,6 +393,25 @@ function convertIncludeToPrismaQuery(include: Include | string[]) {
 
 }
 
+function convertOrderToPrismaQuery(order: Order | string[]) {
+    
+        const orderBy: Order[] = [];
+
+        if (Array.isArray(order)) {
+            order.forEach(field => {
+                orderBy.push({ [field]: 'asc' });
+            });
+        } else {
+            const keys = Object.keys(order);
+
+            keys.forEach(key => {
+                orderBy.push({ [key]: order[key] });
+            });
+        }
+
+        return orderBy;
+}
+
 function validatePaginatedQuery(query: PaginatedQuery) {
 
     if (query.pageSize && (query.pageSize < 1)) {
@@ -475,7 +493,11 @@ function validateWhereOperator(key: string, where: Where) {
     }
 }
 
-function validateOrder(order: Order) {
+function validateOrder(order: Order | string[]) {
+    if (Array.isArray(order)) {
+        return order.length > 0;
+    }
+
     for (const key in order) {
         if (order[key] !== 'asc' && order[key] !== 'desc') {
             throw new Error('Order must be asc or desc');
