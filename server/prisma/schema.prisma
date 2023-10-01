@@ -140,7 +140,7 @@ model User {
 
   password      String   
 
-  role          String?      @default("1")
+  role          Int?      @default(1)
 
   refreshToken  String?     @unique @map("refresh_token")
 
