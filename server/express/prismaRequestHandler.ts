@@ -1,5 +1,6 @@
 import express from 'express'
 import { prisma } from '../prisma/prisma';
+import { ParsedQs } from 'qs';
 
 type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like' | 'not like' | 'in' | 'not in';
 type Direction = 'asc' | 'desc';
@@ -32,13 +33,14 @@ interface Query {
     where?: Where
     include?: Include | string[]
     orderBy?: Order
+    take?: number
+    skip?: number
 }
 
 interface PaginatedQuery extends Query {
     pageSize: number;
     pageNumber: number;
 }
-
 
 const prismaRequestHandler = (req: express.Request, res: express.Response, next: express.NextFunction) => {
 
@@ -58,6 +60,7 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
 
     const method = req.method;
     const body = req.body;
+    const queryParams = req.query;
 
     const { model, id, query } = getParamsFromPath(req.path);
 
@@ -69,9 +72,9 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
     switch (method) {
         case 'GET':
             if (id) {
-        //        readOne(model, id, res, next);
+                readOne(model, id, res, next);
             } else {
-        //        readMany(model, res, next);
+                readMany(model, queryParams, res, next);
             }
             break;
         case 'PUT':
@@ -100,11 +103,36 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
     }
 }
 
+async function readOne(model: string, id: string, res: express.Response, next: express.NextFunction) {
+
+    const request = createRequest({});
+    request.where = { id: Number(id) };
+    validatePaginatedQuery(request);
+    const query = convertPaginatedQueryToPrismaQuery(request);
+
+    await executePrismaFindQuery(model, query, res, next);
+}
+
+async function readMany(model: string, queryParams: ParsedQs, res: express.Response, next: express.NextFunction) {
+
+    const body = convertQueryParamsToPaginatedQuery(queryParams);
+    const request = createRequest(body);
+    validatePaginatedQuery(request);
+    const query = convertPaginatedQueryToPrismaQuery(request);
+
+    await executePrismaFindQuery(model, query, res, next);
+}
+
 async function readOneOrManyWithQuery(model: string, body: Partial<PaginatedQuery>, res: express.Response, next: express.NextFunction) {
 
     const request = createRequest(body);
     validatePaginatedQuery(request);
     const query = convertPaginatedQueryToPrismaQuery(request);
+
+    await executePrismaFindQuery(model, query, res, next);
+}
+
+async function executePrismaFindQuery(model: string, query: Query, res: express.Response, next: express.NextFunction) {
 
     try {
         const [total, data] = await prisma.$transaction([
@@ -155,6 +183,55 @@ function createRequest(body: Partial<PaginatedQuery>) {
 
     return request;
 }
+
+function convertQueryParamsToPaginatedQuery(queryParams: ParsedQs) {
+
+    const body: Partial<PaginatedQuery> = {};
+
+    if (queryParams.pageSize) {
+        body.pageSize = Number(queryParams.pageSize);
+    }
+
+    if (queryParams.pageNumber) {
+        body.pageNumber = Number(queryParams.pageNumber);
+    }
+
+    if (queryParams.select) {
+        body.select = convertStringToArray(queryParams.select.toString());
+    }
+
+    if (queryParams.where) {
+        body.where = convertStringToObject(queryParams.where.toString());
+    }
+
+    if (queryParams.include) {
+        body.include = convertStringToObject(queryParams.include.toString());
+    }
+
+    if (queryParams.orderBy) {
+        body.orderBy = convertStringToObject(queryParams.orderBy.toString());
+    }
+
+    return body;
+}
+
+function convertStringToArray(string: string) {
+    return string.split(',');
+}
+
+function convertStringToObject(string: string) {
+    const object: any = {};
+
+    const pairs = string.split(',');
+
+    pairs.forEach(pair => {
+        const [key, value] = pair.split(':');
+        object[key] = value;
+    });
+
+    return object;
+}
+
 
 function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery) {
 
