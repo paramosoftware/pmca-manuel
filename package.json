@@ -28,13 +28,13 @@
     "@types/uuid": "^9.0.2",
     "electron": "^25.7.0",
     "electron-builder": "latest",
-    "nuxt": "^3.7.0",
+    "nuxt": "^3.8.2",
     "nuxt-icon": "^0.5.0",
-    "prisma": "latest"
+    "prisma": "^5.6.0"
   },
   "dependencies": {
     "@jledentu/vue-finder": "^4.1.1",
-    "@prisma/client": "latest",
+    "@prisma/client": "^5.6.0",
     "@splidejs/vue-splide": "^0.6.12",
     "@vueup/vue-quill": "latest",
     "bcrypt": "^5.1.1",
