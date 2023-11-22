@@ -85,8 +85,8 @@ function addNormalizedFields(key: string, data: any) {
 }
 
 function normalizeString(str: string, slug: boolean = false) {
-    if (str === null) {
-        return;
+    if (str === null || typeof str !== 'string') {
+        return str;
     }
 
     str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();

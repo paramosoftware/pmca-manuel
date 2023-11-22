@@ -2,6 +2,8 @@ import express from 'express'
 import { prisma } from '../prisma/prisma';
 import type { ParsedQs } from 'qs';
 import ApiValidationError from './errors/ApiValidationError';
+import { normalizeString } from './utils';
+
 
 type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like' | 'not like' | 'in' | 'not in';
 type Direction = 'asc' | 'desc';
@@ -344,7 +346,7 @@ function convertWhereToPrismaQuery(where: Where) {
 
 }
 
-function convertConditionToPrismaQuery(condition: Condition | { [key: string]: string | number | string[] | number[] }) {
+function convertConditionToPrismaQuery(condition: Condition) {
 
     const prismaQuery: any = {};
 
@@ -353,7 +355,7 @@ function convertConditionToPrismaQuery(condition: Condition | { [key: string]: s
         if (Array.isArray(condition)) {
             prismaQuery.in = condition;
         } else {
-            prismaQuery.equals = condition;
+            prismaQuery.contains = normalizeString(condition as unknown as string);
         }
 
         return prismaQuery;
@@ -361,7 +363,7 @@ function convertConditionToPrismaQuery(condition: Condition | { [key: string]: s
 
     switch (condition.operator) {
         case '=':
-            prismaQuery.equals = condition.value;
+            prismaQuery.equals = normalizeString(condition.value as string);
             break;
         case '!=':
             prismaQuery.not = { equals: condition.value };
@@ -379,10 +381,10 @@ function convertConditionToPrismaQuery(condition: Condition | { [key: string]: s
             prismaQuery.lte = condition.value;
             break;
         case 'like':
-            prismaQuery.contains = condition.value;
+            prismaQuery.contains = normalizeString(condition.value as string);
             break;
         case 'not like':
-            prismaQuery.not = { contains: condition.value };
+            prismaQuery.not = { contains: normalizeString(condition.value as string) };
             break;
         case 'in':
             prismaQuery.in = Array.isArray(condition.value) ? condition.value : [condition.value];
@@ -391,7 +393,7 @@ function convertConditionToPrismaQuery(condition: Condition | { [key: string]: s
             prismaQuery.not = { in: Array.isArray(condition.value) ? condition.value : [condition.value] };
             break;
         default:
-            prismaQuery.equals = condition.value;
+            prismaQuery.equals = normalizeString(condition.value as string);
             break;
     }
 
