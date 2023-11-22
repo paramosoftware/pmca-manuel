@@ -92,9 +92,10 @@ const createUrl = computed(() => {
 const isModalDeleteOpen = ref(false);
 const objectIdToDelete = ref(0);
 const filter = ref('')
-const { data } = await useFetchWithBaseUrl('/api/' + props.objectNamePlural);
 
-const objects = ref<{ id: number, name: string }[]>(data.value as { id: number, name: string }[]);
+const { data } = await useFetchWithBaseUrl('/api/' + props.objectName);
+
+const objects = ref<{ id: number, name: string }[]>(data.value.data as { id: number, name: string }[]);
 
 const removeFromList = (id: number) => {
     objects.value = objects.value.filter(object => object.id !== id);

@@ -7,7 +7,9 @@
 
  </template>
  
- <script setup lang="ts">
+<script setup lang="ts">
+import { OBJECTS } from '~/config';
+
 definePageMeta({
    layout: false,
 });
@@ -60,16 +62,24 @@ if (process.client) {
    localStorage.setItem('entryAccess', JSON.stringify(entryAccess));
 }
 
-const { data, pending, error } = await useFetchWithBaseUrl(`/api/entries/by-slug`, {
+// TODO: Track access to entries
+ const { data, pending, error } = await useFetchWithBaseUrl('/api/entry/query', {
     method: 'POST',
     body: JSON.stringify({
-        slug: slug.value,
-        countAccess: countAccess.value
+       where: {
+            slug: slug.value,
+       },
+       include: OBJECTS.verbete.includeRelations || undefined,
     })
-});
+ });
 
 
-const entry = ref(data as unknown as Entry);
+
+if (!data.value.data[0]) {
+   //TODO: Redirect to 404
+}
+
+const entry = ref(data.value.data[0] as unknown as Entry);
 const url = ref('');
 const description = ref(entry.value.definition ? entry.value.definition.replace(/<[^>]*>?/gm, '').substring(0, 150) : '');
 

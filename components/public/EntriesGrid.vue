@@ -103,14 +103,21 @@ const tree = ref({});
 
 if (props.hasViewMode) {
 
-    const { data: hierarchy } = await useFetchWithBaseUrl('/api/categories', {
+    const { data: hierarchy } = await useFetchWithBaseUrl('/api/category/query', {
+        method: 'POST',
+        body: JSON.stringify({
+            pageSize: -1,
+            include: ['entries'],
+        }),
         transform: (categories) =>
-            categories.map((category: Category) => ({
-                id: category.id,
-                name: category.name,
-                parentId: category.parentId,
-                entries: category.entries,
-            })),
+            categories.data.map((category: Category) => {
+                return {
+                    id: category.id,
+                    name: category.name,
+                    parentId: category.parentId,
+                    entries: category.entries,
+                }
+            })
     });
 
     tree.value = useConvertToTreeData(hierarchy.value, false, true, null);
@@ -118,16 +125,24 @@ if (props.hasViewMode) {
 
 if (props.userSelection) {
     const fetchEntries = async (ids: string[]) => {
-        const fetch = useFetchWithBaseUrl('/api/entries/find-many-by-id', {
+        const fetch = useFetchWithBaseUrl('/api/entry/query', {
             immediate: false,
             method: 'POST',
             body: JSON.stringify({
-                ids: ids
+                where: {
+                    id: ids
+                },
+                include: {
+                    media: {
+                        orderBy: ['position'],
+                        include: ['media'],
+                    }
+                }
             })
         });
 
         await fetch.execute({ _initial: true });
-        entries.value = fetch.data.value;
+        entries.value = fetch.data.value.data;
     };
 
     const { selectedEntries } = useEntrySelection();
@@ -136,21 +151,56 @@ if (props.userSelection) {
     }
 
 } else {
-    const fetchEntries = async (query) => {
-        const { data } = await useFetchWithBaseUrl('/api/entries/search', {
+    const fetchEntries = async (query: string) => {
+
+        const body = {
+            include: {
+                media: {
+                    orderBy: ['position'],
+                    include: ['media'],
+                }
+            },
+            orderBy: ['name'],
+        };
+
+        if (query) {
+            // @ts-ignore
+            body.where = {
+                or: [
+                    {
+                        nameNormalized: {
+                            operator: 'like',
+                            value: query
+                        }
+                    },
+                    {
+                        definitionNormalized: {
+                            operator: 'like',
+                            value: query
+                        }
+                    },
+                    {
+                        notesNormalized: {
+                            operator: 'like',
+                            value: query
+                        }
+                    }
+                ]
+            };
+        }
+
+        const { data } = await useFetchWithBaseUrl('/api/entry/query', {
             method: 'POST',
-            body: JSON.stringify({
-                query: query
-            })
+            body: JSON.stringify(body)
         });
 
-        entries.value = data.value;
-    }
+        entries.value = data.value.data;
+    };
 
-    await fetchEntries(query.value);
+    await fetchEntries(query.value.termo || '');
 
     watch(() => query.value, async (newQuery) => {
-        await fetchEntries(newQuery)
+        await fetchEntries(newQuery.termo);
     });
 }
 

@@ -158,15 +158,20 @@ const searchItems = async () => {
             return
         }
 
-        const { data } = await useFetchWithBaseUrl('api/' + props.route + '/autocomplete', {
-            params: {
-                q: searchTerm.value
+        const { data } = await useFetchWithBaseUrl('api/' + props.route + '/query', {
+            method: 'POST',
+            body: {
+                where: {
+                    nameNormalized: {
+                        value: searchTerm.value,
+                        operator: 'like'
+                    }
+                },
+                pageSize: 10
             }
         })
 
-        results.value = data.value
-        results.value = results.value.slice(0, 10)
-
+        results.value = data.value.data;
     }, 300);
 
     if (results.value.length === 0 && !searching.value) {

@@ -71,14 +71,20 @@ const searchEntries = async () => {
 
     searching.value = true
 
-    const { data } = await useFetchWithBaseUrl('api/entries/autocomplete', {
-      params: {
-        q: searchTerm.value
+    const { data } = await useFetchWithBaseUrl('api/entry/query', {
+      method: 'POST',
+      body: {
+        pageSize: 10,
+        select: ['id', 'name', 'slug'],
+        where: {
+          nameNormalized: searchTerm.value,
+        },
+        orderBy: ['name'],
       }
     })
 
-    entries.value = data.value
-    entries.value = entries.value.slice(0, 10)
+    entries.value = [];
+    entries.value = data.value.data;
 
     setTimeout(() => {
       searching.value = false

@@ -34,7 +34,7 @@
 
         <FieldAutocomplete 
             id="relatedEntries" 
-            route="entries"
+            route="entry"
             :modelValue="object.relatedEntries"
             @update="updateModel"
             label="Verbetes relacionados"
@@ -69,7 +69,7 @@
 
         <FieldAutocomplete 
             id="references"
-            route="references" 
+            route="reference" 
             :modelValue="object.references"
             @update="updateModel"
             label="Referências"  
@@ -114,9 +114,13 @@ const object = ref<Entry>(
     }
 );
 
-const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
+const { data: categories } = await useFetchWithBaseUrl('/api/category/query', {
+    method: 'POST',
+    body: JSON.stringify({
+      pageSize: -1,
+    }),
     transform: (categories) =>
-        categories.map((category: Category) => ({
+        categories.data.map((category: Category) => ({
             id: category.id,
             name: category.name,
             parentId: category.parentId,
@@ -126,15 +130,6 @@ const { data: categories } = await useFetchWithBaseUrl('/api/categories', {
 const tree = ref({});
 
 tree.value = useConvertToTreeData(categories.value, true, false, null);
-
-if(!object.value.categoryId)
-{
-    for (var i = 0; i < categories.value.length; i++)
-    {
-        if (categories.value[i].parentId == null)
-            object.value.categoryId = categories.value[i].id;
-    }
-}
 
 const fieldVariations = ref(null);
 const fieldTranslations = ref(null);

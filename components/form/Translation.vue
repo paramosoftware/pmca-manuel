@@ -57,9 +57,9 @@ const object = ref<Translation>(
     }
 );
 
-const { data: languages } = await useFetchWithBaseUrl('/api/languages', {
+const { data: languages } = await useFetchWithBaseUrl('/api/language', {
     transform: (languages) =>
-        languages.map((language: Language) => ({
+        languages.data.map((language: Language) => ({
             id: language.id,
             name: language.name
         })),

@@ -61,9 +61,15 @@ const object = ref<Category>(
 
 const tree = ref({});
 
-const { data: categories } = await useFetchWithBaseUrl('/api/categories');
+const { data: categories } = await useFetchWithBaseUrl('/api/' + objectConfig.singular + '/query', {
+    method: 'POST',
+    body: JSON.stringify({
+        include: ['children', 'entries'],
+        orderBy: ['name', 'id']
+    })
+});
 
-tree.value = useConvertToTreeData(categories.value, true, false, object.value.id);
+tree.value = useConvertToTreeData(categories.value.data, true, false, object.value.id);
 
 watch(categories, (newVal) => {
     tree.value = useConvertToTreeData(newVal, true, false, object.value.id);

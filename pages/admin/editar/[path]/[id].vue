@@ -24,7 +24,13 @@ let component = validateRoute() && useComponentExists(form) ? resolveComponent(f
 
 if (component !== 'Fallback') {
 
-    const { data } = await useFetchWithBaseUrl('/api/' + OBJECTS[path].plural + '/' + id);
+    const { data } = await useFetchWithBaseUrl('/api/' + OBJECTS[path].singular + '/' + id, {
+        method: 'POST',
+        body: JSON.stringify({
+            include: OBJECTS[path].includeRelations
+        })
+    });
+
     object.value = data.value as unknown as any;
 
     if (!object.value) {

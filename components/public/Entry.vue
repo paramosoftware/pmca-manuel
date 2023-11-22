@@ -39,7 +39,7 @@
         </template>
         <template #tabPanel-3>
           <div class="flex flex-col">
-            <PublicEntryChanges :entryId="entry.id" />
+            <PublicEntryChanges :entry-changes="entry.entryChanges" />
           </div>
         </template>
       </UITab>
@@ -58,8 +58,8 @@ const props = defineProps({
 
 const { isSelected, handleEntrySelection } = useEntrySelection();
 const images = ref([]);
-const translations = ref([]);
-const references = ref([]);
+const translations = ref<{ name: string, link: string}[]>([]);  
+const references = ref<{ name: string}[]>([]);
 const entrySelected = ref(isSelected(props.entry.id));
 const tree = ref([]);
 
@@ -80,8 +80,8 @@ if (props.entry.references) {
 
 if (props.entry.translations) {
   props.entry.translations.forEach(async (translation: Translation) => {
-    const language = translation.languageId
-    const { data } = await useFetchWithBaseUrl('/api/languages/' + language)
+    const languageId = translation.languageId
+    const { data } = await useFetchWithBaseUrl('/api/language/' + languageId)
     translations.value.push({
       name: translation.name + ' (' + data.value.name + ')',
       link: ''
@@ -96,14 +96,21 @@ const handleTabChange = async (value: number) => {
 }
 
 const fetchHierarchy = async () => {
-  const { data: hierarchy } = await useFetchWithBaseUrl('/api/categories', {
-    transform: (categories) =>
-      categories.map((category: Category) => ({
-        id: category.id,
-        name: category.name,
-        parentId: category.parentId,
-        entries: category.entries,
-      })),
+  const { data: hierarchy } = await useFetchWithBaseUrl('/api/category/query', {
+    method: 'POST',
+    body: JSON.stringify({
+      pageSize: -1,
+      include: ['entries'],
+    }),
+    transform: (categories) => 
+      categories.data.map((category: Category) => {
+        return {
+          id: category.id,
+          name: category.name,
+          parentId: category.parentId,
+          entries: category.entries,
+        }
+      })
   });
 
   tree.value = useConvertToTreeData(hierarchy.value, false, true, null, props.entry.id);

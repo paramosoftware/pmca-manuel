@@ -45,9 +45,9 @@ const links = ref([
 ]);
 
 
-const { data, pending, error } = await useFetchWithBaseUrl('/api/web-pages');
+const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage');
 
-webPages.value = data.value;
+webPages.value = data.value.data;
 
 for (const webPage of webPages.value) {
     links.value.push({

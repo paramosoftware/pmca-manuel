@@ -35,11 +35,15 @@
 import * as Diff from "diff";
 
 const props = defineProps({
-  entryId: {
-    type: Number,
+  entryChanges: {
+    type: Array,
     required: true
   }
 })
+
+
+const changes = ref(props.entryChanges);
+const rows = computed(() => formatRows(changes.value));
 
 const translations = {
   'name': 'Nome',
@@ -168,11 +172,5 @@ const handleSort = (key: string) => {
     return 0;
   });
 }
-
-
-
-const { data, pending, error } = await useFetchWithBaseUrl('/api/entries/' + props.entryId + '/changes');
-const changes = ref(data as unknown as EntryChanges[]);
-const rows = computed(() => formatRows(changes.value));
 
 </script>
