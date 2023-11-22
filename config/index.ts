@@ -6,8 +6,23 @@ type ObjectType = {
         label: string;
         labelPlural: string;
         isHtml?: boolean;
+        includeRelations?: {
+            [key: string]: boolean | {
+                orderBy?: {
+                    [key: string]: any;
+                };
+                include?: {
+                    [key: string]: boolean | {
+                        include?: any;
+                        select?: string[];
+                        orderBy?: any;
+                    };
+                };
+            };
+        };
     };
 };
+
 
 const RESTRICTED_PATH = '/admin'
 
@@ -26,14 +41,47 @@ const OBJECTS: ObjectType = {
         singular: 'category',
         plural: 'categories',
         label: 'categoria',
-        labelPlural: 'categorias'
+        labelPlural: 'categorias',
     },
     verbete: {
         genderNoun: 'm',
         singular: 'entry',
         plural: 'entries',
         label: 'verbete',
-        labelPlural: 'verbetes'
+        labelPlural: 'verbetes',
+        includeRelations: {
+            category: true,
+            references: true,
+            translations: true,
+            variations: true,
+            entries: true,
+            entryChanges: {
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                include: {
+                    user: {
+                        select: ['name']
+                    }
+                }
+            },
+            relatedEntries: {
+                include: {
+                    media: {
+                        include: {
+                            media: true
+                        },
+                        orderBy: ['position']
+                    },
+                }
+            },
+            media: {
+                include: {
+                    media: true
+                },
+                orderBy: ['position']
+            }
+        }
     },
     idioma: {
         genderNoun: 'f',
