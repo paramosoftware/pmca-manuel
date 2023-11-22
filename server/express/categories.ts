@@ -4,21 +4,6 @@ import { prepareRequestBodyForPrisma } from './utils';
 
 const router = express.Router();
 
-router.get('/:id', async (req, res, next) => {
-  const id = req.params.id;
-
-  try {
-    const category = await prisma.category.findUnique({
-      where: {
-        id: parseInt(id),
-      },
-    });
-    res.json(category);
-  } catch (error) {
-    next(error);
-  }
-});
-
 router.put('/:id', async (req, res, next) => {
   const id = req.params.id;
 
@@ -34,23 +19,6 @@ router.put('/:id', async (req, res, next) => {
 
     res.json(category);
 
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get('/', async (req, res, next) => {
-  try {
-    const categories = await prisma.category.findMany({
-      include: {
-        children: true,
-        entries: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
-    res.json(categories);
   } catch (error) {
     next(error);
   }

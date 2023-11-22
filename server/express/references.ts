@@ -5,67 +5,6 @@ import { prepareRequestBodyForPrisma, normalizeString } from './utils';
 
 const router = express.Router();
 
-router.get('/autocomplete', async (req, res, next) => {
-    const { q } = req.query;
-
-    if (!q) {
-        return res.json([]);
-    }
-
-    try {
-        const references = await prisma.reference.findMany({
-            where: {
-                nameNormalized: {
-                    contains: normalizeString(q.toString())
-                }
-            },
-            select: {
-                id: true,
-                name: true,
-            },
-            orderBy: {
-                name: 'asc'
-            }
-        });
-        
-        res.json(references);
-
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.get('/', async (req, res, next) => {
-    try {
-        const references = await prisma.reference.findMany({
-            orderBy: {
-                name: 'asc'
-            }
-        });
-
-        res.json(references);
-
-    } catch (error) {
-        next(error);
-    }
-
-});
-
-router.get('/:id', async (req, res, next) => {
-    const { id } = req.params;
-
-    try {
-        const reference = await prisma.reference.findUnique({
-            where: {
-                id: parseInt(id)
-            }
-        });
-        res.json(reference);
-
-    } catch (error) {
-        next(error);
-    }
-});
 
 router.post('/', async (req, res, next) => {
     

@@ -4,29 +4,6 @@ import { prisma } from '../prisma/prisma';
 
 const router = express.Router();
 
-router.get('/:id', async (req, res) => {
-  const id = req.params.id;
-
-  try {
-    const user = await prisma.user.findUnique({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true
-      },
-      where: {
-        id: parseInt(id),
-      },
-    });
-    
-    res.json(user);
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 router.put('/:id', async (req, res) => {
   const id = req.params.id;
   const { name, email, password, role } = req.body;
@@ -51,21 +28,6 @@ router.put('/:id', async (req, res) => {
     });
 
     res.json(user);
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.get('/', async (req, res) => {
-  try {
-    const users = await prisma.user.findMany({
-      orderBy: {
-        name: 'asc',
-      },
-    });
-    
-    res.json(users);
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ error: error.message });
