@@ -1,6 +1,6 @@
 import express from 'express'
 import { prisma } from '../prisma/prisma';
-import { ParsedQs } from 'qs';
+import type { ParsedQs } from 'qs';
 
 type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like' | 'not like' | 'in' | 'not in';
 type Direction = 'asc' | 'desc';
@@ -236,6 +236,13 @@ function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery) {
 
     const prismaQuery = convertQueryToPrismaQuery(request);
 
+    if (request.pageSize === -1) {
+        prismaQuery.take = undefined;
+        prismaQuery.skip = undefined;
+        return prismaQuery;
+    }
+
+
     if (request.pageSize) {
         prismaQuery.take = request.pageSize;
     }
@@ -414,8 +421,8 @@ function convertOrderToPrismaQuery(order: Order | string[]) {
 
 function validatePaginatedQuery(query: PaginatedQuery) {
 
-    if (query.pageSize && (query.pageSize < 1)) {
-        throw new Error('pageSize must be greater than 0');
+    if (query.pageSize && (query.pageSize < 1) && (query.pageSize !== -1)) {
+        throw new Error('pageSize must be greater than 0 or -1');
     }
 
     if (query.pageNumber && (query.pageNumber < 1)) {
