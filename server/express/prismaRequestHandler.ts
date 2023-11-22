@@ -56,6 +56,7 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
 
     POST /api/:model - Create one or many
     POST /api/:model/query - Get one or many with query
+    POST /api/:model/:id - Get one with query
 
     DELETE /api/:model/:id - Delete one
     DELETE /api/:model/query - Delete one or many with query
@@ -75,7 +76,7 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
     switch (method) {
         case 'GET':
             if (id) {
-                readOne(model, id, res, next);
+                readOne(model, id, body, res, next);
             } else {
                 readMany(model, queryParams, res, next);
             }
@@ -88,7 +89,9 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
             }
             break;
         case 'POST':
-            if (query) {
+            if (id) {
+                readOne(model, id, body, res, next);
+            } else if (query) {
                 readOneOrManyWithQuery(model, body, res, next);
             } else {
         //        createOneOrMany(model, body, res, next);
@@ -106,11 +109,12 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
     }
 }
 
-async function readOne(model: string, id: string, res: express.Response, next: express.NextFunction) {
+async function readOne(model: string, id: string, body: Partial<PaginatedQuery>, res: express.Response, next: express.NextFunction) {
 
-    const request = createRequest({});
-    request.where = { id: Number(id) };
-
+    const request = createRequest(body);
+    request.orderBy = undefined;
+    request.pageSize = -1;
+    
     try {
         validatePaginatedQuery(request);
     } catch (error) {
@@ -119,7 +123,9 @@ async function readOne(model: string, id: string, res: express.Response, next: e
 
     const query = convertPaginatedQueryToPrismaQuery(request);
 
-    await executePrismaFindQuery(model, query, res, next);
+    query.where = { id: Number(id) };
+
+    await executePrismaFindUniqueQuery(model, query, res, next);
 }
 
 async function readMany(model: string, queryParams: ParsedQs, res: express.Response, next: express.NextFunction) {
@@ -152,6 +158,20 @@ async function readOneOrManyWithQuery(model: string, body: Partial<PaginatedQuer
 
     await executePrismaFindQuery(model, query, res, next);
 }
+
+
+async function executePrismaFindUniqueQuery(model: string, query: Query, res: express.Response, next: express.NextFunction) {
+    try {
+        // @ts-ignore
+        const data = await prisma[model].findUnique(query);
+
+        res.json(data);
+
+    } catch (error) {
+        next(error);
+    }
+}
+
 
 async function executePrismaFindQuery(model: string, query: Query, res: express.Response, next: express.NextFunction) {
 
@@ -355,7 +375,7 @@ function convertConditionToPrismaQuery(condition: Condition) {
         if (Array.isArray(condition)) {
             prismaQuery.in = condition;
         } else {
-            prismaQuery.contains = normalizeString(condition as unknown as string);
+            prismaQuery.equals = normalizeString(condition as unknown as string);
         }
 
         return prismaQuery;
