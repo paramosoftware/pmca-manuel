@@ -1,6 +1,7 @@
 import express from 'express'
 import { prisma } from '../prisma/prisma';
 import type { ParsedQs } from 'qs';
+import ApiValidationError from './errors/ApiValidationError';
 
 type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like' | 'not like' | 'in' | 'not in';
 type Direction = 'asc' | 'desc';
@@ -107,7 +108,13 @@ async function readOne(model: string, id: string, res: express.Response, next: e
 
     const request = createRequest({});
     request.where = { id: Number(id) };
-    validatePaginatedQuery(request);
+
+    try {
+        validatePaginatedQuery(request);
+    } catch (error) {
+        return next(error);
+    }
+
     const query = convertPaginatedQueryToPrismaQuery(request);
 
     await executePrismaFindQuery(model, query, res, next);
@@ -117,7 +124,13 @@ async function readMany(model: string, queryParams: ParsedQs, res: express.Respo
 
     const body = convertQueryParamsToPaginatedQuery(queryParams);
     const request = createRequest(body);
-    validatePaginatedQuery(request);
+
+    try {
+        validatePaginatedQuery(request);
+    } catch (error) {
+        return next(error);
+    }
+
     const query = convertPaginatedQueryToPrismaQuery(request);
 
     await executePrismaFindQuery(model, query, res, next);
@@ -126,7 +139,13 @@ async function readMany(model: string, queryParams: ParsedQs, res: express.Respo
 async function readOneOrManyWithQuery(model: string, body: Partial<PaginatedQuery>, res: express.Response, next: express.NextFunction) {
 
     const request = createRequest(body);
-    validatePaginatedQuery(request);
+
+    try {
+        validatePaginatedQuery(request);
+    } catch (error) {
+        return next(error);
+    }
+
     const query = convertPaginatedQueryToPrismaQuery(request);
 
     await executePrismaFindQuery(model, query, res, next);
@@ -427,11 +446,11 @@ function convertOrderToPrismaQuery(order: Order | string[]) {
 function validatePaginatedQuery(query: PaginatedQuery) {
 
     if (query.pageSize && (query.pageSize < 1) && (query.pageSize !== -1)) {
-        throw new Error('pageSize must be greater than 0 or -1');
+        throw new ApiValidationError('pageSize must be greater than 0 or -1');
     }
 
     if (query.pageNumber && (query.pageNumber < 1)) {
-        throw new Error('pageNumber must be greater than 0');
+        throw new ApiValidationError('pageNumber must be greater than 0');
     }
 
     validateQuery(query);
@@ -483,7 +502,7 @@ function validateWhere(where: Where) {
     if (where.and || where.or || where.not) {
         keys.forEach(key => {
             if (key !== 'and' && key !== 'or' && key !== 'not') {
-                throw new Error('If using or, and or not, where must not have any other conditions');
+                throw new ApiValidationError('If using or, and or not, where must not have any other conditions');
             }
         });
     }
@@ -519,7 +538,7 @@ function validateOrder(order: Order | string[]) {
 
     for (const key in order) {
         if (order[key] !== 'asc' && order[key] !== 'desc') {
-            throw new Error('Order must be asc or desc');
+            throw new ApiValidationError('Order must be asc or desc');
         }
     }
 }
@@ -527,7 +546,7 @@ function validateOrder(order: Order | string[]) {
 function validateCondition(condition: Condition) {
 
     if ((condition.operator && !condition.value) || (!condition.operator && condition.value)) {
-        throw new Error('Condition must have both an operator and a value');
+        throw new ApiValidationError('Condition must have both an operator and a value');
     } 
 
 }
