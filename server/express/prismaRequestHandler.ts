@@ -299,13 +299,18 @@ function convertWhereToPrismaQuery(where: Where) {
 
     keys.forEach(key => {
 
+
         if (key === 'and' || key === 'or' || key === 'not') {
-            prismaQuery[key] = [];
+
+            const operator = key.toUpperCase();
+
+            prismaQuery[operator] = [];
 
             if (Array.isArray(where[key])) {
                 // @ts-ignore
                 where[key].forEach(condition => {
-                    prismaQuery[key].push(convertConditionToPrismaQuery(condition));
+                    const field = Object.keys(condition)[0];
+                    prismaQuery[operator].push({ [field]: convertConditionToPrismaQuery(condition[field] as Condition) });
                 });
             } else {
                 prismaQuery[key].push(convertConditionToPrismaQuery(where[key] as Condition));
@@ -484,7 +489,11 @@ function validateWhere(where: Where) {
     }
 
     for (const key of keys) {
-        validateWhereOperator(key, where);
+        if (key === 'and' || key === 'or' || key === 'not') {
+            validateWhereOperator(key, where);
+        } else {
+            validateCondition(where[key] as Condition);
+        }
     }
 }
 
@@ -492,7 +501,10 @@ function validateWhereOperator(key: string, where: Where) {
     if (Array.isArray(where[key])) {
         // @ts-ignore
         where[key].forEach(condition => {
-            validateCondition(condition);
+
+            const field = Object.keys(condition)[0];
+
+            validateCondition(condition[field] as Condition);
         });
     } else {
         // @ts-ignore
