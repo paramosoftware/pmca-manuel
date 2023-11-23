@@ -24,7 +24,7 @@
 <script setup lang="ts">
 
 const props = defineProps({
-    objectNamePlural: {
+    objectName: {
         type: String,
         required: true,
     },
@@ -60,7 +60,7 @@ const closeModal = () => {
 
 
 const deleteObject = async (id: number) => {
-    const { data, error } = await useFetchWithBaseUrl(`/api/${props.objectNamePlural}/${id}`, {
+    const { data, error } = await useFetchWithBaseUrl('/api/' + props.objectName + '/' + id, {
         method: 'DELETE'
     });
 

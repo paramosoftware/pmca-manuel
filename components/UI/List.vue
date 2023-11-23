@@ -35,7 +35,7 @@
             </div>
 
             <UIListModalDelete  
-                :object-name-plural="objectNamePlural"
+                :object-name="objectName"
                 :label="label"
                 :label-plural="labelPlural"
                 v-model="isModalDeleteOpen"
