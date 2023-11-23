@@ -100,7 +100,7 @@ const save = async () => {
         let method = 'PUT';
 
         if (props.object.id === 0) {
-            url = '/api/' + props.objectNamePlural;
+            url = '/api/' + props.objectName;
             method = 'POST';
         }
 
