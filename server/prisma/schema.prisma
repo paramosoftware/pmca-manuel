@@ -67,10 +67,10 @@ model Entry {
 model EntryChanges {
   id          Int       @id @default(autoincrement())
   entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id])
+  entry       Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
-  userId      Int       @map("user_id")
-  user        User      @relation(fields: [userId], references: [id])
+  userId      Int?       @map("user_id")
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   changes     String    @map("changes")
 
@@ -84,10 +84,10 @@ model EntryMedia {
   id          Int       @id @default(autoincrement())
   
   entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id])
+  entry       Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   mediaId     Int       @map("media_id")
-  media       Media     @relation(fields: [mediaId], references: [id])
+  media       Media     @relation(fields: [mediaId], references: [id], onDelete: Cascade)
 
   position    Int?
 
@@ -158,7 +158,7 @@ model Variation {
   nameNormalized String? @map("name_normalized")
 
   entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id])
+  entry       Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   @@map("variations")
 }
@@ -169,10 +169,10 @@ model Translation {
   nameNormalized String? @map("name_normalized")
 
   languageId  Int
-  language    Language  @relation(fields: [languageId], references: [id])
+  language    Language  @relation(fields: [languageId], references: [id], onDelete: Cascade)
 
   entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id])
+  entry       Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
