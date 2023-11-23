@@ -1,8 +1,8 @@
-import express from 'express'
+import express, { query } from 'express'
 import { prisma } from '../prisma/prisma';
 import type { ParsedQs } from 'qs';
 import ApiValidationError from './errors/ApiValidationError';
-import { normalizeString, deleteMedia } from './utils';
+import { normalizeString, deleteMedia, getNormalizedFields, sanitizeHtml } from './utils';
 
 
 type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like' | 'not like' | 'in' | 'not in';
@@ -95,7 +95,7 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
             } else if (query) {
                 readOneOrManyWithQuery(model, body, res, next);
             } else {
-        //        createOneOrMany(model, body, res, next);
+                createOneOrMany(model, body, res, next);
             }
             break;
         case 'DELETE':
@@ -282,6 +282,97 @@ async function deleteOneOrManyWithQuery(model: string, body: Partial<PaginatedQu
     }
 }
 
+
+async function createOneOrMany(model: string, body: any, res: express.Response, next: express.NextFunction) {
+
+    try {
+
+        if (!Array.isArray(body)) {
+            body = [body];
+        }
+
+        const inserts: any[] = [];
+
+        for (const item of body) {
+            const query = convertCreateBodyToPrismaQuery(item);
+            // @ts-ignore
+            inserts.push(prisma[model].create({ data: query }));
+        }
+
+        // TODO: Should this be always a transaction?
+
+        // createMany is not supported for SQLite
+        const data = await prisma.$transaction(inserts);
+
+        if (data.length === 1) {
+            res.json(data[0]);
+        } else {
+            res.json(data);
+        }
+        
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+function convertCreateBodyToPrismaQuery(body: any) {
+
+    const prismaQuery: any = {};
+
+    const keys = Object.keys(body);
+
+    keys.forEach(key => {
+
+        if (getNormalizedFields().includes(key)) {
+            body[key] = sanitizeHtml(body[key]);
+            body[`${key}Normalized`] = normalizeString(body[key], true);
+        }
+
+        if (key === 'slug') {
+            body[key] = normalizeString(body['name'], true);
+        }
+
+        if (key.endsWith('Id')) {
+
+            if (body[key] === '' || body[key] == 0) {
+                prismaQuery[key] = null;
+            } else if (!isNaN(parseInt(body[key]))) {
+                prismaQuery[key] = parseInt(body[key]);
+            } else {
+                throw new ApiValidationError(key + ' must be a number');
+            }
+
+        } else if (typeof body[key] === 'string') {
+
+            if (body[key] === '') {
+                prismaQuery[key] = null;
+            } else {
+                prismaQuery[key] = body[key];
+            }
+
+        } else if (Array.isArray(body[key])) {
+
+            prismaQuery[key] = { connectOrCreate: [] };
+
+            body[key].forEach((item: any) => {
+
+                const relatedObject: any = {};
+                relatedObject.where = { id: parseInt(item.id) };
+
+                item.id = undefined;
+
+                relatedObject.create = convertCreateBodyToPrismaQuery(item);
+                prismaQuery[key].connectOrCreate.push(relatedObject);
+
+            });
+        }
+    });
+
+    prismaQuery.id = undefined;
+
+    return prismaQuery;
+}
 
 function calculateSkip(pageSize: number, pageNumber: number) {
     return (pageNumber - 1) * pageSize;

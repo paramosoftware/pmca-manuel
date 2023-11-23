@@ -158,4 +158,4 @@ function getNormalizedFields() {
     return ['name', 'definition', 'notes', 'content'];
 }
     
-export { prepareRequestBodyForPrisma, replaceEmptyWithNull, normalizeString, getUserFromToken, deleteMedia};
+export { prepareRequestBodyForPrisma, replaceEmptyWithNull, normalizeString, getUserFromToken, deleteMedia, getNormalizedFields, sanitizeHtml};
