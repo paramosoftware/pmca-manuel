@@ -36,7 +36,7 @@
                 class="w-full bg-white border border-x-gray-300 border-b-gray-300 px-4 space-y-1 absolute z-10">
 
                 <li v-for="item in results" :key="item.name" 
-                    @click="selectItem(item.id, item.name)" 
+                    @click="selectItem(item)" 
                     class="cursor-pointer hover:bg-gray-100 p-1">
 
                     <span v-if="isHtml" v-html="item.name"></span>
@@ -128,13 +128,13 @@ const computedModelValue = computed(() => {
     return [];
 });
 
-const selectItem = (id: number, item: string) => {
-    if (computedModelValue.value.find((element) => element.id === id)) {
+const selectItem = (item: any) => {
+    if (computedModelValue.value.find((element) => element.id === item.id)) {
         searchTerm.value = "";
         return;
     }
 
-    emit("update", props.id, 'add', { id, name: item });
+    emit("update", props.id, 'add', item);
     searchTerm.value = "";
 };
 
@@ -191,7 +191,7 @@ const createItem = async (value: string) => {
 
     if (props.createFunction) {
         const result = await props.createFunction(value)
-        selectItem(result.id, result.name)
+        selectItem(result)
         return
     }
 
@@ -207,7 +207,7 @@ const createItem = async (value: string) => {
 
 
     if (result) {
-        selectItem(result.id, result.name)
+        selectItem(result)
     }
 }
 
