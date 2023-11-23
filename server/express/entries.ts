@@ -4,65 +4,6 @@ import { prepareRequestBodyForPrisma, normalizeString, getUserFromToken, deleteM
 
 const router = express.Router();
 
-router.delete('/:id', async (req, res, next) => {
-    const id = req.params.id;
-
-    try {
-        const entryMedia = await prisma.entryMedia.findMany({
-            where: {
-                entryId: parseInt(id)
-            },
-            include: {
-                media: true
-            }
-        });
-
-
-        const deletedEntry = await prisma.$transaction([
-
-            prisma.entryChanges.deleteMany({
-                where: {
-                    entryId: parseInt(id)
-                }
-            }),
-
-            prisma.entryMedia.deleteMany({
-                where: {
-                    entryId: parseInt(id)
-                }
-            }),
-
-            prisma.entry.update({
-                where: {
-                    id: parseInt(id)
-                },
-                data: {
-                    relatedEntries: {set: []},
-                    variations: {deleteMany: {}},
-                    translations: {deleteMany: {}},
-                }
-            }),
-
-            prisma.entry.delete({
-                where: {
-                    id: parseInt(id)
-                }
-            })             
-        ])
-
-
-        if (entryMedia.length > 0) {
-            deleteMedia(entryMedia);
-        }
-
-
-        res.json(deletedEntry);
-
-    } catch (error) {
-      next(error);
-    }
-});
-
 router.put('/:id', async (req, res, next) => {
     const { id } = req.params;
     const token = req.cookies.token;

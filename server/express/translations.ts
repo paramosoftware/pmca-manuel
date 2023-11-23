@@ -47,23 +47,6 @@ router.put('/:id', async (req, res, next) => {
     }
 });
 
-router.delete('/:id', async (req, res, next) => {
-    const { id } = req.params;
-
-    try {
-        const translation = await prisma.translation.delete({
-            where: {
-                id: parseInt(id)
-            }
-        });
-        res.json(translation);
-    } catch (error) {
-        next(error);
-    }
-});
-
-
-
 export default router;
 
 
