@@ -126,6 +126,10 @@ async function deleteMedia(entryMedia: Array<EntryMedia>) {
 
     entryMedia.forEach((media: EntryMedia) => {
 
+        if (!media.media) {
+            return;
+        }
+
         const mediaPath = useMedia().mediaPath + '/' + media.media.name;
         
         if (fs.existsSync(mediaPath)) {
@@ -137,14 +141,6 @@ async function deleteMedia(entryMedia: Array<EntryMedia>) {
     });
 
     const transaction = await prisma.$transaction([
-        prisma.entryMedia.deleteMany({
-            where: {
-                id: {
-                    in: relationsIds
-                }
-            }
-        }),
-
         prisma.media.deleteMany({
             where: {
                 id: {

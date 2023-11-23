@@ -2,7 +2,7 @@ import express from 'express'
 import { prisma } from '../prisma/prisma';
 import type { ParsedQs } from 'qs';
 import ApiValidationError from './errors/ApiValidationError';
-import { normalizeString } from './utils';
+import { normalizeString, deleteMedia } from './utils';
 
 
 type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like' | 'not like' | 'in' | 'not in';
@@ -62,14 +62,15 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
     DELETE /api/:model/query - Delete one or many with query
     */
 
-    const method = req.method;
+    const method = req.method.toUpperCase();
     const body = req.body;
     const queryParams = req.query;
 
     const { model, id, query } = getParamsFromPath(req.path);
 
+    // @ts-ignore
     if (!model || prisma[model] === undefined) { 
-        return next(); 
+        return next();
     }
 
 
@@ -97,11 +98,11 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
         //        createOneOrMany(model, body, res, next);
             }
             break;
-        case 'delete':
+        case 'DELETE':
             if (id) {
-        //        deleteOne(model, id, res, next);
+                deleteOne(model, id, res, next);
             } else if (query) {
-        //        deleteOneOrManyWithQuery(model, body, res, next);
+                deleteOneOrManyWithQuery(model, body, res, next);
             }
             break;
         default:
@@ -172,7 +173,6 @@ async function executePrismaFindUniqueQuery(model: string, query: Query, res: ex
     }
 }
 
-
 async function executePrismaFindQuery(model: string, query: Query, res: express.Response, next: express.NextFunction) {
 
     try {
@@ -189,6 +189,99 @@ async function executePrismaFindQuery(model: string, query: Query, res: express.
        next(error);
     }
 }
+
+async function deleteOne(model: string, id: string, res: express.Response, next: express.NextFunction) {
+
+
+    let entryMedia: string | any[] = [];
+
+    try {
+
+        // TODO: Temporary solution for deleting media
+        if (model === 'entry') {
+            entryMedia = await prisma.entryMedia.findMany({
+                where: {
+                    entryId: parseInt(id)
+                },
+                include: {
+                    media: true
+                }
+            });
+        }
+
+        // @ts-ignore
+        const data = await prisma[model].delete({
+            where: {
+                id: Number(id)
+            }
+        });
+
+        res.json(data);
+
+
+        if (entryMedia.length > 0) {
+            deleteMedia(entryMedia);
+        }
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function deleteOneOrManyWithQuery(model: string, body: Partial<PaginatedQuery>, res: express.Response, next: express.NextFunction) {
+
+    const request = createRequest(body);
+    request.orderBy = undefined;
+    request.pageSize = -1;
+
+    try {
+        validatePaginatedQuery(request);
+    } catch (error) {
+        return next(error);
+    }
+
+    const entryMedia: string | any[] = [];
+
+    const query = convertPaginatedQueryToPrismaQuery(request);
+
+    try {
+
+        // TODO: Temporary solution for deleting media
+        if (model === 'entry') {
+            const entries = await prisma.entry.findMany(query);
+            const ids = entries.map(entry => entry.id);
+
+            let entryMediaTemp =await prisma.entryMedia.findMany({
+                where: {
+                    entryId: {
+                        in: ids
+                    }
+                },
+                include: {
+                    media: true
+                }
+            });
+
+
+            entryMediaTemp.forEach(entry => {
+                entryMedia.push(entry);
+            });
+        }
+
+        // @ts-ignore
+        const data = await prisma[model].deleteMany(query);
+
+        if (entryMedia.length > 0) {
+            deleteMedia(entryMedia);
+        }
+
+        res.json(data);
+
+    } catch (error) {
+        next(error);
+    }
+}
+
 
 function calculateSkip(pageSize: number, pageNumber: number) {
     return (pageNumber - 1) * pageSize;
