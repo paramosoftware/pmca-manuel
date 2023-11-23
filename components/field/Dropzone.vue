@@ -34,6 +34,9 @@ const dropzoneOptions = {
     autoProcessQueue: false,
     addRemoveLinks: true,
     sending: function (file, xhr, formData) {
+        const csrfToken = useCookie(useGetCookiePrefix() + 'csrf');
+        xhr.setRequestHeader('X-CSRF-Token', csrfToken.value ? csrfToken.value : '');
+
         formData.append(
             'entryId',
             document.querySelector('input[name=entryId]').value
