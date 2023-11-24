@@ -96,7 +96,7 @@ const save = async () => {
 
     if (props.isStandalone) {
 
-        let url = '/api/' + props.objectNamePlural + '/' + props.object.id;
+        let url = '/api/' + props.objectName + '/' + props.object.id;
         let method = 'PUT';
 
         if (props.object.id === 0) {

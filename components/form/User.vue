@@ -54,6 +54,10 @@ const object = ref<User>(
     }
 );
 
+if (props.object) {
+    object.value.password = undefined;
+}
+
 const options = computed(() => {
     return [
         {id: "2", name: "padrão"},
