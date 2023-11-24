@@ -9,14 +9,7 @@ import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import multer from 'multer'
 import auth from './auth'
-import categories from './categories'
-import users from './users'
-import entries from './entries'
-import languages from './languages'
-import translations from './translations'
-import references from './references'
 import upload from './upload'
-import webPages from './web-pages'
 import { PrismaClientKnownRequestError} from '@prisma/client/runtime/library.js'
 import prismaRequestHandler from './prismaRequestHandler'
 
@@ -33,15 +26,7 @@ function useApiRoute(app: any, route: string, handler: any) {
 }
 
 useApiRoute(app, '/auth', auth);
-useApiRoute(app, '/categories', categories);
-useApiRoute(app, '/users', users);
-useApiRoute(app, '/entries', entries);
-useApiRoute(app, '/languages', languages);
-useApiRoute(app, '/translations', translations);
-useApiRoute(app, '/references', references);
 useApiRoute(app, '/upload', upload);
-useApiRoute(app, '/web-pages', webPages);
-
 
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working' });
