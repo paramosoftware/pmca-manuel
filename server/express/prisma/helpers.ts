@@ -1,431 +1,12 @@
-import express, { query } from 'express'
-import { prisma } from '../prisma/prisma';
 import { Prisma } from '@prisma/client';
-import type { ParsedQs } from 'qs';
-import ApiValidationError from './errors/ApiValidationError';
 import bcrypt from 'bcrypt';
-import { normalizeString, deleteMedia, sanitizeHtml, trackChanges, handleMedia } from './utils';
+import type { ParsedQs } from 'qs';
+import { ApiValidationError } from '../error';
+import { normalizeString, sanitizeHtml } from '../utils';
+import type { Condition, Include, Order, PaginatedQuery, Query, Where } from './interfaces';
 
 
-type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like' | 'not like' | 'in' | 'not in';
-type Direction = 'asc' | 'desc';
-
-interface Where {
-    and?: Condition | Condition[];
-    or?: Condition | Condition[];
-    not?: Condition | Condition[];
-    [key: string]: string | number | string[] | number[] | Condition | Condition[] | undefined
-}
-
-interface Condition {
-    [key: string]: {
-        operator: Operator;
-        value: string | number | string[] | number[] 
-    } 
-    | string | number | string[] | number[];
-}
-
-interface Order {
-    [key: string]: Direction;
-}
-
-interface Include {
-    [key: string]: Query | boolean;
-}
-
-interface Query {
-    select?: string[]
-    where?: Where
-    include?: Include | string[]
-    orderBy?: Order
-    take?: number
-    skip?: number
-}
-
-interface PaginatedQuery extends Query {
-    pageSize: number;
-    pageNumber: number;
-}
-
-const prismaRequestHandler = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-
-    /*
-    GET /api/:model - Get many
-    GET /api/:model/:id - Get one
-
-    PUT /api/:model - Update all
-    PUT /api/:model/:id - Update one
-
-    POST /api/:model - Create one or many
-    POST /api/:model/query - Get one or many with query
-    POST /api/:model/:id - Get one with query
-
-    DELETE /api/:model/:id - Delete one
-    DELETE /api/:model/query - Delete one or many with query
-    */
-
-    const method = req.method.toUpperCase();
-    const body = req.body;
-    const queryParams = req.query;
-
-    const { model, id, query } = getParamsFromPath(req.path);
-
-    // @ts-ignore
-    if (!model || prisma[model] === undefined) { 
-        return next();
-    }
-
-
-    switch (method) {
-        case 'GET':
-            if (id) {
-                readOne(model, id, body, res, next);
-            } else {
-                readMany(model, queryParams, res, next);
-            }
-            break;
-        case 'PUT':
-            if (id) {
-                const token = req.cookies.token
-                updateOne(model, id, body, res, next, token);
-            } else {
-                updateMany(model, body, res, next);
-            }
-            break;
-        case 'POST':
-            if (id) {
-                readOne(model, id, body, res, next);
-            } else if (query) {
-                readOneOrManyWithQuery(model, body, res, next);
-            } else {
-                createOneOrMany(model, body, res, next);
-            }
-            break;
-        case 'DELETE':
-            if (id) {
-                deleteOne(model, id, res, next);
-            } else if (query) {
-                deleteOneOrManyWithQuery(model, body, res, next);
-            }
-            break;
-        default:
-            next();
-    }
-}
-
-async function readOne(model: string, id: string, body: Partial<PaginatedQuery>, res: express.Response, next: express.NextFunction) {
-
-    const request = createRequest(body);
-    request.orderBy = undefined;
-    request.pageSize = -1;
-    
-    try {
-        validatePaginatedQuery(request);
-    } catch (error) {
-        return next(error);
-    }
-
-    const query = convertPaginatedQueryToPrismaQuery(request);
-
-    query.where = { id: Number(id) };
-
-    await executePrismaFindUniqueQuery(model, query, res, next);
-}
-
-async function readMany(model: string, queryParams: ParsedQs, res: express.Response, next: express.NextFunction) {
-
-    const body = convertQueryParamsToPaginatedQuery(queryParams);
-    const request = createRequest(body);
-
-    try {
-        validatePaginatedQuery(request);
-    } catch (error) {
-        return next(error);
-    }
-
-    const query = convertPaginatedQueryToPrismaQuery(request);
-
-    await executePrismaFindQuery(model, query, res, next);
-}
-
-async function readOneOrManyWithQuery(model: string, body: Partial<PaginatedQuery>, res: express.Response, next: express.NextFunction) {
-
-    const request = createRequest(body);
-
-    try {
-        validatePaginatedQuery(request);
-    } catch (error) {
-        return next(error);
-    }
-
-    const query = convertPaginatedQueryToPrismaQuery(request);
-
-    await executePrismaFindQuery(model, query, res, next);
-}
-
-
-async function executePrismaFindUniqueQuery(model: string, query: Query, res: express.Response, next: express.NextFunction) {
-    try {
-        // @ts-ignore
-        const data = await prisma[model].findUnique(query);
-
-        res.json(data);
-
-    } catch (error) {
-        next(error);
-    }
-}
-
-async function executePrismaFindQuery(model: string, query: Query, res: express.Response, next: express.NextFunction) {
-
-    try {
-        const [total, data] = await prisma.$transaction([
-            // @ts-ignore
-            prisma[model].count({ where: query.where }),
-            // @ts-ignore
-            prisma[model].findMany(query)
-        ]);
-
-        res.json({ total, data });
-        
-    } catch (error) {
-       next(error);
-    }
-}
-
-async function deleteOne(model: string, id: string, res: express.Response, next: express.NextFunction) {
-
-
-    let entryMedia: string | any[] = [];
-
-    try {
-
-        // TODO: Temporary solution for deleting media
-        if (model === 'entry') {
-            entryMedia = await prisma.entryMedia.findMany({
-                where: {
-                    entryId: parseInt(id)
-                },
-                include: {
-                    media: true
-                }
-            });
-        }
-
-        // @ts-ignore
-        const data = await prisma[model].delete({
-            where: {
-                id: Number(id)
-            }
-        });
-
-        res.json(data);
-
-
-        if (entryMedia.length > 0) {
-            deleteMedia(entryMedia);
-        }
-
-    } catch (error) {
-        next(error);
-    }
-}
-
-async function deleteOneOrManyWithQuery(model: string, body: Partial<PaginatedQuery>, res: express.Response, next: express.NextFunction) {
-
-    const request = createRequest(body);
-    request.orderBy = undefined;
-    request.pageSize = -1;
-
-    try {
-        validatePaginatedQuery(request);
-    } catch (error) {
-        return next(error);
-    }
-
-    const entryMedia: string | any[] = [];
-
-    const query = convertPaginatedQueryToPrismaQuery(request);
-
-    try {
-
-        // TODO: Temporary solution for deleting media
-        if (model === 'entry') {
-            const entries = await prisma.entry.findMany(query);
-            const ids = entries.map(entry => entry.id);
-
-            let entryMediaTemp =await prisma.entryMedia.findMany({
-                where: {
-                    entryId: {
-                        in: ids
-                    }
-                },
-                include: {
-                    media: true
-                }
-            });
-
-
-            entryMediaTemp.forEach(entry => {
-                entryMedia.push(entry);
-            });
-        }
-
-        // @ts-ignore
-        const data = await prisma[model].deleteMany(query);
-
-        if (entryMedia.length > 0) {
-            deleteMedia(entryMedia);
-        }
-
-        res.json(data);
-
-    } catch (error) {
-        next(error);
-    }
-}
-
-
-async function createOneOrMany(model: string, body: any, res: express.Response, next: express.NextFunction) {
-
-    try {
-
-        if (!Array.isArray(body)) {
-            body = [body];
-        }
-
-        const inserts: any[] = [];
-
-        for (const item of body) {
-            const query = convertBodyToPrismaUpdateOrCreateQuery(model, item);
-            // @ts-ignore
-            inserts.push(prisma[model].create({ data: query }));
-        }
-
-        // TODO: Should this be always a transaction?
-
-        // createMany is not supported for SQLite
-        const data = await prisma.$transaction(inserts);
-
-        if (data.length === 1) {
-            res.json(data[0]);
-        } else {
-            res.json(data);
-        }
-        
-    } catch (error) {
-        next(error);
-    }
-}
-
-
-async function updateOne(model: string, id: string, body: any, res: express.Response, next: express.NextFunction, token: string) {
-
-    try {
-
-        // TODO: Temporary solution for media
-        let media = [];
-
-        if (model === 'entry' && body.media) {
-            media = body.media;
-            body.media = undefined;
-        }
-
-        const query = convertBodyToPrismaUpdateOrCreateQuery(model, body, true);
-
-        query.id = undefined;
-
-        // @ts-ignore
-        const data = await prisma[model].update({
-            where: {
-                id: Number(id)
-            },
-            data: query
-        });
-
-
-        if (model === 'entry') {
-            trackChanges(body, token);
-            handleMedia(media, id);
-        }
-
-        res.json(data);
-
-    } catch (error) {
-        next(error);
-    }
-}
-
-async function updateMany(model: string, body: any, res: express.Response, next: express.NextFunction) {
-    try {
-
-        if (!Array.isArray(body)) {
-            body = [body];
-        }
-
-        const updates: any[] = [];
-
-        for (const item of body) {
-
-            if (item.where === undefined) {
-                throw new ApiValidationError('Update must have a where clause');
-            }
-
-            if (item.data === undefined) {
-                throw new ApiValidationError('Update must have a data clause');
-            }
-
-            const query = convertBodyToPrismaUpdateOrCreateQuery(model, item.data, true);
-
-            // TODO: Temporary solution for media
-            let media: any[] = [];
-            if (model === 'entry' && item.data.media) {
-                media = item.data.media
-            }
-
-            validateWhere(item.where);
-            const where = convertWhereToPrismaQuery(item.where);
-
-            // TODO: Is there a performance issue? 
-            // Pros: 1. Allow nested updates 2. Allow complex where clauses
-            // Cons: 1. Multiple queries
-            // Create a flag to control if this should be a transaction
-            const ids = await prisma[model].findMany({
-                where,
-                select: {
-                    id: true
-                }
-            });
-
-            ids.forEach((id: { id: number; }) => {
-                // @ts-ignore
-                updates.push(prisma[model].update({
-                    where: {
-                        id: parseInt(id.id)
-                    },
-                    data: query
-                }));
-
-                if (model === 'entry') {
-                    handleMedia(media, id.id);
-                }
-            });
-        }
-
-        const data = await prisma.$transaction(updates);
-
-        if (data.length === 1) {
-            res.json(data[0]);
-        } else {
-            res.json(data);
-        }
-
-    } catch (error) {
-        next(error);
-    }
-}
-
-function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpdate: boolean = false, isConnectOrCreate: boolean = false, parentModel: string = '') {
+export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpdate: boolean = false, isConnectOrCreate: boolean = false, parentModel: string = '') {
 
     const modelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === model.toLowerCase())?.fields;
 
@@ -449,7 +30,7 @@ function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpda
                     }
                 }
 
-                if (f.kind === 'scalar' && parentModel+'Id'.toLowerCase() !== f.name.toLowerCase()) {
+                if (f.kind === 'scalar' && parentModel + 'Id'.toLowerCase() !== f.name.toLowerCase()) {
                     return;
                 }
 
@@ -492,7 +73,7 @@ function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpda
 
             prismaQuery[key] = normalizeString(body['name'], true);
 
-        // TODO: Temporary? Consider moving this to a separate logic related to auth
+            // TODO: Temporary? Consider moving this to a separate logic related to auth
         } else if (key === 'password' && body[key] != undefined) {
 
             prismaQuery[key] = bcrypt.hashSync(body[key], 10);
@@ -590,7 +171,7 @@ function calculateSkip(pageSize: number, pageNumber: number) {
     return (pageNumber - 1) * pageSize;
 }
 
-function getParamsFromPath(path: string) {
+export function getParamsFromPath(path: string) {
     const params = path.split('/').filter(param => param !== 'api' && param !== '');
 
     if (params.length === 1) {
@@ -608,7 +189,7 @@ function getParamsFromPath(path: string) {
     return { model: '', id: '', query: '' };
 }
 
-function createRequest(body: Partial<PaginatedQuery>) {
+export function createRequest(body: Partial<PaginatedQuery>) {
     const request: PaginatedQuery = {
         pageSize: body.pageSize || 20,
         pageNumber: body.pageNumber || 1,
@@ -621,7 +202,7 @@ function createRequest(body: Partial<PaginatedQuery>) {
     return request;
 }
 
-function convertQueryParamsToPaginatedQuery(queryParams: ParsedQs) {
+export function convertQueryParamsToPaginatedQuery(queryParams: ParsedQs) {
 
     const body: Partial<PaginatedQuery> = {};
 
@@ -669,7 +250,7 @@ function convertStringToObject(string: string) {
     return object;
 }
 
-function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery) {
+export function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery) {
 
     const prismaQuery = convertQueryToPrismaQuery(request);
 
@@ -728,7 +309,7 @@ function convertQueryToPrismaQuery(query: Query) {
     return prismaQuery;
 }
 
-function convertWhereToPrismaQuery(where: Where) {
+export function convertWhereToPrismaQuery(where: Where) {
 
     const prismaQuery: any = {};
 
@@ -843,25 +424,25 @@ function convertIncludeToPrismaQuery(include: Include | string[]) {
 }
 
 function convertOrderToPrismaQuery(order: Order | string[]) {
-    
-        const orderBy: Order[] = [];
 
-        if (Array.isArray(order)) {
-            order.forEach(field => {
-                orderBy.push({ [field]: 'asc' });
-            });
-        } else {
-            const keys = Object.keys(order);
+    const orderBy: Order[] = [];
 
-            keys.forEach(key => {
-                orderBy.push({ [key]: order[key] });
-            });
-        }
+    if (Array.isArray(order)) {
+        order.forEach(field => {
+            orderBy.push({ [field]: 'asc' });
+        });
+    } else {
+        const keys = Object.keys(order);
 
-        return orderBy;
+        keys.forEach(key => {
+            orderBy.push({ [key]: order[key] });
+        });
+    }
+
+    return orderBy;
 }
 
-function validatePaginatedQuery(query: PaginatedQuery) {
+export function validatePaginatedQuery(query: PaginatedQuery) {
 
     if (query.pageSize && (query.pageSize < 1) && (query.pageSize !== -1)) {
         throw new ApiValidationError('pageSize must be greater than 0 or -1');
@@ -913,8 +494,8 @@ function validateInclude(include: Include | string[]) {
     }
 }
 
-function validateWhere(where: Where) {
-    
+export function validateWhere(where: Where) {
+
     const keys = Object.keys(where);
 
     if (where.and || where.or || where.not) {
@@ -965,8 +546,6 @@ function validateCondition(condition: Condition) {
 
     if ((condition.operator && !condition.value) || (!condition.operator && condition.value)) {
         throw new ApiValidationError('Condition must have both an operator and a value');
-    } 
+    }
 
 }
-
-export default prismaRequestHandler;

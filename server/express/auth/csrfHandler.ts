@@ -1,9 +1,9 @@
-import InvalidCredentialError from '../errors/InvalidCredentialError'
-import express from 'express'
-import jwt from 'jsonwebtoken'
+import express from 'express';
+import jwt from 'jsonwebtoken';
 import useGetCookiePrefix from '~/composables/useGetCookiePrefix';
+import { InvalidCredentialError } from '../error';
 
-const csrf = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const csrfHandler = (req: express.Request, res: express.Response, next: express.NextFunction) => {
 
     // TODO: Review exceptions
     const exceptions = ['/api/auth/login', '/api/entries/by-slug', '/api/entries/search'];
@@ -36,4 +36,4 @@ const csrf = (req: express.Request, res: express.Response, next: express.NextFun
 }
 
 
-export default csrf;
+export default csrfHandler;

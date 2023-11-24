@@ -1,9 +1,8 @@
 import jwt from 'jsonwebtoken';
-import { prisma } from '../prisma/prisma';
+import { prisma } from '../../prisma/prisma';
 import fs from 'fs';
-import useMedia from '../../composables/useMedia';
+import useMedia from '../../../composables/useMedia';
 import sanitizeHtml from 'sanitize-html'
-
 
 function normalizeString(str: string, slug: boolean = false) {
     if (str === null || typeof str !== 'string') {

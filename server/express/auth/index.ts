@@ -1,10 +1,10 @@
 import bcrypt from 'bcrypt';
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import InvalidCredentialError  from './errors/InvalidCredentialError'
 import { v4 as uuidv4 } from 'uuid';
-import { prisma } from '../prisma/prisma';
 import useGetCookiePrefix from '~/composables/useGetCookiePrefix';
+import { prisma } from '../../prisma/prisma';
+import { InvalidCredentialError } from '../error';
 
 const router = express.Router();
 
