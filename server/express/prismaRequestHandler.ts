@@ -1,8 +1,10 @@
 import express, { query } from 'express'
 import { prisma } from '../prisma/prisma';
+import { Prisma } from '@prisma/client';
 import type { ParsedQs } from 'qs';
 import ApiValidationError from './errors/ApiValidationError';
-import { normalizeString, deleteMedia, getNormalizedFields, sanitizeHtml } from './utils';
+import bcrypt from 'bcrypt';
+import { normalizeString, deleteMedia, sanitizeHtml, trackChanges, handleMedia } from './utils';
 
 
 type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like' | 'not like' | 'in' | 'not in';
@@ -84,9 +86,10 @@ const prismaRequestHandler = (req: express.Request, res: express.Response, next:
             break;
         case 'PUT':
             if (id) {
-        //        updateOne(model, id, body, res, next);
+                const token = req.cookies.token
+                updateOne(model, id, body, res, next, token);
             } else {
-        //        updateMany(model, body, res, next);
+                updateMany(model, body, res, next);
             }
             break;
         case 'POST':
@@ -294,7 +297,7 @@ async function createOneOrMany(model: string, body: any, res: express.Response, 
         const inserts: any[] = [];
 
         for (const item of body) {
-            const query = convertCreateBodyToPrismaQuery(item);
+            const query = convertBodyToPrismaUpdateOrCreateQuery(model, item);
             // @ts-ignore
             inserts.push(prisma[model].create({ data: query }));
         }
@@ -316,60 +319,269 @@ async function createOneOrMany(model: string, body: any, res: express.Response, 
 }
 
 
-function convertCreateBodyToPrismaQuery(body: any) {
+async function updateOne(model: string, id: string, body: any, res: express.Response, next: express.NextFunction, token: string) {
+
+    try {
+
+        // TODO: Temporary solution for media
+        let media = [];
+
+        if (model === 'entry' && body.media) {
+            media = body.media;
+            body.media = undefined;
+        }
+
+        const query = convertBodyToPrismaUpdateOrCreateQuery(model, body, true);
+
+        query.id = undefined;
+
+        // @ts-ignore
+        const data = await prisma[model].update({
+            where: {
+                id: Number(id)
+            },
+            data: query
+        });
+
+
+        if (model === 'entry') {
+            trackChanges(body, token);
+            handleMedia(media, id);
+        }
+
+        res.json(data);
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function updateMany(model: string, body: any, res: express.Response, next: express.NextFunction) {
+    try {
+
+        if (!Array.isArray(body)) {
+            body = [body];
+        }
+
+        const updates: any[] = [];
+
+        for (const item of body) {
+
+            if (item.where === undefined) {
+                throw new ApiValidationError('Update must have a where clause');
+            }
+
+            if (item.data === undefined) {
+                throw new ApiValidationError('Update must have a data clause');
+            }
+
+            const query = convertBodyToPrismaUpdateOrCreateQuery(model, item.data, true);
+
+            // TODO: Temporary solution for media
+            let media: any[] = [];
+            if (model === 'entry' && item.data.media) {
+                media = item.data.media
+            }
+
+            validateWhere(item.where);
+            const where = convertWhereToPrismaQuery(item.where);
+
+            // TODO: Is there a performance issue? 
+            // Pros: 1. Allow nested updates 2. Allow complex where clauses
+            // Cons: 1. Multiple queries
+            // Create a flag to control if this should be a transaction
+            const ids = await prisma[model].findMany({
+                where,
+                select: {
+                    id: true
+                }
+            });
+
+            ids.forEach((id: { id: number; }) => {
+                // @ts-ignore
+                updates.push(prisma[model].update({
+                    where: {
+                        id: parseInt(id.id)
+                    },
+                    data: query
+                }));
+
+                if (model === 'entry') {
+                    handleMedia(media, id.id);
+                }
+            });
+        }
+
+        const data = await prisma.$transaction(updates);
+
+        if (data.length === 1) {
+            res.json(data[0]);
+        } else {
+            res.json(data);
+        }
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpdate: boolean = false, isConnectOrCreate: boolean = false, parentModel: string = '') {
+
+    const modelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === model.toLowerCase())?.fields;
 
     const prismaQuery: any = {};
+
+    if (isConnectOrCreate) {
+
+        prismaQuery.where = {};
+
+        modelFields?.forEach(f => {
+            // TODO: check if there is a cleaner way to do this
+            // TODO: move this to a separate function
+            if (f.isRequired && !f.hasDefaultValue && !f.isList && !f.isUpdatedAt && body[f.name] === undefined) {
+
+                if (f.relationFromFields && f.relationFromFields.length > 0) {
+
+                    const relatedField = f.relationFromFields[0];
+
+                    if (body[relatedField] !== undefined || f.type.toLowerCase() === parentModel.toLowerCase()) {
+                        return;
+                    }
+                }
+
+                if (f.kind === 'scalar' && parentModel+'Id'.toLowerCase() !== f.name.toLowerCase()) {
+                    return;
+                }
+
+                throw new ApiValidationError(f.name + ' is required for ' + model);
+            }
+
+            if (f.isUnique && f.name !== 'slug') {
+                prismaQuery.where[f.name] = body[f.name];
+            }
+        });
+
+        if (Object.keys(prismaQuery.where).length === 0) {
+            prismaQuery.where['id'] = -1;
+        }
+
+        prismaQuery.create = convertBodyToPrismaUpdateOrCreateQuery(model, body);
+
+        return prismaQuery;
+    }
+
 
     const keys = Object.keys(body);
 
     keys.forEach(key => {
 
-        if (getNormalizedFields().includes(key)) {
-            body[key] = sanitizeHtml(body[key]);
-            body[`${key}Normalized`] = normalizeString(body[key], true);
+        const field = modelFields?.find(f => f.name === key);
+
+        if (field === undefined) {
+            return;
+        }
+
+        if (modelFields?.find(f => f.name === key + 'Normalized') !== undefined) {
+
+            prismaQuery[key] = sanitizeHtml(body[key]);
+            prismaQuery[key + 'Normalized'] = normalizeString(body[key], true);
+
         }
 
         if (key === 'slug') {
-            body[key] = normalizeString(body['name'], true);
-        }
 
-        if (key.endsWith('Id')) {
+            prismaQuery[key] = normalizeString(body['name'], true);
 
-            if (body[key] === '' || body[key] == 0) {
+        // TODO: Temporary? Consider moving this to a separate logic related to auth
+        } else if (key === 'password' && body[key] != undefined) {
+
+            prismaQuery[key] = bcrypt.hashSync(body[key], 10);
+
+        } else if (field.isReadOnly && field.type.toLowerCase() === 'int') {
+
+            if (body[key] === '' || body[key] == 0 || body[key] === null) {
+
+                if (field.isRequired && !field.hasDefaultValue) {
+                    throw new ApiValidationError(key + ' is required for ' + model);
+                }
+
                 prismaQuery[key] = null;
+
             } else if (!isNaN(parseInt(body[key]))) {
+
                 prismaQuery[key] = parseInt(body[key]);
+
             } else {
+
                 throw new ApiValidationError(key + ' must be a number');
+
             }
 
         } else if (typeof body[key] === 'string') {
 
             if (body[key] === '') {
+                if (field.isRequired && !field.hasDefaultValue) {
+                    throw new ApiValidationError(key + ' is required for ' + model);
+                }
+
                 prismaQuery[key] = null;
+
             } else {
+
                 prismaQuery[key] = body[key];
+
             }
 
         } else if (Array.isArray(body[key])) {
 
-            prismaQuery[key] = { connectOrCreate: [] };
+            prismaQuery[key] = {};
+
+            const relatedModel = field?.type;
+
+            if (!relatedModel) {
+                throw new ApiValidationError('Related model not found in ' + model + ' for ' + key);
+            }
+
+            if (isUpdate) {
+                // check if the related model can exist without the parent model
+                const relatedModelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === relatedModel.toLowerCase())?.fields;
+
+                if (relatedModelFields?.find(f => f.name === model.toLowerCase() + 'Id' && f.isRequired) !== undefined) {
+
+                    prismaQuery[key].deleteMany = { id: { not: { in: body[key].map((item: any) => item.id) } } };
+
+                } else {
+
+                    prismaQuery[key].set = [];
+
+                }
+            }
+
+            prismaQuery[key].connectOrCreate = [];
+            prismaQuery[key].connect = [];
 
             body[key].forEach((item: any) => {
 
-                const relatedObject: any = {};
-                relatedObject.where = { id: parseInt(item.id) };
 
-                item.id = undefined;
+                if (item.id !== undefined && item.id !== 0) {
 
-                relatedObject.create = convertCreateBodyToPrismaQuery(item);
-                prismaQuery[key].connectOrCreate.push(relatedObject);
+                    prismaQuery[key].connect.push({ id: item.id });
 
+                } else {
+
+                    item.id = undefined;
+
+                    const relatedObject = convertBodyToPrismaUpdateOrCreateQuery(relatedModel, item, false, true, model);
+                    prismaQuery[key].connectOrCreate.push(relatedObject);
+
+                }
             });
         }
     });
 
-    prismaQuery.id = undefined;
+    if (!isUpdate) {
+        prismaQuery.id = undefined;
+    }
 
     return prismaQuery;
 }
