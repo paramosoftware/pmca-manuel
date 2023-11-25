@@ -227,7 +227,7 @@ export function convertQueryParamsToPaginatedQuery(queryParams: ParsedQs) {
     }
 
     if (queryParams.where) {
-        body.where = convertStringToObject(queryParams.where.toString());
+        body.where = convertStringToObject(queryParams.where.toString(), true);
     }
 
     if (queryParams.include) {
@@ -242,17 +242,40 @@ export function convertQueryParamsToPaginatedQuery(queryParams: ParsedQs) {
 }
 
 function convertStringToArray(string: string) {
-    return string.split(',');
+    return string.split(';');
 }
 
-function convertStringToObject(string: string) {
+function convertStringToObject(string: string, isWhere: boolean = false) {
     const object: any = {};
 
     const pairs = string.split(',');
 
     pairs.forEach(pair => {
-        const [key, value] = pair.split(':');
-        object[key] = value;
+        const values = pair.split(':');
+
+        if (isWhere && values.length === 3) {
+            const operator = values[1].toLowerCase();
+
+            let value: any = values[2];
+
+            if (operator == 'in' || operator == 'notin') {
+                value = value.split(';');
+                value = value.map((item: any) => {
+                    return isNaN(Number(item)) ? item : Number(item);
+                });
+            } else {
+                value = isNaN(Number(value)) ? value : Number(value);
+            }
+
+            object[values[0]] = { 
+                operator: operator,
+                value: value
+            };
+        } else if (values.length === 2) {
+            object[values[0]] = values[1];
+        } else {
+            object[values[0]] = true;
+        }
     });
 
     return object;
@@ -367,34 +390,34 @@ function convertConditionToPrismaQuery(condition: Condition) {
     }
 
     switch (condition.operator) {
-        case '=':
+        case '=' || 'eq':
             prismaQuery.equals = normalizeString(condition.value as string);
             break;
-        case '!=':
+        case '!=' || 'not':
             prismaQuery.not = { equals: condition.value };
             break;
-        case '>':
+        case '>' || 'gt':
             prismaQuery.gt = condition.value;
             break;
-        case '<':
+        case '<' || 'lt':
             prismaQuery.lt = condition.value;
             break;
-        case '>=':
+        case '>=' || 'gte':
             prismaQuery.gte = condition.value;
             break;
-        case '<=':
+        case '<=' || 'lte':
             prismaQuery.lte = condition.value;
             break;
         case 'like':
             prismaQuery.contains = normalizeString(condition.value as string);
             break;
-        case 'not like':
+        case 'notlike':
             prismaQuery.not = { contains: normalizeString(condition.value as string) };
             break;
         case 'in':
             prismaQuery.in = Array.isArray(condition.value) ? condition.value : [condition.value];
             break;
-        case 'not in':
+        case 'notin':
             prismaQuery.not = { in: Array.isArray(condition.value) ? condition.value : [condition.value] };
             break;
         default:
