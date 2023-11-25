@@ -210,6 +210,10 @@ export function convertQueryParamsToPaginatedQuery(queryParams: ParsedQs) {
 
     const body: Partial<PaginatedQuery> = {};
 
+    if (queryParams.query) {
+        return JSON.parse(queryParams.query.toString());
+    }
+
     if (queryParams.pageSize) {
         body.pageSize = Number(queryParams.pageSize);
     }
