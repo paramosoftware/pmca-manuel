@@ -171,8 +171,8 @@ function addConnectOrCreateFields(modelFields: Prisma.DMMF.Field[] | undefined, 
     return prismaQuery;
 }
 
-function calculateSkip(pageSize: number, pageNumber: number) {
-    return (pageNumber - 1) * pageSize;
+function calculateSkip(pageSize: number, page: number) {
+    return (page - 1) * pageSize;
 }
 
 export function getParamsFromPath(path: string) {
@@ -196,7 +196,7 @@ export function getParamsFromPath(path: string) {
 export function createRequest(body: Partial<PaginatedQuery>) {
     const request: PaginatedQuery = {
         pageSize: body.pageSize || 20,
-        pageNumber: body.pageNumber || 1,
+        page: body.page || 1,
         select: body.select || undefined,
         where: body.where || undefined,
         include: body.include || undefined,
@@ -214,8 +214,8 @@ export function convertQueryParamsToPaginatedQuery(queryParams: ParsedQs) {
         body.pageSize = Number(queryParams.pageSize);
     }
 
-    if (queryParams.pageNumber) {
-        body.pageNumber = Number(queryParams.pageNumber);
+    if (queryParams.page) {
+        body.page = Number(queryParams.page);
     }
 
     if (queryParams.select) {
@@ -269,8 +269,8 @@ export function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery) {
         prismaQuery.take = request.pageSize;
     }
 
-    if (request.pageNumber) {
-        prismaQuery.skip = calculateSkip(request.pageSize, request.pageNumber);
+    if (request.page) {
+        prismaQuery.skip = calculateSkip(request.pageSize, request.page);
     }
 
     return prismaQuery;
@@ -452,7 +452,7 @@ export function validatePaginatedQuery(query: PaginatedQuery) {
         throw new ApiValidationError('pageSize must be greater than 0 or -1');
     }
 
-    if (query.pageNumber && (query.pageNumber < 1)) {
+    if (query.page && (query.page < 1)) {
         throw new ApiValidationError('pageNumber must be greater than 0');
     }
 

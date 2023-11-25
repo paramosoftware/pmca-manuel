@@ -68,7 +68,24 @@ async function executePaginatedPrismaFindQuery(model: string, query: Query, res:
             prisma[model].findMany(query)
         ]);
 
-        res.json({ total, data });
+    
+        if (query.take === undefined || !query.skip === undefined) {
+            return res.json({
+                currentPage: 1,
+                pageSize: total,
+                totalPages: 1,
+                totalCount: total,
+                data
+            });
+        } else {
+            res.json({
+                currentPage: query.skip ? query.skip / query.take + 1 : 1,
+                pageSize: query.take,
+                totalPages: Math.ceil(total / query.take),
+                totalCount: total,
+                data
+            });
+        }
 
     } catch (error) {
         next(error);

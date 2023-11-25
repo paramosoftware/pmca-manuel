@@ -36,5 +36,5 @@ export interface Query {
 
 export interface PaginatedQuery extends Query {
     pageSize: number;
-    pageNumber: number;
+    page: number;
 }
