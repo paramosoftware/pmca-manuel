@@ -13,44 +13,8 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
     const prismaQuery: any = {};
 
     if (isConnectOrCreate) {
-
-        prismaQuery.where = {};
-
-        modelFields?.forEach(f => {
-            // TODO: check if there is a cleaner way to do this
-            // TODO: move this to a separate function
-            if (f.isRequired && !f.hasDefaultValue && !f.isList && !f.isUpdatedAt && body[f.name] === undefined) {
-
-                if (f.relationFromFields && f.relationFromFields.length > 0) {
-
-                    const relatedField = f.relationFromFields[0];
-
-                    if (body[relatedField] !== undefined || f.type.toLowerCase() === parentModel.toLowerCase()) {
-                        return;
-                    }
-                }
-
-                if (f.kind === 'scalar' && parentModel + 'Id'.toLowerCase() !== f.name.toLowerCase()) {
-                    return;
-                }
-
-                throw new ApiValidationError(f.name + ' is required for ' + model);
-            }
-
-            if (f.isUnique && f.name !== 'slug') {
-                prismaQuery.where[f.name] = body[f.name];
-            }
-        });
-
-        if (Object.keys(prismaQuery.where).length === 0) {
-            prismaQuery.where['id'] = -1;
-        }
-
-        prismaQuery.create = convertBodyToPrismaUpdateOrCreateQuery(model, body);
-
-        return prismaQuery;
+        return addConnectOrCreateFields(modelFields, body, parentModel, model);
     }
-
 
     const keys = Object.keys(body);
 
@@ -163,6 +127,46 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
     if (!isUpdate) {
         prismaQuery.id = undefined;
     }
+
+    return prismaQuery;
+}
+
+function addConnectOrCreateFields(modelFields: Prisma.DMMF.Field[] | undefined, body: any, parentModel: string, model: string) {
+   
+    const prismaQuery: any = {};
+   
+    prismaQuery.where = {};
+
+    modelFields?.forEach(f => {
+        // TODO: check if there is a cleaner way to do this
+        if (f.isRequired && !f.hasDefaultValue && !f.isList && !f.isUpdatedAt && body[f.name] === undefined) {
+
+            if (f.relationFromFields && f.relationFromFields.length > 0) {
+
+                const relatedField = f.relationFromFields[0];
+
+                if (body[relatedField] !== undefined || f.type.toLowerCase() === parentModel.toLowerCase()) {
+                    return;
+                }
+            }
+
+            if (f.kind === 'scalar' && parentModel + 'Id'.toLowerCase() !== f.name.toLowerCase()) {
+                return;
+            }
+
+            throw new ApiValidationError(f.name + ' is required for ' + model);
+        }
+
+        if (f.isUnique && f.name !== 'slug') {
+            prismaQuery.where[f.name] = body[f.name];
+        }
+    });
+
+    if (Object.keys(prismaQuery.where).length === 0) {
+        prismaQuery.where['id'] = -1;
+    }
+
+    prismaQuery.create = convertBodyToPrismaUpdateOrCreateQuery(model, body);
 
     return prismaQuery;
 }
