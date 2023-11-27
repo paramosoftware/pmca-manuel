@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
@@ -11,202 +8,276 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model AppGenderNoun {
+  id   Int    @id @default(autoincrement())
+  name String @unique
 
-model Category { 
-  id        Int          @id @default(autoincrement())
-  name      String       @unique
-  nameNormalized String? @unique  
-  definition String?
-  definitionNormalized String?           
+  resources AppResource[]
 
-  children  Category[]   @relation("SubCategories")
-  parent    Category?    @relation("SubCategories", fields: [parentId], references: [id])
-  parentId  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
-  entries   Entry[]
+model AppGroup {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  nameSlug    String? @unique
+  description String?
+
+  permissions AppGroupResource[]
+  users       AppGroupUser[]
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model AppGroupResource {
+  id         Int @id @default(autoincrement())
+  groupId    Int
+  resourceId Int
+
+  read   Boolean? @default(true)
+  create Boolean? @default(true)
+  update Boolean? @default(true)
+  delete Boolean? @default(true)
+  batch  Boolean? @default(false)
+
+  resource AppResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  group    AppGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppGroupUser {
+  id      Int    @id @default(autoincrement())
+  groupId Int
+  userId  String
+
+  user  AppUserRestricted @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  group AppGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppMedia {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  originalFilename   String?
+  path               String?
+  subtitle           String?
+  subtitleNormalized String?
+  type               String?
+  isPublic           Boolean? @default(false)
+
+  entryMedia EntryMedia[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppResource {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  namePlural  String
+  prismaModel String @unique
+
+  nameSlug     String?  @unique
+  description  String?
+  genderNounId Int?
+  isAppModel   Boolean? @default(false)
+  isPublic     Boolean? @default(false)
+
+  groups     AppGroupResource[]
+  genderNoun AppGenderNoun?     @relation(fields: [genderNounId], references: [id])
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model AppUser {
+  id    String @id @default(uuid())
+  login String @unique
+  email String @unique
+  name  String
+
+  nameNormalized String?
+
+  restricted AppUserRestricted?
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  EntryChanges EntryChanges[]
+}
+
+// Workaround for lack of an easy way to exclude scalar fields from a model in Prisma
+model AppUserRestricted {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  password  String
+  isBlocked Boolean?         @default(false)
+  isAdmin   Boolean?         @default(false)
+  groups    AppGroupUser[]
+  sessions  AppUserSession[]
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AppUserSession {
+  id     String @id @default(uuid())
+  userId String
+
+  refreshToken String @unique
+
+  user AppUserRestricted @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("categories")
+  @@unique([userId, refreshToken])
 }
 
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  definition           String?
+  definitionNormalized String?
+  nameNormalized       String? @unique
+  parentId             Int?
+
+  children Category[] @relation("categories_categories")
+  entries  Entry[]
+  parent   Category?  @relation("categories_categories", fields: [parentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
 model Entry {
-  id                          Int      @id @default(autoincrement())
-  slug                        String   @unique
-  name                        String   @unique
-  nameNormalized              String?  @map("name_normalized")
-  definition                  String?
-  definitionNormalized        String?  @map("definition_normalized")
-  notes                       String?
-  notesNormalized             String?  @map("notes_normalized")
-  accessCount                 Int      @default(0) @map("access_count")
- 
-  references      Reference[] @relation("entries_references")
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  accessCount Int    @default(0)
 
-  media           EntryMedia[]
-  
-  variations      Variation[]
-  translations    Translation[]
+  definition           String?
+  definitionNormalized String?
+  nameSlug             String? @unique
+  nameNormalized       String?
+  notes                String?
+  notesNormalized      String?
+  categoryId           Int?
 
-  entries         Entry[]   @relation("entries_entries")
-  relatedEntries  Entry[]   @relation("entries_entries")
+  category     Category?      @relation(fields: [categoryId], references: [id])
+  changes      EntryChanges[]
+  media        EntryMedia[]
+  translations Translation[]
+  references   Reference[]
+  variations   Variation[]
 
-  categoryId      Int?       @map("category_id")
-  category        Category?  @relation(fields: [categoryId], references: [id])
+  entries        Entry[] @relation("EntryToEntry")
+  relatedEntries Entry[] @relation("EntryToEntry")
 
-  entryChanges    EntryChanges[]
-
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-
-  @@map("entries")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EntryChanges {
-  id          Int       @id @default(autoincrement())
-  entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  id      Int    @id @default(autoincrement())
+  entryId Int
+  changes String
 
-  userId      Int?       @map("user_id")
-  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String?
 
-  changes     String    @map("changes")
+  user  AppUser? @relation(fields: [userId], references: [id])
+  entry Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@map("entries_changes")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EntryMedia {
-  id          Int       @id @default(autoincrement())
-  
-  entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  id      Int @id @default(autoincrement())
+  entryId Int
+  mediaId Int
 
-  mediaId     Int       @map("media_id")
-  media       Media     @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  position Int?
 
-  position    Int?
+  entry Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  media AppMedia @relation(fields: [mediaId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@map("entries_media")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Language {
-  id            Int       @id @default(autoincrement())
-  name          String    @unique
-  nameNormalized String?  @map("name_normalized")
-  abbreviation  String?   @unique
-  code          String?   @unique
+  id   Int    @id @default(autoincrement())
+  name String @unique
 
-  translations  Translation[]
+  nameNormalized String?
+  abbreviation   String? @unique
+  code           String? @unique
 
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  translations Translation[]
 
-  @@map("languages")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-
-model Media {
-  id          Int       @id @default(autoincrement())
-  name        String
-  path        String?
-  subtitle    String?
-  subtitleNormalized String? @map("subtitle_normalized")
-
-  private     Boolean?   @default(false)
-  // TODO: create a media type model
-  type        String?
-
-  entries     EntryMedia[]
-
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@map("media")
-}
-
-model User {
-  id            Int         @id @default(autoincrement())
-  email         String      @unique @map("email") 
-  name          String      @unique @default("")
-  nameNormalized String?    @map("name_normalized")
-
-  password      String   
-
-  role          Int?      @default(1)
-
-  refreshToken  String?     @unique @map("refresh_token")
-
-  EntryChanges  EntryChanges[]
-
-  createdAt     DateTime?   @default(now()) @map("created_at")
-  updatedAt     DateTime?   @updatedAt @map("updated_at")
-
-  @@map("users")
-}
-  
 model Variation {
-  id          Int       @id @default(autoincrement())
-  name        String
-  nameNormalized String? @map("name_normalized")
+  id   Int    @id @default(autoincrement())
+  name String
 
-  entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  nameNormalized String?
 
-  @@map("variations")
+  entryId Int
+  entry   Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Translation {
-  id          Int       @id @default(autoincrement())
-  name        String
-  nameNormalized String? @map("name_normalized")
+  id         Int    @id @default(autoincrement())
+  name       String
+  languageId Int
+  entryId    Int
 
-  languageId  Int
-  language    Language  @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  nameNormalized String?
 
-  entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entry    Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@map("translations")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Reference {
-  id          Int       @id @default(autoincrement())
-  name        String
-  nameNormalized String? @map("name_normalized")
-  
-  entries     Entry[]   @relation("entries_references")
+  id   Int    @id @default(autoincrement())
+  name String
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  nameNormalized String?
 
-  @@map("references")
+  entries Entry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-
 model WebPage {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  nameNormalized String? @map("name_normalized")
-  menuName    String    @map("menu_name")
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  content  String
+  menuName String
 
-  slug        String    @unique
+  contentNormalized String?
+  nameSlug          String? @unique
+  nameNormalized    String?
 
-  content     String
-  contentNormalized String? @map("content_normalized")
-
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@map("web_pages")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
