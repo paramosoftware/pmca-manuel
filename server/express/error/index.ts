@@ -28,6 +28,16 @@ export class InvalidCredentialError extends CustomError {
     }
 }
 
+export class UnauthorizedError extends CustomError {
+    public statusCode: number;
+
+    constructor(message : string) {
+        super(message);
+        this.name = 'UnauthorizedError';
+        this.statusCode = 401;
+    }
+}
+
 export class ServerError extends CustomError {
     public statusCode: number;
 

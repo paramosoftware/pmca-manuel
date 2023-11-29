@@ -1,4 +1,4 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { Prisma } from "@prisma/client";
 import type { ErrorRequestHandler } from "express";
 import multer from "multer";
 import { CustomError } from ".";
@@ -12,11 +12,15 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
   if (err instanceof multer.MulterError) {
     res.status(400).json({ error: err.message });
-  } else if (err instanceof PrismaClientKnownRequestError) {
+  } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === 'P2002') {
       res.status(400).json({
         message: 'unique',
         field: err.meta.target[0]
+      });
+    } else if (err.code === 'P2025') {
+      res.status(400).json({
+        message: 'Record or related record not found',
       });
     } else {
       res.status(500).json({ error: 'An unexpected error occurred' });
