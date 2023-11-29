@@ -1,148 +1,91 @@
+
+import type * as Prisma from '@prisma/client';
 export { };
 
 declare global {
 
-    export interface Category {
-        id: number;
-        name: string;
-        definition?: string;
-        parentId?: number;
-        children?: Category[];
-        entries?: Entry[];
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
+    export type AppGenderNoun = Prisma.AppGenderNoun;
 
-    export interface Change {
-        added?: string[];
-        removed?: string[];
-        new?: string,
-        old?: string
-    }
-    
-    export interface Entry {
-        id: number;
-        slug?: string;
-        name: string;
-        definition?: string;
-        notes?: string;
-        references?: Reference[];
-        media?: EntryMedia[];
-        variations?: Variation[];
-        translations?: Translation[];
-        relatedEntries?: Entry[];
-        entryChanges?: EntryChanges[];
+    export type AppGroup = Prisma.AppGroup & {
+        users: AppUser[];
+        resources: AppResource[];
+    };
+
+    export type AppGroupResource = Prisma.AppGroupResource & {
+        group: AppGroup;
+        resource: AppResource;
+    };
+
+    export type AppGroupUser = Prisma.AppGroupUser & {
+        group: AppGroup;
+        user: AppUser;
+    };
+
+    export type AppMedia = Prisma.AppMedia & {
+        entryMedia: EntryMedia[];
+    };
+
+    export type AppResource = Prisma.AppResource & {
+        groups?: AppGroup[];
+    };
+
+    export type AppUser = Prisma.AppUser & {
+        restricted?: AppUserRestricted;
+    };
+
+    export type AppUserRestricted = Prisma.AppUserRestricted & {
+        user?: AppUser;
+    };
+
+    export type AppUserSession = Prisma.AppUserSession & {
+        user?: AppUser;
+    };
+
+    export type Category = Prisma.Category & {
+       children?: Category[];
+       entries?: Entry[];
+    };
+
+    export type Entry = Prisma.Entry & {
         category?: Category;
-        categoryId?: number;
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-
-    export interface EntryChanges {
-        id: number;
-        entryId: number;
-        entry: Entry;
-        userId: number;
-        user?: User;
-        changes: string;
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-    
-    export interface Language {
-        id: number;
-        name: string;
-        abbreviation?: string;
-        code?: string;
         translations?: Translation[];
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-
-    export interface EntryMedia {
-        id: number;
-        mediaId: number;
-        entryId: number;
-        position?: number;
-
-        media?: Media;
-        entry?: Entry;
-
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-
-    export interface Media {
-        id: number;
-        name: string;
-        path?: string;
-        subtitle?: string;
-        private?: boolean;
-        position?: number;
-        type?: string;
-        entries?: EntryMedia[];
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-
-
-    export interface User {
-        id: number;
-        email: string;
-        password: string;
-
-        refreshToken: string;
-
-        name: string;
-        
-        firstName?: string;
-        lastName?: string;
-
-        role?: number;
-
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-
-    export interface Reference {
-        id: number;
-        name: string;
-
+        variations?: Variation[];
+        references?: Reference[];
+        entryChanges?: EntryChanges[];
+        media?: AppMedia[];
+        relatedEntries?: Entry[];
         entries?: Entry[];
+    };
 
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
 
-    export interface Translation {
-        id: number;
-        name: string;
-        language?: Language;
-        languageId?: number;
-        entry: Entry;
-        createdAt?: Date;
-        updatedAt?: Date;   
-    }
-
-    export interface Variation {
-        id?: number;
-        name: string;
+    export type EntryChanges = Prisma.EntryChanges & {
         entry?: Entry;
-    }
+        user?: AppUser;
+    };
+
+    export type EntryMedia = Prisma.EntryMedia & {
+        entry?: Entry;
+        media?: AppMedia;
+    };
 
 
-    export interface WebPage {
-        id: number;
-        name: string;
-        menuName?: string;
+    export type Language = Prisma.Language & {
+        translations?: Translation[];
+    };
+
+    export type Variation = Prisma.Variation & {
+        entry?: Entry;
+    };
 
 
-        slug: string;
+    export type Translation = Prisma.Translation & {
+        entry?: Entry;
+        language?: Language;
+    };
 
-        content?: string;
+    export type Reference = Prisma.Reference & {
+        entries?: Entry[];
+    };
 
-        createdAt?: Date;
-        updatedAt?: Date;
-
-    }
+    export type WebPage = Prisma.WebPage;
 }
