@@ -15,7 +15,7 @@ export async function logout(accessToken: string, res: express.Response, next: e
     const decodedToken = decodeJwt(accessToken, process.env.ACCESS_TOKEN_SECRET!, true) as { sessionId: string; };
 
     if (!decodedToken) {
-        next(new InvalidCredentialError('Invalid credentials'));
+        return next();
     }
 
     await deleteSession(decodedToken.sessionId);
@@ -147,7 +147,7 @@ export async function findUserByLoginOrId(login: string, includeRestricted = fal
 export async function deleteSession(sessionId: string) {
 
     try {
-        await prisma.appUserSession.delete({
+        await prisma.appUserSession.deleteMany({
             where: {
                 id: sessionId,
             },
