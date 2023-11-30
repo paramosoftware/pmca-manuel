@@ -57,7 +57,7 @@ export async function deleteOneOrManyWithQuery(model: string, body: Partial<Pagi
 
         const entryMedia: string | any[] = [];
 
-        const query = convertPaginatedQueryToPrismaQuery(request);
+        const query = convertPaginatedQueryToPrismaQuery(request, model);
 
         // TODO: Temporary solution for deleting media
         if (model === 'entry') {

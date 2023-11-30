@@ -36,8 +36,7 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
         const field = fieldsMap.get(key);
 
         if (field === undefined || body[key] === undefined) {
-            // TODO: Throw error if the field is not found ?
-            return;
+            throw new ApiValidationError(key + ' is not a valid field for ' + model);
         }
 
 
@@ -309,7 +308,7 @@ export function createRequest(body: Partial<PaginatedQuery>) {
         select: body.select || undefined,
         where: body.where || undefined,
         include: body.include || undefined,
-        orderBy: body.orderBy || { id: 'asc' }
+        orderBy: body.orderBy || undefined
     };
 
     return request;
@@ -390,9 +389,9 @@ function convertStringToObject(string: string, isWhere: boolean = false) {
     return object;
 }
 
-export function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery) {
+export function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery, model: string) {
 
-    const prismaQuery = convertQueryToPrismaQuery(request);
+    const prismaQuery = convertQueryToPrismaQuery(request, model);
 
     if (request.pageSize === -1) {
         prismaQuery.take = undefined;
@@ -413,50 +412,63 @@ export function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery) {
 
 }
 
-function convertQueryToPrismaQuery(query: Query) {
+function convertQueryToPrismaQuery(query: Query, model: string) {
+
+    const modelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === model.toLowerCase())?.fields;
+    const fieldsMap = new Map<string, Prisma.DMMF.Field>();
+
+    modelFields?.forEach(f => {
+        fieldsMap.set(f.name, f);
+    });
 
     const prismaQuery: any = {};
 
     if (query.select) {
         prismaQuery.select = {};
         query.select.forEach(field => {
+
+            validateFieldInModel(fieldsMap, field, model);
             prismaQuery.select[field] = true;
+
         });
     }
 
     if (query.where) {
-        prismaQuery.where = convertWhereToPrismaQuery(query.where);
-    }
+        prismaQuery.where = convertWhereToPrismaQuery(query.where, model, fieldsMap);
+    } 
 
     if (query.include) {
         if (query.select) {
 
-            const include = convertIncludeToPrismaQuery(query.include);
+            const include = convertIncludeToPrismaQuery(query.include, model, fieldsMap);
 
             prismaQuery.select = {
                 ...prismaQuery.select,
                 ...include
             };
         } else {
-            prismaQuery.include = convertIncludeToPrismaQuery(query.include);
+            prismaQuery.include = convertIncludeToPrismaQuery(query.include, model, fieldsMap);
         }
     }
 
+    if (query.orderBy === undefined) {
+        query.orderBy = fieldsMap.get('name') ? { name: 'asc' } : fieldsMap.get('id') ? { id: 'asc' } : undefined;
+    }
+
     if (query.orderBy) {
-        prismaQuery.orderBy = convertOrderToPrismaQuery(query.orderBy);
+        prismaQuery.orderBy = convertOrderToPrismaQuery(query.orderBy, model, fieldsMap);
     }
 
     return prismaQuery;
 }
 
-export function convertWhereToPrismaQuery(where: Where) {
+export function convertWhereToPrismaQuery(where: Where, model: string, fieldsMap: Map<string, Prisma.DMMF.Field>) {
 
-    const prismaQuery: any = {};
+    let prismaQuery: any = {};
 
     const keys = Object.keys(where);
 
     keys.forEach(key => {
-
 
         if (key === 'and' || key === 'or' || key === 'not') {
 
@@ -468,13 +480,18 @@ export function convertWhereToPrismaQuery(where: Where) {
                 // @ts-ignore
                 where[key].forEach(condition => {
                     const field = Object.keys(condition)[0];
-                    prismaQuery[operator].push({ [field]: convertConditionToPrismaQuery(condition[field] as Condition) });
+                    prismaQuery[operator].push(convertConditionToPrismaQuery(field, condition[field] as Condition, model, fieldsMap));
                 });
+
             } else {
-                prismaQuery[key].push(convertConditionToPrismaQuery(where[key] as Condition));
+
+                prismaQuery = convertConditionToPrismaQuery(key, where[key] as Condition, model, fieldsMap);
+
             }
+
         } else {
-            prismaQuery[key] = convertConditionToPrismaQuery(where[key] as Condition);
+
+            prismaQuery = convertConditionToPrismaQuery(key, where[key] as Condition, model, fieldsMap);
         }
 
     });
@@ -483,54 +500,80 @@ export function convertWhereToPrismaQuery(where: Where) {
 
 }
 
-function convertConditionToPrismaQuery(condition: Condition) {
+function convertConditionToPrismaQuery(field: string, condition: Condition, model: string, fieldsMap: Map<string, Prisma.DMMF.Field>) {
+
+    let isNormalized = false;
+
+    validateFieldInModel(fieldsMap, field, model)
+
+    if (fieldsMap.get(field + 'Normalized') !== undefined) {
+        field = field + 'Normalized';
+        isNormalized = true;
+    }
 
     const prismaQuery: any = {};
+    prismaQuery[field] = {};
 
     if (condition.operator === undefined) {
 
         if (Array.isArray(condition)) {
-            prismaQuery.in = condition;
+            prismaQuery[field].in = condition;
         } else {
-            prismaQuery.equals = normalizeString(condition as unknown as string);
+            prismaQuery[field].equals = isNormalized ? normalizeString(condition as unknown as string) : condition;
         }
 
         return prismaQuery;
     }
+    
+    if (typeof condition.operator !== 'string') {
+        throw new ApiValidationError('Operator must be a string in ' + field + ' for ' + model);
+    }
+
+    if (condition.value === undefined) {
+        throw new ApiValidationError('Value must be defined in ' + field + ' for ' + model);
+    }
+
+    condition.operator = condition.operator.toLowerCase();
 
     switch (condition.operator) {
         case '=' || 'eq':
-            prismaQuery.equals = normalizeString(condition.value as string);
+            prismaQuery[field].equals = isNormalized ? normalizeString(condition.value as string) : condition.value;
             break;
         case '!=' || 'not':
-            prismaQuery.not = { equals: condition.value };
+            prismaQuery[field].not = { equals: condition.value };
             break;
         case '>' || 'gt':
-            prismaQuery.gt = condition.value;
+            prismaQuery[field].gt = parseNumber(condition.value);
             break;
         case '<' || 'lt':
-            prismaQuery.lt = condition.value;
+            prismaQuery[field].lt = parseNumber(condition.value);
             break;
         case '>=' || 'gte':
-            prismaQuery.gte = condition.value;
+            prismaQuery[field].gte = parseNumber(condition.value);
             break;
         case '<=' || 'lte':
-            prismaQuery.lte = condition.value;
+            prismaQuery[field].lte = parseNumber(condition.value);
             break;
         case 'like':
-            prismaQuery.contains = normalizeString(condition.value as string);
+            prismaQuery[field].contains = isNormalized ? normalizeString(condition.value as string) : condition.value;
             break;
         case 'notlike':
-            prismaQuery.not = { contains: normalizeString(condition.value as string) };
+            prismaQuery[field].not = { contains: isNormalized ? normalizeString(condition.value as string) : condition.value };
+            break;
+        case 'startswith' || 'start':
+            prismaQuery[field].startsWith = isNormalized ? normalizeString(condition.value as string) : condition.value;
+            break;
+        case 'endswith' || 'end':
+            prismaQuery[field].endsWith = isNormalized ? normalizeString(condition.value as string) : condition.value;
             break;
         case 'in':
-            prismaQuery.in = Array.isArray(condition.value) ? condition.value : [condition.value];
+            prismaQuery[field].in = Array.isArray(condition.value) ? condition.value : [condition.value];
             break;
         case 'notin':
-            prismaQuery.not = { in: Array.isArray(condition.value) ? condition.value : [condition.value] };
+            prismaQuery[field].not = { in: Array.isArray(condition.value) ? condition.value : [condition.value] };
             break;
         default:
-            prismaQuery.equals = normalizeString(condition.value as string);
+            prismaQuery[field].equals = isNormalized ? normalizeString(condition.value as string) : condition.value;
             break;
     }
 
@@ -538,45 +581,62 @@ function convertConditionToPrismaQuery(condition: Condition) {
 
 }
 
-function convertIncludeToPrismaQuery(include: Include | string[]) {
+function convertIncludeToPrismaQuery(include: Include | string[], model: string, fieldsMap: Map<string, Prisma.DMMF.Field>) {
 
     const prismaQuery: any = {};
 
     if (Array.isArray(include)) {
+
         include.forEach(field => {
+
+            validateFieldInModel(fieldsMap, field, model);
+
             prismaQuery[field] = true;
         });
-    } else {
-        const keys = Object.keys(include);
 
-        keys.forEach(key => {
-            if (typeof include[key] === 'boolean') {
-                prismaQuery[key] = include[key];
+    } else {
+        const fields = Object.keys(include);
+
+        fields.forEach(field => {
+
+            validateFieldInModel(fieldsMap, field, model);
+
+            if (typeof include[field] === 'boolean') {
+                prismaQuery[field] = include[field];
             } else {
-                prismaQuery[key] = convertQueryToPrismaQuery(include[key] as Query);
+                prismaQuery[field] = convertQueryToPrismaQuery(include[field] as Query, model);
             }
         });
     }
-
 
     return prismaQuery;
 
 }
 
-function convertOrderToPrismaQuery(order: Order | string[]) {
+function validateFieldInModel(fieldsMap: Map<string, Prisma.DMMF.Field>, field: string, model: string = '') {
+    if (fieldsMap.get(field) === undefined) {
+        throw new ApiValidationError(field + ' is not a valid field for ' + model);
+    }
+}
 
+function convertOrderToPrismaQuery(order: Order | string[], model: string, fieldsMap: Map<string, Prisma.DMMF.Field>) {
     const orderBy: Order[] = [];
 
-    if (Array.isArray(order)) {
-        order.forEach(field => {
-            orderBy.push({ [field]: 'asc' });
-        });
-    } else {
-        const keys = Object.keys(order);
+    const processField = (field: string, direction: 'asc' | 'desc' = 'asc') => {
 
-        keys.forEach(key => {
-            orderBy.push({ [key]: order[key] });
-        });
+        validateFieldInModel(fieldsMap, field, model);
+
+        if (fieldsMap.get(field + 'Normalized') !== undefined) {
+            field = field + 'Normalized';
+        }
+
+        orderBy.push({ [field]: direction });
+    };
+
+    if (Array.isArray(order)) {
+        order.forEach(field => processField(field));
+    } else {
+        Object.entries(order).forEach(([key, direction]) => processField(key, direction));
     }
 
     return orderBy;

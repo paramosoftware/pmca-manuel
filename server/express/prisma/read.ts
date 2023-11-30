@@ -19,7 +19,7 @@ export async function readOne(model: string, id: string, queryParams: ParsedQs, 
 
         validatePaginatedQuery(request);
 
-        const query = convertPaginatedQueryToPrismaQuery(request);
+        const query = convertPaginatedQueryToPrismaQuery(request, model);
 
         query.where = { id: isNaN(Number(id)) ? id : Number(id) };
 
@@ -46,7 +46,7 @@ export async function readMany(model: string, queryParams: ParsedQs, next: expre
 
         validatePaginatedQuery(request);
 
-        const query = convertPaginatedQueryToPrismaQuery(request);
+        const query = convertPaginatedQueryToPrismaQuery(request, model);
     
         return await executePaginatedPrismaFindQuery(model, query);
 
@@ -68,7 +68,7 @@ export async function readOneOrManyWithQuery(model: string, body: Partial<Pagina
 
         validatePaginatedQuery(request);
 
-        const query = convertPaginatedQueryToPrismaQuery(request);
+        const query = convertPaginatedQueryToPrismaQuery(request, model);
     
         return await executePaginatedPrismaFindQuery(model, query);
 
