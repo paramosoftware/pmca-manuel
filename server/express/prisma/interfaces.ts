@@ -1,4 +1,4 @@
-type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like' | 'not like' | 'in' | 'not in';
+type Operator = string;
 
 type Direction = 'asc' | 'desc';
 
@@ -11,10 +11,8 @@ export interface Where {
 
 export interface Condition {
     [key: string]: {
-        operator: Operator;
-        value: string | number | string[] | number[];
-    } |
-    string | number | string[] | number[];
+        [key in Operator]?: string | number | string[] | number[]
+    } | string | number | string[] | number[] | Condition | Condition[] | undefined;
 }
 
 export interface Order {

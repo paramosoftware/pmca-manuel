@@ -13,13 +13,14 @@ export async function readOne(model: string, id: string, queryParams: ParsedQs, 
         }
     
         const request = createRequest(body);
-
-        request.orderBy = undefined;
+        
         request.pageSize = -1;
 
         validatePaginatedQuery(request);
 
         const query = convertPaginatedQueryToPrismaQuery(request, model);
+
+        query.orderBy = undefined;
 
         query.where = { id: isNaN(Number(id)) ? id : Number(id) };
 

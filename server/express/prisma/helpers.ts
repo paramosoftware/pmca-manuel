@@ -35,8 +35,10 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
 
         const field = fieldsMap.get(key);
 
-        if (field === undefined || body[key] === undefined) {
-            throw new ApiValidationError(key + ' is not a valid field for ' + model);
+        validateFieldInModel(fieldsMap, key, model);
+
+        if (!field || body[key] === undefined) {
+            return;
         }
 
 
@@ -412,7 +414,7 @@ export function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery, mode
 
 }
 
-function convertQueryToPrismaQuery(query: Query, model: string) {
+function convertQueryToPrismaQuery(query: Query, model: string, addOrderBy: boolean = true) {
 
     const modelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === model.toLowerCase())?.fields;
     const fieldsMap = new Map<string, Prisma.DMMF.Field>();
@@ -451,7 +453,7 @@ function convertQueryToPrismaQuery(query: Query, model: string) {
         }
     }
 
-    if (query.orderBy === undefined) {
+    if (query.orderBy === undefined && addOrderBy) {
         query.orderBy = fieldsMap.get('name') ? { name: 'asc' } : fieldsMap.get('id') ? { id: 'asc' } : undefined;
     }
 
@@ -485,13 +487,15 @@ export function convertWhereToPrismaQuery(where: Where, model: string, fieldsMap
 
             } else {
 
-                prismaQuery = convertConditionToPrismaQuery(key, where[key] as Condition, model, fieldsMap);
+                prismaQuery[operator].push(convertConditionToPrismaQuery(key, where[key] as Condition, model, fieldsMap));
 
             }
 
         } else {
 
-            prismaQuery = convertConditionToPrismaQuery(key, where[key] as Condition, model, fieldsMap);
+            prismaQuery['AND'] = prismaQuery['AND'] || [];
+
+            prismaQuery['AND'].push(convertConditionToPrismaQuery(key, where[key] as Condition, model, fieldsMap));
         }
 
     });
@@ -514,66 +518,64 @@ function convertConditionToPrismaQuery(field: string, condition: Condition, mode
     const prismaQuery: any = {};
     prismaQuery[field] = {};
 
-    if (condition.operator === undefined) {
+    if (Array.isArray(condition) || typeof condition === 'string' || typeof condition === 'number') {
 
         if (Array.isArray(condition)) {
             prismaQuery[field].in = condition;
         } else {
-            prismaQuery[field].equals = isNormalized ? normalizeString(condition as unknown as string) : condition;
+            prismaQuery[field].equals = isNormalized ? normalizeString(condition as string) : condition;
         }
 
         return prismaQuery;
     }
+
+    const key = Object.keys(condition)[0];
     
-    if (typeof condition.operator !== 'string') {
-        throw new ApiValidationError('Operator must be a string in ' + field + ' for ' + model);
-    }
+    const operator = key.toLowerCase();
+    const value = condition[key];
 
-    if (condition.value === undefined) {
-        throw new ApiValidationError('Value must be defined in ' + field + ' for ' + model);
-    }
-
-    condition.operator = condition.operator.toLowerCase();
-
-    switch (condition.operator) {
-        case '=' || 'eq':
-            prismaQuery[field].equals = isNormalized ? normalizeString(condition.value as string) : condition.value;
+    switch (operator) {
+        case '=' || 'eq' || 'equals':
+            prismaQuery[field].equals = isNormalized ? normalizeString(value as string) : value;
             break;
         case '!=' || 'not':
-            prismaQuery[field].not = { equals: condition.value };
+            prismaQuery[field].not = { equals: value };
             break;
         case '>' || 'gt':
-            prismaQuery[field].gt = parseNumber(condition.value);
+            prismaQuery[field].gt = parseNumber(value);
             break;
         case '<' || 'lt':
-            prismaQuery[field].lt = parseNumber(condition.value);
+            prismaQuery[field].lt = parseNumber(value);
             break;
         case '>=' || 'gte':
-            prismaQuery[field].gte = parseNumber(condition.value);
+            prismaQuery[field].gte = parseNumber(value);
             break;
         case '<=' || 'lte':
-            prismaQuery[field].lte = parseNumber(condition.value);
+            prismaQuery[field].lte = parseNumber(value);
             break;
-        case 'like':
-            prismaQuery[field].contains = isNormalized ? normalizeString(condition.value as string) : condition.value;
+        case 'like' || 'contains':
+            prismaQuery[field].contains = isNormalized ? normalizeString(value as string) : value;
             break;
         case 'notlike':
-            prismaQuery[field].not = { contains: isNormalized ? normalizeString(condition.value as string) : condition.value };
+            prismaQuery[field].not = { contains: isNormalized ? normalizeString(value as string) : value };
             break;
         case 'startswith' || 'start':
-            prismaQuery[field].startsWith = isNormalized ? normalizeString(condition.value as string) : condition.value;
+            prismaQuery[field].startsWith = isNormalized ? normalizeString(value as string) : value;
             break;
         case 'endswith' || 'end':
-            prismaQuery[field].endsWith = isNormalized ? normalizeString(condition.value as string) : condition.value;
+            prismaQuery[field].endsWith = isNormalized ? normalizeString(value as string) : value;
             break;
         case 'in':
-            prismaQuery[field].in = Array.isArray(condition.value) ? condition.value : [condition.value];
+            prismaQuery[field].in = Array.isArray(value) ? value : [value];
             break;
         case 'notin':
-            prismaQuery[field].not = { in: Array.isArray(condition.value) ? condition.value : [condition.value] };
+            prismaQuery[field].not = { in: Array.isArray(value) ? value : [value] };
+            break;
+        case 'isnull':
+            prismaQuery[field].equals = value ? null : { not: null };
             break;
         default:
-            prismaQuery[field].equals = isNormalized ? normalizeString(condition.value as string) : condition.value;
+            prismaQuery[field].equals = isNormalized ? normalizeString(value as string) : value;
             break;
     }
 
@@ -600,11 +602,17 @@ function convertIncludeToPrismaQuery(include: Include | string[], model: string,
         fields.forEach(field => {
 
             validateFieldInModel(fieldsMap, field, model);
+            const modelField = fieldsMap.get(field);
 
             if (typeof include[field] === 'boolean') {
                 prismaQuery[field] = include[field];
             } else {
-                prismaQuery[field] = convertQueryToPrismaQuery(include[field] as Query, model);
+
+                if (modelField?.kind !== 'object') {
+                    throw new ApiValidationError(field + ' is not a relation');
+                }
+
+                prismaQuery[field] = convertQueryToPrismaQuery(include[field] as Query, modelField?.type || '', false);
             }
         });
     }
@@ -744,8 +752,43 @@ function validateOrder(order: Order | string[]) {
 
 function validateCondition(condition: Condition) {
 
-    if ((condition.operator && !condition.value) || (!condition.operator && condition.value)) {
-        throw new ApiValidationError('Condition must have both an operator and a value');
+    if (typeof condition === 'string' || typeof condition === 'number' || Array.isArray(condition)) {
+        return;
     }
 
+    const keys = Object.keys(condition);
+
+    if (keys.length !== 1) {
+        throw new ApiValidationError('Condition must have only one operator');
+    }
+
+    const key = keys[0];
+
+    const operator = key.toLowerCase();
+
+    const value = condition[key];
+
+    const validOperators = getValidOperators();
+
+    if (!validOperators.includes(operator)) {
+        throw new ApiValidationError('Operator must be one of ' + validOperators.join(', '));
+    }
+
+    if (Array.isArray(value)) {
+        if (operator !== 'in' && operator !== 'notin') {
+            throw new ApiValidationError('Operator must be in or notin');
+        }
+    } 
+
+    if (operator === 'isnull') {
+        if (typeof value !== 'boolean') {
+            throw new ApiValidationError('Value must be a boolean for isNull operator');
+        }
+    }
+
+
+}
+
+export function getValidOperators() {
+    return ['=', 'eq', '!=', 'not', '>', 'gt', '<', 'lt', '>=', 'gte', '<=', 'lte', 'contains', 'like', 'notlike', 'startswith', 'start', 'endswith', 'end', 'in', 'notin', 'equals', 'isnull'];
 }
