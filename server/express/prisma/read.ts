@@ -4,61 +4,85 @@ import type { ParsedQs } from 'qs';
 import type { PaginatedQuery, Query } from './interfaces';
 import { createRequest, validatePaginatedQuery, convertPaginatedQueryToPrismaQuery, convertQueryParamsToPaginatedQuery } from './helpers';
 
-export async function readOne(model: string, id: string, body: Partial<PaginatedQuery>, res: express.Response, next: express.NextFunction) {
-
-    const request = createRequest(body);
-    request.orderBy = undefined;
-    request.pageSize = -1;
+export async function readOne(model: string, id: string, queryParams: ParsedQs, body: any | undefined, next: express.NextFunction | undefined = undefined) {
 
     try {
+
+        if (body === undefined) {
+            body = convertQueryParamsToPaginatedQuery(queryParams);
+        }
+    
+        const request = createRequest(body);
+
+        request.orderBy = undefined;
+        request.pageSize = -1;
+
         validatePaginatedQuery(request);
 
         const query = convertPaginatedQueryToPrismaQuery(request);
 
-        query.where = { id: Number(id) };
+        query.where = { id: isNaN(Number(id)) ? id : Number(id) };
 
         // @ts-ignore
         const data = await prisma[model].findUnique(query);
 
-        res.json(data);
+        return data;
 
     } catch (error) {
-        return next(error);
+        if (next) {
+            next(error);
+        } else {
+            throw error;
+        }
+        
     }
 }
 
-export async function readMany(model: string, queryParams: ParsedQs, res: express.Response, next: express.NextFunction) {
-
-    const body = convertQueryParamsToPaginatedQuery(queryParams);
-    const request = createRequest(body);
+export async function readMany(model: string, queryParams: ParsedQs, next: express.NextFunction | undefined = undefined) {
 
     try {
+        const body = convertQueryParamsToPaginatedQuery(queryParams);
+        const request = createRequest(body);
+
         validatePaginatedQuery(request);
+
+        const query = convertPaginatedQueryToPrismaQuery(request);
+    
+        return await executePaginatedPrismaFindQuery(model, query);
+
     } catch (error) {
-        return next(error);
+        if (next) {
+            next(error);
+        } else {
+            throw error;
+        }
     }
 
-    const query = convertPaginatedQueryToPrismaQuery(request);
-
-    await executePaginatedPrismaFindQuery(model, query, res, next);
 }
 
-export async function readOneOrManyWithQuery(model: string, body: Partial<PaginatedQuery>, res: express.Response, next: express.NextFunction) {
-
-    const request = createRequest(body);
+export async function readOneOrManyWithQuery(model: string, body: Partial<PaginatedQuery>, next: express.NextFunction | undefined = undefined) {
 
     try {
+
+        const request = createRequest(body);
+
         validatePaginatedQuery(request);
+
+        const query = convertPaginatedQueryToPrismaQuery(request);
+    
+        return await executePaginatedPrismaFindQuery(model, query);
+
     } catch (error) {
-        return next(error);
+        if (next) {
+            next(error);
+        } else {
+            throw error;
+        }
     }
 
-    const query = convertPaginatedQueryToPrismaQuery(request);
-
-    await executePaginatedPrismaFindQuery(model, query, res, next);
 }
 
-async function executePaginatedPrismaFindQuery(model: string, query: Query, res: express.Response, next: express.NextFunction) {
+async function executePaginatedPrismaFindQuery(model: string, query: Query) {
 
     try {
         const [total, data] = await prisma.$transaction([
@@ -70,24 +94,24 @@ async function executePaginatedPrismaFindQuery(model: string, query: Query, res:
 
     
         if (query.take === undefined || !query.skip === undefined) {
-            return res.json({
+            return {
                 currentPage: 1,
                 pageSize: total,
                 totalPages: 1,
                 totalCount: total,
                 data
-            });
+            };
         } else {
-            res.json({
+            return {
                 currentPage: query.skip ? query.skip / query.take + 1 : 1,
                 pageSize: query.take,
                 totalPages: Math.ceil(total / query.take),
                 totalCount: total,
                 data
-            });
+            };
         }
 
     } catch (error) {
-        next(error);
+        throw error;
     }
 }

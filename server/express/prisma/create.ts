@@ -1,8 +1,8 @@
-import express from 'express';
 import { prisma } from '../../prisma/prisma';
 import { convertBodyToPrismaUpdateOrCreateQuery } from './helpers';
+import type express from 'express';
 
-export async function createOneOrMany(model: string, body: any, res: express.Response, next: express.NextFunction) {
+export async function createOneOrMany(model: string, body: any, next: express.NextFunction | undefined = undefined) {
 
     try {
 
@@ -23,12 +23,17 @@ export async function createOneOrMany(model: string, body: any, res: express.Res
         const data = await prisma.$transaction(inserts);
 
         if (data.length === 1) {
-            res.json(data[0]);
+            return data[0];
         } else {
-            res.json(data);
+            return data;
         }
 
     } catch (error) {
-        next(error);
+        if (next) {
+            next(error);
+        } else {
+            throw error;
+        }
     }
+
 }

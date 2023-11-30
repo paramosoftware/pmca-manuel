@@ -1,126 +1,91 @@
 import { Prisma } from '@prisma/client';
-import bcrypt from 'bcrypt';
 import type { ParsedQs } from 'qs';
 import { ApiValidationError } from '../error';
-import { normalizeString, sanitizeHtml } from '../utils';
+import sanitizeHtml from 'sanitize-html'
+import normalizeString from '../../../utils/normalizeString';
 import type { Condition, Include, Order, PaginatedQuery, Query, Where } from './interfaces';
+import  hashPassword from '../../../utils/hashPassword';
+import getBoolean from '../../../utils/getBoolean';
 
 
-export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpdate: boolean = false, isConnectOrCreate: boolean = false, parentModel: string = '') {
+export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpdate: boolean = false, isConnectOrCreate: boolean = false, parentModel: string = '', parentBody = {}) {
 
     const modelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === model.toLowerCase())?.fields;
 
     const prismaQuery: any = {};
 
     if (isConnectOrCreate) {
-        return addConnectOrCreateFields(modelFields, body, parentModel, model);
+        return addConnectOrCreateFields(modelFields, body, model, parentModel, parentBody);
     }
 
     const keys = Object.keys(body);
 
+    const fieldsMap = new Map<string, Prisma.DMMF.Field>();
+
+    modelFields?.forEach(f => {
+
+        if (isFieldMandatory(f, body, parentModel) && !isUpdate) {
+            throw new ApiValidationError(f.name + ' is required for ' + model);
+        }
+
+        fieldsMap.set(f.name, f);
+    });
+
     keys.forEach(key => {
 
-        const field = modelFields?.find(f => f.name === key);
+        const field = fieldsMap.get(key);
 
-        if (field === undefined) {
+        if (field === undefined || body[key] === undefined) {
+            // TODO: Throw error if the field is not found ?
             return;
         }
 
-        if (modelFields?.find(f => f.name === key + 'Normalized') !== undefined) {
 
-            prismaQuery[key] = sanitizeHtml(body[key]);
-            prismaQuery[key + 'Normalized'] = normalizeString(body[key], true);
-
+        if (fieldsMap.get(key + 'Normalized') !== undefined) {
+            prismaQuery[key + 'Normalized'] = normalizeString(body[key]);
         }
 
-        if (key === 'slug') {
+        if (fieldsMap.get(key + 'Slug') !== undefined) {
+            prismaQuery[key + 'Slug'] = normalizeString(body[key], true);
+        }
 
-            prismaQuery[key] = normalizeString(body['name'], true);
+        if (key === 'password') {
+            body[key] = hashPassword(body[key]);
+        }
 
-            // TODO: Temporary? Consider moving this to a separate logic related to auth
-        } else if (key === 'password' && body[key] != undefined) {
+        if (body[key] === '' || body[key] == null) {
+            prismaQuery[key] = null;
+            return;
+        }
 
-            prismaQuery[key] = bcrypt.hashSync(body[key], 10);
+        if (field.type.toLowerCase() === 'int') {
 
-        } else if (field.isReadOnly && field.type.toLowerCase() === 'int') {
+            prismaQuery[key] = processInt(body[key], key);
 
-            if (body[key] === '' || body[key] == 0 || body[key] === null) {
+        } else if (field.type.toLowerCase() === 'string') {
 
-                if (field.isRequired && !field.hasDefaultValue) {
-                    throw new ApiValidationError(key + ' is required for ' + model);
+            prismaQuery[key] = sanitizeHtml(body[key].toString());
+
+        } else if (field.type.toLowerCase() === 'boolean') {
+
+            prismaQuery[key] = processBoolean(body[key], key);
+
+        } else if (field.kind.toLowerCase() === 'object') {
+
+            const relatedModel = field.type;
+
+            if (!field.isList) {
+
+                prismaQuery[key] = processSingleObject(relatedModel, model, body, key, isUpdate);
+
+                if (fieldsMap.get(key + 'Id') !== undefined) {
+                    delete prismaQuery[key + 'Id'];
                 }
-
-                prismaQuery[key] = null;
-
-            } else if (!isNaN(parseInt(body[key]))) {
-
-                prismaQuery[key] = parseInt(body[key]);
 
             } else {
 
-                throw new ApiValidationError(key + ' must be a number');
-
+                prismaQuery[key] = processMultipleObjects(relatedModel, model, body, key, isUpdate);
             }
-
-        } else if (typeof body[key] === 'string') {
-
-            if (body[key] === '') {
-                if (field.isRequired && !field.hasDefaultValue) {
-                    throw new ApiValidationError(key + ' is required for ' + model);
-                }
-
-                prismaQuery[key] = null;
-
-            } else {
-
-                prismaQuery[key] = body[key];
-
-            }
-
-        } else if (Array.isArray(body[key])) {
-
-            prismaQuery[key] = {};
-
-            const relatedModel = field?.type;
-
-            if (!relatedModel) {
-                throw new ApiValidationError('Related model not found in ' + model + ' for ' + key);
-            }
-
-            if (isUpdate) {
-                // check if the related model can exist without the parent model
-                const relatedModelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === relatedModel.toLowerCase())?.fields;
-
-                if (relatedModelFields?.find(f => f.name === model.toLowerCase() + 'Id' && f.isRequired) !== undefined) {
-
-                    prismaQuery[key].deleteMany = { id: { not: { in: body[key].map((item: any) => item.id) } } };
-
-                } else {
-
-                    prismaQuery[key].set = [];
-
-                }
-            }
-
-            prismaQuery[key].connectOrCreate = [];
-            prismaQuery[key].connect = [];
-
-            body[key].forEach((item: any) => {
-
-
-                if (item.id !== undefined && item.id !== 0) {
-
-                    prismaQuery[key].connect.push({ id: item.id });
-
-                } else {
-
-                    item.id = undefined;
-
-                    const relatedObject = convertBodyToPrismaUpdateOrCreateQuery(relatedModel, item, false, true, model);
-                    prismaQuery[key].connectOrCreate.push(relatedObject);
-
-                }
-            });
         }
     });
 
@@ -131,44 +96,170 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
     return prismaQuery;
 }
 
-function addConnectOrCreateFields(modelFields: Prisma.DMMF.Field[] | undefined, body: any, parentModel: string, model: string) {
+function processSingleObject(relatedModel: string, model: string, body: any, key: string, isUpdate: boolean) {
+    if (typeof body[key] !== 'object') {
+        throw new ApiValidationError(key + ' must be an object');
+    }
+
+    const prismaQuery = {} as any;
+
+    if (isUpdate) {
+
+        if (body[key].id !== undefined && body[key].id !== 0) {
+            prismaQuery.connect = { id: body[key].id };
+        } else {
+            // TODO: Upsert if all required fields of the related model are present
+            prismaQuery.update = convertBodyToPrismaUpdateOrCreateQuery(relatedModel, body[key], true, false, model, body);
+        }
+
+    } else {
+        prismaQuery.connectOrCreate = convertBodyToPrismaUpdateOrCreateQuery(relatedModel, body[key], false, true, model, body);
+    }
+
+
+    return prismaQuery;
+}
+
+
+function processMultipleObjects(relatedModel: string, model: string, body: any, key: string, isUpdate: boolean) {
+    if (!Array.isArray(body[key])) {
+        throw new ApiValidationError(key + ' must be an array');
+    }
+
+    const prismaQuery = {} as any;
+
+    if (isUpdate) {
+        // check if the related model can exist without the parent model
+        const relatedModelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === relatedModel.toLowerCase())?.fields;
+
+        if (relatedModelFields?.find(f => f.name === model.toLowerCase() + 'Id' && f.isRequired) !== undefined) {
+    
+            if (Array.isArray(body[key])) {
+                prismaQuery.deleteMany = { id: { not: { in: body[key].map((item: any) => item.id) } } };
+            }
+
+        } else {
+
+            prismaQuery.set = [];
+
+        }
+    }
+
+    prismaQuery.connectOrCreate = [];
+    prismaQuery.connect = [];
+
+    body[key].forEach((item: any) => {
+
+        if (item.id !== undefined && item.id !== 0) {
+
+            prismaQuery.connect.push({ id: item.id });
+
+        } else {
+
+            item.id = undefined;
+
+            const relatedObject = convertBodyToPrismaUpdateOrCreateQuery(relatedModel, item, false, true, model);
+            prismaQuery.connectOrCreate.push(relatedObject);
+
+        }
+    });
+
+    return prismaQuery;
+}
+
+function processBoolean(value: any, key: string) {
+    if (getBoolean(value) !== undefined) {
+        return getBoolean(value);
+    } else {
+        throw new ApiValidationError(key + ' must be a boolean');
+    }
+}
+
+
+function processInt(value: any, key: string) {
+
+    if (!isNaN(parseInt(value))) {
+        return parseInt(value);
+    } else {
+        throw new ApiValidationError(key + ' must be a number');
+    }
+}
+
+function addConnectOrCreateFields(modelFields: Prisma.DMMF.Field[] | undefined, body: any, model: string, parentModel: string, parentBody: any) {
    
     const prismaQuery: any = {};
    
     prismaQuery.where = {};
 
+    let idType = 'int';
+
     modelFields?.forEach(f => {
-        // TODO: check if there is a cleaner way to do this
-        if (f.isRequired && !f.hasDefaultValue && !f.isList && !f.isUpdatedAt && body[f.name] === undefined) {
-
-            if (f.relationFromFields && f.relationFromFields.length > 0) {
-
-                const relatedField = f.relationFromFields[0];
-
-                if (body[relatedField] !== undefined || f.type.toLowerCase() === parentModel.toLowerCase()) {
-                    return;
-                }
-            }
-
-            if (f.kind === 'scalar' && parentModel + 'Id'.toLowerCase() !== f.name.toLowerCase()) {
-                return;
-            }
-
+     
+        if (isFieldMandatory(f, body, parentModel)) {
             throw new ApiValidationError(f.name + ' is required for ' + model);
         }
 
-        if (f.isUnique && f.name !== 'slug') {
-            prismaQuery.where[f.name] = body[f.name];
+        if (f.isUnique) {
+
+            if (body[f.name]) {
+
+               prismaQuery.where[f.name] = body[f.name];
+
+            } else { 
+
+                const foreignKey = parentModel.toLowerCase().replace('app', '') + 'Id';
+
+                if (f.name === foreignKey && parentBody.id) {
+                    prismaQuery.where[f.name] = parentBody.id;
+                } 
+            }
         }
+
+        if (f.name === 'id') {
+            idType = f.type.toLowerCase();
+        }
+
     });
 
     if (Object.keys(prismaQuery.where).length === 0) {
-        prismaQuery.where['id'] = -1;
+        prismaQuery.where['id'] = idType === 'int' ? -1 : '-1';
     }
 
-    prismaQuery.create = convertBodyToPrismaUpdateOrCreateQuery(model, body);
+    prismaQuery.create = convertBodyToPrismaUpdateOrCreateQuery(model, body, false, false, parentModel);
 
     return prismaQuery;
+}
+
+function isFieldMandatory(field: Prisma.DMMF.Field, body: any, parentModel: string) {
+    if (field.isRequired && !field.hasDefaultValue && !field.isList && !field.isUpdatedAt) {
+
+        if (field.relationFromFields && field.relationFromFields.length > 0) {
+
+            const relatedField = field.relationFromFields[0];
+
+            if (body[relatedField] !== undefined || field.type.toLowerCase() === parentModel.toLowerCase()) {
+                return false;
+            }
+        }
+
+        const foreignKey = parentModel.replace('app', '') + 'Id';
+
+        if (field.kind === 'scalar' && foreignKey.toLowerCase() === field.name.toLowerCase()) {
+            return false;
+        }
+
+        if (field.kind === 'object' && field.type.toLowerCase() === parentModel.toLowerCase()) { 
+            return false;
+        }
+
+        if (body[field.name] !== undefined) {
+            return false;
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
 function calculateSkip(pageSize: number, page: number) {
@@ -176,21 +267,39 @@ function calculateSkip(pageSize: number, page: number) {
 }
 
 export function getParamsFromPath(path: string) {
-    const params = path.split('/').filter(param => param !== 'api' && param !== '');
 
-    if (params.length === 1) {
-        return { model: params[0], id: '', query: '' };
+    const info = {
+        isPublic: false,
+        model: '',
+        id: '',
+        hasQuery: false,
+        isUpload: false
+    };
+
+    const parts = path.replace('/api/', '').split('/');
+
+    if (parts[0] === 'public') {
+        info.isPublic = true;
+    } else {
+        info.model = parts[0].charAt(0).toLowerCase() + parts[0].slice(1);
+    }
+    parts.shift();
+
+    if (parts[parts.length - 1] === 'query') {
+        info.hasQuery = true;
+        parts.pop();
+    } 
+
+    if (parts[parts.length - 1] === 'upload') {
+        info.isUpload = true;
+        parts.pop();
     }
 
-    if (params.length === 2) {
-        if (params[1] === 'query') {
-            return { model: params[0], id: '', query: params[1] };
-        } else if (!isNaN(Number(params[1]))) {
-            return { model: params[0], id: params[1], query: '' };
-        }
+    if (parts.length > 0) {
+        info.id = parts[0];
     }
 
-    return { model: '', id: '', query: '' };
+    return info;
 }
 
 export function createRequest(body: Partial<PaginatedQuery>) {

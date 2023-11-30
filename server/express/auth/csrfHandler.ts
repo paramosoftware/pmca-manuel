@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import useGetCookiePrefix from '~/composables/useGetCookiePrefix';
+import getCookiePrefix from '~/utils/getCookiePrefix';
 import { InvalidCredentialError } from '../error';
 
 const csrfHandler = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -11,7 +11,7 @@ const csrfHandler = (req: express.Request, res: express.Response, next: express.
     if (req.method !== 'GET' && req.path !== '/api/auth/login' && !exceptions.includes(req.path)) {
         const csrf = req.headers['x-csrf-token'];
 
-        const cookieName = useGetCookiePrefix() + 'jwt';
+        const cookieName = getCookiePrefix() + 'jwt';
 
         const token = req.cookies[cookieName];
 

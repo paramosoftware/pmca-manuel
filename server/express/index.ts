@@ -4,7 +4,6 @@ import express from 'express'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import auth from './auth'
-import upload from './upload'
 import prismaHandler from './prisma/prismaHandler'
 import errorHandler from './error/errorHandler'
 
@@ -21,7 +20,6 @@ function useApiRoute(app: any, route: string, handler: any) {
 }
 
 useApiRoute(app, '/auth', auth);
-useApiRoute(app, '/upload', upload);
 
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working' });

@@ -1,10 +1,10 @@
 import express from 'express';
 import { prisma } from '../../prisma/prisma';
-import { deleteMedia } from '../utils';
+import { deleteMedia } from './media';
 import type { PaginatedQuery } from './interfaces';
 import { createRequest, validatePaginatedQuery, convertPaginatedQueryToPrismaQuery } from './helpers';
 
-export async function deleteOne(model: string, id: string, res: express.Response, next: express.NextFunction) {
+export async function deleteOne(model: string, id: string, next: express.NextFunction | undefined = undefined) {
 
 
     let entryMedia: string | any[] = [];
@@ -26,38 +26,38 @@ export async function deleteOne(model: string, id: string, res: express.Response
         // @ts-ignore
         const data = await prisma[model].delete({
             where: {
-                id: Number(id)
+                id: isNaN(Number(id)) ? id : Number(id)
             }
         });
-
-        res.json(data);
-
 
         if (entryMedia.length > 0) {
             deleteMedia(entryMedia);
         }
 
+        return data;
+
     } catch (error) {
-        next(error);
+        if (next) {
+            next(error);
+        } else {
+            throw error;
+        }
     }
 }
-export async function deleteOneOrManyWithQuery(model: string, body: Partial<PaginatedQuery>, res: express.Response, next: express.NextFunction) {
+
+export async function deleteOneOrManyWithQuery(model: string, body: Partial<PaginatedQuery>, next: express.NextFunction | undefined = undefined) {
 
     const request = createRequest(body);
     request.orderBy = undefined;
     request.pageSize = -1;
 
     try {
+
         validatePaginatedQuery(request);
-    } catch (error) {
-        return next(error);
-    }
 
-    const entryMedia: string | any[] = [];
+        const entryMedia: string | any[] = [];
 
-    const query = convertPaginatedQueryToPrismaQuery(request);
-
-    try {
+        const query = convertPaginatedQueryToPrismaQuery(request);
 
         // TODO: Temporary solution for deleting media
         if (model === 'entry') {
@@ -75,7 +75,6 @@ export async function deleteOneOrManyWithQuery(model: string, body: Partial<Pagi
                 }
             });
 
-
             entryMediaTemp.forEach(entry => {
                 entryMedia.push(entry);
             });
@@ -88,9 +87,13 @@ export async function deleteOneOrManyWithQuery(model: string, body: Partial<Pagi
             deleteMedia(entryMedia);
         }
 
-        res.json(data);
+        return data;
 
     } catch (error) {
-        next(error);
+        if (next) {
+            next(error);
+        } else {
+            throw error;
+        }
     }
 }
