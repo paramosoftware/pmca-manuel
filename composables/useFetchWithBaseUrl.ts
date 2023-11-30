@@ -1,4 +1,4 @@
-import useGetCookiePrefix from "./useGetCookiePrefix";
+import getCookiePrefix from "../utils/getCookiePrefix";
 
 export const useFetchWithBaseUrl: typeof useFetch = (request, opts?) => {
     const config = useRuntimeConfig()
@@ -6,7 +6,7 @@ export const useFetchWithBaseUrl: typeof useFetch = (request, opts?) => {
     let headers = useRequestHeaders();
 
     if (opts?.method && opts?.method != 'GET') {
-        const csrfToken = useCookie(useGetCookiePrefix() + 'csrf');
+        const csrfToken = useCookie(getCookiePrefix() + 'csrf');
 
         if (csrfToken.value) {
             headers = {

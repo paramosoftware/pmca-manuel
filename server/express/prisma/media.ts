@@ -3,7 +3,7 @@ import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import useMedia from '../../../composables/useMedia';
+import getMediaPath from '../../../utils/getMediaPath';
 import { prisma } from '../../prisma/prisma';
 import { UploadError } from '../error';
 
@@ -12,7 +12,7 @@ export async function uploadMedia(model: string, id: string, body: any, req: exp
 
     const storage = multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, useMedia().mediaPath + '/')
+            cb(null, getMediaPath() + '/')
         },
         filename: function (req, file, cb) {
             cb(null, uuidv4() + path.extname(file.originalname))
@@ -68,7 +68,7 @@ export async function deleteMedia(entryMedia: Array<EntryMedia>) {
             return;
         }
 
-        const mediaPath = useMedia().mediaPath + '/' + media.media.name;
+        const mediaPath = getMediaPath() + '/' + media.media.name;
         
         if (fs.existsSync(mediaPath)) {
             fs.unlinkSync(mediaPath);
