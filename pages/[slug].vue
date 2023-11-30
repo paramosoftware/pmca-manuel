@@ -21,14 +21,17 @@ definePageMeta({
 });
 
 const router = useRouter();
-const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage/query', {
-    method: 'POST',
-    body: JSON.stringify({
-        where: {
-            slug: router.currentRoute.value.params.slug
-        }
-    })
-});
+const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage?query=' + JSON.stringify({
+    where: {
+        nameSlug: router.currentRoute.value.params.slug
+    }
+}));
+
+
+if (error.value || data.value.data.length === 0) {
+   // TODO: 404
+}
+
 
 const page = ref(data.value.data[0] as unknown as WebPage);
 

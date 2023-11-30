@@ -1,7 +1,6 @@
 <template>
     <div>
         <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions" />
-        <input type="hidden" name="entryId" :value="entryId">
         
         <div class="mt-5 text-end">
             <UIButton @click="uploadFiles" class="mx-auto">
@@ -16,11 +15,22 @@
 <script setup>
 import vueDropzone from 'vue2-dropzone-vue3';
 
+const props = defineProps({
+    objectName: {
+        type: String,
+        required: true
+    },
+    objectId: {
+        type: Number,
+        required: true
+    }
+})
+
 const myVueDropzone = ref(null);
 const emit = defineEmits(['update', 'close']);
 
 const dropzoneOptions = {
-    url: '/api/upload',
+    url: '/api/' + props.objectName + '/' + props.objectId + '/upload',
     maxFilesize: 5,
     maxFiles: 20,
     thumbnailWidth: 150,
@@ -34,13 +44,8 @@ const dropzoneOptions = {
     autoProcessQueue: false,
     addRemoveLinks: true,
     sending: function (file, xhr, formData) {
-        const csrfToken = useCookie(useGetCookiePrefix() + 'csrf');
+        const csrfToken = useCookie(getCookiePrefix() + 'csrf');
         xhr.setRequestHeader('X-CSRF-Token', csrfToken.value ? csrfToken.value : '');
-
-        formData.append(
-            'entryId',
-            document.querySelector('input[name=entryId]').value
-        );
     },
     success: function (file, response) {
         emit('update', response);
@@ -60,17 +65,6 @@ defineComponent({
         vueDropzone,
     },
 });
-
-defineProps({
-    id : {
-        type: String,
-        required: true
-    },
-    entryId: {
-        type: Number,
-        required: true
-    }
-})
 
 </script>
 

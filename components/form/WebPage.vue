@@ -53,7 +53,6 @@ const object = ref<WebPage>(
         name: '',
         menuName: '',
         content: '',
-        slug: ''
     }
 );
 

@@ -28,7 +28,7 @@
                             </UITitle>
                         </template>
 
-                        <FieldDropzone :id="id" :entry-id="objectId" @update="addMedia" @close="isOpen = false" />
+                        <FieldDropzone :object-name="objectName" :object-id="objectId" @update="addMedia" @close="isOpen = false" />
 
                     </UCard>
                 </UModal>
@@ -64,6 +64,10 @@ const props = defineProps({
     },
     objectId: {
         type: Number,
+        required: true,
+    },
+    objectName: {
+        type: String,
         required: true,
     },
     label: String,

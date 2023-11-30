@@ -54,7 +54,7 @@ const { isSelected, handleEntrySelection } = useEntrySelection();
 const entrySelected = ref(isSelected(props.entry.id));
 
 const link = computed(() => {
-    return "/verbetes/" + props.entry.slug
+    return "/verbetes/" + props.entry.nameSlug
 })
 
 const thumbnail = computed(() => {

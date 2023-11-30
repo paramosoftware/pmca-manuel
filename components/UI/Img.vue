@@ -27,7 +27,7 @@ if (props.src) {
 
     const pathImg = '/media/' + props.src
 
-    if (useIsElectron()) {
+    if (isElectron()) {
         srcImg.value = 'app://' + pathImg
     } else {
         srcImg.value = pathImg

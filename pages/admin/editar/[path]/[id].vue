@@ -18,13 +18,13 @@ const validateRoute = () => {
     return OBJECTS[path] && isNaN(parseInt(id)) === false;
 };
 
-const form = 'Form' + useCapitalize(OBJECTS[path].singular);
-let component = validateRoute() && useComponentExists(form) ? resolveComponent(form) : 'Fallback';
+const form = 'Form' + capitalize(OBJECTS[path].singular);
+let component = validateRoute() && vueComponentExists(form) ? resolveComponent(form) : 'Fallback';
 
 
 if (component !== 'Fallback') {
 
-    const { data } = await useFetchWithBaseUrl('/api/' + OBJECTS[path].singular + '/' + id, {
+    const { data } = await useFetchWithBaseUrl('/api/' + OBJECTS[path].singular + '/' + id + '/query', {
         method: 'POST',
         body: JSON.stringify({
             include: OBJECTS[path].includeRelations

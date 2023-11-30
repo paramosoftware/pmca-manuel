@@ -32,17 +32,14 @@ import '@splidejs/vue-splide/css';
 const entries = ref([])
 
 const fetchEntries = async () => {
-    const { data } = await useFetchWithBaseUrl('/api/entry/query', {
-        method: 'POST',
-        body: JSON.stringify({
-            include: {
-                media: {
-                    orderBy: ['position'],
-                    include: ['media'],
-                }
+    const { data } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify({
+        include: {
+            media: {
+                orderBy: ['position'],
+                include: ['media'],
             }
-        }),
-    });
+        }
+    }));
     entries.value = data.value.data;
 }
 

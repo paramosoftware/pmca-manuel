@@ -21,8 +21,8 @@ const validateRoute = () => {
 
 if (validateRoute()) {
     const object = OBJECTS[path].singular;
-    const form = 'Form' + useCapitalize(object);
-    component = useComponentExists(form) ? resolveComponent(form) : 'Fallback';
+    const form = 'Form' + capitalize(object);
+    component = vueComponentExists(form) ? resolveComponent(form) : 'Fallback';
 }
 
 useHead({

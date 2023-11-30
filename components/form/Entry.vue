@@ -80,7 +80,8 @@
 
 
         <FieldMedia 
-            id="media" 
+            id="media"
+            :object-name="objectConfig.singular"
             :media="object.media" 
             label="Imagens" 
             :object-id="object.id" 
@@ -102,11 +103,10 @@ const object = ref<Entry>(
     props.object ?? {
         id: 0,
         name: '',
-        slug: '',
         definition: '',
         notes: '',
         references: [],
-        categoryId: 0,
+        categoryId: null,
         media: [],
         variations: [],
         translations: [],

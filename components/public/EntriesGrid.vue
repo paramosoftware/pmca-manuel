@@ -103,12 +103,7 @@ const tree = ref({});
 
 if (props.hasViewMode) {
 
-    const { data: hierarchy } = await useFetchWithBaseUrl('/api/category/query', {
-        method: 'POST',
-        body: JSON.stringify({
-            pageSize: -1,
-            include: ['entries'],
-        }),
+    const { data: hierarchy } = await useFetchWithBaseUrl('/api/category?pageSize=-1&include=entries', {
         transform: (categories) =>
             categories.data.map((category: Category) => {
                 return {
@@ -125,27 +120,25 @@ if (props.hasViewMode) {
 
 if (props.userSelection) {
     const fetchEntries = async (ids: string[]) => {
-        const fetch = useFetchWithBaseUrl('/api/entry/query', {
-            immediate: false,
-            method: 'POST',
-            body: JSON.stringify({
-                where: {
-                    id: ids
-                },
-                include: {
-                    media: {
-                        orderBy: ['position'],
-                        include: ['media'],
-                    }
+
+        const fetch = useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify({
+            where: {
+                id: ids
+            },
+            include: {
+                media: {
+                    orderBy: ['position'],
+                    include: ['media'],
                 }
-            })
-        });
+            }
+        }));
 
         await fetch.execute({ _initial: true });
         entries.value = fetch.data.value.data;
     };
 
     const { selectedEntries } = useEntrySelection();
+    
     if (selectedEntries.length > 0) {
         await fetchEntries(selectedEntries);
     }
@@ -168,31 +161,25 @@ if (props.userSelection) {
             body.where = {
                 or: [
                     {
-                        nameNormalized: {
-                            operator: 'like',
-                            value: query
+                        name: {
+                            like: query
                         }
                     },
                     {
-                        definitionNormalized: {
-                            operator: 'like',
-                            value: query
+                        definition: {
+                            like: query
                         }
                     },
                     {
-                        notesNormalized: {
-                            operator: 'like',
-                            value: query
+                        notes: {
+                            like: query
                         }
                     }
                 ]
             };
         }
 
-        const { data } = await useFetchWithBaseUrl('/api/entry/query', {
-            method: 'POST',
-            body: JSON.stringify(body)
-        });
+        const { data } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify(body));
 
         entries.value = data.value.data;
     };

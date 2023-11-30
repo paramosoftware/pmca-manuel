@@ -39,7 +39,7 @@
         </template>
         <template #tabPanel-3>
           <div class="flex flex-col">
-            <PublicEntryChanges :entry-changes="entry.entryChanges" />
+            <PublicEntryChanges :entry-changes="entry.changes" />
           </div>
         </template>
       </UITab>
@@ -95,13 +95,22 @@ const handleTabChange = async (value: number) => {
   }
 }
 
+
+const categoriesQuery = {
+  pageSize: -1,
+  select: ['id', 'name', 'parentId', 'entries'],
+  where: {
+    parentId: {
+      isNull: true
+    }
+  }
+}
+
+
+
+
 const fetchHierarchy = async () => {
-  const { data: hierarchy } = await useFetchWithBaseUrl('/api/category/query', {
-    method: 'POST',
-    body: JSON.stringify({
-      pageSize: -1,
-      include: ['entries'],
-    }),
+  const { data: hierarchy } = await useFetchWithBaseUrl('/api/category?pageSize=-1&include=entries', {
     transform: (categories) => 
       categories.data.map((category: Category) => {
         return {

@@ -52,7 +52,7 @@ webPages.value = data.value.data;
 for (const webPage of webPages.value) {
     links.value.push({
         name: webPage.menuName === '' ? webPage.name : webPage.menuName,
-        path: '/' + webPage.slug
+        path: '/' + webPage.nameSlug
     });
 }
 </script>

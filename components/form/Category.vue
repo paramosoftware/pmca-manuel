@@ -51,25 +51,25 @@ const props = defineProps<{ object?: Category }>();
 const hasError = ref(false);
 
 const object = ref<Category>(
-    props.object ?? {
-        id: 0,
-        name: '',
-        definition: '',
-        parentId: 0,
-    }
+    props.object ?? { id: 0 } as Category
 );
 
 const tree = ref({});
 
-const { data: categories } = await useFetchWithBaseUrl('/api/' + objectConfig.singular + '/query', {
+const { data: categories } = await useFetchWithBaseUrl('/api/category/query', {
     method: 'POST',
     body: JSON.stringify({
-        include: ['children', 'entries'],
-        orderBy: ['name', 'id']
-    })
+      pageSize: -1,
+    }),
+    transform: (categories) =>
+        categories.data.map((category: Category) => ({
+            id: category.id,
+            name: category.name,
+            parentId: category.parentId,
+        })),
 });
 
-tree.value = useConvertToTreeData(categories.value.data, true, false, object.value.id);
+tree.value = useConvertToTreeData(categories.value, true, false, object.value.id);
 
 watch(categories, (newVal) => {
     tree.value = useConvertToTreeData(newVal, true, false, object.value.id);

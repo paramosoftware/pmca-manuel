@@ -162,9 +162,8 @@ const searchItems = async () => {
             method: 'POST',
             body: {
                 where: {
-                    nameNormalized: {
-                        value: searchTerm.value,
-                        operator: 'like'
+                    name: {
+                       like: searchTerm.value
                     }
                 },
                 pageSize: 10

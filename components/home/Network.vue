@@ -9,18 +9,17 @@ const entries = ref([])
 const router = useRouter()
 
 const fetchEntries = async () => {
-  const { data } = await useFetchWithBaseUrl('/api/entry/query', {
-    method: 'POST',
-    body: JSON.stringify({
-      include: {
-        entries: true,
-        media: {
-          orderBy: ['position'],
-          include: ['media'],
-        }
+  const { data } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify({
+    pageSize: -1,
+    include: {
+      entries: true,
+      media: {
+        orderBy: ['position'],
+        include: ['media']
       }
-    }),
-  });
+    }
+  }));
+
   entries.value = data.value.data;
 }
 
@@ -94,7 +93,7 @@ onMounted(() => {
   network = new Network(container, data, options);
   network.on("click", function (event) {
     const entryId = event.nodes[0];
-    const entrySlug = entries.value.find((entry) => entry.id === entryId).slug;
+    const entrySlug = entries.value.find((entry) => entry.id === entryId).nameSlug;
     router.push('/verbetes/' + entrySlug);
   });
 });

@@ -15,7 +15,7 @@
         <ul @click.away="entries = []" @keydown.escape="entries = []" v-if="searchTerm !== ''"
             class="bg-white border border-x-gray-300 border-b-gray-300 p-2 space-y-1 absolute z-10 w-full shadow-md text-left">
 
-            <li v-for="entry in entries" :key="entry.name" @click="selectEntry(entry.slug)"
+            <li v-for="entry in entries" :key="entry.name" @click="selectEntry(entry.nameSlug)"
                 class="cursor-pointer hover:bg-gray-100 p-2 rounded-sm hover:text-pmca-accent">
                 {{ entry.name }}
             </li>
@@ -71,20 +71,21 @@ const searchEntries = async () => {
 
     searching.value = true
 
-    const { data } = await useFetchWithBaseUrl('api/entry/query', {
-      method: 'POST',
-      body: {
-        pageSize: 10,
-        select: ['id', 'name', 'slug'],
-        where: {
-          nameNormalized: searchTerm.value,
-        },
-        orderBy: ['name'],
+
+    const query = {
+      pageSize: 10,
+      select: ['id', 'name', 'nameSlug'],
+      where: {
+        name: {
+          like: searchTerm.value
+        }
       }
-    })
+    }
+
+    const { data } = await useFetchWithBaseUrl('api/entry?query=' + JSON.stringify(query));
 
     entries.value = [];
-    entries.value = data.value.data;
+    entries.value = data.value.data as Entry[];
 
     setTimeout(() => {
       searching.value = false

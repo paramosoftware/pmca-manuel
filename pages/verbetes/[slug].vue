@@ -63,15 +63,12 @@ if (process.client) {
 }
 
 // TODO: Track access to entries
- const { data, pending, error } = await useFetchWithBaseUrl('/api/entry/query', {
-    method: 'POST',
-    body: JSON.stringify({
-       where: {
-            slug: slug.value,
-       },
-       include: OBJECTS.verbete.includeRelations || undefined,
-    })
- });
+const { data, pending, error } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify({
+   where: {
+      nameSlug: slug.value,
+   },
+   include: OBJECTS.verbete.includeRelations || undefined,
+}));
 
 
 

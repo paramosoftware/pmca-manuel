@@ -12,7 +12,7 @@
                 <Icon name="ph:plus" class="w-5 h-5 text-white" title="Adicionar" />
             </button>
 
-            <div class="flex flex-wrap mb-2" v-if="items.length > 0">
+            <div class="flex flex-wrap mb-2" v-if="items && items.length">
                 <div v-for="item in items" :key="item.id" class="px-2 border border-pmca-accent p-1 mt-2 mr-2">
                     {{ item.name }}
                     <button type="button" @click="removeItem(item.id)" class="bg-white">
@@ -44,8 +44,9 @@ const props = defineProps({
         required: true
     },
     items: {
-        type: Array as PropType<{ id: number, name: string }[]>,
-        required: true
+        type: Array as PropType<{ id: number, name: string }[]> | undefined,
+        required: true,
+        default: () => []
     }
 })
 

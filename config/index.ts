@@ -55,7 +55,7 @@ const OBJECTS: ObjectType = {
             translations: true,
             variations: true,
             entries: true,
-            entryChanges: {
+            changes: {
                 orderBy: {
                     createdAt: 'desc'
                 },
@@ -114,7 +114,7 @@ const OBJECTS: ObjectType = {
     },
     usuario: {
         genderNoun: 'm',
-        singular: 'user',
+        singular: 'appUser',
         plural: 'users',
         label: 'usuário',
         labelPlural: 'usuários'

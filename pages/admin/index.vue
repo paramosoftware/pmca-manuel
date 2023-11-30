@@ -26,8 +26,6 @@ definePageMeta({
 });
 
 const config = useRuntimeConfig();
-const { isAdmin } = useAuth();
-const _isAdmin = await isAdmin();
 
 const getPath = (path: string) => {
     return ROUTES.list + path;
@@ -41,7 +39,7 @@ for (const object of objects) {
         links.push({
             name: OBJECTS[object].labelPlural,
             path: getPath(object),
-            restrictedToAdmin: ['usuario', 'pagina'].includes(object) && !_isAdmin
+            restrictedToAdmin: false
         })
     }
 }
