@@ -16,7 +16,7 @@
     "electron:dev": "yarn dev & NODE_ENV=development electron electron/main.js"
   },
   "devDependencies": {
-    "@nuxthq/ui": "^2.3.0",
+    "@nuxt/ui": "^2.11.0",
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.3",
     "@types/diff": "^5.0.3",
