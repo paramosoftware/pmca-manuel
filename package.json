@@ -13,7 +13,7 @@
     "postinstall": "nuxt prepare",
     "electron:build": "nuxt build && node build.js",
     "electron:build-test": "nuxt build && NODE_ENV=development DEBUG=electron-builder node build.js",
-    "electron:dev": "yarn dev & NODE_ENV=development electron electron/main.js"
+    "electron:dev": "pnpm dev & NODE_ENV=development electron electron/main.js"
   },
   "devDependencies": {
     "@nuxt/ui": "^2.11.0",
