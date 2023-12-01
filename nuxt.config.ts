@@ -17,12 +17,6 @@ export default defineNuxtConfig({
             ],
         },
     },
-    components: [
-        { 
-            path: '~/components', 
-            global: true
-        }
-    ],
     build: {
         transpile: [
             'jsonwebtoken',
