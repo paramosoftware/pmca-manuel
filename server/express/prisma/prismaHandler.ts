@@ -8,8 +8,10 @@ import { getParamsFromPath } from './helpers';
 import { uploadMedia } from './media';
 import { readMany, readOne, readOneOrManyWithQuery } from './read';
 import { updateMany, updateOne } from './update';
+import { convertToFormatAndSend } from './dataFormatConverters';
 
-const prismaHandler = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+
+const prismaHandler =  async (req: express.Request, res: express.Response, next: express.NextFunction) => {
 
     /* Routes that need authentication:
     GET /api/:model - Get many
@@ -32,6 +34,7 @@ const prismaHandler = async (req: express.Request, res: express.Response, next: 
     const method = isPublic ? 'GET' : req.method.toUpperCase();
     const body = req.body;
     const queryParams = req.query;
+    const format = req.query.format ? req.query.format : body.format ? body.format : undefined;
 
     // @ts-ignore
     if (!model || prisma[model] === undefined) {
@@ -87,9 +90,18 @@ const prismaHandler = async (req: express.Request, res: express.Response, next: 
                 next();
         }
 
-        if (response) {
-            res.json(await response);
+        if (response && response instanceof Promise) {
+            response = await response;
         }
+
+        if (response && format) {
+            convertToFormatAndSend(response, format, res, next);
+        } else if (response) {
+            res.json(response);
+        } else {
+            next();
+        }
+
     } catch (error) {
         next(error);
     }

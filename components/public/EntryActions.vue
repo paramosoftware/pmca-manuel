@@ -1,15 +1,15 @@
 <template>
-        <div class="flex justify-between mb-4 mt-4 sm:mt-0">
-            <div>
+    <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
+        <a v-for="item in socialMedia" :key="item.name" class="mr-2 cursor-pointer">
 
-            </div>
-            <div>
-                <a v-for="item in socialMedia" :key="item.name" class="mr-2 cursor-pointer" @click="share(item.name)">
-                    <span class="sr-only">{{ "Compartilhar no " + item.name }}</span>
-                    <Icon :name="item.icon" />
-                </a>
-            </div>
-        </div>
+            <UDropdown v-if="item.options" :items="item.options" :popper="{ placement: 'bottom-end' }" 
+                :ui="{ rounded: 'rounded-sm' }" class="align-middle">
+                <Icon :name="item.icon" />
+            </UDropdown>
+
+            <Icon v-else :name="item.icon" @click="share(item.name)" />
+        </a>
+    </div>
 </template>
 
 
@@ -53,13 +53,33 @@ const socialMedia = [
         shareUrl: 'https://api.whatsapp.com/send?text={title} {url}',
     },
     {
-        name: 'Link',
-        icon: 'ph:link',
-    },
+        name: 'Exportar',
+        icon: 'ph:download',
+        options: [
+            [{
+                label: 'JSON',
+                click: () => {
+                    exportData('Json')
+                }
+            }],
+            [{
+                label: 'CSV',
+                click: () => {
+                    exportData('CSV')
+                }
+            }],
+            [{
+                label: 'XLSX',
+                click: () => {
+                    exportData('XLSX')
+                }
+            }]
+        ]
+    }
 ]
 
 
-const share = (name: String) => {
+const share = (name: string) => {
 
     let url = window.location.href
     let title = props.title
@@ -83,4 +103,16 @@ const share = (name: String) => {
         }
     }
 }
+
+function exportData(name: string) {
+ 
+    var anchor = document.createElement('a');
+    anchor.href = window.location.origin + '/api/entry/' + props.entryId + '?format=' + name.toLowerCase();
+    anchor.target = '_blank';
+    anchor.click();
+    return;
+}
+
+
+
 </script>

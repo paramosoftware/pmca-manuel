@@ -17,6 +17,7 @@ isProduction ?
 if (isProduction) {
   moveDatabaseFile();
   moveMediaFolder();
+  createTempFolder();
   assignPort();
 
   process.env.NUXT_PUBLIC_BASE_URL = "http://localhost:" + process.env.PORT;
@@ -137,6 +138,13 @@ function moveMediaFolder() {
 }
 
 
+function createTempFolder() {
+  const tempPath = path.join(process.env.USER_DATA_PATH, 'temp');
+
+  if (!fs.existsSync(tempPath)) {
+    fs.mkdirSync(tempPath);
+  }
+}
 
 
 
