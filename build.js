@@ -1,6 +1,5 @@
 const builder = require('electron-builder');
 const Platform = builder.Platform;
-
 /**
 * @type {import('electron-builder').Configuration}
 */
@@ -13,8 +12,7 @@ const config = {
     "!node_modules/**/*"
   ],
   extraResources: [
-    ".output/**/*",
-    "server/prisma/app.sqlite"
+    ".output/**/*"
   ],
   directories: {
     output: "builds/${version}"
@@ -37,7 +35,7 @@ const config = {
   nsis: {
     oneClick: false,
     perMachine: false,
-    deleteAppDataOnUninstall: false // TODO: see if is the better approach
+    deleteAppDataOnUninstall: true
   }
 };
 

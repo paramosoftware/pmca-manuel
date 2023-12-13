@@ -16,8 +16,7 @@ isProduction ?
 
 if (isProduction) {
   moveDatabaseFile();
-  moveMediaFolder();
-  createTempFolder();
+  createFolders();
   assignPort();
 
   process.env.NUXT_PUBLIC_BASE_URL = "http://localhost:" + process.env.PORT;
@@ -96,17 +95,12 @@ app.on('window-all-closed', () => {
 })
 
 function moveDatabaseFile() {
-  if (!isProduction) {
-    return;
-  }
-
-  const databasePath = path.join(process.env.ROOT, 'server/prisma/app.sqlite');
+  const databasePath = path.join(process.env.ROOT, '.output/server/node_modules/.prisma/client/app.sqlite');
   const userDatabasePath = path.join(userDataPath, 'app.sqlite');
 
   if (app.isPackaged) {
     if (!fs.existsSync(userDatabasePath)) {
       fs.copyFileSync(databasePath, userDatabasePath);
-      fs.unlinkSync(databasePath);
     }
   
   }
@@ -114,39 +108,18 @@ function moveDatabaseFile() {
   process.env.DATABASE_URL = "file:" + userDatabasePath;
 }
 
-
-// TODO: while there is no import/export feature
-function moveMediaFolder() {
-  if (!isProduction) {
-    return;
-  }
-
-  const mediaPath = path.join(process.env.ROOT, '.output/public/media');
-  const userMediaPath = path.join(process.env.USER_DATA_PATH, 'media');
-
-  if (app.isPackaged) {
-    if (!fs.existsSync(userMediaPath) && fs.existsSync(mediaPath)) {
-
-      fs.mkdirSync(userMediaPath);
-
-      fs.readdirSync(mediaPath).forEach((file) => {
-        fs.copyFileSync(path.join(mediaPath, file), path.join(userMediaPath, file));
-      });
-
-    }
-  }
-}
-
-
-function createTempFolder() {
+function createFolders() {
   const tempPath = path.join(process.env.USER_DATA_PATH, 'temp');
+  const mediaPath = path.join(process.env.USER_DATA_PATH, 'media');
 
   if (!fs.existsSync(tempPath)) {
     fs.mkdirSync(tempPath);
   }
+
+  if (!fs.existsSync(mediaPath)) {
+    fs.mkdirSync(mediaPath);
+  }
 }
-
-
 
 async function assignPort(port = 3458) {
   const server = net.createServer();
@@ -220,7 +193,7 @@ async function startWebServer() {
   }
 }
 
-function createWindow () {
+function createWindow() {
     const win = new BrowserWindow({
       show: false,
       minWidth: 800,
