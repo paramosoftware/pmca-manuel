@@ -94,6 +94,22 @@ model AppResource {
   groups     AppGroupResource[]
   genderNoun AppGenderNoun?     @relation(fields: [genderNounId], references: [id])
 
+  fields AppResourceField[]
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model AppResourceField {
+  id          Int    @id @default(autoincrement())
+  resourceId  Int
+  name        String
+  prismaField String
+
+  nameNormalized String?
+
+  resource AppResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 }
