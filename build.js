@@ -40,7 +40,7 @@ const config = {
 };
 
 
-let platform = "LINUX"
+let platform = process.env.BUILD_TARGET || "LINUX";
 
 builder
 .build({
