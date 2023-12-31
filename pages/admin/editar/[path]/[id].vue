@@ -18,7 +18,7 @@ const validateRoute = () => {
     return OBJECTS[path] && isNaN(parseInt(id)) === false;
 };
 
-const form = 'Form' + capitalize(OBJECTS[path].singular);
+const form = 'Form' + capitalize(OBJECTS[path].form || OBJECTS[path].singular);
 let component = validateRoute() && vueComponentExists(form) ? resolveComponent(form) : 'Fallback';
 
 

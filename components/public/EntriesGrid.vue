@@ -103,14 +103,27 @@ const tree = ref({});
 
 if (props.hasViewMode) {
 
-    const { data: hierarchy } = await useFetchWithBaseUrl('/api/category?pageSize=-1&include=entries', {
-        transform: (categories) =>
+    const { data: hierarchy } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify({
+        pageSize: -1,
+        select: ['id', 'name', 'parentId'],
+        where: {
+            isCategory: true,
+        },
+        include: {
+            children: {
+                where: {
+                    isCategory: false
+                }
+            }
+        }
+    }), {
+        transform: (categories: any) =>
             categories.data.map((category: Category) => {
                 return {
                     id: category.id,
                     name: category.name,
                     parentId: category.parentId,
-                    entries: category.entries,
+                    entries: category.children
                 }
             })
     });

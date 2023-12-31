@@ -37,6 +37,16 @@
             :item-id="object.id"
             :tree="tree" />
 
+        
+        <FieldInput
+            id="isCategory"
+            label=""
+            v-model="object.isCategory"
+            type="checkbox"
+            hidden
+            />
+        
+
     </Form>
 </template>
 
@@ -51,22 +61,28 @@ const props = defineProps<{ object?: Category }>();
 const hasError = ref(false);
 
 const object = ref<Category>(
-    props.object ?? { id: 0 } as Category
+    props.object ?? { 
+        id: 0,
+        isCategory: true,
+    } as Category
 );
 
 const tree = ref({});
 
-const { data: categories } = await useFetchWithBaseUrl('/api/category/query', {
+const { data: categories } = await useFetchWithBaseUrl('/api/entry/query', {
     method: 'POST',
     body: JSON.stringify({
-      pageSize: -1,
+        where: {
+            isCategory: true
+        },
+        pageSize: -1
     }),
     transform: (categories) =>
         categories.data.map((category: Category) => ({
             id: category.id,
             name: category.name,
             parentId: category.parentId,
-        })),
+        }))
 });
 
 tree.value = useConvertToTreeData(categories.value, true, false, object.value.id);

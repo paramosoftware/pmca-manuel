@@ -158,28 +158,11 @@ model AppUserSession {
   @@unique([userId, refreshToken])
 }
 
-model Category {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  nameSlug             String? @unique
-  definition           String?
-  definitionNormalized String?
-  nameNormalized       String?
-  parentId             Int?
-
-  children Category[] @relation("categories_categories")
-  entries  Entry[]
-  parent   Category?  @relation("categories_categories", fields: [parentId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model Entry {
   id          Int    @id @default(autoincrement())
   name        String
-  accessCount Int    @default(0)
+  accessCount Int     @default(0)
+  isCategory  Boolean @default(false)
 
   definition           String?
   definitionNormalized String?
@@ -187,9 +170,8 @@ model Entry {
   nameNormalized       String?
   notes                String?
   notesNormalized      String?
-  categoryId           Int?
+  parentId             Int?
 
-  category     Category?      @relation(fields: [categoryId], references: [id])
   changes      EntryChanges[]
   media        EntryMedia[]
   translations Translation[]
@@ -198,6 +180,8 @@ model Entry {
 
   entries        Entry[] @relation("EntryToEntry")
   relatedEntries Entry[] @relation("EntryToEntry")
+  children Entry[] @relation("EntryToChildren")
+  parent   Entry?  @relation("EntryToChildren", fields: [parentId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -26,9 +26,9 @@
 
         <FieldFinder 
             label="Categoria" 
-            v-model="object.categoryId"
-            :default-expanded="object.categoryId ?? undefined"
-            id="category"
+            v-model="object.parentId"
+            :default-expanded="object.parentId ?? undefined"
+            id="parent"
             :tree="tree" />
 
 
@@ -106,7 +106,7 @@ const object = ref<Entry>(
         definition: '',
         notes: '',
         references: [],
-        categoryId: null,
+        parentId: null,
         media: [],
         variations: [],
         translations: [],
@@ -114,10 +114,15 @@ const object = ref<Entry>(
     }
 );
 
-const { data: categories } = await useFetchWithBaseUrl('/api/category/query', {
+const { data: categories } = await useFetchWithBaseUrl('/api/entry/query', {
     method: 'POST',
     body: JSON.stringify({
-      pageSize: -1,
+        pageSize: -1,
+        select: ['id', 'name', 'parentId'],
+        where: {
+            isCategory: true,
+        },
+        include: ['children'],
     }),
     transform: (categories) =>
         categories.data.map((category: Category) => ({

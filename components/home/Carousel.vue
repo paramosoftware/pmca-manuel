@@ -38,7 +38,10 @@ const fetchEntries = async () => {
                 orderBy: ['position'],
                 include: ['media'],
             }
-        }
+        },
+        where: {
+            isCategory: false
+        },
     }));
     entries.value = data.value.data;
 }

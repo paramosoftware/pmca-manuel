@@ -11,6 +11,7 @@
         :label-plural=labelPlural
         :url-path=path
         :is-html=isHtml
+        :where="where"
         />
 </template>
 
@@ -31,6 +32,7 @@ let genderNoun = '';
 let label = '';
 let labelPlural = '';
 let isHtml = false;
+let where = {};
 
 const validateRoute = () => {
     return OBJECTS[path];
@@ -43,6 +45,7 @@ if (validateRoute()) {
     label = OBJECTS[path].label;
     labelPlural = OBJECTS[path].labelPlural;
     isHtml = OBJECTS[path].isHtml || false;
+    where = OBJECTS[path].where || {};
 }
 
 useHead({

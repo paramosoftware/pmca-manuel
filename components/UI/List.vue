@@ -81,6 +81,10 @@ const props = defineProps({
     isHtml: {
         type: Boolean,
         default: false
+    },
+    where: {
+        type: Object,
+        default: undefined
     }
 });
 
@@ -93,7 +97,12 @@ const isModalDeleteOpen = ref(false);
 const objectIdToDelete = ref(0);
 const filter = ref('')
 
-const { data } = await useFetchWithBaseUrl('/api/' + props.objectName);
+const { data } = await useFetchWithBaseUrl('/api/' + props.objectName + '/query', {
+    method: 'POST',
+    body: JSON.stringify({
+        where: props.where
+    })
+});
 
 const objects = ref<{ id: number, name: string }[]>(data.value.data as { id: number, name: string }[]);
 

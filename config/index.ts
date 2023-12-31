@@ -6,6 +6,7 @@ type ObjectType = {
         label: string;
         labelPlural: string;
         isHtml?: boolean;
+        form?: string;
         includeRelations?: {
             [key: string]: boolean | {
                 orderBy?: {
@@ -19,6 +20,9 @@ type ObjectType = {
                     };
                 };
             };
+        };
+        where?: {
+            [key: string]: any;
         };
     };
 };
@@ -38,10 +42,17 @@ const ROUTES = {
 const OBJECTS: ObjectType = {
     categoria: {
         genderNoun: 'f',
-        singular: 'category',
-        plural: 'categories',
+        form: 'category',
+        singular: 'entry',
+        plural: 'entries',
         label: 'categoria',
         labelPlural: 'categorias',
+        includeRelations: {
+            parent: true
+        },
+        where: {
+            isCategory: true
+        }
     },
     verbete: {
         genderNoun: 'm',
@@ -50,9 +61,13 @@ const OBJECTS: ObjectType = {
         label: 'verbete',
         labelPlural: 'verbetes',
         includeRelations: {
-            category: true,
+            parent: true,
             references: true,
-            translations: true,
+            translations: {
+                include: {
+                    language: true
+                },
+            },
             variations: true,
             entries: true,
             changes: {
@@ -80,7 +95,11 @@ const OBJECTS: ObjectType = {
                     media: true
                 },
                 orderBy: ['position']
-            }
+            },
+            children: true
+        },
+        where: {
+            isCategory: false
         }
     },
     idioma: {

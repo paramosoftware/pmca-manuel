@@ -41,9 +41,15 @@ declare global {
         user?: AppUser;
     };
 
-    export type Category = Prisma.Category & {
-       children?: Category[];
-       entries?: Entry[];
+    export type Category = {
+        id: number;
+        name: string;
+        nameSlug: string;
+        definition?: string;
+        children?: Entry[];
+        isCategory?: boolean;
+        parent?: Category;
+        parentId?: number;
     };
 
     export type Entry = Prisma.Entry & {

@@ -25,10 +25,10 @@
 
         <FieldSelect 
             label="Idioma" 
-            v-model="object.language.id" 
+            v-model="object.language" 
             id="language" 
             :options="languages" 
-            :mandatory="true"
+            :required=true
         />
 
     </Form>
