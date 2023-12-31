@@ -160,11 +160,12 @@ model AppUserSession {
 
 model Category {
   id   Int    @id @default(autoincrement())
-  name String @unique
+  name String
 
+  nameSlug             String? @unique
   definition           String?
   definitionNormalized String?
-  nameNormalized       String? @unique
+  nameNormalized       String?
   parentId             Int?
 
   children Category[] @relation("categories_categories")
@@ -177,7 +178,7 @@ model Category {
 
 model Entry {
   id          Int    @id @default(autoincrement())
-  name        String @unique
+  name        String
   accessCount Int    @default(0)
 
   definition           String?
