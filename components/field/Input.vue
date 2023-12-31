@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-4">
+  <div class="mt-4" :class="{'hidden': hidden}">
 
     <UILabel :for="id" :showLabel="showLabel">
       {{ label }}
@@ -27,7 +27,7 @@
 <script setup lang="ts">
 const props = defineProps({
   label: String,
-  modelValue: [String, Number],
+  modelValue: [String, Number, Boolean],
   id: String,
   type: {
     type: String,
@@ -52,6 +52,10 @@ const props = defineProps({
   showLabel: {
     type: Boolean,
     default: true
+  },
+  hidden: {
+    type: Boolean,
+    default: false
   }
 })
 
