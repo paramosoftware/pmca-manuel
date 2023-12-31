@@ -40,7 +40,7 @@ export async function convertBodyToPrismaUpdateOrCreateQuery(model: string, body
         validateFieldInModel(fieldsMap, key, model);
 
         if (!field || body[key] === undefined) {
-            return;
+            continue;
         }
 
 
@@ -81,11 +81,13 @@ export async function convertBodyToPrismaUpdateOrCreateQuery(model: string, body
 
             if (!field.isList) {
 
-                prismaQuery[key] = await processSingleObject(relatedModel, model, body, key, isUpdate);
-
+                // TODO: What should be the default value for a relation? the id or the object?
                 if (fieldsMap.get(key + 'Id') !== undefined) {
-                    delete prismaQuery[key + 'Id'];
+                    continue;
+                } else {
+                    prismaQuery[key] = await processSingleObject(relatedModel, model, body, key, isUpdate);
                 }
+   
 
             } else {
 
