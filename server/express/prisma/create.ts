@@ -13,7 +13,7 @@ export async function createOneOrMany(model: string, body: any, next: express.Ne
         const inserts: any[] = [];
 
         for (const item of body) {
-            const query = convertBodyToPrismaUpdateOrCreateQuery(model, item);
+            const query = await convertBodyToPrismaUpdateOrCreateQuery(model, item);
             // @ts-ignore
             inserts.push(prisma[model].create({ data: query }));
         }

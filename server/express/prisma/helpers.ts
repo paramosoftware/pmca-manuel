@@ -6,16 +6,18 @@ import normalizeString from '../../../utils/normalizeString';
 import type { Condition, Include, Order, PaginatedQuery, Query, Where } from './interfaces';
 import  hashPassword from '../../../utils/hashPassword';
 import getBoolean from '../../../utils/getBoolean';
+import { v4 as uuidv4 } from 'uuid';
+import { prisma } from '~/server/prisma/prisma';
 
 
-export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpdate: boolean = false, isConnectOrCreate: boolean = false, parentModel: string = '', parentBody = {}) {
+export async function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpdate: boolean = false, isConnectOrCreate: boolean = false, parentModel: string = '', parentBody = {}) {
 
     const modelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === model.toLowerCase())?.fields;
 
     const prismaQuery: any = {};
 
     if (isConnectOrCreate) {
-        return addConnectOrCreateFields(modelFields, body, model, parentModel, parentBody);
+        return await addConnectOrCreateFields(modelFields, body, model, parentModel, parentBody);
     }
 
     const keys = Object.keys(body);
@@ -31,7 +33,7 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
         fieldsMap.set(f.name, f);
     });
 
-    keys.forEach(key => {
+    for (const key of keys) {
 
         const field = fieldsMap.get(key);
 
@@ -46,8 +48,10 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
             prismaQuery[key + 'Normalized'] = normalizeString(body[key]);
         }
 
-        if (fieldsMap.get(key + 'Slug') !== undefined && body[key] !== undefined) {
-            prismaQuery[key + 'Slug'] = normalizeString(body[key], true);
+
+        const keySlug = key + 'Slug';
+        if (fieldsMap.get(keySlug) !== undefined && body[keySlug] === undefined) {
+            prismaQuery[keySlug] = await calculateSlug(body[key], model, keySlug);
         }
 
         if (key === 'password') {
@@ -77,7 +81,7 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
 
             if (!field.isList) {
 
-                prismaQuery[key] = processSingleObject(relatedModel, model, body, key, isUpdate);
+                prismaQuery[key] = await processSingleObject(relatedModel, model, body, key, isUpdate);
 
                 if (fieldsMap.get(key + 'Id') !== undefined) {
                     delete prismaQuery[key + 'Id'];
@@ -85,10 +89,10 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
 
             } else {
 
-                prismaQuery[key] = processMultipleObjects(relatedModel, model, body, key, isUpdate);
+                prismaQuery[key] = await processMultipleObjects(relatedModel, model, body, key, isUpdate);
             }
         }
-    });
+    }
 
     if (!isUpdate) {
         prismaQuery.id = undefined;
@@ -97,7 +101,7 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
     return prismaQuery;
 }
 
-function processSingleObject(relatedModel: string, model: string, body: any, key: string, isUpdate: boolean) {
+async function processSingleObject(relatedModel: string, model: string, body: any, key: string, isUpdate: boolean) {
     if (typeof body[key] !== 'object') {
         throw new ApiValidationError(key + ' must be an object');
     }
@@ -110,11 +114,11 @@ function processSingleObject(relatedModel: string, model: string, body: any, key
             prismaQuery.connect = { id: body[key].id };
         } else {
             // TODO: Upsert if all required fields of the related model are present
-            prismaQuery.update = convertBodyToPrismaUpdateOrCreateQuery(relatedModel, body[key], true, false, model, body);
+            prismaQuery.update = await convertBodyToPrismaUpdateOrCreateQuery(relatedModel, body[key], true, false, model, body);
         }
 
     } else {
-        prismaQuery.connectOrCreate = convertBodyToPrismaUpdateOrCreateQuery(relatedModel, body[key], false, true, model, body);
+        prismaQuery.connectOrCreate = await convertBodyToPrismaUpdateOrCreateQuery(relatedModel, body[key], false, true, model, body);
     }
 
 
@@ -122,7 +126,7 @@ function processSingleObject(relatedModel: string, model: string, body: any, key
 }
 
 
-function processMultipleObjects(relatedModel: string, model: string, body: any, key: string, isUpdate: boolean) {
+async function processMultipleObjects(relatedModel: string, model: string, body: any, key: string, isUpdate: boolean) {
     if (!Array.isArray(body[key])) {
         throw new ApiValidationError(key + ' must be an array');
     }
@@ -149,7 +153,7 @@ function processMultipleObjects(relatedModel: string, model: string, body: any, 
     prismaQuery.connectOrCreate = [];
     prismaQuery.connect = [];
 
-    body[key].forEach((item: any) => {
+    for (const item of body[key]) {
 
         if (item.id !== undefined && item.id !== 0) {
 
@@ -159,11 +163,11 @@ function processMultipleObjects(relatedModel: string, model: string, body: any, 
 
             item.id = undefined;
 
-            const relatedObject = convertBodyToPrismaUpdateOrCreateQuery(relatedModel, item, false, true, model);
+            const relatedObject = await convertBodyToPrismaUpdateOrCreateQuery(relatedModel, item, false, true, model);
             prismaQuery.connectOrCreate.push(relatedObject);
 
         }
-    });
+    }
 
     return prismaQuery;
 }
@@ -186,7 +190,7 @@ function processInt(value: any, key: string) {
     }
 }
 
-function addConnectOrCreateFields(modelFields: Prisma.DMMF.Field[] | undefined, body: any, model: string, parentModel: string, parentBody: any) {
+async function addConnectOrCreateFields(modelFields: Prisma.DMMF.Field[] | undefined, body: any, model: string, parentModel: string, parentBody: any) {
    
     const prismaQuery: any = {};
    
@@ -226,7 +230,7 @@ function addConnectOrCreateFields(modelFields: Prisma.DMMF.Field[] | undefined, 
         prismaQuery.where['id'] = idType === 'int' ? -1 : '-1';
     }
 
-    prismaQuery.create = convertBodyToPrismaUpdateOrCreateQuery(model, body, false, false, parentModel);
+    prismaQuery.create = await convertBodyToPrismaUpdateOrCreateQuery(model, body, false, false, parentModel);
 
     return prismaQuery;
 }
@@ -791,4 +795,20 @@ function validateCondition(condition: Condition) {
 
 export function getValidOperators() {
     return ['=', 'eq', '!=', 'not', '>', 'gt', '<', 'lt', '>=', 'gte', '<=', 'lte', 'contains', 'like', 'notlike', 'startswith', 'start', 'endswith', 'end', 'in', 'notin', 'equals', 'isnull'];
+}
+
+async function calculateSlug(name: string, model: string, key: string) {
+
+    // @ts-ignore
+    const obj = await prisma[model].findFirst({
+        where: {
+            [key]: normalizeString(name, true)
+        }
+    });
+
+    if (!obj) {
+        return normalizeString(name, true);
+    } else {
+        return await calculateSlug(name + '-' + uuidv4().substring(0, 4), model, key);
+    }
 }

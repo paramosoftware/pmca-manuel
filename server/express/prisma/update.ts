@@ -16,7 +16,7 @@ export async function updateOne(model: string, id: string | number, body: any, n
             body.media = undefined;
         }
 
-        const query = convertBodyToPrismaUpdateOrCreateQuery(model, body, true);
+        const query = await convertBodyToPrismaUpdateOrCreateQuery(model, body, true);
 
         query.id = undefined;
 
@@ -66,7 +66,7 @@ export async function updateMany(model: string, body: any, next: express.NextFun
                 throw new ApiValidationError('Update must have a data clause');
             }
 
-            const query = convertBodyToPrismaUpdateOrCreateQuery(model, item.data, true);
+            const query = await convertBodyToPrismaUpdateOrCreateQuery(model, item.data, true);
 
             // TODO: Temporary solution for media
             let media: any[] = [];
