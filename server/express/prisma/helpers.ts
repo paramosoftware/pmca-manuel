@@ -522,7 +522,7 @@ function convertConditionToPrismaQuery(field: string, condition: Condition, mode
     const prismaQuery: any = {};
     prismaQuery[field] = {};
 
-    if (Array.isArray(condition) || typeof condition === 'string' || typeof condition === 'number') {
+    if (Array.isArray(condition) || typeof condition === 'string' || typeof condition === 'number' || typeof condition === 'boolean') {
 
         if (Array.isArray(condition)) {
             prismaQuery[field].in = condition;
@@ -756,7 +756,7 @@ function validateOrder(order: Order | string[]) {
 
 function validateCondition(condition: Condition) {
 
-    if (typeof condition === 'string' || typeof condition === 'number' || Array.isArray(condition)) {
+    if (typeof condition === 'string' || typeof condition === 'number' || Array.isArray(condition) || typeof condition === 'boolean') {
         return;
     }
 
