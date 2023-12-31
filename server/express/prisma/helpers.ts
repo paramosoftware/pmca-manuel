@@ -46,7 +46,7 @@ export function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any,
             prismaQuery[key + 'Normalized'] = normalizeString(body[key]);
         }
 
-        if (fieldsMap.get(key + 'Slug') !== undefined) {
+        if (fieldsMap.get(key + 'Slug') !== undefined && body[key] !== undefined) {
             prismaQuery[key + 'Slug'] = normalizeString(body[key], true);
         }
 
