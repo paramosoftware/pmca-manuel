@@ -130,7 +130,7 @@ export async function trackChanges(newData: any, userId: string) {
         'name',
         'definition',
         'notes',
-        'category',
+        'parent',
         'relatedEntries',
         'entries',
         'variations',
@@ -144,7 +144,7 @@ export async function trackChanges(newData: any, userId: string) {
             id: parseInt(newData.id)
         },
         include: {
-            category: true,
+            parent: true,
             media: true,
             relatedEntries: true,
             entries: true,
@@ -157,7 +157,7 @@ export async function trackChanges(newData: any, userId: string) {
 
     fieldsToTrack.forEach((field: any) => {
 
-        if (typeof newData[field] === 'string') {
+        if (typeof newData[field] === 'string' || newData[field] === null) {
             if (newData[field] !== oldData[field]) {
                 changes[field] = {
                     old: oldData[field],
@@ -166,7 +166,7 @@ export async function trackChanges(newData: any, userId: string) {
             }
         }
 
-        if (typeof newData[field] === 'object') {
+        if (typeof newData[field] === 'object' && newData[field] !== null) {
             if (Array.isArray(newData[field])) {
 
                 const newNames = newData[field].map((item: any) => item.name);
@@ -189,7 +189,7 @@ export async function trackChanges(newData: any, userId: string) {
                     }
                 }
 
-            } else if (newData[field].name) {
+            } else if (newData[field].name !== undefined) {
                 if (newData[field].name !== oldData[field].name) {
                     changes[field] = {
                         added: [newData[field].name],

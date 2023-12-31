@@ -59,8 +59,8 @@ export async function convertBodyToPrismaUpdateOrCreateQuery(model: string, body
         }
 
         if (body[key] === '' || body[key] == null) {
-            prismaQuery[key] = null;
-            return;
+            prismaQuery[key] = body[key + 'Id'] !== undefined ? undefined : null;
+            continue;
         }
 
         if (field.type.toLowerCase() === 'int') {
