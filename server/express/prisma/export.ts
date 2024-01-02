@@ -1,7 +1,6 @@
 
 import path from 'path';
 import fs from 'fs';
-import { Prisma } from '@prisma/client';
 import Zip from 'adm-zip';
 import { readOneOrManyWithQuery } from './read';
 import { OBJECTS } from '~/config';
@@ -10,20 +9,13 @@ import { createOneOrMany } from './create';
 import { saveMedia } from './media';
 import { v4 as uuidv4 } from 'uuid';
 import  deleteFolder from '~/utils/deleteFolder';
+import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 
 
 export async function exportAll() {
 
     const model = 'entry';
-    const fieldsMap = new Map<string, Prisma.DMMF.Field[]>();
     let mediaFiles = new Map<string, string>();
-
-    for (const prismaModel of Prisma.dmmf.datamodel.models) {
-        const modelName = prismaModel.name.toLocaleLowerCase();
-        if (model === modelName) {
-            fieldsMap.set(modelName, prismaModel.fields);
-        }
-    }
 
     const pageSize = 200;
     let page = 1;
@@ -101,7 +93,6 @@ export async function exportAll() {
 
     return zipPath;
 }
-
 
 export async function importAll() {
 
@@ -234,7 +225,422 @@ export async function importAll() {
     fs.unlinkSync(filePath);
 }
 
+export async function exportAllToSkos() {
+    const model = 'entry';
+ 
+    const pageSize = 200;
+    let page = 1;
+    const include = OBJECTS['verbete'].includeRelations;
+
+    const data = await readOneOrManyWithQuery(model, { pageSize, page, include });
+
+    if (!data || data.totalCount === 0) {
+        return;
+    }
+
+    const resultPath = path.join(process.cwd(), 'server', 'temp', `result.xml`);
+
+    const options = {
+        ignoreAttributes: false,
+        format: true,
+        preserveOrder: true,
+        allowBooleanAttributes: true,
+        suppressEmptyNode: true
+    };
+
+    const xmlBuilder = new XMLBuilder(options);
+
+    fs.writeFileSync(resultPath, '');
+    fs.appendFileSync(resultPath, '<?xml version="1.0" encoding="UTF-8"?>');
+    fs.appendFileSync(resultPath, '\n');
+    fs.appendFileSync(resultPath, '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/">');
+    fs.appendFileSync(resultPath, '\n');
+
+    const resourceURI = '#' // TODO: Change this to the correct URI
+    const conceptSchemeId = 'A0'; // TODO: Create real concept scheme id
+
+    const referenceNote = buildRdfProperty('referenceNote', 'Bibliographic reference to the concept', 'Reference', 'http://www.w3.org/2004/02/skos/core#editorialNote', resourceURI);
+    const isCategory = buildRdfProperty('isCategory', 'Indicates if the concept is a category', 'Is category', 'http://www.w3.org/2004/02/skos/core#editorialNote', resourceURI);
+    
+    fs.appendFileSync(resultPath, xmlBuilder.build(referenceNote));
+    fs.appendFileSync(resultPath, xmlBuilder.build(isCategory));
+
+    const conceptScheme = await buildSkosConceptScheme(model, resourceURI, conceptSchemeId);
+
+    fs.appendFileSync(resultPath, xmlBuilder.build(conceptScheme));
+
+    for (let i = 0; i < data.totalPages; i++) {
+        const data = await readOneOrManyWithQuery(model, { pageSize, page: i + 1, include });
+
+        if (!data) {
+            continue;
+        }
+
+        for (const item of data.data) {
+            const concept = buildSkosConcept(item, resourceURI, conceptSchemeId);
+            fs.appendFileSync(resultPath, xmlBuilder.build(concept));
+        }
+    }
+
+    fs.appendFileSync(resultPath, '\n');
+    fs.appendFileSync(resultPath, '</rdf:RDF>');
+}
+
+export async function importAllFromSkos() {
+
+    const options = {
+        ignoreAttributes: false,
+        format: true,
+        preserveOrder: true,
+        allowBooleanAttributes: true,
+        suppressEmptyNode: true,
+        ignorePiTags: true
+    };
+
+    const xmlParser = new XMLParser(options);
+
+    const filePath = path.join(process.cwd(), 'server', 'temp', 'export.xml');
+    const xml = fs.readFileSync(filePath, 'utf-8');
+    const result = xmlParser.parse(xml);
+
+    const data = result[0]['rdf:RDF'] ?? [];
+
+    const createdEntries = new Map<string, number>();
+    const languagesMap = new Map<string, number>();
+    const parentEntriesMap = new Map<string, string>();
+    const entriesRelatedEntriesMap = new Map<string, string[]>();
+
+    await prisma.entry.deleteMany({});
+    await prisma.language.deleteMany({});
+
+    for (const item of data) {
+
+        if (item['skos:Concept']) {
+
+            const entry = {} as any;
+            const entryAttributes = item['skos:Concept'];
+
+            const id = item[':@']['@_rdf:about'] ?? undefined;
+
+            if (!id) {
+                continue;
+            }
+
+            entry.translations = [];
+            entry.variations = [];
+            entry.references = [];
+            entry.name = '';
+
+            for (const attribute of entryAttributes) {
+
+                if (attribute['skos:prefLabel']) {
+
+                    const prefLabel = attribute['skos:prefLabel'][0];
+                    const translation = attribute[':@'] && attribute[':@']['@_xml:lang'] ? attribute[':@']['@_xml:lang'] : undefined;
+
+                    if (translation) {
+                        const languageId = languagesMap.get(translation);
+
+                        if (!languageId) {
+
+                            const newLanguage = await createOneOrMany('language', { name: translation });
+                            languagesMap.set(translation, newLanguage.id);
+                            
+                            entry.translations.push({
+                                languageId: newLanguage.id,
+                                name: prefLabel['#text']
+                            });
+                        }
+
+                        if (entry.name === '') {
+                            entry.name = prefLabel['#text'];
+                        }
+
+                    } else {
+                        entry.name = prefLabel['#text'];
+                    }
+                }
+
+                if (attribute['skos:definition']) {
+                    entry.definition = attribute['skos:definition'][0]['#text'];
+                }
+
+                if (attribute['skos:isCategory']) {
+                    entry.isCategory = true;
+                }
+
+                if (attribute['skos:broader'] && attribute[':@']?.['@_rdf:resource']) {
+                    parentEntriesMap.set(id, attribute[':@']['@_rdf:resource']);
+                }
+
+                if (attribute['skos:related'] && attribute[':@']?.['@_rdf:resource']) {
+                    const relatedEntries = entriesRelatedEntriesMap.get(id) ?? [];
+                    relatedEntries.push(attribute[':@']['@_rdf:resource']);
+                    entriesRelatedEntriesMap.set(id, relatedEntries);
+                }
+
+                if (attribute['skos:referenceNote']) {
+                    entry.references.push({
+                        name: attribute['skos:referenceNote'][0]['#text']
+                    });
+                }
+
+                if (attribute['skos:altLabel']) {
+                    entry.variations.push({
+                        name: attribute['skos:altLabel'][0]['#text']
+                    });
+                }
+            }
+
+            const newEntry = await createOneOrMany('entry', entry);
+            createdEntries.set(id, newEntry.id);
+        }
+    }
+
+    for (const [resourceId, relatedEntries] of entriesRelatedEntriesMap) {
+        await prisma.entry.update({
+            where: {
+                id: createdEntries.get(resourceId)
+            },
+            data: {
+                relatedEntries: {
+                    connect: relatedEntries.filter((relatedEntry) => {
+                        return createdEntries.get(relatedEntry);
+                    }).map((relatedEntry) => {
+                        return {
+                            id: createdEntries.get(relatedEntry)
+                        }
+                    })
+                }
+            }
+        });
+    }
+
+
+    for (const [resourceId, parentResourceId] of parentEntriesMap) {
+
+        if (!createdEntries.get(resourceId) || !createdEntries.get(parentResourceId)) {
+            continue;
+        }
+
+        await prisma.entry.update({
+            where: {
+                id: createdEntries.get(resourceId)
+            },
+            data: {
+                parent: {
+                    connect: {
+                        id: createdEntries.get(parentResourceId)
+                    }
+                }
+            }
+        });
+    }
+
+}
+
+function buildRdfProperty(name: string, comment: string, label: string, subPropertyOf: string, resourceURI: string) {
+    return [{
+        "rdf:Property": [
+            {
+                "rdfs:comment": [
+                    {
+                        "#text": comment
+                    }
+                ]
+            },
+            {
+                "rdfs:subPropertyOf": "",
+                ":@": {
+                    "@_rdf:resource": subPropertyOf
+                }
+            },
+            {
+                "rdfs:label": [
+                    {
+                        "#text": label
+                    }
+                ]
+            }
+        ],
+        ":@": {
+            "@_rdf:about": resourceURI + name
+        }
+    }];
+}
+
+function buildSkosConcept(entry: any, resourceURI: string, conceptSchemeId: string) {
+
+    const concept = {} as any;
+
+    concept['skos:Concept'] = [];
+
+    concept[':@'] = {
+        "@_rdf:about": resourceURI + entry.id
+    };
+
+
+    concept['skos:Concept'].push({
+        "skos:inScheme": [],
+        ":@": {
+            "@_rdf:resource": resourceURI + conceptSchemeId
+        }
+    });
+
+    concept['skos:Concept'].push({
+        "skos:prefLabel": [
+            {
+                "#text": entry.name
+            }
+        ]
+    });
+
+    if (entry.translations && entry.translations.length > 0) {
+        for (const translation of entry.translations) {
+            concept['skos:Concept'].push({
+                "skos:prefLabel": [
+                    {
+                        "#text": translation.name
+                    }
+                ],
+                ":@": {
+                    "@_xml:lang": translation.language.code ? translation.language.code : translation.language.name
+                }
+            });
+        }
+    }
+
+
+    if (entry.variations && entry.variations.length > 0) {
+        for (const variation of entry.variations) {
+            concept['skos:Concept'].push({
+                "skos:altLabel": [
+                    {
+                        "#text": variation.name
+                    }
+                ]
+            });
+        }
+    }
+
+
+    if (entry.definition) {
+        concept['skos:Concept'].push({
+            "skos:definition": [
+                {
+                    "#text": entry.definition
+                }
+            ]
+        });
+    }
+
+    if (entry.references && entry.references.length > 0) {
+        for (const reference of entry.references) {
+            concept['skos:Concept'].push({
+                "skos:referenceNote": [
+                    {
+                        "#text": reference.name
+                    }
+                ]
+            });
+        }
+    }
+
+    if (entry.isCategory) {
+        concept['skos:Concept'].push({
+            "skos:isCategory": ""
+        });
+
+        if (!entry.parent) {
+            concept['skos:Concept'].push({
+                "skos:topConceptOf": "",
+                ":@": {
+                    "@_rdf:resource": resourceURI + conceptSchemeId,
+
+                }
+            });
+        } 
+    }
+
+
+    if (entry.relatedEntries && entry.relatedEntries.length > 0) {
+        for (const relatedEntry of entry.relatedEntries) {
+            concept['skos:Concept'].push({
+                "skos:related": "",
+                ":@": {
+                    "@_rdf:resource": resourceURI + relatedEntry.nameSlug
+                }
+            });
+        }
+    }
+
+
+    if (entry.parent) {
+        concept['skos:Concept'].push({
+            "skos:broader": "",
+            ":@": {
+                "@_rdf:resource": resourceURI + entry.parent.nameSlug
+            }
+        });
+    }
 
 
 
+    if (entry.children && entry.children.length > 0) {
+        for (const child of entry.children) {
+            concept['skos:Concept'].push({
+                "skos:narrower": "",
+                ":@": {
+                    "@_rdf:resource": resourceURI + child.nameSlug
+                }
+            });
+        }
+    }
 
+
+    return [concept];
+}
+
+
+async function buildSkosConceptScheme(model: string, resourceURI: string, conceptSchemeId: string) {
+
+    const conceptScheme = {
+        "skos:ConceptScheme": [
+            {
+                "skos:prefLabel": [
+                    {
+                        "#text": process.env.APP_NAME
+                    }
+                ]
+            },
+            {
+                "skos:definition": [
+                    {
+                        "#text": process.env.APP_DESCRIPTION
+                    }
+                ]
+            }
+        ],
+        ":@": {
+            "@_rdf:about": resourceURI + conceptSchemeId
+        }
+    } as any;
+
+
+    const where = { isCategory: true, parentId: { isNull: true } };
+
+    const topConcepts = await readOneOrManyWithQuery(model, { pageSize: -1, page: 1, where });
+
+    if (topConcepts && topConcepts.data.length > 0) {
+        for (const topConcept of topConcepts.data) {
+            conceptScheme['skos:ConceptScheme'].push({
+                "skos:hasTopConcept": "",
+                ":@": {
+                    "@_rdf:resource": resourceURI + topConcept.nameSlug
+                }
+            });
+        }
+    }
+
+    return [conceptScheme];
+}
