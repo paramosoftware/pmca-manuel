@@ -12,48 +12,96 @@ import  deleteFolder from '~/utils/deleteFolder';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 
 
-export async function exportAll() {
+const resourceURI = '#' // TODO: Change this to the correct URI
+const conceptSchemeId = 'A0'; // TODO: Create real concept scheme id
+const xmlOptions = {
+    ignoreAttributes: false,
+    format: true,
+    preserveOrder: true,
+    allowBooleanAttributes: true,
+    suppressEmptyNode: true,
+    ignorePiTags: true
+};
 
-    const model = 'entry';
-    let mediaFiles = new Map<string, string>();
+export async function exportAll(format: 'skos' | 'json', addMedia: boolean = false) {
 
-    const pageSize = 200;
-    let page = 1;
+    const ext = format === 'skos' ? 'xml' : 'json';
+
+    const filePath = path.join(process.cwd(), 'server', 'temp', `export-${Date.now()}.${ext}`);
+    const zipPath = path.join(process.cwd(), 'server', 'temp', `export-${Date.now()}.zip`);
+
+    openFile(filePath, format);
+
+    const mediaFiles = await processItems(filePath, format);
+
+    closeFile(filePath, format);
+
+    if (addMedia) {
+        createZip(mediaFiles, filePath, zipPath);
+        return zipPath;
+    } else {
+        return filePath;
+    }
+}
+
+function openFile(filePath: string, format: 'skos' | 'json') {
+    fs.writeFileSync(filePath, '');
+
+    if (format === 'json') {
+        fs.appendFileSync(filePath, '[');
+    } else if (format === 'skos') {
+        fs.appendFileSync(filePath, '<?xml version="1.0" encoding="UTF-8"?>');
+        fs.appendFileSync(filePath, '\n');
+        fs.appendFileSync(filePath, '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/">');
+        fs.appendFileSync(filePath, '\n');
+    }
+}
+
+function closeFile(filePath :string, format: 'skos' | 'json') {
+    if (format === 'json') {
+        const fd = fs.openSync(filePath, 'r+');
+        fs.ftruncateSync(fd, fs.statSync(filePath).size - 1);
+        fs.closeSync(fd);
+        fs.appendFileSync(filePath, ']');
+    } else if (format === 'skos') {
+        fs.appendFileSync(filePath, '\n');
+        fs.appendFileSync(filePath, '</rdf:RDF>');
+    }
+}
+
+async function processItems(filePath: string, format: 'skos' | 'json') {
+
     const include = OBJECTS['verbete'].includeRelations;
+    const pageSize = 200;
+    const model = 'entry';
+    const xmlBuilder = new XMLBuilder(xmlOptions);
 
-    const data = await readOneOrManyWithQuery(model, { pageSize, page, include });
+    const mediaFiles = new Map<string, string>();
+    let totalPages = 1;
 
-    if (!data || data.totalCount === 0) {
-        return;
+    if (format === 'skos') {
+        addSkosProperties(filePath, xmlBuilder, resourceURI, conceptSchemeId, model);
     }
 
-    const filePath = path.join(process.cwd(), 'server', 'temp', `${model.toLowerCase()}.json`);
-    fs.writeFileSync(filePath, '[');
-
-    for (let i = 0; i < data.totalPages; i++) {
+    for (let i = 0; i < totalPages; i++) {
         const data = await readOneOrManyWithQuery(model, { pageSize, page: i + 1, include });
 
         if (!data) {
             continue;
         }
 
-        for (const item of data.data) {
-            const newItem = {} as any;
+        totalPages = data.totalPages;
 
-            newItem.name = item.name;
-            newItem.nameSlug = item.nameSlug;
-            newItem.definition = item.definition;
-            newItem.parent = item.parent?.nameSlug;
-            newItem.isCategory = item.isCategory;
-            newItem.relatedEntries = item.relatedEntries?.map((entry: Entry) => entry.nameSlug);
-            newItem.references = item.references?.map((reference: Reference) => reference.name);
-            newItem.variations = item.variations?.map((variation : Variation) => variation.name);
-            newItem.translations = item.translations?.map((translation: Translation) => {
-                return {
-                    language: translation.language?.name,
-                    name: translation.name
-                }
-            });
+        for (const item of data.data) {
+
+            if (format === 'json') {
+                const json = buildJsonExport(item);
+                fs.appendFileSync(filePath, json);
+                fs.appendFileSync(filePath, ',');
+            } else if (format === 'skos') {
+                const concept = buildSkosConcept(item, resourceURI, conceptSchemeId);
+                fs.appendFileSync(filePath, xmlBuilder.build(concept));
+            }
 
             if (item.media) {
                 for (const media of item.media) {
@@ -64,20 +112,26 @@ export async function exportAll() {
                     mediaFiles.set(fileName, newFileName);
                 }
             }
-
-            const json = JSON.stringify(newItem, null, 2);
-            fs.appendFileSync(filePath, json);
-            fs.appendFileSync(filePath, ',');
-            fs.appendFileSync(filePath, '\n');
         }
     }
 
-    const fd = fs.openSync(filePath, 'r+');
-    fs.ftruncateSync(fd, fs.statSync(filePath).size - 2);
-    fs.closeSync(fd);
-    fs.appendFileSync(filePath, ']');
+    return mediaFiles;
+}
 
-    const zipPath = path.join(process.cwd(), 'server', 'temp', `export.zip`);
+async function addSkosProperties(filePath: string, xmlBuilder: XMLBuilder, resourceURI: string, conceptSchemeId: string, model: string) {
+
+    const referenceNote = buildRdfProperty('referenceNote', 'Bibliographic reference to the concept', 'Reference', 'http://www.w3.org/2004/02/skos/core#editorialNote', resourceURI);
+    const isCategory = buildRdfProperty('isCategory', 'Indicates if the concept is a category', 'Is category', 'http://www.w3.org/2004/02/skos/core#editorialNote', resourceURI);
+    
+    fs.appendFileSync(filePath, xmlBuilder.build(referenceNote));
+    fs.appendFileSync(filePath, xmlBuilder.build(isCategory));
+
+    const conceptScheme = await buildSkosConceptScheme(model, resourceURI, conceptSchemeId);
+
+    fs.appendFileSync(filePath, xmlBuilder.build(conceptScheme));
+}
+
+function createZip(mediaFiles: Map<string, string>, filePath: string, zipPath: string) {
     const zip = new Zip();
 
     for (const [fileName, newFileName] of mediaFiles) {
@@ -87,57 +141,93 @@ export async function exportAll() {
         }
     }
 
-    zip.addLocalFile(filePath);
+    if (fs.existsSync(filePath)) {
+        zip.addLocalFile(filePath);
+    }
+
     zip.writeZip(zipPath);
     fs.unlinkSync(filePath);
-
-    return zipPath;
 }
 
-export async function importAll() {
+export async function importAll(filePath: string, overwrite: boolean = false) {
 
-    const exportModel = 'entry';
-    const filePath = path.join(process.cwd(), 'server', 'temp', 'export.zip');
-    
-    const zip = new Zip(filePath);
-    zip.extractAllTo(path.join(process.cwd(), 'server', 'temp', 'import'), true);
+    if (!fs.existsSync(filePath)) {
+        return;
+    }
 
-    const exportFilePath = path.join(process.cwd(), 'server', 'temp', 'import', exportModel + '.json');
-    const entries = JSON.parse(fs.readFileSync(exportFilePath, 'utf-8'));
-    const languagesMap = new Map<string, number>();
-    const parentEntriesMap = new Map<string, string>();
-    const entriesRelatedEntriesMap = new Map<string, string[]>();
+    let createdEntries: Map<string | number, number> = new Map<string | number, number>();
+
+    if (filePath.endsWith('.zip')) {
+        const zip = new Zip(filePath);
+        zip.extractAllTo(path.join(process.cwd(), 'server', 'temp', 'import'), true);
+        const files = fs.readdirSync(path.join(process.cwd(), 'server', 'temp', 'import'));
+        filePath = path.join(process.cwd(), 'server', 'temp', 'import', files[0]);
+    }
+
+    if (overwrite) {
+        await prisma.entry.deleteMany({});
+    }
+       
+    if (filePath.endsWith('.json')) {
+        createdEntries = await importAllFromJson(filePath);
+    } else if (filePath.endsWith('.xml')) {
+        createdEntries = await importAllFromSkos(filePath);
+    }
+
+    console.log('Importing media...');
+
+    if (fs.existsSync(path.join(filePath, 'media'))) {
+        await importMediaFromZip(path.join(filePath, 'media'), createdEntries);
+    }
+
+    deleteFolder(path.join(process.cwd(), 'server', 'temp', 'import'));
+
+}
+
+async function importAllFromJson(filePath: string) {
+
+    const entries = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const createdEntries = new Map<string | number, number>();
+    const languages = new Map<string, number>();
+    const parent = new Map<string, string>();
+    const related = new Map<string, string[]>();
 
     await prisma.entry.deleteMany({});
     await prisma.language.deleteMany({});
 
     for (const entry of entries) {
 
+        const oldId = entry.id ?? entry.name;
+
         if (entry.translations) {
             for (const translation of entry.translations) {
-                const languageName = translation.language;
-                const languageId = languagesMap.get(languageName);
-
-                if (!languageId) {
-                    const newLanguage = await createOneOrMany('language', {
-                        name: languageName
-                    });
-                    languagesMap.set(languageName, newLanguage.id);
+                const languageName = translation.language ?? undefined;
+               
+                if (!languages.get(languageName)) {
+                    const languageId = await upsertLanguage(languageName);
+                    languages.set(languageName, languageId);
                 }
             }
         }
 
+        if (entry.relatedEntries && entry.relatedEntries.length > 0) {
+            related.set(oldId, Array.isArray(entry.relatedEntries) ? entry.relatedEntries : [entry.relatedEntries]);
+         }
+ 
+         if (entry.parent) {
+            parent.set(oldId, entry.parent);
+         }
+
         const newEntry = await createOneOrMany('entry', {
             name: entry.name,
-            nameSlug: entry.nameSlug,
-            definition: entry.definition,
-            isCategory: entry.isCategory,
-            references: entry.references.map((reference: Reference) => {
+            definition: entry.definition ?? undefined,
+            isCategory: entry.isCategory ?? false,
+            references: entry.references?.map((reference: Reference) => {
                 return {
                     name: reference
                 }
             }),
-            variations: entry.variations.map((variation: Variation) => {
+            variations: entry.variations?.map((variation: Variation) => {
                 return {
                     name: variation
                 }
@@ -145,55 +235,21 @@ export async function importAll() {
             translations: entry.translations?.map((translation: { name: string; language: string; }) => {
                 return {
                     name: translation.name,
-                    languageId: languagesMap.get(translation.language)
+                    languageId: languages.get(translation.language)
                 }
             })
         });
 
-        if (entry.relatedEntries && entry.relatedEntries.length > 0) {
-           entriesRelatedEntriesMap.set(newEntry.nameSlug, entry.relatedEntries);
-        }
-
-        if (entry.parent) {
-            parentEntriesMap.set(newEntry.nameSlug, entry.parent);
-        }
+        createdEntries.set(oldId, newEntry.id);
     }
 
+    await processRelations(createdEntries, related, parent);   
 
-    for (const [entryName, relatedEntries] of entriesRelatedEntriesMap) {
-        await prisma.entry.update({
-            where: {
-                nameSlug: entryName
-            },
-            data: {
-                relatedEntries: {
-                    connect: relatedEntries.map((relatedEntryName) => {
-                        return {
-                            nameSlug: relatedEntryName
-                        }
-                    })
-                }
-            }
-        });
-    }
+    return createdEntries;
+}
 
-    for (const [entryName, parentName] of parentEntriesMap) {
-        await prisma.entry.update({
-            where: {
-                nameSlug: entryName
-            },
-            data: {
-                parent: {
-                    connect: {
-                        nameSlug: parentName
-                    }
-                }
-            }
-        });
-    }
-
-    const mediaFilePath = path.join(process.cwd(), 'server', 'temp', 'import', 'media');
-    const mediaFiles = fs.readdirSync(mediaFilePath);
+async function importMediaFromZip(mediaPath: string, createdEntries: Map<string | number, number>) {
+    const mediaFiles = fs.readdirSync(mediaPath);
 
     for (const mediaFile of mediaFiles) {
         const parts = mediaFile.split('_');
@@ -205,7 +261,7 @@ export async function importAll() {
 
         const entry = await prisma.entry.findFirst({
             where: {
-                nameSlug: fileName
+                id: createdEntries.get(fileName)
             }
         });
 
@@ -217,114 +273,33 @@ export async function importAll() {
 
         const oldPath = path.join(process.cwd(), 'server', 'temp', 'import', 'media', mediaFile);
         const newPath = path.join(process.cwd(), 'public', 'media', newFileName);
+
         fs.renameSync(oldPath, newPath);
     }
-
-    const tempPath = path.join(process.cwd(), 'server', 'temp', 'import');
-    deleteFolder(tempPath);
-    fs.unlinkSync(filePath);
 }
 
-export async function exportAllToSkos() {
-    const model = 'entry';
- 
-    const pageSize = 200;
-    let page = 1;
-    const include = OBJECTS['verbete'].includeRelations;
+export async function importAllFromSkos(filePath: string) {
 
-    const data = await readOneOrManyWithQuery(model, { pageSize, page, include });
-
-    if (!data || data.totalCount === 0) {
-        return;
-    }
-
-    const resultPath = path.join(process.cwd(), 'server', 'temp', `result.xml`);
-
-    const options = {
-        ignoreAttributes: false,
-        format: true,
-        preserveOrder: true,
-        allowBooleanAttributes: true,
-        suppressEmptyNode: true
-    };
-
-    const xmlBuilder = new XMLBuilder(options);
-
-    fs.writeFileSync(resultPath, '');
-    fs.appendFileSync(resultPath, '<?xml version="1.0" encoding="UTF-8"?>');
-    fs.appendFileSync(resultPath, '\n');
-    fs.appendFileSync(resultPath, '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/">');
-    fs.appendFileSync(resultPath, '\n');
-
-    const resourceURI = '#' // TODO: Change this to the correct URI
-    const conceptSchemeId = 'A0'; // TODO: Create real concept scheme id
-
-    const referenceNote = buildRdfProperty('referenceNote', 'Bibliographic reference to the concept', 'Reference', 'http://www.w3.org/2004/02/skos/core#editorialNote', resourceURI);
-    const isCategory = buildRdfProperty('isCategory', 'Indicates if the concept is a category', 'Is category', 'http://www.w3.org/2004/02/skos/core#editorialNote', resourceURI);
-    
-    fs.appendFileSync(resultPath, xmlBuilder.build(referenceNote));
-    fs.appendFileSync(resultPath, xmlBuilder.build(isCategory));
-
-    const conceptScheme = await buildSkosConceptScheme(model, resourceURI, conceptSchemeId);
-
-    fs.appendFileSync(resultPath, xmlBuilder.build(conceptScheme));
-
-    for (let i = 0; i < data.totalPages; i++) {
-        const data = await readOneOrManyWithQuery(model, { pageSize, page: i + 1, include });
-
-        if (!data) {
-            continue;
-        }
-
-        for (const item of data.data) {
-            const concept = buildSkosConcept(item, resourceURI, conceptSchemeId);
-            fs.appendFileSync(resultPath, xmlBuilder.build(concept));
-        }
-    }
-
-    fs.appendFileSync(resultPath, '\n');
-    fs.appendFileSync(resultPath, '</rdf:RDF>');
-}
-
-export async function importAllFromSkos() {
-
-    const options = {
-        ignoreAttributes: false,
-        format: true,
-        preserveOrder: true,
-        allowBooleanAttributes: true,
-        suppressEmptyNode: true,
-        ignorePiTags: true
-    };
-
-    const xmlParser = new XMLParser(options);
-
-    const filePath = path.join(process.cwd(), 'server', 'temp', 'export.xml');
+    const xmlParser = new XMLParser(xmlOptions);
     const xml = fs.readFileSync(filePath, 'utf-8');
     const result = xmlParser.parse(xml);
-
     const data = result[0]['rdf:RDF'] ?? [];
 
-    const createdEntries = new Map<string, number>();
-    const languagesMap = new Map<string, number>();
-    const parentEntriesMap = new Map<string, string>();
-    const entriesRelatedEntriesMap = new Map<string, string[]>();
-
-    await prisma.entry.deleteMany({});
-    await prisma.language.deleteMany({});
+    const languages = new Map<string, number>();
+    const parent = new Map<string, string>();
+    const related = new Map<string, string[]>();
+    const createdEntries = new Map<string | number, number>();
 
     for (const item of data) {
 
         if (item['skos:Concept']) {
 
+            const oldId = item[':@']?.['@_rdf:about'] ?? undefined;
+
+            if (!oldId) { continue; }
+
             const entry = {} as any;
             const entryAttributes = item['skos:Concept'];
-
-            const id = item[':@']['@_rdf:about'] ?? undefined;
-
-            if (!id) {
-                continue;
-            }
 
             entry.translations = [];
             entry.variations = [];
@@ -339,18 +314,16 @@ export async function importAllFromSkos() {
                     const translation = attribute[':@'] && attribute[':@']['@_xml:lang'] ? attribute[':@']['@_xml:lang'] : undefined;
 
                     if (translation) {
-                        const languageId = languagesMap.get(translation);
 
-                        if (!languageId) {
-
-                            const newLanguage = await createOneOrMany('language', { name: translation });
-                            languagesMap.set(translation, newLanguage.id);
-                            
-                            entry.translations.push({
-                                languageId: newLanguage.id,
-                                name: prefLabel['#text']
-                            });
+                        if (!languages.get(translation)) {
+                            const languageId = await upsertLanguage(translation);
+                            languages.set(translation, languageId);
                         }
+
+                        entry.translations.push({
+                            name: prefLabel['#text'],
+                            languageId: languages.get(translation)
+                        });
 
                         if (entry.name === '') {
                             entry.name = prefLabel['#text'];
@@ -370,13 +343,13 @@ export async function importAllFromSkos() {
                 }
 
                 if (attribute['skos:broader'] && attribute[':@']?.['@_rdf:resource']) {
-                    parentEntriesMap.set(id, attribute[':@']['@_rdf:resource']);
+                    parent.set(oldId, attribute[':@']['@_rdf:resource']);
                 }
 
                 if (attribute['skos:related'] && attribute[':@']?.['@_rdf:resource']) {
-                    const relatedEntries = entriesRelatedEntriesMap.get(id) ?? [];
+                    const relatedEntries = related.get(oldId) ?? [];
                     relatedEntries.push(attribute[':@']['@_rdf:resource']);
-                    entriesRelatedEntriesMap.set(id, relatedEntries);
+                    related.set(oldId, relatedEntries);
                 }
 
                 if (attribute['skos:referenceNote']) {
@@ -393,50 +366,13 @@ export async function importAllFromSkos() {
             }
 
             const newEntry = await createOneOrMany('entry', entry);
-            createdEntries.set(id, newEntry.id);
+            createdEntries.set(oldId, newEntry.id);
         }
     }
 
-    for (const [resourceId, relatedEntries] of entriesRelatedEntriesMap) {
-        await prisma.entry.update({
-            where: {
-                id: createdEntries.get(resourceId)
-            },
-            data: {
-                relatedEntries: {
-                    connect: relatedEntries.filter((relatedEntry) => {
-                        return createdEntries.get(relatedEntry);
-                    }).map((relatedEntry) => {
-                        return {
-                            id: createdEntries.get(relatedEntry)
-                        }
-                    })
-                }
-            }
-        });
-    }
+    await processRelations(createdEntries, related, parent);
 
-
-    for (const [resourceId, parentResourceId] of parentEntriesMap) {
-
-        if (!createdEntries.get(resourceId) || !createdEntries.get(parentResourceId)) {
-            continue;
-        }
-
-        await prisma.entry.update({
-            where: {
-                id: createdEntries.get(resourceId)
-            },
-            data: {
-                parent: {
-                    connect: {
-                        id: createdEntries.get(parentResourceId)
-                    }
-                }
-            }
-        });
-    }
-
+    return createdEntries;
 }
 
 function buildRdfProperty(name: string, comment: string, label: string, subPropertyOf: string, resourceURI: string) {
@@ -476,7 +412,7 @@ function buildSkosConcept(entry: any, resourceURI: string, conceptSchemeId: stri
     concept['skos:Concept'] = [];
 
     concept[':@'] = {
-        "@_rdf:about": resourceURI + entry.id
+        "@_rdf:about": resourceURI + entry.nameSlug
     };
 
 
@@ -601,7 +537,6 @@ function buildSkosConcept(entry: any, resourceURI: string, conceptSchemeId: stri
     return [concept];
 }
 
-
 async function buildSkosConceptScheme(model: string, resourceURI: string, conceptSchemeId: string) {
 
     const conceptScheme = {
@@ -644,3 +579,107 @@ async function buildSkosConceptScheme(model: string, resourceURI: string, concep
 
     return [conceptScheme];
 }
+
+function buildJsonExport(item: any) {
+    const newItem = {} as any;
+
+    newItem.id = item.nameSlug;
+    newItem.name = item.name;
+    newItem.definition = item.definition;
+    newItem.parent = item.parent?.nameSlug;
+    newItem.isCategory = item.isCategory;
+
+    if (item.relatedEntries && item.relatedEntries.length > 0) {
+        newItem.relatedEntries = item.relatedEntries.map((entry: Entry) => {
+            return entry.nameSlug
+        });
+    }
+
+    if (item.references && item.references.length > 0) {
+        newItem.references = item.references.map((reference: Reference) => {
+            return reference.name
+        });
+    }
+
+    if (item.variations && item.variations.length > 0) {
+        newItem.variations = item.variations.map((variation: Variation) => {
+            return variation.name
+        });
+    }
+
+    if (item.translations && item.translations.length > 0) {
+        newItem.translations = item.translations.map((translation: Translation) => {
+            return {
+                language: translation.language?.name,
+                name: translation.name
+            }
+        });
+    }
+
+    return JSON.stringify(newItem, null, 2);
+
+}
+
+async function processRelations(createdEntries: Map<string | number, number>, related: Map<string, string[]>, parent: Map<string, string>) {
+
+    for (const [oldId, relatedEntries] of related) {
+        await prisma.entry.update({
+            where: {
+                id: createdEntries.get(oldId)
+            },
+            data: {
+                relatedEntries: {
+                    connect: relatedEntries.filter((relatedEntry) => {
+                        return createdEntries.get(relatedEntry);
+                    }).map((relatedEntry) => {
+                        return {
+                            id: createdEntries.get(relatedEntry)
+                        }
+                    })
+                }
+            }
+        });
+    }
+
+
+    for (const [entryId, parentResourceId] of parent) {
+
+        if (!createdEntries.get(entryId) || !createdEntries.get(parentResourceId)) {
+            continue;
+        }
+
+        await prisma.entry.update({
+            where: {
+                id: createdEntries.get(entryId)
+            },
+            data: {
+                parent: {
+                    connect: {
+                        id: createdEntries.get(parentResourceId)
+                    }
+                }
+            }
+        });
+    }
+}
+
+async function upsertLanguage(languageName: any) {
+
+    const where = {
+        or: [
+            { name: languageName },
+            { code: languageName }
+        ]
+    }
+    
+    const foundLanguage = await readOneOrManyWithQuery('language', { where: where });
+
+    if (foundLanguage && foundLanguage.totalCount > 0) {
+        return foundLanguage.data[0].id;
+    }
+
+    const newLanguage = await createOneOrMany('language', { name: languageName });
+
+    return newLanguage.id;
+}
+
