@@ -1,9 +1,13 @@
 import isElectron from './isElectron';
+import path from 'path';
 
-export default function getTempPath() {
+export default function getTempPath(absolute: boolean = false) {
 
     const folder = 'temp';
-    const mediaPath = isElectron() ? process.env.USER_DATA_PATH! + '/' + folder + '/' : process.cwd() + '/server/' + folder + '/';
 
-    return mediaPath
+    if (isElectron()) {
+        return path.join(process.env.USER_DATA_PATH!, folder);
+    } else {
+        return absolute ? path.join(process.cwd(), 'server', folder) : path.join('server', folder);
+    }
 }

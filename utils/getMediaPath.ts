@@ -1,9 +1,14 @@
 import isElectron from './isElectron';
+import path from 'path';
 
-export default function getMediaPath() {
+export default function getMediaPath(absolute: boolean = false) {
 
     const folder = 'media';
-    const mediaPath = isElectron() ? process.env.USER_DATA_PATH! + '/' + folder + '/' : 'public/' + folder;
 
-    return mediaPath
+    if (isElectron()) {
+        return path.join(process.env.USER_DATA_PATH!, folder);
+    } else {
+        return absolute ? path.join(process.cwd(), 'public', folder) : path.join('public', folder);
+    }
+
 }

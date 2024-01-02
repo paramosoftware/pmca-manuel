@@ -10,6 +10,10 @@ import { saveMedia } from './media';
 import { v4 as uuidv4 } from 'uuid';
 import  deleteFolder from '~/utils/deleteFolder';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
+import  parseNumber from '~/utils/parseNumber';
+import  getTempPath  from '~/utils/getTempPath';
+import  getMediaPath  from '~/utils/getMediaPath';
+
 
 
 const resourceURI = '#' // TODO: Change this to the correct URI
@@ -27,8 +31,8 @@ export async function exportAll(format: 'skos' | 'json', addMedia: boolean = fal
 
     const ext = format === 'skos' ? 'xml' : 'json';
 
-    const filePath = path.join(process.cwd(), 'server', 'temp', `export-${Date.now()}.${ext}`);
-    const zipPath = path.join(process.cwd(), 'server', 'temp', `export-${Date.now()}.zip`);
+    const filePath = path.join(getTempPath(true), `export-${Date.now()}.${ext}`);
+    const zipPath = path.join(getTempPath(true), `export-${Date.now()}.zip`);
 
     openFile(filePath, format);
 
@@ -135,7 +139,7 @@ function createZip(mediaFiles: Map<string, string>, filePath: string, zipPath: s
     const zip = new Zip();
 
     for (const [fileName, newFileName] of mediaFiles) {
-        const absoluteFilePath = path.join(process.cwd(), 'public', 'media', fileName);
+        const absoluteFilePath = path.join(getMediaPath(true), fileName);
         if (fs.existsSync(absoluteFilePath)) {
             zip.addLocalFile(absoluteFilePath, 'media', newFileName);
         }
@@ -157,11 +161,13 @@ export async function importAll(filePath: string, overwrite: boolean = false) {
 
     let createdEntries: Map<string | number, number> = new Map<string | number, number>();
 
+    const importPath = path.join(getTempPath(true), 'import');
+
     if (filePath.endsWith('.zip')) {
         const zip = new Zip(filePath);
-        zip.extractAllTo(path.join(process.cwd(), 'server', 'temp', 'import'), true);
-        const files = fs.readdirSync(path.join(process.cwd(), 'server', 'temp', 'import'));
-        filePath = path.join(process.cwd(), 'server', 'temp', 'import', files[0]);
+        zip.extractAllTo(importPath, true);
+        const files = fs.readdirSync(importPath);
+        filePath = path.join(importPath, files[0]);
     }
 
     if (overwrite) {
@@ -174,14 +180,16 @@ export async function importAll(filePath: string, overwrite: boolean = false) {
         createdEntries = await importAllFromSkos(filePath);
     }
 
-    console.log('Importing media...');
+    const mediaPath = path.join(importPath, 'media');
 
-    if (fs.existsSync(path.join(filePath, 'media'))) {
-        await importMediaFromZip(path.join(filePath, 'media'), createdEntries);
+    if (fs.existsSync(mediaPath)) {
+        await importMediaFromZip(mediaPath, createdEntries);
+        deleteFolder(importPath);
     }
 
-    deleteFolder(path.join(process.cwd(), 'server', 'temp', 'import'));
-
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+    }
 }
 
 async function importAllFromJson(filePath: string) {
@@ -254,25 +262,36 @@ async function importMediaFromZip(mediaPath: string, createdEntries: Map<string 
     for (const mediaFile of mediaFiles) {
         const parts = mediaFile.split('_');
 
-        const extension = parts[1].split('.')[1];
-        const fileName = parts[0];
-        const position = parts[1].split('.')[0];
-        const newFileName = `${uuidv4()}.${extension}`;
+        let ext;
+        let oldId;
+        let position;
 
-        const entry = await prisma.entry.findFirst({
-            where: {
-                id: createdEntries.get(fileName)
-            }
-        });
-
-        if (!entry) {
+        if (parts.length === 1) {
+            ext = parts[0].split('.')[1];
+            oldId = parts[0].split('.')[0];
+            position = 1;
+        } else if (parts.length === 2) {
+            ext = parts[1].split('.')[1];
+            oldId = parts[0];
+            position = parts[1].split('.')[0];
+        } else {
             continue;
         }
 
-        await saveMedia(entry.id, newFileName, mediaFile, parseInt(position));
+        const newFileName = `${uuidv4()}.${ext}`;
 
-        const oldPath = path.join(process.cwd(), 'server', 'temp', 'import', 'media', mediaFile);
-        const newPath = path.join(process.cwd(), 'public', 'media', newFileName);
+        const entry = await prisma.entry.findFirst({
+            where: {
+                id: createdEntries.get(oldId)
+            }
+        });
+
+        if (!entry) { continue; }
+
+        await saveMedia(entry.id, newFileName, mediaFile, parseNumber(position));
+
+        const oldPath = path.join(mediaPath, mediaFile);
+        const newPath = path.join(getMediaPath(true), newFileName);
 
         fs.renameSync(oldPath, newPath);
     }

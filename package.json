@@ -13,7 +13,7 @@
     "postinstall": "nuxt prepare",
     "scaffold": "pnpm install && pnpm prisma generate && pnpm prisma db push && pnpm prima:seed-basis",
     "electron:build": "nuxt build && pnpm prisma:prod && pnpm prima:seed-basis && node build.js",
-    "electron:build-test": "nuxt build && pnpm prisma:create-db && pnpm prima:seed-test && NODE_ENV=development DEBUG=electron-builder node build.js",
+    "electron:build-test": "nuxt build && pnpm prisma:prod && pnpm prima:seed-basis && NODE_ENV=development DEBUG=electron-builder node build.js",
     "electron:dev": "pnpm dev & NODE_ENV=development electron electron/main.js",
     "prisma:prod": "pnpm prisma generate && pnpm prisma migrate deploy --schema .output/server/node_modules/.prisma/client/schema.prisma && pnpm prisma db push --schema .output/server/node_modules/.prisma/client/schema.prisma",
     "prima:seed-basis": "tsx server/prisma/seed/basis.ts"
