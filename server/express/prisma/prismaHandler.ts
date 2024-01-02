@@ -74,7 +74,7 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
                 } else if (hasQuery) {
                     response = readOneOrManyWithQuery(model, body, next);
                 } else if (isUpload) {
-                     uploadMedia(model, id, body, req, res, next);
+                     response = uploadMedia(model, id, body, req, res, next);
                 } else {
                     response = createOneOrMany(model, body, next);
                 }

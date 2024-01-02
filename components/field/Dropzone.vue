@@ -48,7 +48,10 @@ const dropzoneOptions = {
         xhr.setRequestHeader('X-CSRF-Token', csrfToken.value ? csrfToken.value : '');
     },
     success: function (file, response) {
-        emit('update', response);
+        if (response) {
+            emit('update', response);
+        }
+
         if (myVueDropzone.value.getUploadingFiles().length === 0 && myVueDropzone.value.getQueuedFiles().length === 0) {
             emit('close');
         }

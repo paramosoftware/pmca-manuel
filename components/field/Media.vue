@@ -81,17 +81,19 @@ const emit = defineEmits(['update'])
 
 const deleteMedia = async (media: EntryMedia) => {
     emit('update', props.id, 'remove', media)
+    updateMediaPosition({ oldIndex: 0, newIndex: 1 })
 }
 
 const addMedia = (media: EntryMedia) => {
     emit('update', props.id, 'add', media)
+    updateMediaPosition({ oldIndex: 0, newIndex: 1 })
 }
 
 const updateMediaPosition = (event: any) => {
     if (event.oldIndex !== event.newIndex) {
         const media = [...props.media];
         media.map((item, index) => {
-            item.position = index;
+            item.position = index + 1;
         });
         emit('update', props.id, 'update', media)
     }

@@ -24,36 +24,37 @@ export async function uploadMedia(model: string, id: string, body: any, req: exp
         limits: { fileSize: 1024 * 1024 * 5 },
     }).single('file')
 
+    return new Promise((resolve, reject) => {
+        upload(req, res, async (err: any) => {
+            try {
+                if (err) {
+                    throw new UploadError('Error uploading file');
+                }
 
-    upload(req, res, async (err: any) => {
-        try {
+                if (!req.file) {
+                    throw new UploadError('No file was sent');
+                }
 
-            if (err) {
-                throw new UploadError('Error uploading file');
+                const data = await saveMedia(id, req.file?.filename, req.file?.originalname);
+
+                resolve(data);
+
+            } catch (error) {
+
+                const filePath = path.join('public', req.file?.filename);
+
+                if (fs.existsSync(filePath)) {
+                    fs.unlink(filePath, (err) => {
+                        if (err) {
+                            throw new UploadError('Error deleting file');
+                        }
+                    });
+                }
+
+                next(reject(error));
+
             }
-
-            if (!req.file) {
-                throw new UploadError('No file was sent');
-            }
-
-            const data = await saveMedia(id, req.file?.filename, req.file?.originalname);
-
-            res.json(data);
-
-        } catch (error) {
-
-            const filePath = path.join('public', req.file?.filename);
-
-            if (fs.existsSync(filePath)) {
-                fs.unlink(filePath, (err) => {
-                    if (err) {
-                        throw new UploadError('Error deleting file');
-                    }
-                });
-            }
-
-            next(error);
-        }
+        });
     });
 }
 
@@ -117,7 +118,7 @@ export async function handleMedia(media: any[], entryId: number) {
     });
 }
 
-export async function saveMedia(entryId: string, fileName: string, originalFilename: string) {
+export async function saveMedia(entryId: string | Number, fileName: string, originalFilename: string, position: number = 1){
     try {
         const media = await prisma.appMedia.create({
             data: {
@@ -127,9 +128,10 @@ export async function saveMedia(entryId: string, fileName: string, originalFilen
                     create: {
                         entry: {
                             connect: {
-                                id: parseInt(entryId)
+                                id: parseInt(entryId),
                             }
-                        }
+                        },
+                        position: position
                     }
                 }
             },
