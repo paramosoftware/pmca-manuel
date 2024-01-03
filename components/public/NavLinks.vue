@@ -41,6 +41,10 @@ const links = ref([
     {
         name: 'Verbetes',
         path: '/verbetes'
+    },
+    {
+        name: 'Exportar',
+        path: '/exportar'
     }
 ]);
 

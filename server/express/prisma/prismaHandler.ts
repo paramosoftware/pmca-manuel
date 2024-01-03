@@ -9,13 +9,17 @@ import { uploadMedia } from './media';
 import { readMany, readOne, readOneOrManyWithQuery } from './read';
 import { updateMany, updateOne } from './update';
 import { convertToFormatAndSend } from './dataFormatConverters';
-
+import { exportAll, importAll } from './export';
+import  getTempPath  from '~/utils/getTempPath';
+import path from 'path';
+import fs from 'fs';
 
 const prismaHandler =  async (req: express.Request, res: express.Response, next: express.NextFunction) => {
 
     /* Routes that need authentication:
     GET /api/:model - Get many
     GET /api/:model/:id - Get one
+    GET /api/export - Export all entries
 
     PUT /api/:model - Update all
     PUT /api/:model/:id - Update one
@@ -28,6 +32,18 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
     DELETE /api/:model/:id - Delete one
     DELETE /api/:model/query - Delete one or many with query
     */
+
+
+    if (req.path.startsWith('/api/export')) {
+        const format = req.query.format ? req.query.format : 'json';
+        const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
+        const filePath = await exportAll(format, addMedia);
+
+        res.download(filePath, () => {
+         fs.unlinkSync(filePath);
+        })
+        return;
+    }
 
     const { model, id, hasQuery, isPublic, isUpload } = getParamsFromPath(req.path);
 

@@ -27,9 +27,9 @@ const xmlOptions = {
     ignorePiTags: true
 };
 
-export async function exportAll(format: 'skos' | 'json', addMedia: boolean = false) {
+export async function exportAll(format: 'xml' | 'json', addMedia: boolean = false) {
 
-    const ext = format === 'skos' ? 'xml' : 'json';
+    const ext = format;
 
     const filePath = path.join(getTempPath(true), `export-${Date.now()}.${ext}`);
     const zipPath = path.join(getTempPath(true), `export-${Date.now()}.zip`);
@@ -46,14 +46,15 @@ export async function exportAll(format: 'skos' | 'json', addMedia: boolean = fal
     } else {
         return filePath;
     }
+
 }
 
-function openFile(filePath: string, format: 'skos' | 'json') {
+function openFile(filePath: string, format: 'xml' | 'json') {
     fs.writeFileSync(filePath, '');
 
     if (format === 'json') {
         fs.appendFileSync(filePath, '[');
-    } else if (format === 'skos') {
+    } else if (format === 'xml') {
         fs.appendFileSync(filePath, '<?xml version="1.0" encoding="UTF-8"?>');
         fs.appendFileSync(filePath, '\n');
         fs.appendFileSync(filePath, '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/">');
@@ -61,7 +62,7 @@ function openFile(filePath: string, format: 'skos' | 'json') {
     }
 }
 
-function closeFile(filePath :string, format: 'skos' | 'json') {
+function closeFile(filePath :string, format: 'xml' | 'json') {
     if (format === 'json') {
         const fd = fs.openSync(filePath, 'r+');
         fs.ftruncateSync(fd, fs.statSync(filePath).size - 1);
@@ -73,7 +74,7 @@ function closeFile(filePath :string, format: 'skos' | 'json') {
     }
 }
 
-async function processItems(filePath: string, format: 'skos' | 'json') {
+async function processItems(filePath: string, format: 'xml' | 'json') {
 
     const include = OBJECTS['verbete'].includeRelations;
     const pageSize = 200;
@@ -83,7 +84,7 @@ async function processItems(filePath: string, format: 'skos' | 'json') {
     const mediaFiles = new Map<string, string>();
     let totalPages = 1;
 
-    if (format === 'skos') {
+    if (format === 'xml') {
         addSkosProperties(filePath, xmlBuilder, resourceURI, conceptSchemeId, model);
     }
 
@@ -102,7 +103,7 @@ async function processItems(filePath: string, format: 'skos' | 'json') {
                 const json = buildJsonExport(item);
                 fs.appendFileSync(filePath, json);
                 fs.appendFileSync(filePath, ',');
-            } else if (format === 'skos') {
+            } else if (format === 'xml') {
                 const concept = buildSkosConcept(item, resourceURI, conceptSchemeId);
                 fs.appendFileSync(filePath, xmlBuilder.build(concept));
             }
