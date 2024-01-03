@@ -49,6 +49,10 @@ definePageMeta({
     layout: false,
 });
 
+useHead({
+    title: 'Exportar | ' + useRuntimeConfig().public.appName,
+});
+
 const disableExport = ref(false);
 
 const toast = useToast();
