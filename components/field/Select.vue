@@ -30,10 +30,14 @@ const props = defineProps({
     id: String,
     label: String,
     modelValue: {
-        type: Object as PropType<{ id: number, name: string }>,
+        type: Object as PropType<{ id: number | string, name: string }>,
         required: true
     },
-    options: Array as PropType<{ id: number, name: string }[]>,
+    options: {
+        type: Array as PropType<{ id: number | string, name: string }[]>,
+        required: true,
+        default: () => [{ id: 0, name: '' }]
+    },
     required: {
         type: Boolean,
         default: false
@@ -45,20 +49,21 @@ const emit = defineEmits(['update:modelValue']);
 const handleInput = (event: Event) => {
     const target = event.target as HTMLInputElement;
 
-    if (target.value.toString() === '0' && props.required) {
+    const id = parseNumber(target.value);
+    const option = props.options.find(option => option.id === id) ?? { id: '', name: '' };
+
+    if (props.required && (id === '' || id == '0')) { 
         const option = props.options[0];
         emit('update:modelValue', { id: option.id, name: option.name });
         return;
     }
 
-    const id = parseInt(target.value);
-    const option = props.options.find(option => option.id === id) ?? { id: 0, name: '' };
     emit('update:modelValue', { id, name: option.name });
 }
 
 handleInput({ target: { value: props.modelValue.id } } as unknown as Event);
 
-const placeholder = ref({ id: 0, name: '' });
+const placeholder = ref({ id: '', name: '' });
 
 </script>
 
