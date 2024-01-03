@@ -48,9 +48,13 @@ const title = ref(config.public.appName);
 
 const links = ref([
     {
-      name: 'Gerenciar',
+      name: 'Cadastrar',
       path: ROUTES.restricted
     },
+    {
+      name: 'Importar',
+      path: ROUTES.import
+    }
 ]);
 
 

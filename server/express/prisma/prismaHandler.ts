@@ -5,13 +5,11 @@ import { prisma } from '../../prisma/prisma';
 import { createOneOrMany } from './create';
 import { deleteOne, deleteOneOrManyWithQuery } from './delete';
 import { getParamsFromPath } from './helpers';
-import { uploadMedia } from './media';
+import { importUploadFile, uploadMedia } from './media';
 import { readMany, readOne, readOneOrManyWithQuery } from './read';
 import { updateMany, updateOne } from './update';
 import { convertToFormatAndSend } from './dataFormatConverters';
 import { exportAll, importAll } from './export';
-import  getTempPath  from '~/utils/getTempPath';
-import path from 'path';
 import fs from 'fs';
 
 const prismaHandler =  async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -40,8 +38,15 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
         const filePath = await exportAll(format, addMedia);
 
         res.download(filePath, () => {
-         fs.unlinkSync(filePath);
+            fs.unlinkSync(filePath);
         })
+        return;
+    }
+
+    if (req.path.startsWith('/api/import')) {
+        const importFilePath = await importUploadFile(req, res, next) as string;
+        await importAll(importFilePath);
+        res.json({ message: 'Imported successfully' });
         return;
     }
 
