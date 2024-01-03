@@ -10,32 +10,50 @@
     </div>
 </template>
   
-  
-  
 <script setup>
 import vueDropzone from 'vue2-dropzone-vue3';
 
 const props = defineProps({
     objectName: {
         type: String,
-        required: true
+        required: false
     },
     objectId: {
         type: Number,
-        required: true
-    }
+        required: false
+    },
+    url: {
+        type: String,
+        required: false,
+    },
+    acceptedFiles: {
+        type: String,
+        required: false,
+        default: 'image/*'
+    },
+    maxFilesize: {
+        type: Number,
+        required: false,
+        default: 20
+    },
+    maxFiles: {
+        type: Number,
+        required: false,
+        default: 20
+    },
 })
 
 const myVueDropzone = ref(null);
-const emit = defineEmits(['update', 'close']);
+const emit = defineEmits(['start', 'update', 'close']);
 
 const dropzoneOptions = {
-    url: '/api/' + props.objectName + '/' + props.objectId + '/upload',
-    maxFilesize: 5,
-    maxFiles: 20,
+    url: props.url ? props.url : '/api/' + props.objectName + '/' + props.objectId + '/upload',
+    timeout: 180000, // 3 minutes
+    maxFilesize: props.maxFilesize,
+    maxFiles: props.maxFiles,
     thumbnailWidth: 150,
     thumbnailHeight: 200,
-    acceptedFiles: 'image/*',
+    acceptedFiles: props.acceptedFiles,
     dictInvalidFileType: 'Tipo de arquivo inválido',
     dictFileTooBig:' Arquivo maior que o permitido: {{maxFilesize}} MB',
     dictRemoveFile: 'Remover',
@@ -46,6 +64,7 @@ const dropzoneOptions = {
     sending: function (file, xhr, formData) {
         const csrfToken = useCookie(getCookiePrefix() + 'csrf');
         xhr.setRequestHeader('X-CSRF-Token', csrfToken.value ? csrfToken.value : '');
+        emit('start');
     },
     success: function (file, response) {
         if (response) {
