@@ -1,8 +1,9 @@
 <template>
   <button
     :type="type"
-    class="bg-pmca-accent hover:bg-pmca-primary text-white font-bold rounded-sm first-letter:uppercase"
-    :class="padding"
+    class="bg-pmca-accent text-white font-bold rounded-sm first-letter:uppercase" 
+    :class="padding + ' ' + (disabled ? 'cursor-not-allowed' : 'hover:bg-pmca-primary')"
+    :disabled="disabled"
   >
     {{ label }}
     <slot />
@@ -19,6 +20,10 @@ const props = defineProps({
   padding: {
     type: String,
     default: 'px-4 py-2'
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 });
 </script>
