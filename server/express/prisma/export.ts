@@ -68,7 +68,7 @@ function closeFile(filePath :string, format: 'xml' | 'json') {
         fs.ftruncateSync(fd, fs.statSync(filePath).size - 1);
         fs.closeSync(fd);
         fs.appendFileSync(filePath, ']');
-    } else if (format === 'skos') {
+    } else if (format === 'xml') {
         fs.appendFileSync(filePath, '\n');
         fs.appendFileSync(filePath, '</rdf:RDF>');
     }
