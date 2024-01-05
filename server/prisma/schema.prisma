@@ -8,16 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model AppGenderNoun {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-
-  resources AppResource[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model AppGroup {
   id   Int    @id @default(autoincrement())
   name String @unique
@@ -64,13 +54,13 @@ model AppGroupUser {
 
 model AppMedia {
   id   Int    @id @default(autoincrement())
-  name String
+  name String @unique
 
   originalFilename   String?
   path               String?
   subtitle           String?
   subtitleNormalized String?
-  type               String?
+  type               String? 
   isPublic           Boolean? @default(false)
 
   entryMedia EntryMedia[]
@@ -81,37 +71,60 @@ model AppMedia {
 
 model AppResource {
   id          Int    @id @default(autoincrement())
-  name        String @unique
-  namePlural  String
-  prismaModel String @unique
+  name        String @unique 
+  label       String 
+  labelPlural String 
 
-  nameSlug     String?  @unique
-  description  String?
-  genderNounId Int?
-  isAppModel   Boolean? @default(false)
-  isPublic     Boolean? @default(false)
+  nameSlug       String? @unique
+  nameNormalized String?
+  description    String? 
+  genderNoun     String  @default("n") 
 
-  groups     AppGroupResource[]
-  genderNoun AppGenderNoun?     @relation(fields: [genderNounId], references: [id])
+  isAppModel Boolean? @default(false) 
+  isPublic   Boolean? @default(false) 
 
-  fields AppResourceField[]
+  groups AppGroupResource[] 
+
+  fields        AppResourceField[] 
+  relatedFields AppResourceField[] @relation("RelatedFields")
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 }
 
 model AppResourceField {
-  id          Int    @id @default(autoincrement())
-  resourceId  Int
-  name        String
-  prismaField String
+  id         Int    @id @default(autoincrement())
+  resourceId Int
+  name       String 
+  label      String 
+  valueType  String @default("string")
+  uiField    String @default("input")
+  position   Int    @default(0)
 
-  nameNormalized String?
+  inputType       String?  @default("text") 
+  nameNormalized  String?
+  labelNormalized String?
+  placeholder     String? 
+  defaultValue    String?
+  defaultOptions  String?
+  query           String?
+  max             Int?
+  richText        Boolean? @default(false)
+  hierarchal      Boolean? @default(false)
+  required        Boolean? @default(false)
+  hidden          Boolean? @default(false)
+  disabled        Boolean? @default(false)
+  allowCreate     Boolean? @default(true)
+  allowMultiple   Boolean? @default(true)
 
-  resource AppResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  relatedResourceId Int?
+  relatedResource AppResource? @relation(fields: [relatedResourceId], references: [id], onDelete: Cascade, name: "RelatedFields")
+  resource        AppResource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
+
+  @@unique([resourceId, name])
 }
 
 model AppUser {
@@ -159,7 +172,7 @@ model AppUserSession {
 }
 
 model Entry {
-  id          Int    @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   name        String
   accessCount Int     @default(0)
   isCategory  Boolean @default(false)
@@ -180,8 +193,8 @@ model Entry {
 
   entries        Entry[] @relation("EntryToEntry")
   relatedEntries Entry[] @relation("EntryToEntry")
-  children Entry[] @relation("EntryToChildren")
-  parent   Entry?  @relation("EntryToChildren", fields: [parentId], references: [id])
+  children       Entry[] @relation("EntryToChildren")
+  parent         Entry?  @relation("EntryToChildren", fields: [parentId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -220,8 +233,7 @@ model Language {
   name String @unique
 
   nameNormalized String?
-  abbreviation   String? @unique
-  code           String? @unique
+  languageCode   String? @unique
 
   translations Translation[]
 
@@ -259,7 +271,7 @@ model Translation {
 
 model Reference {
   id   Int    @id @default(autoincrement())
-  name String
+  name String @unique
 
   nameNormalized String?
 

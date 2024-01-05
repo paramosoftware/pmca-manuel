@@ -4,8 +4,6 @@ export { };
 
 declare global {
 
-    export type AppGenderNoun = Prisma.AppGenderNoun;
-
     export type AppGroup = Prisma.AppGroup & {
         users: AppUser[];
         resources: AppResource[];
@@ -27,6 +25,12 @@ declare global {
 
     export type AppResource = Prisma.AppResource & {
         groups?: AppGroup[];
+        fields?: AppResourceField[];
+    };
+
+    export type AppResourceField = Prisma.AppResourceField & {
+        resource?: AppResource;
+        relatedResource?: AppResource;
     };
 
     export type AppUser = Prisma.AppUser & {
@@ -94,4 +98,18 @@ declare global {
     };
 
     export type WebPage = Prisma.WebPage;
+
+    export type FormField = Prisma.AppResourceField & {
+        resource?: AppResource | undefined,
+        relatedResource?: AppResource | undefined,
+    }
+
+    export type ValueType = 'string' | 'number' | 'boolean' | 'object' | 'array'
+    export type UIField = 'autocomplete' | 'auxiliaryForm' | 'checkbox' | 'dropzone' | 'finder' | 'input' | 'media' | 'rich' | 'select' | 'textarea'
+    export type InputType = 'text' | 'number' | 'email' | 'date' | 'color' | 'password' | 'search' | 'hidden' | 'checkbox' | 'radio'
+    export type GenderNoun = 'm' | 'f' | 'n'
+    
+    export type FormStore = ReturnType<typeof useFormStore>;
+
+    export type Item =  {id: number | string; name: string; };
 }
