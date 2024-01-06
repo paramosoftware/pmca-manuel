@@ -694,7 +694,7 @@ async function upsertLanguage(languageName: any) {
     
     const foundLanguage = await readMany('language', { where: where });
 
-    if (foundLanguage && foundLanguage.totalCount > 0) {
+    if (foundLanguage && foundLanguage.total > 0) {
         return foundLanguage.items[0].id;
     }
 

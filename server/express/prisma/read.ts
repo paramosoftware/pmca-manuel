@@ -57,24 +57,15 @@ export async function readMany(model: string, body?: Partial<PaginatedQuery>, ne
             prisma[model].findMany(query)
         ]);
 
-    
-        if (query.take === undefined || !query.skip === undefined) {
-            return {
-                page: 1,
-                pageSize: total,
-                totalPages: 1,
-                totalCount: total,
-                items: data
-            };
-        } else {
-            return {
-                page: query.skip ? query.skip / query.take + 1 : 1,
-                pageSize: query.take,
-                totalPages: Math.ceil(total / query.take),
-                totalCount: total,
-                items: data
-            };
-        }
+
+
+        return {
+            page: query.skip && query.take ? query.skip / query.take + 1 : 1,
+            pageSize: query.take || total,
+            totalPages: query.take ? Math.ceil(total / query.take) : 1,
+            total: total,
+            items: data
+        } as PaginatedResponse;
 
     } catch (error) {
         if (next) {

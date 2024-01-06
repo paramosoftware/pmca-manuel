@@ -112,4 +112,14 @@ declare global {
     export type FormStore = ReturnType<typeof useFormStore>;
 
     export type Item =  {id: number | string; name: string; };
+
+    export type PaginatedResponse = {
+        pageSize: number;
+        totalPages: number;
+        page: number;
+        total: number;
+        items: any[];
+    }
+
+
 }
