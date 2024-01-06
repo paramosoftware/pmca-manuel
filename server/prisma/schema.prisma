@@ -76,6 +76,7 @@ model AppResource {
   labelPlural String 
 
   nameSlug       String? @unique
+  labelSlug      String? @unique
   nameNormalized String?
   description    String? 
   genderNoun     String  @default("n") 
