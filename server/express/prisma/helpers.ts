@@ -333,10 +333,6 @@ export function convertQueryParamsToPaginatedQuery(queryParams: ParsedQs) {
 
     const body: Partial<PaginatedQuery> = {};
 
-    if (queryParams.query) {
-        return JSON.parse(queryParams.query.toString());
-    }
-
     if (queryParams.pageSize) {
         body.pageSize = Number(queryParams.pageSize);
     }
@@ -346,62 +342,22 @@ export function convertQueryParamsToPaginatedQuery(queryParams: ParsedQs) {
     }
 
     if (queryParams.select) {
-        body.select = convertStringToArray(queryParams.select.toString());
+        body.select = JSON.parse(queryParams.select.toString());
     }
 
     if (queryParams.where) {
-        body.where = convertStringToObject(queryParams.where.toString(), true);
+        body.where = JSON.parse(queryParams.where.toString());
     }
 
     if (queryParams.include) {
-        body.include = convertStringToObject(queryParams.include.toString());
+        body.include = JSON.parse(queryParams.include.toString());
     }
 
     if (queryParams.orderBy) {
-        body.orderBy = convertStringToObject(queryParams.orderBy.toString());
+        body.orderBy = JSON.parse(queryParams.orderBy.toString());
     }
 
     return body;
-}
-
-function convertStringToArray(string: string) {
-    return string.split(';');
-}
-
-function convertStringToObject(string: string, isWhere: boolean = false) {
-    const object: any = {};
-
-    const pairs = string.split(',');
-
-    pairs.forEach(pair => {
-        const values = pair.split(':');
-
-        if (isWhere && values.length === 3) {
-            const operator = values[1].toLowerCase();
-
-            let value: any = values[2];
-
-            if (operator == 'in' || operator == 'notin') {
-                value = value.split(';');
-                value = value.map((item: any) => {
-                    return isNaN(Number(item)) ? item : Number(item);
-                });
-            } else {
-                value = isNaN(Number(value)) ? value : Number(value);
-            }
-
-            object[values[0]] = { 
-                operator: operator,
-                value: value
-            };
-        } else if (values.length === 2) {
-            object[values[0]] = values[1];
-        } else {
-            object[values[0]] = true;
-        }
-    });
-
-    return object;
 }
 
 export function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery, model: string) {
