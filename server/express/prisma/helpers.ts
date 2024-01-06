@@ -2,12 +2,13 @@ import { Prisma } from '@prisma/client';
 import type { ParsedQs } from 'qs';
 import { ApiValidationError } from '../error';
 import sanitizeHtml from 'sanitize-html'
-import normalizeString from '../../../utils/normalizeString';
+import normalizeString from '~/utils/normalizeString';
 import type { Condition, Include, Order, PaginatedQuery, Query, Where } from './interfaces';
-import  hashPassword from '../../../utils/hashPassword';
-import getBoolean from '../../../utils/getBoolean';
+import  hashPassword from '~/utils/hashPassword';
+import getBoolean from '~/utils/getBoolean';
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '~/server/prisma/prisma';
+import uncapitalize from '~/utils/uncapitalize';
 
 
 export async function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpdate: boolean = false, isConnectOrCreate: boolean = false, parentModel: string = '', parentBody = {}) {
@@ -127,7 +128,6 @@ async function processSingleObject(relatedModel: string, model: string, body: an
     return prismaQuery;
 }
 
-
 async function processMultipleObjects(relatedModel: string, model: string, body: any, key: string, isUpdate: boolean) {
     if (!Array.isArray(body[key])) {
         throw new ApiValidationError(key + ' must be an array');
@@ -181,7 +181,6 @@ function processBoolean(value: any, key: string) {
         throw new ApiValidationError(key + ' must be a boolean');
     }
 }
-
 
 function processInt(value: any, key: string) {
 
@@ -276,20 +275,18 @@ function calculateSkip(pageSize: number, page: number) {
 export function getParamsFromPath(path: string) {
 
     const info = {
-        isPublic: false,
         model: '',
         id: '',
         hasQuery: false,
-        isUpload: false
+        isUpload: false,
+        isImport: false,
+        isExport: false
     };
 
     const parts = path.replace('/api/', '').split('/');
 
-    if (parts[0] === 'public') {
-        info.isPublic = true;
-    } else {
-        info.model = parts[0].charAt(0).toLowerCase() + parts[0].slice(1);
-    }
+    info.model = uncapitalize(parts[0]);
+
     parts.shift();
 
     if (parts[parts.length - 1] === 'query') {
@@ -299,6 +296,16 @@ export function getParamsFromPath(path: string) {
 
     if (parts[parts.length - 1] === 'upload') {
         info.isUpload = true;
+        parts.pop();
+    }
+
+    if (parts[parts.length - 1] === 'import') {
+        info.isImport = true;
+        parts.pop();
+    }
+
+    if (parts[parts.length - 1] === 'export') {
+        info.isExport = true;
         parts.pop();
     }
 

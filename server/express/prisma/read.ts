@@ -1,15 +1,14 @@
 import express from 'express';
 import { prisma } from '../../prisma/prisma';
-import type { ParsedQs } from 'qs';
-import type { PaginatedQuery, Query } from './interfaces';
-import { createRequest, validatePaginatedQuery, convertPaginatedQueryToPrismaQuery, convertQueryParamsToPaginatedQuery } from './helpers';
+import type { PaginatedQuery } from './interfaces';
+import { createRequest, validatePaginatedQuery, convertPaginatedQueryToPrismaQuery } from './helpers';
 
-export async function readOne(model: string, id: string, queryParams: ParsedQs, body: any | undefined, next: express.NextFunction | undefined = undefined) {
+export async function readOne(model: string, id: string, body?: Partial<PaginatedQuery>, next: express.NextFunction | undefined = undefined) {
 
     try {
 
         if (body === undefined) {
-            body = convertQueryParamsToPaginatedQuery(queryParams);
+            body = {};
         }
     
         const request = createRequest(body);
@@ -21,13 +20,10 @@ export async function readOne(model: string, id: string, queryParams: ParsedQs, 
         const query = convertPaginatedQueryToPrismaQuery(request, model);
 
         query.orderBy = undefined;
-
         query.where = { id: isNaN(Number(id)) ? id : Number(id) };
 
         // @ts-ignore
-        const data = await prisma[model].findUnique(query);
-
-        return data;
+        return await prisma[model].findUnique(query);
 
     } catch (error) {
         if (next) {
@@ -39,31 +35,14 @@ export async function readOne(model: string, id: string, queryParams: ParsedQs, 
     }
 }
 
-export async function readMany(model: string, queryParams: ParsedQs, next: express.NextFunction | undefined = undefined) {
+
+export async function readMany(model: string, body?: Partial<PaginatedQuery>, next: express.NextFunction | undefined = undefined) {
 
     try {
-        const body = convertQueryParamsToPaginatedQuery(queryParams);
-        const request = createRequest(body);
 
-        validatePaginatedQuery(request);
-
-        const query = convertPaginatedQueryToPrismaQuery(request, model);
-    
-        return await executePaginatedPrismaFindQuery(model, query);
-
-    } catch (error) {
-        if (next) {
-            next(error);
-        } else {
-            throw error;
+        if (body === undefined) {
+            body = {};
         }
-    }
-
-}
-
-export async function readOneOrManyWithQuery(model: string, body: Partial<PaginatedQuery>, next: express.NextFunction | undefined = undefined) {
-
-    try {
 
         const request = createRequest(body);
 
@@ -71,21 +50,6 @@ export async function readOneOrManyWithQuery(model: string, body: Partial<Pagina
 
         const query = convertPaginatedQueryToPrismaQuery(request, model);
     
-        return await executePaginatedPrismaFindQuery(model, query);
-
-    } catch (error) {
-        if (next) {
-            next(error);
-        } else {
-            throw error;
-        }
-    }
-
-}
-
-async function executePaginatedPrismaFindQuery(model: string, query: Query) {
-
-    try {
         const [total, data] = await prisma.$transaction([
             // @ts-ignore
             prisma[model].count({ where: query.where }),
@@ -96,23 +60,28 @@ async function executePaginatedPrismaFindQuery(model: string, query: Query) {
     
         if (query.take === undefined || !query.skip === undefined) {
             return {
-                currentPage: 1,
+                page: 1,
                 pageSize: total,
                 totalPages: 1,
                 totalCount: total,
-                data
+                items: data
             };
         } else {
             return {
-                currentPage: query.skip ? query.skip / query.take + 1 : 1,
+                page: query.skip ? query.skip / query.take + 1 : 1,
                 pageSize: query.take,
                 totalPages: Math.ceil(total / query.take),
                 totalCount: total,
-                data
+                items: data
             };
         }
 
     } catch (error) {
-        throw error;
+        if (next) {
+            next(error);
+        } else {
+            throw error;
+        }
     }
+
 }

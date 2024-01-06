@@ -4,20 +4,21 @@ import getCookiePrefix from '~/utils/getCookiePrefix';
 import { prisma } from '../../prisma/prisma';
 import { createOneOrMany } from './create';
 import { deleteOne, deleteOneOrManyWithQuery } from './delete';
-import { getParamsFromPath } from './helpers';
+import { convertQueryParamsToPaginatedQuery, getParamsFromPath } from './helpers';
 import { importUploadFile, uploadMedia } from './media';
-import { readMany, readOne, readOneOrManyWithQuery } from './read';
+import { readOne, readMany } from './read';
 import { updateMany, updateOne } from './update';
 import { convertToFormatAndSend } from './dataFormatConverters';
 import { exportAll, importAll } from './export';
 import fs from 'fs';
+import { UnauthorizedError } from '../error';
 
 const prismaHandler =  async (req: express.Request, res: express.Response, next: express.NextFunction) => {
 
     /* Routes that need authentication:
     GET /api/:model - Get many
     GET /api/:model/:id - Get one
-    GET /api/export - Export all entries
+    GET /api/:model/export - Export all
 
     PUT /api/:model - Update all
     PUT /api/:model/:id - Update one
@@ -26,33 +27,15 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
     POST /api/:model/query - Get one or many with query
     POST /api/:model/:id/query - Get one with query
     POST /api/:model/:id/upload - Upload media
+    POST /api/:model/import - Import all
 
     DELETE /api/:model/:id - Delete one
     DELETE /api/:model/query - Delete one or many with query
     */
 
+    const { model, id, hasQuery, isUpload, isImport, isExport } = getParamsFromPath(req.path);
 
-    if (req.path.startsWith('/api/export')) {
-        const format = req.query.format ? req.query.format : 'json';
-        const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
-        const filePath = await exportAll(format, addMedia);
-
-        res.download(filePath, () => {
-            fs.unlinkSync(filePath);
-        })
-        return;
-    }
-
-    if (req.path.startsWith('/api/import')) {
-        const importFilePath = await importUploadFile(req, res, next) as string;
-        await importAll(importFilePath);
-        res.json({ message: 'Imported successfully' });
-        return;
-    }
-
-    const { model, id, hasQuery, isPublic, isUpload } = getParamsFromPath(req.path);
-
-    const method = isPublic ? 'GET' : req.method.toUpperCase();
+    const method = req.method.toUpperCase();
     const body = req.body;
     const queryParams = req.query;
     const format = req.query.format ? req.query.format : body.format ? body.format : undefined;
@@ -66,20 +49,23 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
 
     const decodedToken = decodeJwt(accessToken, process.env.ACCESS_TOKEN_SECRET!) as { userId: string; };
 
-    if (!decodedToken) {
-//        return next(new UnauthorizedError('Unauthorized'));
-    }
 
     try {
 
-        let response: any;
+        let response: any = null;
+        const query = convertQueryParamsToPaginatedQuery(queryParams);
 
         switch (method) {
             case 'GET':
                 if (id) {
-                    response = readOne(model, id, queryParams, undefined, next);
+                    response = readOne(model, id, query, next);
+                } else if (isExport) {
+                    const format = req.query.format ? req.query.format : 'json';
+                    const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
+                    response = await exportAll(format, addMedia);
                 } else {
-                    response = readMany(model, queryParams, next);
+       
+                    response = readMany(model, query, next);
                 }
                 break;
             case 'PUT':
@@ -91,11 +77,15 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
                 break;
             case 'POST':
                 if (id && hasQuery) {
-                    response = readOne(model, id, queryParams, body, next);
+                    response = readOne(model, id, body, next);
                 } else if (hasQuery) {
-                    response = readOneOrManyWithQuery(model, body, next);
+                    response = readMany(model, body, next);
                 } else if (isUpload) {
                      response = uploadMedia(model, id, body, req, res, next);
+                } else if (isImport) {
+                    const importFilePath = await importUploadFile(req, res, next) as string;
+                    await importAll(importFilePath);
+                    response = { message: 'Imported successfully' };
                 } else {
                     response = createOneOrMany(model, body, next);
                 }
@@ -115,7 +105,11 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
             response = await response;
         }
 
-        if (response && format) {
+        if (response && isExport) {
+            res.download(response, () => {
+                fs.unlinkSync(response);
+            });
+        } else if (response && format) {
             convertToFormatAndSend(response, format, res, next);
         } else if (response) {
             res.json(response);

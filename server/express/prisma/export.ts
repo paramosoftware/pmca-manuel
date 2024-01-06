@@ -2,7 +2,7 @@
 import path from 'path';
 import fs from 'fs';
 import Zip from 'adm-zip';
-import { readOneOrManyWithQuery } from './read';
+import { readMany } from './read';
 import { OBJECTS } from '~/config';
 import { prisma } from '~/server/prisma/prisma';
 import { createOneOrMany } from './create';
@@ -89,7 +89,7 @@ async function processItems(filePath: string, format: 'xml' | 'json') {
     }
 
     for (let i = 0; i < totalPages; i++) {
-        const data = await readOneOrManyWithQuery(model, { pageSize, page: i + 1, include });
+        const data = await readMany(model, { pageSize, page: i + 1, include });
 
         if (!data) {
             continue;
@@ -584,10 +584,10 @@ async function buildSkosConceptScheme(model: string, resourceURI: string, concep
 
     const where = { isCategory: true, parentId: { isNull: true } };
 
-    const topConcepts = await readOneOrManyWithQuery(model, { pageSize: -1, page: 1, where });
+    const topConcepts = await readMany(model, { pageSize: -1, page: 1, where });
 
-    if (topConcepts && topConcepts.data.length > 0) {
-        for (const topConcept of topConcepts.data) {
+    if (topConcepts && topConcepts.items.length > 0) {
+        for (const topConcept of topConcepts.items) {
             conceptScheme['skos:ConceptScheme'].push({
                 "skos:hasTopConcept": "",
                 ":@": {
@@ -692,10 +692,10 @@ async function upsertLanguage(languageName: any) {
         ]
     }
     
-    const foundLanguage = await readOneOrManyWithQuery('language', { where: where });
+    const foundLanguage = await readMany('language', { where: where });
 
     if (foundLanguage && foundLanguage.totalCount > 0) {
-        return foundLanguage.data[0].id;
+        return foundLanguage.items[0].id;
     }
 
     const newLanguage = await createOneOrMany('language', { name: languageName });
