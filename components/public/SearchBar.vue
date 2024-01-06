@@ -85,7 +85,7 @@ const searchEntries = async () => {
     const { data } = await useFetchWithBaseUrl('api/entry?query=' + JSON.stringify(query));
 
     entries.value = [];
-    entries.value = data.value.data as Entry[];
+    entries.value = data.value.items as Entry[];
 
     setTimeout(() => {
       searching.value = false

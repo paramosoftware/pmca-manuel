@@ -28,7 +28,7 @@ const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage?query='
 }));
 
 
-if (error.value || data.value.data.length === 0) {
+if (error.value || data.value.items.length === 0) {
    // TODO: 404
 }
 

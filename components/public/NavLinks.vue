@@ -51,7 +51,7 @@ const links = ref([
 
 const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage');
 
-webPages.value = data.value.data;
+webPages.value = data.value.items;
 
 for (const webPage of webPages.value) {
     links.value.push({

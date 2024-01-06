@@ -23,7 +23,7 @@ const fetchEntries = async () => {
     },
   }));
 
-  entries.value = data.value.data;
+  entries.value = data.value.items;
 }
 
 await fetchEntries();

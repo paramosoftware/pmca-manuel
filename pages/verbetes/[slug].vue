@@ -72,11 +72,11 @@ const { data, pending, error } = await useFetchWithBaseUrl('/api/entry?query=' +
 
 
 
-if (!data.value.data[0]) {
+if (!data.value.items[0]) {
    //TODO: Redirect to 404
 }
 
-const entry = ref(data.value.data[0] as unknown as Entry);
+const entry = ref(data.value.items[0] as unknown as Entry);
 const url = ref('');
 const description = ref(entry.value.definition ? entry.value.definition.replace(/<[^>]*>?/gm, '').substring(0, 150) : '');
 

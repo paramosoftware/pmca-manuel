@@ -147,7 +147,7 @@ if (props.userSelection) {
         }));
 
         await fetch.execute({ _initial: true });
-        entries.value = fetch.data.value.data;
+        entries.value = fetch.data.value.items;
     };
 
     const { selectedEntries } = useEntrySelection();
@@ -194,7 +194,7 @@ if (props.userSelection) {
 
         const { data } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify(body));
 
-        entries.value = data.value.data;
+        entries.value = data.value.items;
     };
 
     await fetchEntries(query.value.termo || '');
