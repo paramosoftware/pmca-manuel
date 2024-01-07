@@ -1,75 +1,83 @@
 <template>
-  <div class="mt-4" :class="{'hidden': hidden}">
+    <div class="mt-4" :class="{ 'hidden': hidden }">
 
-    <UILabel :for="id" :showLabel="showLabel">
-      {{ label }}
-    </UILabel>
+        <UILabel :for="id">
+            {{ label }}
+        </UILabel>
 
-    <component 
-      :is="textarea ? 'textarea' : 'input'" 
-      :id="id"
-      :type="type" 
-      :value="modelValue"
-      :required="required"
-      @input="$emit('update:modelValue', $event.target.value)"
-      class="w-full bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm leading-none"
-      :placeholder="placeholder"
-      >
-    </component>
+        <UInput
+            :id="id" 
+            :type="type" 
+            :value="modelValue" 
+            :required="required" 
+            :disabled="disabled"
+            :placeholder="placeholder"
+            @input="onInput"
+            color="gray" 
+            variant="outline"
+        />
 
-    <div v-if="showError" class="text-sm text-red-800">
-       Já existe um registro salvo com esse valor.
     </div>
-
-  </div>
 </template>
   
 <script setup lang="ts">
 const props = defineProps({
-  label: String,
-  modelValue: [String, Number, Boolean],
-  id: String,
-  type: {
-    type: String,
-    default: 'text'
-  },
-  placeholder: {
-    type: String,
-    default: ''
-  },
-  textarea: {
-    type: Boolean,
-    default: false
-  },
-  required: {
-    type: Boolean,
-    default: false
-  },
-  errorMessage: {
-    type: String,
-    default: ''
-  },
-  showLabel: {
-    type: Boolean,
-    default: true
-  },
-  hidden: {
-    type: Boolean,
-    default: false
-  }
+    id: {
+        type: String,
+        required: true
+    },
+    modelValue: {
+        type: [String, Number],
+        default: ''
+    },
+    type: {
+        type: String,
+        default: 'text'
+    },
+    label: {
+        type: String,
+        default: ''
+    },
+    required: {
+        type: Boolean,
+        default: false
+    },
+    placeholder: {
+        type: String,
+        default: ''
+    },
+    hidden: {
+        type: Boolean,
+        default: false
+    },
+    disabled: {
+        type: Boolean,
+        default: false
+    },
+    formStore: {
+        type: Object as PropType<FormStore>,
+    },
 })
 
+const modelValue = computed(() => props.modelValue ?? props.formStore?.getField(props.id) ?? defaultValue);
+const disabled = computed(() => props.disabled ?? props.formStore?.getFieldConfig(props.id)?.disabled ?? false);
+const hidden = computed(() => props.hidden ?? props.formStore?.getFieldConfig(props.id)?.hidden ?? false);
+const label = props.label ?? props.formStore?.getFieldConfig(props.id)?.label;
+const type = props.type ?? props.formStore?.getFieldConfig(props.id)?.inputType;
+const required = props.required ?? props.formStore?.getFieldConfig(props.id)?.required;
+const placeholder = props.placeholder ?? props.formStore?.getFieldConfig(props.id)?.placeholder;
+const defaultValue = props.formStore?.getFieldConfig(props.id)?.defaultValue ?? '';
 
-watch (() => props.modelValue, () => {
-  showError.value = false;
-})
+const emit = defineEmits(['update:modelValue']);
 
+const onInput = (event: Event) => {
+    const target = event.target as HTMLInputElement;
 
-const showError = ref(false);
+    if (props.formStore) {
+        props.formStore.setField(props.id, target.value);
+    } 
 
-defineExpose({
-  showError
-})
-
+    emit('update:modelValue', target.value);
+}
 
 </script>

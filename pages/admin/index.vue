@@ -7,7 +7,7 @@
                 <h1 class="text-4xl">Cadastros</h1>
 
                 <span v-for="link in links" :key="link.name" class="text-2xl my-2">
-                    <UILink  v-if="!link.restrictedToAdmin" :href="link.path" class="capitalize">
+                    <UILink  v-if="!link.restrictedToAdmin" :href="link.path">
                         {{ link.name }}
                     </UILink>
                 </span>
@@ -19,36 +19,42 @@
 </template>
    
 <script setup lang="ts">
-import { OBJECTS, ROUTES } from '~/config';
+import { ROUTES } from '~/config';
 
 definePageMeta({
     middleware: 'auth'
 });
 
-const config = useRuntimeConfig();
+const { data, pending, error } = await useFetchWithBaseUrl('/api/appResource') as { 
+    data: Ref<PaginatedResponse>, pending: Ref<boolean>, error: Ref<Error | undefined>
+};
+
+if (error.value) {
+    console.error(error.value);
+}
+
+if (pending.value) {
+    console.log('pending');
+}
+
+const resources = data.value.items as AppResource[] ?? [];
 
 const getPath = (path: string) => {
     return ROUTES.list + path;
 }
 
-const objects = ['verbete', 'categoria', 'referencia', 'idioma', 'usuario', 'pagina'];
 const links: { name: string, path: string, restrictedToAdmin: boolean }[] = [];
 
-for (const object of objects) {
-    if (OBJECTS[object]) {
-        links.push({
-            name: OBJECTS[object].labelPlural,
-            path: getPath(object),
-            restrictedToAdmin: false
-        })
-    }
+for (const resource of resources) {
+    links.push({
+        name: resource.labelPlural,
+        path: getPath(resource.labelSlug!),
+        restrictedToAdmin: false
+    })
 }
 
 useHead({
-    title: 'Painel | ' + config.public.appName,
+    title: 'Painel | ' + useRuntimeConfig().public.appName,
 });
 
-
 </script>
-   
-<style scoped></style>

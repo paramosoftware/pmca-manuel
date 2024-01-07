@@ -110,8 +110,10 @@ declare global {
     export type GenderNoun = 'm' | 'f' | 'n'
     
     export type FormStore = ReturnType<typeof useFormStore>;
+    export type ResourceStore = ReturnType<typeof useResourceStore>;
+    export type ListStore = ReturnType<typeof useListStore>;
 
-    export type Item =  {id: number | string; name: string; };
+    export type Item = {id: number | string; name: string; label?: string } | null;
 
     export type PaginatedResponse = {
         pageSize: number;

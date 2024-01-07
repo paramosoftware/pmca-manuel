@@ -18,8 +18,8 @@
             <h1 class="text-4xl">Login</h1>
           </div>
           <form @submit.prevent="submit" class="mt-5 mx-auto">
-            <FieldInput label="E-mail" v-model="email" type="text" placeholder="Digite seu e-mail" />
-            <FieldInput label="Senha" v-model="password" type="password" placeholder="Digite sua senha" />
+            <FieldInput label="E-mail" v-model="email" type="text" placeholder="Digite seu e-mail" id="email" />
+            <FieldInput label="Senha" v-model="password" type="password" placeholder="Digite sua senha" id="password" />
             <div v-if="errorMessage" class="text-red-500">{{ errorMessage }}</div>
             <div class="mt-5 text-end">
               <UIButton label="Entrar" type="submit" />

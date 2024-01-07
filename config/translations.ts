@@ -9,8 +9,8 @@ MODELS.set('AppGroup', {
     genderNoun: 'm'
 });
 MODELS.set('AppGroupResource', {
-    label: 'Recurso',
-    labelPlural: 'Recursos',
+    label: 'Recurso do grupo',
+    labelPlural: 'Recursos dos grupos',
     genderNoun: 'm'
 });
 MODELS.set('AppGroupUser', {
