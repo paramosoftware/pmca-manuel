@@ -113,7 +113,7 @@ declare global {
     export type ResourceStore = ReturnType<typeof useResourceStore>;
     export type ListStore = ReturnType<typeof useListStore>;
 
-    export type Item = {id: number | string; name: string; label?: string } | null;
+    export type Item = {id: number | string; name: string; label?: string };
 
     export type PaginatedResponse = {
         pageSize: number;
@@ -123,5 +123,6 @@ declare global {
         items: any[];
     }
 
+    export type ID = number | string;
 
 }
