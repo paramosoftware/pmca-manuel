@@ -86,7 +86,7 @@ const path = useRoute().params.path as string;
 const createUrl = ROUTES.create + path
 const editUrl = ROUTES.edit + path;
 
-const itemToDelete = ref<Item>(null);
+const itemToDelete = ref<Item | null>(null);
 const isModalDialogOpen = ref(false);
 const modalTitle = 'Confirmar exclusão';
 const modalMessage = 'Tem certeza que deseja excluir este item?';
