@@ -8,14 +8,23 @@
         <UInput
             :id="id" 
             :type="type" 
-            :value="modelValue" 
+            :model-value="modelValue"
             :required="required" 
             :disabled="disabled"
             :placeholder="placeholder"
             @input="onInput"
+            @focus="iconColor = 'text-pmca-accent'"
+            @blur="iconColor = 'text-gray-400'"
             color="gray" 
             variant="outline"
-        />
+            size="md"
+        >
+
+        <template #trailing v-if="showIcon">
+            <Icon :name="icon" class="w-6 h-6" :class="iconColor" />
+        </template>
+
+        </UInput>
 
     </div>
 </template>
@@ -54,30 +63,45 @@ const props = defineProps({
         type: Boolean,
         default: false
     },
+    showIcon: {
+        type: Boolean,
+        default: false
+    },
+    icon: {
+        type: String,
+        default: 'ph:magnifying-glass'
+    },
     formStore: {
         type: Object as PropType<FormStore>,
     },
 })
 
-const modelValue = computed(() => props.modelValue ?? props.formStore?.getField(props.id) ?? defaultValue);
-const disabled = computed(() => props.disabled ?? props.formStore?.getFieldConfig(props.id)?.disabled ?? false);
-const hidden = computed(() => props.hidden ?? props.formStore?.getFieldConfig(props.id)?.hidden ?? false);
-const label = props.label ?? props.formStore?.getFieldConfig(props.id)?.label;
-const type = props.type ?? props.formStore?.getFieldConfig(props.id)?.inputType;
-const required = props.required ?? props.formStore?.getFieldConfig(props.id)?.required;
-const placeholder = props.placeholder ?? props.formStore?.getFieldConfig(props.id)?.placeholder;
-const defaultValue = props.formStore?.getFieldConfig(props.id)?.defaultValue ?? '';
+const iconColor = ref('text-gray-400');
 
-const emit = defineEmits(['update:modelValue']);
+const defaultValue = getFormFieldConfig('defaultValue', '', props);
+const modelValue = getFormFieldConfig('modelValue', defaultValue?.value, props);
+const disabled = getFormFieldConfig('disabled', false, props);
+const hidden = getFormFieldConfig('hidden', false, props);
+const label = getFormFieldConfig('label', '', props);
+const required = getFormFieldConfig('required', false, props);
+const placeholder = getFormFieldConfig('placeholder', '', props);
+
+let type = getFormFieldConfig('inputType', 'text', props);
+
+if (!props.formStore) {
+    type = computed(() => props.type);
+}
+
+const emit = defineEmits(['update:modelValue', 'input']);
 
 const onInput = (event: Event) => {
     const target = event.target as HTMLInputElement;
 
+
     if (props.formStore) {
-        props.formStore.setField(props.id, target.value);
+        props.formStore.setFieldData(props.id, target.value);
     } 
 
     emit('update:modelValue', target.value);
 }
-
 </script>
