@@ -28,7 +28,7 @@
                             </UITitle>
                         </template>
 
-                        <FieldDropzone :object-name="objectName" :object-id="objectId" @update="addMedia" @close="isOpen = false" />
+                        <FieldDropzone @update="addMedia" @close="isOpen = false" />
 
                     </UCard>
                 </UModal>
@@ -60,42 +60,44 @@ const isOpenAccordion = ref(false)
 const props = defineProps({
     id: {
         type: String,
-        required: true,
+        required: true
     },
-    objectId: {
-        type: Number,
-        required: true,
-    },
-    objectName: {
-        type: String,
-        required: true,
-    },
-    label: String,
-    media: {
-        type: Array as PropType<EntryMedia[]>,
-        default: () => []
+    options: {
+        type: Object as PropType<FormField>,
+        required: true
     }
-})
+});
 
-const emit = defineEmits(['update'])
+const formStore = useFormStore();
+
+const label = props.options.label ?? '';
+
+const media = computed(() => {
+    if (!formStore.getFieldData(props.id)) {
+        formStore.setFieldData(props.id, []);
+    }
+    
+    return formStore.getFieldData(props.id) as EntryMedia[];
+});
 
 const deleteMedia = async (media: EntryMedia) => {
-    emit('update', props.id, 'remove', media)
+    formStore.removeFieldData(props.id, media);
     updateMediaPosition({ oldIndex: 0, newIndex: 1 })
 }
 
 const addMedia = (media: EntryMedia) => {
-    emit('update', props.id, 'add', media)
+    formStore.addFieldData(props.id, media);
     updateMediaPosition({ oldIndex: 0, newIndex: 1 })
 }
 
 const updateMediaPosition = (event: any) => {
     if (event.oldIndex !== event.newIndex) {
-        const media = [...props.media];
+        const media = formStore.getFieldData(props.id) as EntryMedia[];
         media.map((item, index) => {
             item.position = index + 1;
         });
-        emit('update', props.id, 'update', media)
+
+        formStore.setFieldData(props.id, media);
     }
 }
 

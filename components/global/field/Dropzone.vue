@@ -14,14 +14,6 @@
 import vueDropzone from 'vue2-dropzone-vue3';
 
 const props = defineProps({
-    objectName: {
-        type: String,
-        required: false
-    },
-    objectId: {
-        type: Number,
-        required: false
-    },
     url: {
         type: String,
         required: false,
@@ -45,9 +37,10 @@ const props = defineProps({
 
 const myVueDropzone = ref(null);
 const emit = defineEmits(['start', 'update', 'close']);
+const formStore = useFormStore();
 
 const dropzoneOptions = {
-    url: props.url ? props.url : '/api/' + props.objectName + '/' + props.objectId + '/upload',
+    url: props.url ? props.url : '/api/' + formStore.getResource() + (formStore.getId() ? ('/' + formStore.getId()) : '') + '/upload',
     timeout: 180000, // 3 minutes
     maxFilesize: props.maxFilesize,
     maxFiles: props.maxFiles,
@@ -69,6 +62,7 @@ const dropzoneOptions = {
     success: function (file, response) {
         if (response) {
             emit('update', response);
+
         }
 
         if (myVueDropzone.value.getUploadingFiles().length === 0 && myVueDropzone.value.getQueuedFiles().length === 0) {
