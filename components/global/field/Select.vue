@@ -56,11 +56,11 @@ const props = defineProps({
         default: false
     },
     relatedResource: {
-        type: String,
-        default: ''
+        type: Object as PropType<{ name: string }>,
+        default: null
     },
     options: {
-        type: Array as PropType<{ name: string, value: string | number }[]>,
+        type: Array as PropType<{ name: string, value: string | number }[] | string[]>,
         default: []
     },
     formStore: {
@@ -68,7 +68,6 @@ const props = defineProps({
     }
 });
 
-console.log(props.options);
 
 const list = ref<{id?: ID, name: string, value: string | number }[]>([]);
 
@@ -79,7 +78,7 @@ const hidden = getFormFieldConfig('hidden', false, props);
 const label = getFormFieldConfig('label', '', props);
 const required = getFormFieldConfig('required', false, props);
 const placeholder = getFormFieldConfig('placeholder', '', props);
-const relatedResource = getFormFieldConfig('relatedResource', '', props);
+const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const defaultOptions = getFormFieldConfig('defaultOptions', '', props);
 const options = getFormFieldConfig('options', [], props);
 
