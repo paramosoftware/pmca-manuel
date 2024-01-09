@@ -1,7 +1,7 @@
 <template>
-    <div class="mt-4" :class="{ 'hidden': hidden }">
+    <div :class="{ 'hidden': hidden, 'mt-4': label }">
 
-        <UILabel :for="id">
+        <UILabel :for="id" v-if="label">
             {{ label }}
         </UILabel>
 
@@ -20,8 +20,12 @@
             size="md"
         >
 
-        <template #trailing v-if="showIcon">
+        <template #trailing v-if="showIcon && !loading">
             <Icon :name="icon" class="w-6 h-6" :class="iconColor" />
+        </template>
+
+        <template #trailing v-if="loading">
+            <Icon :name="'ph:spinner'" class="w-6 h-6 animate-spin" />
         </template>
 
         </UInput>
@@ -71,6 +75,10 @@ const props = defineProps({
         type: String,
         default: 'ph:magnifying-glass'
     },
+    loading: {
+        type: Boolean,
+        default: false
+    },
     formStore: {
         type: Object as PropType<FormStore>,
     },
@@ -79,17 +87,19 @@ const props = defineProps({
 const iconColor = ref('text-gray-400');
 
 const defaultValue = getFormFieldConfig('defaultValue', '', props);
-const modelValue = getFormFieldConfig('modelValue', defaultValue?.value, props);
 const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
 const label = getFormFieldConfig('label', '', props);
 const required = getFormFieldConfig('required', false, props);
 const placeholder = getFormFieldConfig('placeholder', '', props);
+let modelValue = getFormFieldConfig('modelValue', defaultValue?.value, props);
 
 let type = getFormFieldConfig('inputType', 'text', props);
 
 if (!props.formStore) {
     type = computed(() => props.type);
+} else {
+    modelValue = computed(() => props.formStore?.getFieldData(props.id));
 }
 
 const emit = defineEmits(['update:modelValue', 'input']);
@@ -102,6 +112,7 @@ const onInput = (event: Event) => {
         props.formStore.setFieldData(props.id, target.value);
     } 
 
+    emit('input', target.value);
     emit('update:modelValue', target.value);
 }
 </script>

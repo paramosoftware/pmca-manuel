@@ -1,65 +1,63 @@
 <template>
-    <div class="mt-4">
+    <div class="mt-4" :class="{ 'hidden': hidden }">
         <div class="w-full relative">
+
             <UILabel :for="id">
                 {{ label }}
             </UILabel>
 
-            <div class="flex flex-wrap mb-2" v-if="computedModelValue.length > 0">
-                <div v-for="item in computedModelValue" :key="item.id"
-                    class="flex justify-between items-center px-2 border border-pmca-accent p-1 my-1 mr-2 rounded-sm">
+            <div class="flex flex-wrap mb-2" v-if="selectedItems.length > 0">
+                <div v-for="item in selectedItems" :key="item.id"
+                    class="flex justify-between items-center px-2 border border-pmca-accent p-1 my-1 mr-2 rounded-md shadow-md">
 
-                    <div v-if="isHtml" v-html="item.name"></div>
+                    <div v-if="isHtml" v-html="item.label ?? item.name"></div>
                     <div v-else>
-                        {{ item.name }}
+                        {{ item.label ?? item.name }}
                     </div>
 
-                    <button @click="removeItem(item.id)" class="ml-2">
+                    <button @click="removeItem(item)" class="ml-2">
                         <Icon name="ph:trash-simple" class="w-6 h-6" title="Remover" />
                     </button>
 
                 </div>
             </div>
-            <span v-if="multiple || (!multiple && computedModelValue.length < max)">
 
-                <div class="relative block text-gray-400 focus-within:text-pmca-accent">
-                    <Icon name="ph:magnifying-glass"
-                        class="pointer-events-none w-5 h-5 absolute top-1/2 transform -translate-y-1/2 right-3" />
-                    <input type="text" id="search" v-model="searchTerm" :placeholder="placeholder"
-                        class="w-full bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm leading-none"
-                        @input="searchItems">
-                </div>
+            <FieldInput 
+                :id="id"
+                type="text" 
+                v-model="search" 
+                :disabled="!canAddMore || disabled"
+                :placeholder="!canAddMore ? 'Número máximo de itens adicionados' : placeholder"
+                :show-icon="true" :loading="searching"
+            />
 
+            <span ref="autocompleteRef">
+                <ul v-if="search !== ''" class="w-full bg-white border border-x-gray-300space-y-1 absolute z-10 mt-2 rounded-md shadow-sm">
+
+                    <li v-for="item in results" :key="item.name" @click="selectItem(item)"
+                        class="px-2 py-1 cursor-pointer rounded-md hover:bg-gray-100">
+
+                        <span v-if="isHtml" v-html="item.label ?? item.name"></span>
+                        <span v-else>
+                            {{ item.label ?? item.name }}
+                        </span>
+
+                    </li>
+
+                    <li v-if="results.length === 0" class="rounded-md px-2 py-1 text-gray-400" @click="search = ''">
+                        Nenhum resultado encontrado.
+                    </li>
+
+                    <li v-if="canCreate" class="rounded-md px-2 py-1 text-gray-600">
+                        <button type="button" @click="createItem(search)">
+                            Cadastrar: {{ search }}
+
+                            <Icon name="ph:plus-circle" class="text-pmca-accent w-6 h-6" title="Criar" />
+
+                        </button>
+                    </li>
+                </ul>
             </span>
-
-            <ul @click.away="results = []" @keydown.escape="results = []" v-if="searchTerm !== ''"
-                class="w-full bg-white border border-x-gray-300 border-b-gray-300 px-4 space-y-1 absolute z-10">
-
-                <li v-for="item in results" :key="item.name" 
-                    @click="selectItem(item)" 
-                    class="cursor-pointer hover:bg-gray-100 p-1">
-
-                    <span v-if="isHtml" v-html="item.name"></span>
-                    <span v-else>
-                        {{ item.name }}
-                    </span>
-                </li>
-
-                <li v-if="show && !results.length" class="text-gray-400 py-2" @click="searchTerm = ''">
-                    Nenhum resultado encontrado.
-                </li>
-
-                <li v-if="allowCreate && !results.length && searchTerm !== ''" class="text-gray-600 py-2">
-                    <button type="button" @click="createItem(searchTerm)">
-                        Cadastrar: {{ searchTerm }}
-
-                        <Icon name="ph:plus-circle" class="text-pmca-accent w-6 h-6" title="Criar" />
-
-                    </button>
-                </li>
-
-            </ul>
-
         </div>
     </div>
 </template>
@@ -70,144 +68,214 @@ const props = defineProps({
         type: String,
         required: true
     },
-    route: {
-        type: String,
-        required: true
-    },
-    label: String,
     modelValue: {
-        type: Object as PropType<{ id: number, name: string }>,
-        required: true
+        type: null,
+        default: []
     },
-    placeholder: String,
+    label: {
+        type: String,
+        default: ''
+    },
+    required: {
+        type: Boolean,
+        default: false
+    },
+    placeholder: {
+        type: String,
+        default: ''
+    },
+    hidden: {
+        type: Boolean,
+        default: false
+    },
+    disabled: {
+        type: Boolean,
+        default: false
+    },
+    max: {
+        type: Number,
+        default: 100
+    },
     allowCreate: {
         type: Boolean,
         default: false
     },
-    multiple: {
+    allowMultiple: {
         type: Boolean,
         default: true
     },
-    max: {
-        type: Number,
-        default: 1
+    relatedResource: {
+        type: Object as PropType<{ name: string }>,
+        default: null
     },
-    createFunction: {
-        type: Function as PropType<Function>,
-        required: false
-    },
-    searchFunction: {
-        type: Function as PropType<Function>,
-        required: false
-    },
-    isHtml: {
-        type: Boolean,
-        default: false
+    formStore: {
+        type: Object as PropType<FormStore>,
     }
 })
 
-let searchTerm = ref('')
-let results = ref([])
+// TODO: handle html content correctly
+
+const defaultValue = getFormFieldConfig('defaultValue', [], props);
+const disabled = getFormFieldConfig('disabled', false, props);
+const hidden = getFormFieldConfig('hidden', false, props);
+const label = getFormFieldConfig('label', '', props);
+const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation
+const placeholder = getFormFieldConfig('placeholder', '', props);
+const relatedResource = getFormFieldConfig('relatedResource', null, props);
+const allowCreate = getFormFieldConfig('allowCreate', false, props);
+const allowMultiple = getFormFieldConfig('allowMultiple', false, props);
+const isHtml = getFormFieldConfig('richText', false, props);
+
+let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
+let max = getFormFieldConfig('max', 100, props);
+
+if (!relatedResource.value.name) {
+    throw new Error('Related resource not defined');
+}
+
+if (props.formStore) {
+    modelValue = computed(() => props.formStore?.getFieldData(props.id));
+}
+
+const emit = defineEmits(['update:modelValue']);
+
+const autocompleteRef = ref<HTMLElement | null>(null);
+const search = ref('');
+const results = ref<{ id: number, name: string, label?: string }[]>([]);
 let timeoutId: NodeJS.Timeout = setTimeout(() => { }, 0);
-let searching = ref(false);
-let show = ref(false);
+const searching = ref(false);
+const toast = useToast();
 
-const emit = defineEmits(["update"]);
-
-const computedModelValue = computed(() => {
-    if (Array.isArray(props.modelValue)) {
-        return props.modelValue;
-
-    } else if (typeof props.modelValue === "object" && props.modelValue !== null) {
-        if (props.modelValue.id == 0) {
-            return [];
-        }
-        return [props.modelValue];
-    }
-
-    return [];
+useOnClickOutside(autocompleteRef, () => {
+    search.value = ''; // TODO: refactor
+    results.value = [];
+    searching.value = false;
 });
 
-const selectItem = (item: any) => {
-    if (computedModelValue.value.find((element) => element.id === item.id)) {
-        searchTerm.value = "";
+watch(search, searchItems);
+
+if (!allowMultiple.value) {
+    max = computed(() => 1);
+}
+
+const selectedItems = computed(() => {
+    if (!modelValue.value) {
+        return [];
+    }
+
+    return Array.isArray(modelValue.value) ? modelValue.value : [modelValue.value];
+});
+
+const canAddMore = computed(() => {
+    return selectedItems.value.length < max.value;
+});
+
+const canCreate = computed(() => {
+    return allowCreate && search.value !== '' && results.value.length === 0;
+});
+
+function selectItem(item: Item) {
+
+    const alreadySelected = selectedItems.value.find((i: Item) => i.id === item.id);
+
+    if (alreadySelected) {
+        search.value = '';
         return;
     }
 
-    emit("update", props.id, 'add', item);
-    searchTerm.value = "";
-};
-
-const removeItem = (id: number) => {
-    emit("update", props.id, 'remove', { id, name: "" });
-};
-
-const searchItems = async () => {
-    if (searchTerm.value === '') {
-        results.value = []
-        return
+    if (allowMultiple.value) {
+        if (selectedItems.value.length < max.value) {
+            emit('update:modelValue', [...selectedItems.value, item]);
+        }
+    } else {
+        emit('update:modelValue', item);
     }
+
+    if (props.formStore) {
+        props.formStore.addFieldData(props.id, item);
+    }
+
+    search.value = "";
+}
+
+function removeItem(item: Item) {
+
+    const newItems = selectedItems.value.filter((i: Item) => i.id !== item.id);
+
+    emit('update:modelValue', allowMultiple.value ? newItems : newItems.length > 0 ? newItems[0] : null);
+
+    if (props.formStore) {
+        props.formStore.removeFieldData(props.id, item);
+    }
+}
+
+async function searchItems() {
+    if (search.value === '') {
+        results.value = [];
+        return;
+    }
+
+    searching.value = true;
 
     clearTimeout(timeoutId);
 
     timeoutId = setTimeout(async () => {
-
-        if (props.searchFunction) {
-            const data = await props.searchFunction(searchTerm.value)
-            results.value = data
-            return
-        }
-
-        const { data } = await useFetchWithBaseUrl('api/' + props.route + '/query', {
-            method: 'POST',
-            body: {
+        const { data, pending, error } = await useFetchWithBaseUrl('api/' + relatedResource.value.name, {
+            method: 'GET',
+            query: {
                 where: {
-                    name: {
-                       like: searchTerm.value
-                    }
+                    or: [
+                        {
+                            name: {
+                                like: search.value
+                            }
+                        }
+                        // TODO: search by label
+                    ]
                 },
                 pageSize: 10
             }
-        })
+        }) as { data: Ref<PaginatedResponse>, pending: Ref<boolean>, error: Ref<Error | undefined> };
 
-        results.value = data.value.data;
+        searching.value = pending.value;
+        results.value = data.value.items;
+
     }, 300);
-
-    if (results.value.length === 0 && !searching.value) {
-        show.value = true
-
-        setTimeout(() => {
-            show.value = false
-        }, 3000);
-    }
-
 }
 
-const createItem = async (value: string) => {
-    if (!props.allowCreate) {
-        return
+async function createItem(value: string) {
+    if (!allowCreate) {
+        return;
     }
 
-    if (props.createFunction) {
-        const result = await props.createFunction(value)
-        selectItem(result)
-        return
-    }
-
-
-    const { data } = await useFetchWithBaseUrl('api/' + props.route, {
+    const { data, pending, error } = await useFetchWithBaseUrl('api/' + relatedResource.value.name, {
         method: 'POST',
         body: {
             name: value.trim()
         }
-    })
+    }) as { data: Ref<Item>, pending: Ref<boolean>, error: Ref<Error> };
 
-    const result = data.value
+    searching.value = pending.value;
 
+    if (error.value) {
+        // @ts-ignore
+        console.error(error.value.data ?? error.value);
+        toast.add({
+            title: 'Erro ao criar item',
+            color: 'red',
+            icon: 'i-heroicons-x-circle',
+        });
+    
+        search.value = '';
+        return;
+    }
 
-    if (result) {
-        selectItem(result)
+    if (data.value) {
+        selectItem(data.value);
     }
 }
 
+onMounted(() => {
+    autocompleteRef.value = autocompleteRef.value;
+});
 </script>
