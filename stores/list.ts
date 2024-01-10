@@ -1,3 +1,5 @@
+import QUERIES from '~/config/queries';
+
 export const useListStore = defineStore('list', () => {
 
     const toast = useToast();
@@ -18,7 +20,7 @@ export const useListStore = defineStore('list', () => {
 
     // TODO: allow query in label
     const query = computed(() => {
-        return {
+        const q = {
             page: page.value,
             pageSize: pageSize.value,
             where: {
@@ -30,6 +32,12 @@ export const useListStore = defineStore('list', () => {
                 name: sort.value
             }
         }
+
+        if (QUERIES.get(resourceStore.model)?.where) {
+            q.where = Object.assign(q.where, QUERIES.get(resourceStore.model)?.where);
+        }
+
+        return q;
     });
 
     watch(() => query.value, async () => {
@@ -91,9 +99,7 @@ export const useListStore = defineStore('list', () => {
     }
 
     function destroy() {
-        const pinia = usePinia()
-        resourceStore.$dispose();
-        delete pinia.state.value[resourceStore.$id]
+        destroyStore(resourceStore);
     }
 
 

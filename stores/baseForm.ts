@@ -1,3 +1,4 @@
+import QUERIES from '~/config/queries';
 export const createFormStore = (name: string) => {
     return defineStore(name, () => {
 
@@ -30,9 +31,8 @@ export const createFormStore = (name: string) => {
             if (id.value) {
                 await loadFieldsData();
             } else {
-                setEmptyFields();
+                fieldsData.value = createEmptyFields() || {};
             }
-
         }
 
         async function loadResource(resourceIdentifier: string) {
@@ -59,7 +59,10 @@ export const createFormStore = (name: string) => {
                 throw new Error('Resource not found');
             }
 
-            const { data, pending, error } = await useFetchWithBaseUrl(`/api/${resourceStore.model}/${id.value}`);
+            const { data, pending, error } = await useFetchWithBaseUrl(`/api/${resourceStore.model}/${id.value}`, {
+                method: 'GET',
+                params: { include : QUERIES.get(resourceStore.model)?.include }
+            }) as { data: Ref<Record<string, any>>, pending: Ref<boolean>, error: Ref<any> };
 
             pending.value = pending.value;
 
@@ -249,10 +252,6 @@ export const createFormStore = (name: string) => {
 
                 return false;
             });
-        }
-
-        function setEmptyFields() {
-            fieldsData.value = createEmptyFields();
         }
 
         function createEmptyFields() {

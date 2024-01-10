@@ -116,9 +116,7 @@ const deleteItem = async () => {
 
 onUnmounted(() => {
     listStore.destroy();
-    listStore.$dispose();
-    const pinia = usePinia();
-    delete pinia.state.value[listStore.$id]
+    destroyStore(listStore);
 });
 
 useHead({
