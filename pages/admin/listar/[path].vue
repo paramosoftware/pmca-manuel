@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { ROUTES } from '~/config';
+import ROUTES from '~/config/routes';
 
 definePageMeta({
     middleware: 'auth'

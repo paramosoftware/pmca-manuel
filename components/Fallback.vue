@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ROUTES } from '~/config';
+import ROUTES from '~/config/routes';
 
 const route = useRoute();
 const href = route.fullPath.includes(ROUTES.restricted) ? ROUTES.restricted : '/';

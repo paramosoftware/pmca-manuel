@@ -8,7 +8,7 @@
  </template>
  
 <script setup lang="ts">
-import { OBJECTS } from '~/config';
+import QUERIES from '~/config/queries';
 
 definePageMeta({
    layout: false,
@@ -67,7 +67,7 @@ const { data, pending, error } = await useFetchWithBaseUrl('/api/entry?query=' +
    where: {
       nameSlug: slug.value,
    },
-   include: OBJECTS.verbete.includeRelations || undefined,
+   include: QUERIES.get('Entry')?.include|| undefined,
 }));
 
 

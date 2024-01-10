@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import Zip from 'adm-zip';
 import { readMany } from './read';
-import { OBJECTS } from '~/config';
+import  QUERIES  from '~/config/queries';
 import { prisma } from '~/server/prisma/prisma';
 import { createOneOrMany } from './create';
 import { saveMedia } from './media';
@@ -76,7 +76,7 @@ function closeFile(filePath :string, format: 'xml' | 'json') {
 
 async function processItems(filePath: string, format: 'xml' | 'json') {
 
-    const include = OBJECTS['verbete'].includeRelations;
+    const include = QUERIES.get('Entry')?.include;
     const pageSize = 200;
     const model = 'entry';
     const xmlBuilder = new XMLBuilder(xmlOptions);
@@ -97,7 +97,7 @@ async function processItems(filePath: string, format: 'xml' | 'json') {
 
         totalPages = data.totalPages;
 
-        for (const item of data.data) {
+        for (const item of data.items) {
 
             if (format === 'json') {
                 const json = buildJsonExport(item);

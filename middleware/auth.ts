@@ -1,4 +1,4 @@
-import { ROUTES } from '~/config';
+import ROUTES from '~/config/routes';
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
     
