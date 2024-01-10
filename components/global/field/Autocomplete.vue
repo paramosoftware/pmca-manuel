@@ -129,7 +129,7 @@ const isHtml = getFormFieldConfig('richText', false, props);
 let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
 let max = getFormFieldConfig('max', 100, props);
 
-if (!relatedResource.value.name) {
+if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
     throw new Error('Related resource not defined');
 }
 

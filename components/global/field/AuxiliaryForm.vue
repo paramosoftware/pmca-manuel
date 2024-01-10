@@ -66,7 +66,7 @@ const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
 const label = getFormFieldConfig('label', '', props);
 const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation
-const relatedResource = getFormFieldConfig('relatedResource', '', props);
+const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowMultiple = getFormFieldConfig('allowMultiple', false, props);
 const isHtml = getFormFieldConfig('richText', false, props);
 let max = getFormFieldConfig('max', 100, props);
@@ -75,7 +75,7 @@ if (!allowMultiple.value) {
     max = computed(() => 1);
 }
 
-if (!relatedResource.value.name) {
+if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
     throw new Error('Related resource not defined');
 }
 

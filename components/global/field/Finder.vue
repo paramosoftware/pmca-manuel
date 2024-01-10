@@ -58,7 +58,7 @@ const emit = defineEmits(['update:modelValue']);
 
 const defaultValue = getFormFieldConfig('defaultValue', '', props);
 const label = getFormFieldConfig('label', '', props);
-const relatedResource = getFormFieldConfig('relatedResource', '', props);
+const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const query = getFormFieldConfig('query', '', props);
 let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
 
@@ -66,7 +66,7 @@ if (props.formStore) {
     modelValue = computed(() => props.formStore?.getFieldData(props.id));
 }
 
-if (!relatedResource.value.name) {
+if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
     throw new Error('Related resource not defined');
 }
 
