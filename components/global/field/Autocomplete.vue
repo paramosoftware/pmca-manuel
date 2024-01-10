@@ -125,16 +125,22 @@ const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowCreate = getFormFieldConfig('allowCreate', false, props);
 const allowMultiple = getFormFieldConfig('allowMultiple', false, props);
 const isHtml = getFormFieldConfig('richText', false, props);
+const oppositeField = getFormFieldConfig('oppositeField', null, props);
 
 let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
 let max = getFormFieldConfig('max', 100, props);
+let oppositeFieldData = ref<Item | Item[] | null>(null);
 
 if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
-    throw new Error('Related resource not defined');
+    throw new Error('Related resource not defined for' + props.id + (label.value ? ' (' + label.value + ')' : ''));
 }
 
 if (props.formStore) {
     modelValue = computed(() => props.formStore?.getFieldData(props.id));
+}
+
+if (oppositeField && oppositeField.value) {
+    oppositeFieldData = computed(() => props.formStore?.getFieldData(oppositeField.value.name));
 }
 
 const emit = defineEmits(['update:modelValue']);
@@ -159,11 +165,32 @@ if (!allowMultiple.value) {
 }
 
 const selectedItems = computed(() => {
-    if (!modelValue.value) {
+    if (!modelValue.value && !oppositeFieldData.value) {
         return [];
     }
 
-    return Array.isArray(modelValue.value) ? modelValue.value : [modelValue.value];
+    const selectedItems = [];
+
+    // merge the selected items with the opposite field data
+    // so all relations are shown in the autocomplete in both directions
+
+    if (modelValue.value) {
+        if (Array.isArray(modelValue.value)) {
+            selectedItems.push(...modelValue.value);
+        } else {
+            selectedItems.push(modelValue.value);
+        }
+    }
+
+    if (oppositeFieldData.value) {
+        if (Array.isArray(oppositeFieldData.value)) {
+            selectedItems.push(...oppositeFieldData.value);
+        } else {
+            selectedItems.push(oppositeFieldData.value);
+        }
+    }
+
+    return selectedItems;
 });
 
 const canAddMore = computed(() => {
@@ -205,6 +232,10 @@ function removeItem(item: Item) {
     emit('update:modelValue', allowMultiple.value ? newItems : newItems.length > 0 ? newItems[0] : null);
 
     if (props.formStore) {
+        if (oppositeFieldData.value) {
+            props.formStore?.removeFieldData(oppositeField.value.name, item);
+        }
+
         props.formStore.removeFieldData(props.id, item);
     }
 }

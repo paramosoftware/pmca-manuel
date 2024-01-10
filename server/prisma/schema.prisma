@@ -95,7 +95,6 @@ model AppResource {
 
 model AppResourceField {
   id         Int    @id @default(autoincrement())
-  resourceId Int
   name       String 
   label      String 
   valueType  String @default("string")
@@ -118,8 +117,14 @@ model AppResourceField {
   allowCreate     Boolean? @default(true)
   allowMultiple   Boolean? @default(true)
 
+  oppositeFieldId Int?
+  relatedOppositeFields AppResourceField[] @relation("OppositeField")
+  oppositeField   AppResourceField? @relation("OppositeField", fields: [oppositeFieldId], references: [id])
+
   relatedResourceId Int?
   relatedResource AppResource? @relation(fields: [relatedResourceId], references: [id], onDelete: Cascade, name: "RelatedFields")
+
+  resourceId Int
   resource        AppResource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   createdAt DateTime? @default(now())
@@ -194,6 +199,7 @@ model Entry {
 
   entries        Entry[] @relation("EntryToEntry")
   relatedEntries Entry[] @relation("EntryToEntry")
+
   children       Entry[] @relation("EntryToChildren")
   parent         Entry?  @relation("EntryToChildren", fields: [parentId], references: [id])
 

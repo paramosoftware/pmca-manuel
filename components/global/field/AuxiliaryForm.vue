@@ -76,7 +76,7 @@ if (!allowMultiple.value) {
 }
 
 if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
-    throw new Error('Related resource not defined');
+    throw new Error('Related resource not defined for ' + props.id + (label.value ? ' (' + label.value + ')' : ''));
 }
 
 const useAuxiliaryForm = createFormStore(relatedResource.value.name);

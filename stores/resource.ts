@@ -16,10 +16,12 @@ export const useResourceStore = defineStore('resource', () => {
             include: {
                 fields: {
                     include: {
-                        relatedResource: true
+                        relatedResource: true,
+                        oppositeField: true
                     },
                     orderBy: ['position']
-                }
+                },
+                
             }
         }
     });
