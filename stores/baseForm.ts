@@ -1,7 +1,7 @@
 export const createFormStore = (name: string) => {
     return defineStore(name, () => {
 
-        const id = ref<ID>('');
+        const id = ref<ID>(0);
         const model = ref('');
         const label = ref('');
         const labelPlural = ref('');
@@ -36,6 +36,8 @@ export const createFormStore = (name: string) => {
         }
 
         async function loadResource(resourceIdentifier: string) {
+            // TODO: Consider using a createResourceStore function for multiples instances
+            destroyStore(resourceStore);
             await resourceStore.fetch(resourceIdentifier);
 
             if (!resourceStore.model) {
@@ -92,7 +94,7 @@ export const createFormStore = (name: string) => {
 
         function getFieldConfig(field: string) {
             if (!fieldsConfig.value[field]) {
-                throw new Error(`Field ${field} not found`);
+                return;
             }
 
             const fieldConfig = fieldsConfig.value[field];
@@ -114,6 +116,8 @@ export const createFormStore = (name: string) => {
         function setFieldData(field: string, value: any) {
 
             const fieldConfig = getFieldConfig(field);
+
+            if (!fieldConfig) { return; }
 
             if (fieldConfig.valueType === 'string') {
                 if (value.name) {
@@ -137,8 +141,10 @@ export const createFormStore = (name: string) => {
 
             const fieldConfig = getFieldConfig(field);
 
+            if (!fieldConfig) { return; }
+
             if (fieldConfig.valueType === 'object') {
-                fieldsData.value[field] = {};
+                fieldsData.value[field] = null;
                 return;
             }
 
@@ -157,6 +163,8 @@ export const createFormStore = (name: string) => {
 
         function addFieldData(field: string, value: Item) {
             const fieldConfig = getFieldConfig(field);
+
+            if (!fieldConfig) { return; }
 
             if (fieldConfig.valueType === 'object') {
                 fieldsData.value[field] = value;
@@ -203,6 +211,8 @@ export const createFormStore = (name: string) => {
         function removeFieldData(field: string, value: Item) {
 
             const fieldConfig = getFieldConfig(field);
+
+            if (!fieldConfig) { return; }
 
             if (fieldConfig.valueType === 'object') {
                 fieldsData.value[field] = null;
@@ -252,6 +262,8 @@ export const createFormStore = (name: string) => {
             for (const field of Object.keys(fieldsConfig.value)) {
                 const fieldConfig = getFieldConfig(field);
 
+                if (!fieldConfig) { return; }
+
                 if (fieldConfig.valueType === 'array') {
                     fields[field] = [];
                 } else if (fieldConfig.valueType === 'object') {
@@ -265,49 +277,66 @@ export const createFormStore = (name: string) => {
         }
 
         async function save() {
-
             if (!model) {
                 throw new Error('Resource not found');
             }
-
-            if (!id.value) {
-
-                const { data: saved, error } = await useFetchWithBaseUrl(`/api/${resourceStore.model}`, {
-                    method: 'POST',
-                    body: JSON.stringify(fieldsData.value)
-                });
-
-                if (error.value) {
-                    throw new Error(error.value.message);
-                }
-
-                id.value = saved.value.id;
-
-            } else {
-
-                const { data: data, error } = await useFetchWithBaseUrl(`/api/${resourceStore.model}/${id.value}`, {
-                    method: 'PUT',
-                    body: JSON.stringify(fieldsData.value)
-                });
-
-                if (error.value) {
-                    throw new Error(error.value.message);
-                }
+        
+            if (getIsAuxiliary()) {
+                return;
             }
+        
+            const url = !id.value ? `/api/${resourceStore.model}` : `/api/${resourceStore.model}/${id.value}`;
+            const method = !id.value ? 'POST' : 'PUT';
+        
+            const { data, error } = await useFetchWithBaseUrl(url, {
+                method: method,
+                body: JSON.stringify(treatDataBeforeSave()),
+            }) as { data: Ref<Item>, error: Ref<any> };
 
             const toast = useToast();
-
-            toast.add({
-                title: 'Dados salvos com sucesso.',
-                ui: { rounded: 'rounded-sm', padding: 'p-5' }
-            })
-
-            if (process.client) {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
+        
+            if (error.value) {
+                console.error(error.value.data ?? error.value);
+                toast.add({
+                    title: 'Erro ao salvar dados.',
+                    color: 'red',
+                    icon: 'i-heroicons-x-circle',
                 });
+                return false;
+            } 
+
+            if (data.value) {
+                toast.add({
+                    title: 'Dados salvos com sucesso.',
+                })
+                return data.value.id;
             }
+        }
+
+        function treatDataBeforeSave() {
+            const data = getFieldsData();
+            const treatedData = {} as Record<string, any>;
+
+            for (const field of Object.keys(data)) {
+
+                const fieldConfig = getFieldConfig(field);
+
+                if (!fieldConfig) { continue; }
+
+                if (fieldConfig.disabled) {
+                    continue;
+                }
+
+                if (fieldConfig.valueType === 'boolean') {
+                    treatedData[field] = getBoolean(data[field]);
+                    continue;
+                }
+
+                treatedData[field] = data[field];
+
+            }
+
+            return treatedData;
         }
 
         return {

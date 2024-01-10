@@ -1,32 +1,40 @@
 <template>
 
-<component :is="component"></component>
+    <template v-if="pending">
+        <div class="flex flex-col justify-center items-center h-screen">
+            <Icon class="animate-spin w-40 h-40 mr-5" name="ph:circle-notch" />
+            <p class="text-2xl font-bold">Carregando...</p>
+        </div>
+    </template>
 
+    <template v-else-if="error">
+        <Fallback  />
+    </template>
+
+    <template v-else>
+        <GenericForm :formStore="formStore" />
+    </template>
 </template>
    
 <script setup lang="ts">
-import { OBJECTS } from '~/config';
 definePageMeta({
     middleware: 'auth'
 });
 
-const route = useRoute();
-const config = useRuntimeConfig();
-const path = route.params.path.toString().toLowerCase();
-let component: string | Component = 'Fallback';
+const formStore = useFormStore();
+destroyStore(formStore);
 
-const validateRoute = () => {
-    return OBJECTS[path];
-};
+await formStore.load(useRoute().params.path.toString());
 
-if (validateRoute()) {
-    const object = OBJECTS[path].form ?? OBJECTS[path].singular;
-    const form = 'Form' + capitalize(object);
-    component = vueComponentExists(form) ? resolveComponent(form) : 'Fallback';
-}
+const pending = computed(() => formStore.pending);
+const error = computed(() => formStore.error);
+
+onUnmounted(() => {
+    destroyStore(formStore);
+});
 
 useHead({
-    title: 'Criar ' + OBJECTS[path].label + ' | ' + config.public.appName,
+    title: 'Criar ' + uncapitalize(formStore.label) + ' | ' + useRuntimeConfig().public.appName
 });
 </script>
   

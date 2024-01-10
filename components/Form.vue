@@ -1,143 +1,100 @@
 <template>
     <div class="flex flex-col justify-center items-center">
         <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
-            <form @submit.prevent="save">
-        
-                <div class="text-end flex justify-between" :class="{ 'mt-5 mb-10' : isStandalone }">
-                    <UIAnchorReturn v-if="isStandalone"  :href=urlList />
+            <form @submit.prevent="submit()">
 
-                    <NuxtLink :to=urlCreate  v-if="showNewButton && !isCreate">
-                        <UIButton class="justify-items-start content-start items-start">{{ genderNoun == 'm' ? 'Novo' : 'Nova' }}</UIButton>
-                    </NuxtLink>
+                <div class="text-end flex justify-between" :class="{ 'mt-5 mb-2': !isAuxiliary }">
+                    <UIAnchorReturn v-if="!isAuxiliary" :href=urlList />
+
+                    <template v-if="!isCreate && !isAuxiliary">
+                        <UIButton class="justify-items-start content-start items-start" @click="goToCreateForm">
+                            <template v-if="genderNoun === 'f'">
+                                Nova
+                            </template>
+                            <template v-else>
+                                Novo
+                            </template>
+                        </UIButton>
+                    </template>
                 </div>
 
-                <div class="justify-between flex flex-row items-center mt-4">
+                <div class="justify-between flex flex-row items-center mt-2">
 
-                    <UITitle>{{ isStandalone ? (isCreate ? 'Criar' : 'Editar') : 'Adicionar' }} {{ label }}</UITitle>
-                    <UIButton v-if="isStandalone" :type='"submit"'>Salvar</UIButton>
+                    <UITitle>{{ isAuxiliary ? 'Adicionar' : (isCreate ? 'Criar' : 'Editar') }} {{ uncapitalize(label) }}</UITitle>
+                    <UIButton v-if="!isAuxiliary" :type='"submit"'>Salvar</UIButton>
 
                 </div>
 
-                <slot />
+                <template v-for="field in fields" :key="field.id">
+                    <template v-if="components.has(field.name)">
+                        <component :is="components.get(field.name)" :id="field.name" :formStore="formStore" />
+                    </template>
+                </template>
 
                 <div class="mt-5 text-end">
-                    <UIButton :type='"submit"'>{{ (isStandalone ? 'Salvar' : 'Adicionar') }}</UIButton>
+                    <UIButton :type='"submit"'>{{ (isAuxiliary ? 'Adicionar' : 'Salvar') }}</UIButton>
                 </div>
-
             </form>
         </div>
     </div>
-
 </template>
-
 
 <script setup lang="ts">
 import { ROUTES } from '~/config';
 
 const props = defineProps({
-    genderNoun: {
-        type: String,
-        required: true,
-        validator: (value: string) => {
-            return ['m', 'f'].includes(value);
-        }  
-    },
-    objectName: {
-        type: String,
-        required: true  
-    },
-    objectNamePlural: {
-        type: String,
-        required: true  
-    },
-    label: {
-        type: String,
-        required: true  
-    },
-    labelPlural: {
-        type: String,
-        required: true  
-    },
-    urlPath: {
-        type: String,
-        required: true  
-    },
-    isCreate: {
-        type: Boolean,
-        default: true
-    },
-    isStandalone: {
-        type: Boolean,
-        default: true
-    },
-    object: {
-        type: Object,
-        default: {
-            value: {
-                id: 0
-            }
-        }
-    },
-    showNewButton: {
-        type: Boolean,
-        default: true
+    formStore: {
+        type: Object as PropType<FormStore>,
+        required: true
     },
 });
 
+const { model, label, genderNoun, labelSlug } = storeToRefs(props.formStore);
+
+const urlList = ROUTES.list + model.value;
+const urlCreate = ROUTES.create  + model.value;
+const isCreate = !props.formStore.getId();
+const isAuxiliary = props.formStore.getIsAuxiliary();
 const router = useRouter();
-const emit = defineEmits(['formSubmitted', 'error', 'changeUserFormState']);
-const toast = useToast()
 
-const urlList = ROUTES.list + props.urlPath;
-const urlCreate = ROUTES.create  + props.urlPath;
-const urlEdit = ROUTES.edit + props.urlPath;
+async function submit() {
 
-const save = async () => {
+    const id = await props.formStore.save();
 
-    if (props.isStandalone) {
+    if (id && !isAuxiliary) {
 
-        let url = '/api/' + props.objectName + '/' + props.object.id;
-        let method = 'PUT';
+        router.push(ROUTES.edit + labelSlug.value + '/' + id);
 
-        if (props.object.id === 0) {
-            url = '/api/' + props.objectName;
-            method = 'POST';
+        if (process.client) {
+            // TODO: Full reload instead?
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
 
-        const { data: saved, error } = await useFetchWithBaseUrl(url, {
-            // @ts-ignore
-            method: method,
-            body: JSON.stringify(props.object),
-        });
-    
-        if (error.value) {
-            emit('error', error.value.data);
-            return;
-        }
-
-        if (saved.value) {
-            router.push(urlEdit + '/' + saved.value.id);
-
-            emit('changeUserFormState');
-
-            toast.add({ 
-                title: 'Dados salvos com sucesso.',
-                ui: { rounded: 'rounded-sm', padding: 'p-5' }
-            })
-
-            if (process.client) {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            }
-
-            return;
-        }
-    } else {
-        emit('formSubmitted', props.object);
+        await props.formStore.load(model.value, id);
     }
+}
 
-};
 
+function goToCreateForm() {
+    if (process.client) {
+        window.location.href = urlCreate;
+    }
+}
+
+
+const fields = props.formStore.getFieldsConfig();
+const components = new Map<string, any>();
+
+for (const [key, field] of Object.entries(fields)) {
+    const componentField = 'Field' + capitalize(field.uiField);
+
+    if (vueComponentExists(componentField) && resolveComponent(componentField)) {
+        components.set(field.name, resolveComponent(componentField));
+    } else {
+        console.error('Component ' + componentField + ' not found');
+    }
+}
 </script>

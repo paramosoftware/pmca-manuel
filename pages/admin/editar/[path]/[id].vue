@@ -1,44 +1,38 @@
 <template>
-    <component :is="component" :object="object"></component>
-</template>
 
+    <template v-if="pending">
+        <div class="flex flex-col justify-center items-center h-screen">
+            <Icon class="animate-spin w-40 h-40 mr-5" name="ph:circle-notch" />
+            <p class="text-2xl font-bold">Carregando...</p>
+        </div>
+    </template>
+
+    <template v-else-if="error">
+        <Fallback  />
+    </template>
+
+    <template v-else>
+        <GenericForm :formStore="formStore" />
+    </template>
+</template>
+   
 <script setup lang="ts">
-import { OBJECTS } from '~/config';
 definePageMeta({
     middleware: 'auth'
 });
 
-const config = useRuntimeConfig();
-const route = useRoute();
-const path = route.params.path.toString().toLowerCase();
-const id = route.params.id.toString();
-const object = ref({});
+const formStore = useFormStore();
 
-const validateRoute = () => {
-    return OBJECTS[path] && isNaN(parseInt(id)) === false;
-};
+await formStore.load(useRoute().params.path.toString(), useRoute().params.id.toString());
 
-const form = 'Form' + capitalize(OBJECTS[path].form || OBJECTS[path].singular);
-let component = validateRoute() && vueComponentExists(form) ? resolveComponent(form) : 'Fallback';
+const pending = computed(() => formStore.pending);
+const error = computed(() => formStore.error);
 
-
-if (component !== 'Fallback') {
-
-    const { data } = await useFetchWithBaseUrl('/api/' + OBJECTS[path].singular + '/' + id + '/query', {
-        method: 'POST',
-        body: JSON.stringify({
-            include: OBJECTS[path].includeRelations
-        })
-    });
-
-    object.value = data.value as unknown as any;
-
-    if (!object.value) {
-        component = 'Fallback';
-    }
-}
+onUnmounted(() => {
+    destroyStore(formStore);
+});
 
 useHead({
-    title: 'Editar ' + OBJECTS[path].label + ' | ' + config.public.appName,
+    title: 'Editar ' + uncapitalize(formStore.label) + ' | ' + useRuntimeConfig().public.appName
 });
 </script>
