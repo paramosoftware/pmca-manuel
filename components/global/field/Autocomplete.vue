@@ -28,7 +28,8 @@
                 v-model="search" 
                 :disabled="!canAddMore || disabled"
                 :placeholder="!canAddMore ? 'Número máximo de itens adicionados' : placeholder"
-                :show-icon="true" :loading="searching"
+                :show-icon="true" 
+                :loading="searching"
             />
 
             <span ref="autocompleteRef">
@@ -63,6 +64,8 @@
 </template>
 
 <script setup lang="ts">
+import QUERIES from '~/config/queries';
+
 const props = defineProps({
     id: {
         type: String,
@@ -250,22 +253,36 @@ async function searchItems() {
 
     clearTimeout(timeoutId);
 
+     // TODO: search by label
+    const query = {
+        where: {
+            or: [{
+                name: {
+                    like: search.value
+                }
+            }],
+            and: []
+        },
+        pageSize: 10
+    } as any;
+
+
+    if (QUERIES.get(relatedResource.value.name)?.where) {
+        query.where.and.push(QUERIES.get(relatedResource.value.name)?.where);
+    }
+
+    if (relatedResource.value.name === props.formStore?.model) {
+        query.where.and.push({
+            id: {
+                not: props.formStore?.getId()
+            }
+        });
+    }
+
     timeoutId = setTimeout(async () => {
         const { data, pending, error } = await useFetchWithBaseUrl('api/' + relatedResource.value.name, {
             method: 'GET',
-            query: {
-                where: {
-                    or: [
-                        {
-                            name: {
-                                like: search.value
-                            }
-                        }
-                        // TODO: search by label
-                    ]
-                },
-                pageSize: 10
-            }
+            params: query
         }) as { data: Ref<PaginatedResponse>, pending: Ref<boolean>, error: Ref<Error | undefined> };
 
         searching.value = pending.value;
