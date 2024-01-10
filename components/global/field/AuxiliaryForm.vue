@@ -37,7 +37,7 @@
 
             <UModal :id="relatedResource.name + '-modal-form'" v-model="isModalOpen">
                 <UICloseButton @click="isModalOpen = false" />
-                <GenericForm :form-store="auxiliaryFormStore" :id="relatedResource.name + '-form'" />
+                <Form :form-store="auxiliaryFormStore" :id="relatedResource.name + '-form'" />
             </UModal>
         </div>
     </div>
