@@ -9,6 +9,7 @@ import getBoolean from '~/utils/getBoolean';
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '~/server/prisma/prisma';
 import uncapitalize from '~/utils/uncapitalize';
+import parseNumber  from '~/utils/parseNumber';
 
 
 export async function convertBodyToPrismaUpdateOrCreateQuery(model: string, body: any, isUpdate: boolean = false, isConnectOrCreate: boolean = false, parentModel: string = '', parentBody = {}) {
@@ -517,12 +518,19 @@ function convertConditionToPrismaQuery(field: string, condition: Condition, mode
     const prismaQuery: any = {};
     prismaQuery[field] = {};
 
-    if (Array.isArray(condition) || typeof condition === 'string' || typeof condition === 'number' || typeof condition === 'boolean') {
+    const conditionType = typeof condition;
+
+    if (Array.isArray(condition) || conditionType === 'string' || conditionType === 'number' || conditionType === 'boolean') {
 
         if (Array.isArray(condition)) {
-            prismaQuery[field].in = condition;
+            prismaQuery[field].in = parseNumber(condition);
         } else {
-            prismaQuery[field].equals = isNormalized ? normalizeString(condition as string) : condition;
+            if (conditionType === 'boolean') {
+                prismaQuery[field].equals = getBoolean(condition);
+            } else {
+                // @ts-ignore
+                prismaQuery[field].equals = isNormalized ? normalizeString(condition) : parseNumber(condition);
+            }
         }
 
         return prismaQuery;
@@ -534,34 +542,44 @@ function convertConditionToPrismaQuery(field: string, condition: Condition, mode
     const value = condition[key];
 
     switch (operator) {
-        case '=' || 'eq' || 'equals':
-            prismaQuery[field].equals = isNormalized ? normalizeString(value as string) : value;
+        case '=':
+        case 'eq':
+        case 'equals':
+            prismaQuery[field].equals = isNormalized ? normalizeString(value as string) : parseNumber(value);
             break;
-        case '!=' || 'not':
-            prismaQuery[field].not = { equals: value };
+        case '!=':
+        case 'not':
+            prismaQuery[field].not = { equals: parseNumber(value) };
             break;
-        case '>' || 'gt':
+        case '>':
+        case 'gt':
             prismaQuery[field].gt = parseNumber(value);
             break;
-        case '<' || 'lt':
+        case '<':
+        case 'lt':
             prismaQuery[field].lt = parseNumber(value);
             break;
-        case '>=' || 'gte':
+        case '>=':
+        case 'gte':
             prismaQuery[field].gte = parseNumber(value);
             break;
-        case '<=' || 'lte':
+        case '<=':
+        case 'lte':
             prismaQuery[field].lte = parseNumber(value);
             break;
-        case 'like' || 'contains':
+        case 'contains':
+        case 'like':
             prismaQuery[field].contains = isNormalized ? normalizeString(value as string) : value;
             break;
         case 'notlike':
             prismaQuery[field].not = { contains: isNormalized ? normalizeString(value as string) : value };
             break;
-        case 'startswith' || 'start':
+        case 'startswith':
+        case 'start':
             prismaQuery[field].startsWith = isNormalized ? normalizeString(value as string) : value;
             break;
-        case 'endswith' || 'end':
+        case 'endswith':
+        case 'end':
             prismaQuery[field].endsWith = isNormalized ? normalizeString(value as string) : value;
             break;
         case 'in':
@@ -574,7 +592,7 @@ function convertConditionToPrismaQuery(field: string, condition: Condition, mode
             prismaQuery[field].equals = value ? null : { not: null };
             break;
         default:
-            prismaQuery[field].equals = isNormalized ? normalizeString(value as string) : value;
+            prismaQuery[field].equals = isNormalized ? normalizeString(value as string) : parseNumber(value);
             break;
     }
 
