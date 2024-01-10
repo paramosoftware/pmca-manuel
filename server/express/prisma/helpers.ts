@@ -333,31 +333,42 @@ export function convertQueryParamsToPaginatedQuery(queryParams: ParsedQs) {
 
     const body: Partial<PaginatedQuery> = {};
 
-    if (queryParams.pageSize) {
-        body.pageSize = Number(queryParams.pageSize);
-    }
 
-    if (queryParams.page) {
-        body.page = Number(queryParams.page);
-    }
+    try {
+        if (queryParams.pageSize) {
+            body.pageSize = Number(queryParams.pageSize);
+        }
 
-    if (queryParams.select) {
-        body.select = JSON.parse(queryParams.select.toString());
-    }
+        if (queryParams.page) {
+            body.page = Number(queryParams.page);
+        }
 
-    if (queryParams.where) {
-        body.where = JSON.parse(queryParams.where.toString());
-    }
+        if (queryParams.select) {
+            body.select = JSON.parse(queryParams.select.toString());
+        }
 
-    if (queryParams.include) {
-        body.include = JSON.parse(queryParams.include.toString());
-    }
+        if (queryParams.where) {
+            body.where = JSON.parse(queryParams.where.toString());
+        }
 
-    if (queryParams.orderBy) {
-        body.orderBy = JSON.parse(queryParams.orderBy.toString());
-    }
+        if (queryParams.include) {
 
-    return body;
+            if (queryParams.include === '*') {
+                body.include = '*';
+            } else {
+                body.include = JSON.parse(queryParams.include.toString());
+            }
+        }
+
+        if (queryParams.orderBy) {
+            body.orderBy = JSON.parse(queryParams.orderBy.toString());
+        }
+
+        return body;
+
+    } catch (error: SyntaxError | any) {
+        throw new ApiValidationError('Invalid query parameters: ' + (process.env.NODE_ENV === 'development' ? error.message : ''));
+    }
 }
 
 export function convertPaginatedQueryToPrismaQuery(request: PaginatedQuery, model: string) {
@@ -552,7 +563,19 @@ function convertConditionToPrismaQuery(field: string, condition: Condition, mode
 
 }
 
-function convertIncludeToPrismaQuery(include: Include | string[], model: string, fieldsMap: Map<string, Prisma.DMMF.Field>) {
+function convertIncludeToPrismaQuery(include: Include | string[] |string, model: string, fieldsMap: Map<string, Prisma.DMMF.Field>) {
+
+    if (typeof include === 'string') {
+        const prismaQuery: any = {};
+        if (include === '*') {
+            fieldsMap.forEach(f => {
+                if (f.kind === 'object') {
+                    prismaQuery[f.name] = true;
+                }
+            });
+            return prismaQuery;
+        }
+    }
 
     const prismaQuery: any = {};
 
@@ -657,7 +680,11 @@ function validateSelect(select: string[]) {
     return select.length > 0;
 }
 
-function validateInclude(include: Include | string[]) {
+function validateInclude(include: Include | string[] | string) {
+
+    if (include === '*' || typeof include === 'string') {
+        return;
+    }
 
     if (Array.isArray(include)) {
         return include.length > 0;

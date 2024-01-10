@@ -26,7 +26,7 @@ export interface Include {
 export interface Query {
     select?: string[];
     where?: Where;
-    include?: Include | string[];
+    include?: Include | string[] | '*';
     orderBy?: Order;
     take?: number;
     skip?: number;
