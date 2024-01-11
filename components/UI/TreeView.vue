@@ -13,7 +13,7 @@
 <script setup lang="ts">
 const props = defineProps({
   tree: {
-    type: Object,
+    type: Object as PropType<TreeNode[]>,
     required: true
   }
 });
@@ -24,8 +24,8 @@ watch(() => props.tree, (value) => {
   treeRef.value = value;
 });
 
-const toggleNodeChildren = (node: any) => {
-  node.isOpen = !node.isOpen;
+const toggleNodeChildren = (node: TreeNode) => {
+  node.expanded = !node.expanded;
 };
 
 </script>

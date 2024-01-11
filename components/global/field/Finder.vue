@@ -4,7 +4,7 @@
             {{ label }}
         </label>
 
-        <div v-if="tree.children.length > 0">
+        <div v-if="tree">
             <Finder 
                 :tree="tree" 
                 @expand="onExpand"
@@ -59,7 +59,7 @@ const emit = defineEmits(['update:modelValue']);
 const defaultValue = getFormFieldConfig('defaultValue', '', props);
 const label = getFormFieldConfig('label', '', props);
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
-const query = getFormFieldConfig('query', '', props);
+const query = getFormFieldConfig('query', '', props); // TODO: not implemented yet
 let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
 
 if (props.formStore) {
@@ -67,52 +67,60 @@ if (props.formStore) {
 }
 
 if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
-    throw new Error('Related resource not defined');
+    throw new Error('Related resource not defined for' + props.id + (label.value ? ' (' + label.value + ')' : ''));
 }
 
+
+
+// TODO: still need to parametrize finder to be used inside "Category" (which will be an Entry under the hood)
+// and "Entry" forms (where it will be used to select the parent category)
 const defaultQuery = {
     pageSize: -1,
-    select: JSON.stringify(['id', 'name', 'parentId']),
+    select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
     where: {
-        isCategory: true,
+        isCategory: true
     },
-    include: JSON.stringify(['children']),
-};
-
+} as any;
 
 const { data } = await useFetchWithBaseUrl('/api/' + relatedResource.value.name, {
     method: 'GET',
-    params: query.value ? JSON.parse(query.value) : defaultQuery,
+    params: defaultQuery,
     transform: (data: PaginatedResponse) => {
         if (!data) {
             return [];
         } else {
-            return data.items.map((item) => ({
-                id: item.id,
-                name: item.name,
-                parentId: item.parentId,
-            }))
+            return data.items;
         }
     }
 })
 
+const tree = ref<TreeNode>();
 
-const tree = ref<{ children: any[] }>({ children: [] });
 if (data.value)  {
-    tree.value = useConvertToTreeData(data.value, true, false, null) as { children: any[] };
+
+    // don't show the descendants of the current node
+    let nodeIdToRemove = undefined;
+
+    if (relatedResource.value.name === props.formStore?.model) {
+        nodeIdToRemove = props.formStore?.getId();
+    }
+
+    tree.value = buildTreeData(data.value, true, undefined, nodeIdToRemove)[0];
 }
 
 // @ts-ignore
 const onExpand = ({ expanded, sourceEvent, expandedItems }) => {
-    // TODO: avoid circular reference
+    // TODO: As the descendants of the current node are not shown, the circular reference is not a problem in component itself
+    // verify in the backend if the current node is a descendant of the selected node instead
 
     const lastExpanded = expanded[expanded.length - 1];
 
-    if (modelValue.value === lastExpanded) {
+    if (lastExpanded === modelValue.value) {
         return;
     }
 
     emit('update:modelValue', lastExpanded);
     props.formStore.setFieldData(props.id, lastExpanded);
 }
+
 </script>

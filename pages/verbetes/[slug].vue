@@ -63,20 +63,20 @@ if (process.client) {
 }
 
 // TODO: Track access to entries
-const { data, pending, error } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify({
-   where: {
-      nameSlug: slug.value,
-   },
-   include: QUERIES.get('Entry')?.include|| undefined,
-}));
+const { data, pending, error } = await useFetchWithBaseUrl(`/api/entry/${slug.value}`, {
+   method: 'GET',
+   params: {
+      include: QUERIES.get('Entry')?.include || undefined,
+   }
+})
 
 
 
-if (!data.value.items[0]) {
+if (!data.value) {
    //TODO: Redirect to 404
 }
 
-const entry = ref(data.value.items[0] as unknown as Entry);
+const entry = ref(data.value);
 const url = ref('');
 const description = ref(entry.value.definition ? entry.value.definition.replace(/<[^>]*>?/gm, '').substring(0, 150) : '');
 

@@ -61,7 +61,7 @@ const images = ref([]);
 const translations = ref<{ name: string, link: string}[]>([]);  
 const references = ref<{ name: string}[]>([]);
 const entrySelected = ref(isSelected(props.entry.id));
-const tree = ref([]);
+const tree = ref<TreeNode[]>([]);
 
 
 if (props.entry.media) {
@@ -97,31 +97,33 @@ const handleTabChange = async (value: number) => {
 
 
 const fetchHierarchy = async () => {
-  const { data: hierarchy } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify({
-    pageSize: -1,
-    select: ['id', 'name', 'parentId'],
-    where: {
-      isCategory: true,
-    },
-    include: {
-      children: {
-        where: {
-          isCategory: false
+  const { data } = await useFetchWithBaseUrl('/api/Entry', {
+    method: 'GET',
+    params: {
+      pageSize: -1,
+      select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
+      where: {
+        isCategory: true,
+      },
+      include: {
+        children: {
+          where: {
+            isCategory: false
+          }
         }
       }
-    }
-  }), {
-    transform: (categories: any) =>
-      categories.data.map((category: Category) => {
-        return {
-          id: category.id,
-          name: category.name,
-          parentId: category.parentId,
-          entries: category.children,
+    },
+    transform: (data: PaginatedResponse) => {
+        if (!data) {
+            return [];
+        } else {
+            return data.items;
         }
-      })
+    }
   });
 
-  tree.value = useConvertToTreeData(hierarchy.value, false, true, null, props.entry.id);
+  if (data.value) {
+    tree.value = buildTreeData(data.value, false, props.entry.id, undefined, 'children');
+  }
 }
 </script>

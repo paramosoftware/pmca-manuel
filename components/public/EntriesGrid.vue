@@ -75,6 +75,9 @@
 </template>
        
 <script setup lang="ts">
+// TODO: Refactor component to use store
+// not working due to new API syntax
+
 const props = defineProps({
     title: {
         type: String,
@@ -99,36 +102,38 @@ const query = computed(() => {
 const entries = ref([])
 const sortOrder = ref('asc');
 const filter = ref('');
-const tree = ref({});
+const tree = ref<TreeNode[]>([]);
 
 if (props.hasViewMode) {
 
-    const { data: hierarchy } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify({
-        pageSize: -1,
-        select: ['id', 'name', 'parentId'],
-        where: {
-            isCategory: true,
-        },
-        include: {
-            children: {
-                where: {
-                    isCategory: false
+    const { data } = await useFetchWithBaseUrl('/api/Entry', {
+        method: 'GET',
+        params: {
+            pageSize: -1,
+            select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
+            where: {
+                isCategory: true,
+            },
+            include: {
+                children: {
+                    where: {
+                        isCategory: false
+                    }
                 }
             }
+        },
+        transform: (data: PaginatedResponse) => {
+            if (!data) {
+                return [];
+            } else {
+                return data.items;
+            }
         }
-    }), {
-        transform: (categories: any) =>
-            categories.data.map((category: Category) => {
-                return {
-                    id: category.id,
-                    name: category.name,
-                    parentId: category.parentId,
-                    entries: category.children
-                }
-            })
     });
 
-    tree.value = useConvertToTreeData(hierarchy.value, false, true, null);
+    if (data.value) {
+        tree.value = buildTreeData(data.value, false, undefined, undefined, 'children');
+    }
 }
 
 if (props.userSelection) {
