@@ -113,7 +113,19 @@ declare global {
     export type ResourceStore = ReturnType<typeof useResourceStore>;
     export type ListStore = ReturnType<typeof useListStore>;
 
-    export type Item = {id: number | string; name: string; label?: string };
+    export type Item = {
+        id: ID; 
+        name: string; 
+        nameSlug?: string;
+        label?: string 
+        labelSlug?: string
+    };
+
+    export type HierarchicalItem = Item & {
+        parentId: ID;
+        parent?: HierarchicalItem;
+        children?: any[]
+    };
 
     export type PaginatedResponse = {
         pageSize: number;
@@ -123,6 +135,16 @@ declare global {
         items: any[];
     }
 
-    export type ID = number | string;
+    export type ID = number | string | null;
+
+    export type TreeNode = {
+        id: ID;
+        parentId: ID;
+        label: string;
+        slug?: string;
+        expanded: boolean;
+        children: TreeNode[];
+        isLeaf?: boolean;
+    }
 
 }
