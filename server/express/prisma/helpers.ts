@@ -256,6 +256,13 @@ async function addConnectOrCreateFields(modelFields: Prisma.DMMF.Field[] | undef
 }
 
 function isFieldMandatory(field: Prisma.DMMF.Field, body: any, parentModel: string) {
+
+    const appGeneratedPosix = ['Normalized', 'Slug'];
+
+    if (appGeneratedPosix.some(posix => field.name.endsWith(posix))) {
+        return false;
+    }
+
     if (field.isRequired && !field.hasDefaultValue && !field.isList && !field.isUpdatedAt) {
 
         if (field.relationFromFields && field.relationFromFields.length > 0) {
