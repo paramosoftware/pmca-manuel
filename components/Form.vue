@@ -51,8 +51,8 @@ const props = defineProps({
 
 const { model, label, genderNoun, labelSlug } = storeToRefs(props.formStore);
 
-const urlList = ROUTES.list + model.value;
-const urlCreate = ROUTES.create  + model.value;
+const urlList = ROUTES.list + labelSlug.value;
+const urlCreate = ROUTES.create  + labelSlug.value;
 const isCreate = !props.formStore.getId();
 const isAuxiliary = props.formStore.getIsAuxiliary();
 const router = useRouter();

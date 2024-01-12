@@ -83,8 +83,6 @@ definePageMeta({
 });
 
 const path = useRoute().params.path as string;
-const createUrl = ROUTES.create + path
-const editUrl = ROUTES.edit + path;
 
 const itemToDelete = ref<Item | null>(null);
 const isModalDialogOpen = ref(false);
@@ -95,7 +93,10 @@ const modalButtonText = 'Excluir';
 const listStore = useListStore();
 await listStore.fetch(path);
 
-const { label, labelPlural, genderNoun, items, page, pageSize, total, search, pending, error } = storeToRefs(listStore);
+const { labelSlug, labelPlural, genderNoun, items, page, pageSize, total, search, pending, error } = storeToRefs(listStore);
+
+const createUrl = ROUTES.create + labelSlug.value;
+const editUrl = ROUTES.edit + labelSlug.value;
 
 const filterDisabled = computed(() => {
     return search.value === '' && total.value === 0 && !pending.value;
