@@ -81,7 +81,7 @@ if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
 
 const useAuxiliaryForm = createFormStore(relatedResource.value.name);
 const auxiliaryFormStore = useAuxiliaryForm();
-auxiliaryFormStore.setIsAuxiliary(true);
+auxiliaryFormStore.setIsAuxiliary(true, props.formStore.model);
 await auxiliaryFormStore.load(relatedResource.value.name);
 
 const emit = defineEmits(['update:modelValue']);
@@ -89,7 +89,7 @@ const isModalOpen = ref(false);
 
 watch(() => isModalOpen.value, async (value) => {
     if (value) {
-        auxiliaryFormStore.setIsAuxiliary(true);
+        auxiliaryFormStore.setIsAuxiliary(true, props.formStore.model);
         await auxiliaryFormStore.load(relatedResource.value.name);
         auxiliaryFormStore.$onAction(({ name, after }) => {
             after(() => {

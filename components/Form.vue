@@ -91,6 +91,12 @@ const components = new Map<string, any>();
 for (const [key, field] of Object.entries(fields)) {
     const componentField = 'Field' + capitalize(field.uiField);
 
+    if  (props.formStore.getIsAuxiliary()) {
+        if (props.formStore.parentModel === field.relatedResource?.name) {
+            continue;
+        }
+    }
+
     if (vueComponentExists(componentField) && resolveComponent(componentField)) {
         components.set(field.name, resolveComponent(componentField));
     } else {
