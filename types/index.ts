@@ -5,18 +5,13 @@ export { };
 declare global {
 
     export type AppGroup = Prisma.AppGroup & {
-        users: AppUser[];
-        resources: AppResource[];
+        users?: AppUser[];
+        resources?: AppResource[];
     };
 
-    export type AppGroupResource = Prisma.AppGroupResource & {
-        group: AppGroup;
-        resource: AppResource;
-    };
-
-    export type AppGroupUser = Prisma.AppGroupUser & {
-        group: AppGroup;
-        user: AppUser;
+    export type AppPermission = Prisma.AppPermission & {
+        group?: AppGroup;
+        resource?: AppResource;
     };
 
     export type AppMedia = Prisma.AppMedia & {

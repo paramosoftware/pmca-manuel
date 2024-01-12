@@ -8,15 +8,10 @@ MODELS.set('AppGroup', {
     labelPlural: 'Grupos',
     genderNoun: 'm'
 });
-MODELS.set('AppGroupResource', {
-    label: 'Recurso do grupo',
-    labelPlural: 'Recursos dos grupos',
-    genderNoun: 'm'
-});
-MODELS.set('AppGroupUser', {
-    label: 'Grupo de usuário',
-    labelPlural: 'Grupos de usuários',
-    genderNoun: 'm'
+MODELS.set('AppPermission', {
+    label: 'Permissão',
+    labelPlural: 'Permissões',
+    genderNoun: 'f'
 });
 MODELS.set('AppMedia', {
     label: 'Mídia',
@@ -63,20 +58,20 @@ MODELS.set('EntryMedia', {
     labelPlural: 'Mídias dos verbetes',
     genderNoun: 'f'
 });
-MODELS.set('Language', {
-    label: 'Idioma',
-    labelPlural: 'Idiomas',
-    genderNoun: 'm'
-});
-MODELS.set('Variation', {
+MODELS.set('EntryVariation', {
     label: 'Variação do verbete',
     labelPlural: 'Variações dos verbetes',
     genderNoun: 'f'
 });
-MODELS.set('Translation', {
+MODELS.set('EntryTranslation', {
     label: 'Tradução do verbete',
     labelPlural: 'Traduções dos verbetes',
     genderNoun: 'f'
+});
+MODELS.set('Language', {
+    label: 'Idioma',
+    labelPlural: 'Idiomas',
+    genderNoun: 'm'
 });
 MODELS.set('Reference', {
     label: 'Referência',
@@ -99,16 +94,16 @@ FIELDS.set('permissions', 'Permissões');
 FIELDS.set('users', 'Usuários');
 FIELDS.set('createdAt', 'Criado em');
 FIELDS.set('updatedAt', 'Atualizado em');
-FIELDS.set('groupId', 'Id do grupos');
-FIELDS.set('resourceId', 'Id do recurso');
+FIELDS.set('groupId', 'Grupo');
+FIELDS.set('resourceId', 'Recurso do sistema');
 FIELDS.set('read', 'Ler');
 FIELDS.set('create', 'Criar');
 FIELDS.set('update', 'Atualizar');
 FIELDS.set('delete', 'Apagar');
 FIELDS.set('batch', 'Alterar em lote');
-FIELDS.set('resource', 'Recurso');
+FIELDS.set('resource', 'Recurso do sistema');
 FIELDS.set('group', 'Grupo');
-FIELDS.set('userId', 'Id do usuário');
+FIELDS.set('userId', 'Usuário');
 FIELDS.set('user', 'Usuário');
 FIELDS.set('originalFilename', 'Nome original');
 FIELDS.set('path', 'Caminho no servidor');
@@ -126,15 +121,15 @@ FIELDS.set('groups', 'Grupos');
 FIELDS.set('fields', 'Campos');
 FIELDS.set('relatedFields', 'Campos relacionados');
 FIELDS.set('placeholder', 'Placeholder');
-FIELDS.set('richText', 'Text rich');
-FIELDS.set('hierarchal', 'É hierárquico?');
+FIELDS.set('isRich', 'É campo rich (html)?');
+FIELDS.set('isHierarchical', 'É hierárquico?');
 FIELDS.set('required', 'É obrigatório?');
 FIELDS.set('hidden', 'É oculto?');
 FIELDS.set('disabled', 'É desabilitado?');
 FIELDS.set('defaultValue', 'Valor padrão');
 FIELDS.set('defaultOptions', 'Opções padrão (separadas por vírgula)');
 FIELDS.set('relatedResource', 'Recurso relacionado');
-FIELDS.set('relatedResourceId', 'Id do recurso relacionado');
+FIELDS.set('relatedResourceId', 'Recurso relacionado');
 FIELDS.set('allowCreate', 'Permitir criar?');
 FIELDS.set('allowMultiple', 'Permitir múltiplos?');
 FIELDS.set('max', 'Tamanho máximo (em caracteres para string e em itens para array)');
@@ -151,24 +146,31 @@ FIELDS.set('groups', 'Grupos');
 FIELDS.set('sessions', 'Sessões');
 FIELDS.set('refreshToken', 'Token de atualização');
 FIELDS.set('accessCount', 'Contagem de acessos');
-FIELDS.set('isCategory', 'É categoria');
+FIELDS.set('isCategory', 'É categoria?');
 FIELDS.set('notes', 'Notas');
-FIELDS.set('parent', 'Pai');
-FIELDS.set('parentId', 'Id do pai');
+FIELDS.set('parentId', 'Categoria');
 FIELDS.set('changes', 'Alterações');
 FIELDS.set('translations', 'Traduções');
 FIELDS.set('variations', 'Variações');
 FIELDS.set('references', 'Referências');
 FIELDS.set('entryChanges', 'Alterações');
 FIELDS.set('media', 'Mídias');
+FIELDS.set('entries', 'Verbetes relacionados');
 FIELDS.set('relatedEntries', 'Verbetes relacionados');
-FIELDS.set('entries', 'Verbetes');
-FIELDS.set('entry', 'Verbetes');
+FIELDS.set('entry', 'Verbete');
 FIELDS.set('language', 'Idioma');
-FIELDS.set('languageId', 'Id do idioma');
+FIELDS.set('languageId', 'Idioma');
 FIELDS.set('languageCode', 'Código do idioma');
 FIELDS.set('content', 'Conteúdo');
 FIELDS.set('menuName', 'Nome no menu');
-
+FIELDS.set('entryId', 'Verbete');
+FIELDS.set('position', 'Posição');
+FIELDS.set('oppositeField', 'Campo oposto (para relacionamentos bidirecionais)');
+FIELDS.set('oppositeFieldId', 'Campo oposto (para relacionamentos bidirecionais)');
+FIELDS.set('relatedOppositeFields', 'Campos opostos relacionados');
+FIELDS.set('isRelation', 'É uma tabela de relacionamento?');
+FIELDS.set('parent', 'Objeto superior');
+FIELDS.set('children', 'Objetos subordinados');
+FIELDS.set('type', 'Tipo');
 
 export { MODELS, FIELDS }
