@@ -7,9 +7,9 @@
         <USelect
             :id="id"
             :model-value="modelValue"
-            :disabled="disabled"
+            :disabled="disabled || loading || list.length === 0"
             :hidden="hidden"
-            :placeholder="placeholder"
+            :placeholder="list.length === 0 ? 'Sem opções cadastradas' : placeholder"
             :required="required"
             :loading="loading"
             :options="list"
