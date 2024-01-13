@@ -257,9 +257,9 @@ async function addConnectOrCreateFields(modelFields: Prisma.DMMF.Field[] | undef
 
 function isFieldMandatory(field: Prisma.DMMF.Field, body: any, parentModel: string) {
 
-    const appGeneratedPosix = ['Normalized', 'Slug'];
+    const appGeneratedPostfix = ['Normalized', 'Slug'];
 
-    if (appGeneratedPosix.some(posix => field.name.endsWith(posix))) {
+    if (appGeneratedPostfix.some(postfix => field.name.endsWith(postfix))) {
         return false;
     }
 
