@@ -11,6 +11,7 @@ export const createFormStore = (name: string) => {
         const fieldsData = ref<Record<string, any>>({});
         const fieldsConfig = ref<Record<string, FormField>>({});
         const isAuxiliary = ref(false);
+        const parentModel = ref('');
         const resourceStore = useResourceStore();
         const pending = ref(false);
         const error = ref('');
@@ -61,7 +62,7 @@ export const createFormStore = (name: string) => {
 
             const { data, pending, error } = await useFetchWithBaseUrl(`/api/${resourceStore.model}/${id.value}`, {
                 method: 'GET',
-                params: { include : QUERIES.get(resourceStore.model)?.include }
+                params: { include: QUERIES.get(resourceStore.model)?.include  ?? '*' }
             }) as { data: Ref<Record<string, any>>, pending: Ref<boolean>, error: Ref<any> };
 
             pending.value = pending.value;
@@ -136,8 +137,9 @@ export const createFormStore = (name: string) => {
             return isAuxiliary.value;
         }
 
-        function setIsAuxiliary(auxiliary: boolean) {
+        function setIsAuxiliary(auxiliary: boolean, parent: string) {
             isAuxiliary.value = auxiliary;
+            parentModel.value = parent;
         }
 
         function resetFieldData(field: string) {
@@ -344,6 +346,7 @@ export const createFormStore = (name: string) => {
             labelSlug,
             genderNoun,
             model,
+            parentModel,
             pending,
             error,
             load,
