@@ -52,11 +52,11 @@ declare global {
     };
 
     export type Entry = Prisma.Entry & {
-        category?: Category;
+        parent?: Category;
         translations?: Translation[];
         variations?: Variation[];
         references?: Reference[];
-        entryChanges?: EntryChanges[];
+        changes?: EntryChanges[];
         media?: AppMedia[];
         relatedEntries?: Entry[];
         entries?: Entry[];
