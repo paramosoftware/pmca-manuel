@@ -30,6 +30,7 @@
                 :placeholder="!canAddMore ? 'Número máximo de itens adicionados' : placeholder"
                 :show-icon="showIcon" 
                 :loading="searching"
+                :size="size"
             />
 
             <span ref="autocompleteRef">
@@ -118,6 +119,10 @@ const props = defineProps({
     showSelected: {
         type: Boolean,
         default: true
+    },
+    size: {
+        type: String,
+        default: 'md'
     },
     formStore: {
         type: Object as PropType<FormStore>,

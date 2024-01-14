@@ -17,7 +17,7 @@
             @blur="iconColor = 'text-gray-400'"
             color="gray" 
             variant="outline"
-            size="md"
+            size="size"
         >
 
         <template #trailing v-if="showIcon && !loading">
@@ -78,6 +78,10 @@ const props = defineProps({
     loading: {
         type: Boolean,
         default: false
+    },
+    size: {
+        type: String,
+        default: 'md'
     },
     formStore: {
         type: Object as PropType<FormStore>,
