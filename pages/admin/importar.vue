@@ -40,9 +40,9 @@
 
                     <!-- TODO: add check box to confirm overwrite -->
 
-                    <FieldDropzone url="/api/import" 
-                        :maxFiles=1
-                        acceptedFiles="application/json, application/xml, application/zip, text/csv" 
+                    <FieldDropzone url="/api/entry/import" 
+                        :max-files=1
+                        accepted-files="application/json, application/xml, application/zip, text/csv, text/xml" 
                         @start='importing=true' 
                         @close='completed=true; importing=false'
                     />
