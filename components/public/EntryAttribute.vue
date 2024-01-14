@@ -35,7 +35,7 @@ defineProps({
         required: true
     },
     content: {
-        type: [String, Array, Object],
+        type: undefined,
     },
     isHtml: {
         type: Boolean,

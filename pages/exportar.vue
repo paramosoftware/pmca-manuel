@@ -1,5 +1,4 @@
 <template>
-    <NuxtLayout name="public">
         <div class="container mx-auto mb-auto p-2">
             <div class="flex flex-col justify-left">
 
@@ -41,12 +40,11 @@
 
             </div>
         </div>
-    </NuxtLayout>
 </template>
   
 <script setup lang="ts">
 definePageMeta({
-    layout: false,
+    layout: 'public',
 });
 
 useHead({

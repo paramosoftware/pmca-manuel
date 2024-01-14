@@ -1,5 +1,5 @@
 <template>
-    <Splide :has-track="false" :options="options" class="py-5 sm:py-0 px-0 md:px-14">
+    <Splide :has-track="false" :options="options" class="py-5 sm:py-0 px-0 md:px-14" v-if="entries && entries.length > 0">
         <UITitle id="carousel-heading" class="my-5">
             <span class="text-semibold text-3xl">
                 Verbetes selecionados
@@ -29,32 +29,18 @@ import { Splide, SplideSlide, SplideTrack } from '@splidejs/vue-splide';
 import '@splidejs/vue-splide/css';
 
 
-const entries = ref([])
-
-const fetchEntries = async () => {
-    const { data } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify({
-        include: {
-            media: {
-                orderBy: ['position'],
-                include: ['media'],
-            }
-        },
-        where: {
-            isCategory: false
-        },
-    }));
-    entries.value = data.value.data;
-}
-
-await fetchEntries();
+const entryStore = useEntryStore();
+await entryStore.load();
+const { entries } = storeToRefs(entryStore);
 
 
 const options = {
-    type: 'loop',
+    type: 'slide',
     perPage: 4,
     perMove: 1,
     gap: '1rem',
     pagination: false,
+    rewind: true,
     breakpoints: {
         640: {
             perPage: 1,

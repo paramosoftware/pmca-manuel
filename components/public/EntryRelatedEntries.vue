@@ -28,9 +28,21 @@ import '@splidejs/vue-splide/css';
 const props = defineProps({
     entries: {
         type: Array as PropType<Entry[]>,
-        required: true
+        required: true,
+        default: []
+    },
+    oppositeSide: {
+        type: Array as PropType<Entry[]>,
+        default: []
     }
 })
+
+
+const entries = computed(() => {
+     return props.entries.concat(props.oppositeSide)
+})
+
+
 
 const options = ref({
     perPage: 6,

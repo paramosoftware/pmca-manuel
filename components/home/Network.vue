@@ -5,37 +5,26 @@
 <script setup>
 import { Network } from "vis-network/standalone";
 
-const entries = ref([])
+// TODO: consider using a D3 force graph instead of vis-network
+
 const router = useRouter()
 
-const fetchEntries = async () => {
-  const { data } = await useFetchWithBaseUrl('/api/entry?query=' + JSON.stringify({
-    pageSize: -1,
-    include: {
-      entries: true,
-      media: {
-        orderBy: ['position'],
-        include: ['media']
-      }
-    },
-    where: {
-      isCategory: false
-    },
-  }));
+const entryStore = useEntryStore();
+const { entriesNetwork: entries } = storeToRefs(entryStore);
 
-  entries.value = data.value.items;
+if (!entries.value || entries.value.length === 0) {
+  await entryStore.fetchNetwork();
 }
 
-await fetchEntries();
 
 const nodes = entries.value.map((entry) => ({
   id: entry.id,
-  value: entry.entries.length,
+  value: 1,
   label: entry.name,
 }));
 
 const edges = entries.value.flatMap((entry) =>
-  entry.entries.map((child) => ({
+  entry.entries?.map((child) => ({
     from: entry.id,
     to: child.id,
   }))
@@ -48,7 +37,10 @@ const data = {
 
 
 const options = {
-    autoResize: true,
+    autoResize: false,
+    layout: {
+      improvedLayout: false
+    },
     height: "100%",
     width: "100%",
     interaction: {

@@ -1,99 +1,125 @@
 <template>
-<NuxtLayout name="public">
    <div class="px-2 mb-auto">
-      <PublicEntry :entry="entry" />
-   </div>
-</NuxtLayout>
+      <article class="container">
+         <div class="w-full">
+            <div class="sm:flex sm:justify-between sm:items-center">
+               <UIPageTitle>
+                  {{ entry?.name }}
+                  <client-only>
+                     <Icon class="text-pmca-accent cursor-pointer"
+                        :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'"
+                        @click="entrySelected = toggle($event, id)" />
+                  </client-only>
+               </UIPageTitle>
+               <PublicEntryActions :entryId="entry!.id" :title="entry!.name" />
+            </div>
 
- </template>
+            <UITab :tabs="['Verbete', 'Hierárquica', 'Histórico de alterações']" @change="onTabChange">
+               <template #tabPanel-1>
+                  <div class="flex flex-col">
+
+                     <PublicEntryMedia :images=images v-if="images.length > 0" />
+
+                     <PublicEntryAttribute title="Traduções" :content="translations" />
+
+                     <PublicEntryAttribute title="Variações" :content="entry?.variations" />
+
+                     <PublicEntryAttribute title="Definição" :content="entry?.definition" :is-html=true />
+
+                     <PublicEntryAttribute title="Notas" :content="entry?.notes" :is-html=true />
+
+                     <PublicEntryAttribute title="Referências" :content="entry?.references" :is-html=true :is-one-line="true" />
+
+                     <PublicEntryRelatedEntries title="Verbetes relacionados" :entries="entry?.relatedEntries" :opposite-side="entry?.entries" />
+                  </div>
+               </template>
+               <template #tabPanel-2>
+                  <div class="flex flex-col">
+                     <UITreeView :tree="categoriesTree" class="p-3 overflow-y-auto text-pmca-primary" />
+                  </div>
+               </template>
+               <template #tabPanel-3>
+                  <div class="flex flex-col">
+                     <PublicEntryChanges :entry-changes="entry?.changes" />
+                  </div>
+               </template>
+            </UITab>
+         </div>
+      </article>
+   </div>
+</template>
  
 <script setup lang="ts">
-import QUERIES from '~/config/queries';
-
 definePageMeta({
-   layout: false,
+   layout: 'public',
 });
- 
-const router = useRouter();
-const config = useRuntimeConfig();
-const countAccess = ref(false);
-const slug = ref(router.currentRoute.value.params.slug);
-
-
-// TODO: Move to composables
-if (process.client) {
-
-   const entryAccessStorage = localStorage.getItem('entryAccess') || '[]';
-   const entryAccess = JSON.parse(entryAccessStorage);
-
-   const access = {
-      slug: slug.value,
-      date: new Date().toISOString()
-   };
-
-   const found = entryAccess.find((item: { slug: string | string[]; date: string | number | Date; }) => {
-      if (item.slug === slug.value) {
-         const date = new Date(item.date);
-         const now = new Date();
-         const diff = Math.abs(now.getTime() - date.getTime());
-         const minutes = Math.floor((diff / 1000) / 60);
-
-         item.date = new Date().toISOString();
-
-         if (minutes > 10) {
-            countAccess.value = true;
-         }
-
-         return true;
-      }
-
-      return false;
-   });
-
-   if (!found) {
-      entryAccess.push(access);
-      countAccess.value = true;
-   }
-
-   if (entryAccess.length > 10) {
-      entryAccess.shift();
-   }
-
-   localStorage.setItem('entryAccess', JSON.stringify(entryAccess));
-}
 
 // TODO: Track access to entries
-const { data, pending, error } = await useFetchWithBaseUrl(`/api/entry/${slug.value}`, {
-   method: 'GET',
-   params: {
-      include: QUERIES.get('Entry')?.include || undefined,
-   }
-})
 
+const router = useRouter();
+const config = useRuntimeConfig();
+const slug = ref(router.currentRoute.value.params.slug.toString());
 
+const { isSelected, toggle } = useEntrySelection();
+const entryStore = useEntryStore();
+await entryStore.load(slug.value);
 
-if (!data.value) {
-   //TODO: Redirect to 404
+const { entry, pending, sort, error, categoriesTree } = storeToRefs(entryStore);
+
+if (!error.value && !entry.value) {
+   // TODO: 404
 }
 
-const entry = ref(data.value);
-const url = ref('');
-const description = ref(entry.value.definition ? entry.value.definition.replace(/<[^>]*>?/gm, '').substring(0, 150) : '');
+const id = ref(entry.value?.id ?? 0);
+const title = ref(entry.value?.name);
+const description = ref(entry.value?.definition ? entry.value.definition.replace(/<[^>]*>?/gm, '').substring(0, 150) : '');
+const entrySelected = ref(isSelected(id.value));
 
-if (entry.value.media && entry.value.media.length > 0) {
+const images = ref<string[]>([]);
+const translations = ref<{ name: string, link: string }[]>([]);
+
+
+if (entry.value?.media) {
+   entry.value.media.forEach((media: EntryMedia) => {
+      images.value.push(media.media.name)
+   })
+}
+
+if (entry.value?.translations) {
+   entry.value?.translations.forEach((translation: Translation) => {
+      translations.value.push({
+         name: translation.name + ' (' + (translation.language.languageCode ?? translation.language.name) + ')',
+         link: ''
+      })
+   })
+}
+
+const url = ref('');
+
+if (entry.value?.media && entry.value.media.length > 0) {
    const image = entry.value.media[0].media?.name;
    if (process.client) {
-      url.value  =  window.location.protocol + '//' + window.location.host + '/media/' + image;
+      url.value = window.location.protocol + '//' + window.location.host + '/media/' + image;
    }
 }
 
-useHead({
-    title: entry.value.name + ' | ' + config.public.appName,
-    meta: [
-         { hid: 'description', name: 'description', content: description.value },
-         { hid: 'og:title', property: 'og:title', content: entry.value.name },
-         { hid: 'og:description', property: 'og:description', content: description.value },
-         { hid: 'og:image', property: 'og:image', content: url.value,}
-    ],
+const onTabChange = async (value: number) => {
+   if (value === 2 && categoriesTree.value.length === 0) {
+      await entryStore.fetchCategoriesTree();
+   }
+}
+
+onBeforeMount(() => {
+   entrySelected.value = isSelected(id.value);
 });
- </script>
+
+useHead({
+   title: title.value + ' | ' + config.public.appName,
+   meta: [
+      { hid: 'description', name: 'description', content: description.value },
+      { hid: 'og:title', property: 'og:title', content: title.value },
+      { hid: 'og:description', property: 'og:description', content: description.value },
+      { hid: 'og:image', property: 'og:image', content: url.value }
+   ]
+});
+</script>

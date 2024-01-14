@@ -1,5 +1,6 @@
 // TODO: Consider moving to the database
-const QUERIES = new Map<string, { include?: any, where?: any, orderBy?: any }>();
+// TODO: Create more specific queries for each need
+const QUERIES = new Map<string, { pageSize?: number, select?: any, include?: any, where?: any, orderBy?: any }>();
 
 QUERIES.set('Entry', {
     include: {
@@ -11,7 +12,16 @@ QUERIES.set('Entry', {
             },
         },
         variations: true,
-        entries: true,
+        entries: {
+            include: {
+                media: {
+                    include: {
+                        media: true
+                    },
+                    orderBy: ['position']
+                },
+            }
+        },
         changes: {
             orderBy: {
                 createdAt: 'desc'
@@ -44,6 +54,18 @@ QUERIES.set('Entry', {
         isCategory: false
     }
 });
+
+
+QUERIES.set('network', {
+    pageSize: -1,
+    select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
+    include: JSON.stringify(['relatedEntries', 'entries']),
+    where: {
+        isCategory: false
+    }
+});
+
+
 
 QUERIES.set('Category', {
     include: {

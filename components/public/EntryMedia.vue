@@ -1,9 +1,9 @@
 <template>
-    <div class="container">
+    <div class="container bg-gray-100">
         <Viewer :images="images" @inited=inited class="viewer">
             <Splide :options="options">
                 <SplideSlide v-for="image in images" :key="image" class="items-center flex">
-                    <UIImg :src="image" class="flex-none object-contain" />
+                    <UIImg :src="image" class="flex-none cursor-pointer object-cover w-full h-full mx-2" />
                 </SplideSlide>
             </Splide>
         </Viewer>
@@ -18,7 +18,7 @@ import { Splide, SplideSlide } from '@splidejs/vue-splide';
 
 const props = defineProps({
     images: {
-        type: Array,
+        type: Array as PropType<string[]>,
         required: true,
         default: () => []
     }
@@ -26,13 +26,13 @@ const props = defineProps({
 
 const viewer = ref(null)
 
-const inited = (viewerInstance) => {
+const inited = (viewerInstance: any) => {
     viewer.value = viewerInstance
 }
 
 const options = {
     type: 'slide',
-    perPage: 5,
+    perPage: 4,
     perMove: 1,
     gap: '1rem',
     pagination: false,

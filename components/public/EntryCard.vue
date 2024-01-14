@@ -1,7 +1,7 @@
 <template>
     <NuxtLink :to="link">
         <div class="max-w-md w-full lg:max-w-full lg:flex shadow-sm hover:shadow-md">
-            <div class="w-full border border-gray-200 rounded-sm flex flex-col justify-between">
+            <div class="w-full border border-gray-200 rounded-md flex flex-col justify-between">
 
                 <UIImg :src="thumbnail" :alt="entry.name" class="object-cover w-full rounded-sm" :class="height" />
                 <div :class="titlePadding">
@@ -14,10 +14,11 @@
                         </UITitle>  
                         <div class="flex flex-row items-center">
                             <client-only>
-                                <Icon
+                                <Icon 
                                     class="text-pmca-accent text-2xl cursor-pointer" 
                                     :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'" 
-                                    @click="entrySelected = handleEntrySelection($event, entry.id)" />
+                                    @click="entrySelected = toggle($event, entry.id)" 
+                                />
                             </client-only>
                         </div>
                     </div>
@@ -27,10 +28,7 @@
     </NuxtLink>
 </template>
     
-    
 <script setup lang="ts">
-
-
 const props = defineProps({
     entry: {
         type: Object,
@@ -50,7 +48,7 @@ const props = defineProps({
     }
 })
 
-const { isSelected, handleEntrySelection } = useEntrySelection();
+const { isSelected, toggle } = useEntrySelection();
 const entrySelected = ref(isSelected(props.entry.id));
 
 const link = computed(() => {
@@ -58,7 +56,7 @@ const link = computed(() => {
 })
 
 const thumbnail = computed(() => {
-    if (props.entry.media.length === 0) {
+    if (props.entry.media?.length === 0) {
         return ''
     }
 
@@ -68,15 +66,9 @@ const thumbnail = computed(() => {
 })
 
 
-if (process.client) {
-    if (localStorage.getItem('selectedEntries') !== null) {
-        const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!)
-        if (selectedEntries.includes(props.entry.id)) {
-            entrySelected.value = true;
-        }
-    }
-}
-
+onBeforeMount(() => {
+    entrySelected.value = isSelected(props.entry.id)
+})
 </script>
     
     

@@ -1,39 +1,35 @@
 <template>
-    <NuxtLayout name="public">
-        <article class="container mx-auto mb-auto p-2">
-            <div class="flex flex-col justify-left">
-                <UIPageTitle>
-                    {{ page.name }}
-                </UIPageTitle>
-                <p class="text-sm text-end text-gray-500 mb-5">
-                   Atualizado em {{ new Date(page.updatedAt).toLocaleDateString('pt-BR') }} às {{ new Date(page.updatedAt).toLocaleTimeString('pt-BR') }}
-                </p>
+    <article class="container mx-auto mb-auto p-2">
+        <div class="flex flex-col justify-left">
+            <UIPageTitle>
+                {{ page.name }}
+            </UIPageTitle>
+            <p class="text-sm text-end text-gray-500 mb-5">
+                Atualizado em {{ new Date(page.updatedAt).toLocaleDateString('pt-BR') }} às {{ new Date(page.updatedAt).toLocaleTimeString('pt-BR') }}
+            </p>
 
-               <section v-html="page.content"></section>
-            </div>
-        </article>
-    </NuxtLayout>
+            <section v-html="page.content"></section>
+        </div>
+    </article>
 </template>
      
 <script setup lang="ts">
 definePageMeta({
-    layout: false,
+    layout: 'public',
 });
 
-const router = useRouter();
-const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage?query=' + JSON.stringify({
-    where: {
-        nameSlug: router.currentRoute.value.params.slug
-    }
-}));
+const router = useRoute();
+const slug = ref(router.params.slug.toString());
+
+const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage/' + slug.value);
 
 
-if (error.value || data.value.items.length === 0) {
-   // TODO: 404
+if (error.value || !data.value) {
+    // TODO: redirect to 404
 }
 
 
-const page = ref(data.value.data[0] as unknown as WebPage);
+const page = ref(data.value as WebPage);
 
 const config = useRuntimeConfig();
 

@@ -11,7 +11,7 @@
             </ul>
         </div>
         <div class="hidden md:flex col-span-1 text-end mr-3 md:mr-0"> 
-            <NuxtLink to="/verbetes-selecionados">
+            <NuxtLink to="/verbetes/selecionados">
                 <Icon class="text-pmca-accent text-2xl cursor-pointer" name="ph:bookmarks-simple-fill" />
             </NuxtLink>
         </div>
@@ -51,7 +51,7 @@ const links = ref([
 
 const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage');
 
-webPages.value = data.value.items;
+webPages.value = data.value.items ?? [];
 
 for (const webPage of webPages.value) {
     links.value.push({
