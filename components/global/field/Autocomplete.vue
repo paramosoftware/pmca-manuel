@@ -6,7 +6,7 @@
                 {{ label }}
             </UILabel>
 
-            <div class="flex flex-wrap mb-2" v-if="selectedItems.length > 0">
+            <div class="flex flex-wrap mb-2" v-if="selectedItems.length > 0 && showSelected">
                 <div v-for="item in selectedItems" :key="item.id"
                     class="flex justify-between items-center px-2 border border-pmca-accent p-1 my-1 mr-2 rounded-md shadow-md">
 
@@ -28,12 +28,12 @@
                 v-model="search" 
                 :disabled="!canAddMore || disabled"
                 :placeholder="!canAddMore ? 'Número máximo de itens adicionados' : placeholder"
-                :show-icon="true" 
+                :show-icon="showIcon" 
                 :loading="searching"
             />
 
             <span ref="autocompleteRef">
-                <ul v-if="search !== ''" class="w-full bg-white border border-x-gray-300space-y-1 absolute z-10 mt-2 rounded-md shadow-sm">
+                <ul v-if="showPopper" class="w-full bg-white border border-x-gray-300 space-y-1 absolute z-10 mt-2 rounded-md shadow-sm">
 
                     <li v-for="item in results" :key="item.name" @click="selectItem(item)"
                         class="px-2 py-1 cursor-pointer rounded-md hover:bg-gray-100">
@@ -111,6 +111,14 @@ const props = defineProps({
         type: Object as PropType<{ name: string }>,
         default: null
     },
+    showIcon: {
+        type: Boolean,
+        default: true
+    },
+    showSelected: {
+        type: Boolean,
+        default: true
+    },
     formStore: {
         type: Object as PropType<FormStore>,
     }
@@ -146,7 +154,7 @@ if (oppositeField && oppositeField.value) {
     oppositeFieldData = computed(() => props.formStore?.getFieldData(oppositeField.value.name));
 }
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'select', 'input']);
 
 const autocompleteRef = ref<HTMLElement | null>(null);
 const search = ref('');
@@ -154,9 +162,10 @@ const results = ref<{ id: number, name: string, label?: string }[]>([]);
 let timeoutId: NodeJS.Timeout = setTimeout(() => { }, 0);
 const searching = ref(false);
 const toast = useToast();
+const showPopper = ref(false);
 
 useOnClickOutside(autocompleteRef, () => {
-    search.value = ''; // TODO: refactor
+    showPopper.value = false;
     results.value = [];
     searching.value = false;
 });
@@ -201,7 +210,7 @@ const canAddMore = computed(() => {
 });
 
 const canCreate = computed(() => {
-    return allowCreate && search.value !== '' && results.value.length === 0;
+    return allowCreate.value && search.value !== '' && results.value.length === 0;
 });
 
 function selectItem(item: Item) {
@@ -220,6 +229,8 @@ function selectItem(item: Item) {
     } else {
         emit('update:modelValue', item);
     }
+
+    emit('select', item);
 
     if (props.formStore) {
         props.formStore.addFieldData(props.id, item);
@@ -244,7 +255,13 @@ function removeItem(item: Item) {
 }
 
 async function searchItems() {
+    emit('input', search.value);
+
+    showPopper.value = true;
+
     if (search.value === '') {
+        showPopper.value = false;
+        searching.value = false;
         results.value = [];
         return;
     }
