@@ -16,6 +16,7 @@ import  getMediaPath  from '~/utils/getMediaPath';
 import  { useCamelCase  }  from '~/utils/useCamelCase';
 import { stringify } from 'csv-stringify';
 import ExcelJS from 'exceljs';
+import type { PaginatedQuery, Where } from './interfaces';
 
 // TODO: Merge this with dataFormatConverters.ts, 
 // remove the repeated code e create separate functions for each format
@@ -33,8 +34,13 @@ const xmlOptions = {
 };
 
 const exportedFields = ['id', 'name', 'definition', 'isCategory', 'parent', 'relatedEntries', 'entries', 'references', 'variations', 'translations'];
+let where: Where | undefined;
 
-export async function exportAll(format: DataTransferFormat, addMedia: boolean = false) {
+export async function exportData(format: DataTransferFormat, addMedia: boolean = false, query?: Partial<PaginatedQuery>) {
+
+    if (query) {
+        where = query.where;
+    }
 
     const ext = format;
 
@@ -120,7 +126,7 @@ async function processItems(filePath: string, format: DataTransferFormat) {
     }
 
     for (let i = 0; i < totalPages; i++) {
-        const data = await readMany(model, { pageSize, page: i + 1, include });
+        const data = await readMany(model, { pageSize, page: i + 1, include, where });
 
         if (!data) {
             continue;
@@ -758,11 +764,17 @@ async function exportToXlsx(filePath: string) {
     }
 
     worksheet.columns = Array.from(labelMap.keys()).map((key) => ({ header: labelMap.get(key), key: camelCaseMap.get(key) }));
+    worksheet.columns = worksheet.columns.filter((column, index, self) =>
+        index === self.findIndex((c) => (
+            c.header === column.header
+        ))
+    );
+
 
     let totalPages = 1;
 
     for (let i = 0; i < totalPages; i++) {
-        const data = await readMany(model, { pageSize, page: i + 1, include });
+        const data = await readMany(model, { pageSize, page: i + 1, include, where });
 
         if (!data) {
             continue;
@@ -820,12 +832,17 @@ async function exportToCsv(filePath: string) {
         }
     }
 
-    const columns = Array.from(labelMap.keys()).map((key) => ({ header: labelMap.get(key), key: camelCaseMap.get(key) })) as { header: string; key: string }[];
+    let columns = Array.from(labelMap.keys()).map((key) => ({ header: labelMap.get(key), key: camelCaseMap.get(key) })) as { header: string; key: string }[];
+    columns = columns.filter((column, index, self) =>
+        index === self.findIndex((c) => (
+            c.header === column.header
+        ))
+    );
 
     let totalPages = 1;
 
     for (let i = 0; i < totalPages; i++) {
-        const data = await readMany(model, { pageSize, page: i + 1, include });
+        const data = await readMany(model, { pageSize, page: i + 1, include, where});
 
         if (!data) {
             continue;

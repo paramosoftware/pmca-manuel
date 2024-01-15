@@ -4,15 +4,20 @@
             <UIPageTitle>
                 {{ title }}
             </UIPageTitle>
-            <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0" v-if="hasTree">
+            <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0" >
 
-                <button @click="mode = 'alfa'">
-                    <Icon name="ph:cards" class="mr-3 cursor-pointer" :class="mode === 'alfa' ? 'text-pmca-accent' : ''" />
-                </button>
+                <span v-if="hasTree">
+                    <button @click="mode = 'alfa'">
+                        <Icon name="ph:cards" class="mr-3 cursor-pointer" :class="mode === 'alfa' ? 'text-pmca-accent' : ''" />
+                    </button>
 
-                <button @click="mode = 'hier'">
-                    <Icon name="ph:tree-structure" class="cursor-pointer"  :class="mode === 'hier' ? 'text-pmca-accent' : ''" />
-                </button>
+                    <button @click="mode = 'hier'">
+                        <Icon name="ph:tree-structure" class="cursor-pointer"  :class="mode === 'hier' ? 'text-pmca-accent' : ''" />
+                    </button>
+                </span>
+
+
+                <PublicExportDropdown v-if="userSelection" class="ml-3" />
 
             </div>
         </div>

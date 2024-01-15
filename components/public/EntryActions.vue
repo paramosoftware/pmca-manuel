@@ -1,21 +1,14 @@
 <template>
     <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
         <a v-for="item in socialMedia" :key="item.name" class="mr-2 cursor-pointer">
-
-            <UDropdown v-if="item.options" :items="item.options" :popper="{ placement: 'bottom-end' }" 
-                :ui="{ rounded: 'rounded-sm' }" class="align-middle">
-                <Icon :name="item.icon" />
-            </UDropdown>
-
-            <Icon v-else :name="item.icon" @click="share(item.name)" />
+            <Icon :name="item.icon" @click="share(item.name)" />
         </a>
+        <PublicExportDropdown />
     </div>
 </template>
 
 
 <script setup lang="ts">
-
-
 const props = defineProps({
     title: {
         type: String,
@@ -51,33 +44,8 @@ const socialMedia = [
         name: 'WhatsApp',
         icon: 'ph:whatsapp-logo',
         shareUrl: 'https://api.whatsapp.com/send?text={title} {url}',
-    },
-    {
-        name: 'Exportar',
-        icon: 'ph:download',
-        options: [
-            [{
-                label: 'JSON',
-                click: () => {
-                    exportData('Json')
-                }
-            }],
-            [{
-                label: 'CSV',
-                click: () => {
-                    exportData('CSV')
-                }
-            }],
-            [{
-                label: 'XLSX',
-                click: () => {
-                    exportData('XLSX')
-                }
-            }]
-        ]
     }
 ]
-
 
 const share = (name: string) => {
 
@@ -103,16 +71,4 @@ const share = (name: string) => {
         }
     }
 }
-
-function exportData(name: string) {
- 
-    var anchor = document.createElement('a');
-    anchor.href = window.location.origin + '/api/entry/' + props.entryId + '?format=' + name.toLowerCase();
-    anchor.target = '_blank';
-    anchor.click();
-    return;
-}
-
-
-
 </script>

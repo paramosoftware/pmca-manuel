@@ -32,7 +32,7 @@
                     </div>
 
                     <div class="mb-3 text-right md:text-left">
-                        <UIButton type="button" @click="exportData" :disabled="disableExport">
+                        <UIButton type="button" @click="onExport" :disabled="disableExport">
                             Exportar
                         </UIButton>
                     </div>
@@ -47,55 +47,16 @@ definePageMeta({
     layout: 'public',
 });
 
-useHead({
-    title: 'Exportar | ' + useRuntimeConfig().public.appName,
-});
-
-const disableExport = ref(false);
-
-const toast = useToast();
-
-async function exportData() {
-
-    disableExport.value = true;
-
-    const exportToast = toast.add({ 
-        title: 'Exportando...',
-        icon: 'i-heroicons-archive-box-arrow-down',  // TODO: change to ph:download
-        ui: { rounded: 'rounded-sm', padding: 'p-5', icon: { color: 'text-pmca-accent' } },
-        closeButton: {
-            disabled: true
-        },
-        timeout: 0
-    })
-
-    let filename = 'export-' +  Date.now() + '.' + addMedia.value ? 'zip' : format.value;
-
-    const response = await fetch('/api/entry/export?format=' + format.value + '&addMedia=' + addMedia.value);
-
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const header = response.headers.get('Content-Disposition');
-    const parts = header?.split(';');
-    if (parts && parts.length > 1) {
-        filename = parts[1].split('=')[1].replaceAll("\"", "");
-    }
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-
-    toast.remove(exportToast.id);
-
-    disableExport.value = false;
-}
-
-
-const format = ref('json');
+const exportData = useExportData();
+const format = ref<DataTransferFormat>('json');
 const addMedia = ref(false);
+
+const disableExport = computed(() => exportData.loading.value);
+
+
+async function onExport() {
+    await exportData.download(format.value, addMedia.value);
+}
 
 const options = ref([
     { value: 'xlsx', name: 'XLSX (Excel)' },
@@ -104,5 +65,8 @@ const options = ref([
     { value: 'xml', name: 'SKOS (Simple Knowledge Organization System)' }
 ]);
 
+useHead({
+    title: 'Exportar | ' + useRuntimeConfig().public.appName,
+});
 </script>
   

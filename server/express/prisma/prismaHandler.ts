@@ -9,16 +9,15 @@ import { importUploadFile, uploadMedia } from './media';
 import { readOne, readMany } from './read';
 import { updateMany, updateOne } from './update';
 import { convertToFormatAndSend } from './dataFormatConverters';
-import { exportAll, importAll } from './export';
+import { exportData, importAll } from './export';
 import fs from 'fs';
-import { UnauthorizedError } from '../error';
 
 const prismaHandler =  async (req: express.Request, res: express.Response, next: express.NextFunction) => {
 
     /* Routes that need authentication:
     GET /api/:model - Get many
     GET /api/:model/:id - Get one
-    GET /api/:model/export - Export all
+    GET /api/:model/export - Export with query
 
     PUT /api/:model - Update all
     PUT /api/:model/:id - Update one
@@ -39,6 +38,7 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
     const body = req.body;
     const queryParams = req.query;
     const format = req.query.format ? req.query.format : body.format ? body.format : undefined;
+    const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
 
     // @ts-ignore
     if (!model || prisma[model] === undefined) {
@@ -57,14 +57,11 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
 
         switch (method) {
             case 'GET':
-                if (id) {
+                if (isExport) {
+                    response = await exportData(format, addMedia, query);
+                } else if (id) {
                     response = readOne(model, id, query, next);
-                } else if (isExport) {
-                    const format = req.query.format ? req.query.format : 'json';
-                    const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
-                    response = await exportAll(format, addMedia);
                 } else {
-       
                     response = readMany(model, query, next);
                 }
                 break;
@@ -109,8 +106,6 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
             res.download(response, () => {
                 fs.unlinkSync(response);
             });
-        } else if (response && format) {
-            convertToFormatAndSend(response, format, res, next);
         } else if (response) {
             res.json(response);
         } else {

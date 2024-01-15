@@ -5,6 +5,9 @@
             :model-value="modelValue" 
             :disabled="disabled"
             @change="onInput"
+            class="cursor-pointer"
+            :class="class"
+            input-class="cursor-pointer"
         >
             <template #label>
                 {{ label  }}
@@ -35,6 +38,10 @@ const props = defineProps({
     disabled: {
         type: Boolean,
         default: false
+    },
+    class: {
+        type: String,
+        default: ''
     },
     formStore: {
         type: Object as PropType<FormStore>,

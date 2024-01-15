@@ -3,7 +3,7 @@ import QUERIES from '~/config/queries';
 export const useEntryStore = defineStore('entry', () => {
 
     const model = 'Entry';
-    const entryIdentifier = ref(undefined); // nameSlug or Id
+    const entryIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
     const pageSize = ref(16);
     const pageSizes = ref([20, 30, 40]);
@@ -70,6 +70,7 @@ export const useEntryStore = defineStore('entry', () => {
 
     async function load(resourceIdentifier: ID = '', fetchSelectedEntries = false) {
         if (resourceIdentifier) {
+            entryIdentifier.value = resourceIdentifier;
             await fetchOne(resourceIdentifier);
             return;
         }
@@ -91,6 +92,7 @@ export const useEntryStore = defineStore('entry', () => {
     }
 
     async function fetchList() {
+        entryIdentifier.value = '';
         const urlData = computed(() => `/api/${model}`);
 
         const { data, pending, error } = await useFetchWithBaseUrl(urlData, {
@@ -155,6 +157,19 @@ export const useEntryStore = defineStore('entry', () => {
         sort.value === 'asc' ? sort.value = 'desc' : sort.value = 'asc';
     }
 
+    async function exportData(format: DataTransferFormat, addMedia = false) {
+        
+        const exportData = useExportData();
+
+        if (entryIdentifier.value) {
+            await exportData.download(format, addMedia, { id: entry.value?.id });
+            return;
+        }
+
+        await exportData.download(format, addMedia, query.value.where);
+
+    }
+
     function clear() {
         entry.value = undefined;
         entryChanges.value = undefined;
@@ -185,7 +200,8 @@ export const useEntryStore = defineStore('entry', () => {
         load,
         fetchNetwork,
         fetchCategoriesTree,
-        sortByName
+        sortByName,
+        exportData
     }
 
 })
