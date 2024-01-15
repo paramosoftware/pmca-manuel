@@ -88,7 +88,7 @@ if (entry.value?.media) {
 if (entry.value?.translations) {
    entry.value?.translations.forEach((translation: Translation) => {
       translations.value.push({
-         name: translation.name + ' (' + (translation.language.languageCode ?? translation.language.name) + ')',
+         name: translation.name + ' (' + (translation.language?.code ?? translation.language?.name) + ')',
          link: ''
       })
    })

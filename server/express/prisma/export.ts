@@ -19,6 +19,7 @@ import ExcelJS from 'exceljs';
 
 // TODO: Merge this with dataFormatConverters.ts, 
 // remove the repeated code e create separate functions for each format
+// TODO: Remove global scope variables using module
 
 const resourceURI = '#' // TODO: Change this to the correct URI
 const conceptSchemeId = 'A0'; // TODO: Create real concept scheme id
@@ -32,7 +33,6 @@ const xmlOptions = {
 };
 
 const exportedFields = ['id', 'name', 'definition', 'isCategory', 'parent', 'relatedEntries', 'entries', 'references', 'variations', 'translations'];
-
 
 export async function exportAll(format: DataTransferFormat, addMedia: boolean = false) {
 
@@ -205,11 +205,13 @@ export async function importAll(filePath: string, overwrite: boolean = false) {
     if (overwrite) {
         await prisma.entry.deleteMany({});
     }
-       
+    
     if (filePath.endsWith('.json')) {
         createdEntries = await importAllFromJson(filePath);
     } else if (filePath.endsWith('.xml')) {
         createdEntries = await importAllFromSkos(filePath);
+    } else if (filePath.endsWith('.xlsx') || filePath.endsWith('.xls') || filePath.endsWith('.csv')) {
+        createdEntries = await importFromXlsxOrCsv(filePath);
     }
 
     const mediaPath = path.join(importPath, 'media');
@@ -679,6 +681,17 @@ async function processRelations(createdEntries: Map<string | number, number>, re
                 }
             }
         });
+
+        // delete relations in other direction in related map to avoid duplicate relations
+        for (const relatedEntry of relatedEntries) {
+            const relatedEntryRelations = related.get(relatedEntry) ?? [];
+            const index = relatedEntryRelations.indexOf(oldId);
+            if (index > -1) {
+                relatedEntryRelations.splice(index, 1);
+                related.set(relatedEntry, relatedEntryRelations);
+            }
+        }
+
     }
 
 
@@ -858,3 +871,124 @@ async function exportToCsv(filePath: string) {
 
     return mediaFiles;
 }
+
+async function importFromXlsxOrCsv(filePath: string) {
+
+    const model = 'entry';
+    const resourceConfig = await readOne('AppResource', model, { include: ['fields'] });
+    const labelMap = new Map<string, string>();
+    const languages = new Map<string, number>();
+    const parent = new Map<string, string>();
+    const related = new Map<string, string[]>();
+    const createdEntries = new Map<string | number, number>();
+
+    if (resourceConfig) {
+        for (const field of resourceConfig.fields) {
+            if (field.labelNormalized && exportedFields.includes(field.name)) {
+                labelMap.set(field.name, field.labelNormalized);
+            }
+        }
+    }
+
+    const workbook = new ExcelJS.Workbook();
+
+    if (filePath.endsWith('.csv')) {
+        await workbook.csv.readFile(filePath);
+    } else {
+        await workbook.xlsx.readFile(filePath);
+    }
+
+    const worksheet = workbook.getWorksheet(1);
+
+    if (!worksheet) { return createdEntries; }
+
+    // TODO: Memory optimization
+    const rows = worksheet.getRows(1, worksheet.rowCount);
+
+    if (!rows) { return createdEntries; }
+
+
+
+    const headerRow = rows[0].values as string[];
+
+    for (let i = 1; i < rows.length; i++) {
+
+        let oldId = rows[i].getCell(headerRow.indexOf(labelMap.get('id') ?? 'id')).value as string;
+
+        if (!oldId) {
+            oldId = rows[i].getCell(headerRow.indexOf(labelMap.get('name') ?? 'name')).value as string;
+        }
+
+        if (!oldId) { continue; }
+
+        const entry = {} as any;
+
+        entry.translations = [];
+        entry.variations = [];
+        entry.references = [];
+
+        for (const header of headerRow) {
+            const headerIndex = headerRow.indexOf(header);
+
+            if (!header || headerIndex === -1) { continue; }
+
+            const value = rows[i].getCell(headerIndex).value as string;
+
+            if (!value) { continue; }
+
+            switch (header) {
+                case labelMap.get('name'):
+                    entry.name = value;
+                    break;
+                case labelMap.get('definition'):
+                    entry.definition = value;
+                    break;
+                case labelMap.get('isCategory'):
+                    entry.isCategory = value;
+                    break;
+                case labelMap.get('parent'):
+                    parent.set(oldId, value);
+                    break;
+                case labelMap.get('relatedEntries'):
+                    related.set(oldId, value.split(';'));
+                    break;
+                case labelMap.get('references'):
+                    value.split(';').forEach((reference) => {
+                        entry.references.push({
+                            name: reference
+                        });
+                    });
+                    break;
+                case labelMap.get('variations'):
+                    value.split(';').forEach((variation) => {
+                        entry.variations.push({
+                            name: variation
+                        });
+                    });
+                    break;
+                case labelMap.get('translations'):
+                    const translations = value.split(';');
+                    for (const translation of translations) {
+                        const languageName = translation.split('(')[1].replace(')', '');
+                        if (!languages.get(languageName)) {
+                            const languageId = await upsertLanguage(languageName);
+                            languages.set(languageName, languageId);
+                        }
+                        entry.translations.push({
+                            name: translation.split('(')[0],
+                            languageId: languages.get(languageName)
+                        });
+                    }
+                    break;
+            }
+        }
+
+        const newEntry = await createOneOrMany('entry', entry);
+        createdEntries.set(oldId, newEntry.id);
+    }
+
+    await processRelations(createdEntries, related, parent);
+
+    return createdEntries;
+}
+    

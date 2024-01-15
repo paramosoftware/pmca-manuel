@@ -313,7 +313,7 @@ model EntryTranslation {
 model Language {
   id           Int     @id @default(autoincrement())
   name         String  @unique
-  languageCode String? @unique
+  code         String? @unique
 
   translations EntryTranslation[] /// disabled:true|hidden:true
 

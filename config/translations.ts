@@ -160,7 +160,7 @@ FIELDS.set('relatedEntries', 'Verbetes relacionados');
 FIELDS.set('entry', 'Verbete');
 FIELDS.set('language', 'Idioma');
 FIELDS.set('languageId', 'Idioma');
-FIELDS.set('languageCode', 'Código do idioma');
+FIELDS.set('code', 'Código do idioma');
 FIELDS.set('content', 'Conteúdo');
 FIELDS.set('menuName', 'Nome no menu');
 FIELDS.set('entryId', 'Verbete');

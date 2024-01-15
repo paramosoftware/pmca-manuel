@@ -42,7 +42,7 @@
 
                     <FieldDropzone url="/api/entry/import" 
                         :max-files=1
-                        accepted-files="application/json, application/xml, application/zip, text/csv, text/xml" 
+                        accepted-files="application/json, application/xml, application/zip, text/csv, text/xml, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                         @start='importing=true' 
                         @close='completed=true; importing=false'
                     />
@@ -87,10 +87,10 @@ const importFormat = ref({
 });
 
 const options = ref([
-   // { id: 'xlxs', name: 'XLXS (Excel)' },
-   // { id: 'csv', name: 'CSV' },
-    { id: 'json', name: 'JSON' },
-    { id: 'xml', name: 'SKOS (Simple Knowledge Organization System)' }
+    { value: 'xlxs', name: 'XLXS (Excel)' },
+    { value: 'csv', name: 'CSV' },
+    { value: 'json', name: 'JSON' },
+    { value: 'xml', name: 'SKOS (Simple Knowledge Organization System)' }
 ]);
 
 </script>
