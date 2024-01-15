@@ -1,29 +1,34 @@
 <template>
-  <button
+  <UButton
     :type="type"
-    class="bg-pmca-accent text-white font-bold rounded-sm first-letter:uppercase" 
-    :class="padding + ' ' + (disabled ? 'cursor-not-allowed' : 'hover:bg-pmca-primary')"
-    :disabled="disabled"
+    :square="square"
+    :size="size"
+    :class="class"
+    class="shadow-sm"
   >
     {{ label }}
     <slot />
-  </button>
+  </UButton>
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
+defineProps({
   label: String,
   type: {
     type: String as () => 'button' | 'submit' | 'reset',
     default: 'button'
   },
-  padding: {
-    type: String,
-    default: 'px-4 py-2'
-  },
-  disabled: {
+  square: {
     type: Boolean,
     default: false
+  },
+  size: {
+    type: String as () => 'sm' | 'md' | 'lg',
+    default: 'md'
+  },
+  class: {
+    type: String,
+    default: ''
   }
 });
 </script>

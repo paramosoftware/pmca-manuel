@@ -16,9 +16,9 @@
     >
     </FieldAutocomplete>
 
-    <PublicButton type="submit" :square="true" class="h-10 mt-4">
+    <UIButton type="submit" :square="true" class="h-10 mt-4">
       <Icon name="ph:magnifying-glass" class="h-6 w-6"></Icon>
-    </PublicButton>
+    </UIButton>
   </form>
 </template>
 

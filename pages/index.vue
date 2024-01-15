@@ -15,15 +15,15 @@
             </div>
             <div class="flex justify-evenly mt-6">
               <NuxtLink to="/verbetes?modo=hier">
-                <PublicButton>
+                <UIButton>
                   <span class="text-xl">Arranjo hierárquico</span>
-                </PublicButton>
+                </UIButton>
               </NuxtLink>
 
               <NuxtLink to="/verbetes?modo=alfa">
-                <PublicButton>
+                <UIButton>
                   <span class="text-xl">Lista alfabética</span>
-                </PublicButton>
+                </UIButton>
               </NuxtLink>
             </div>
           </div>
