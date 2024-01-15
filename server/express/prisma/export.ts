@@ -2,7 +2,7 @@
 import path from 'path';
 import fs from 'fs';
 import Zip from 'adm-zip';
-import { readMany } from './read';
+import { readMany, readOne } from './read';
 import  QUERIES  from '~/config/queries';
 import { prisma } from '~/server/prisma/prisma';
 import { createOneOrMany } from './create';
@@ -13,7 +13,7 @@ import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import  parseNumber from '~/utils/parseNumber';
 import  getTempPath  from '~/utils/getTempPath';
 import  getMediaPath  from '~/utils/getMediaPath';
-
+import  { useCamelCase  }  from '~/utils/useCamelCase';
 
 
 const resourceURI = '#' // TODO: Change this to the correct URI
@@ -90,6 +90,16 @@ async function processItems(filePath: string, format: 'xml' | 'json') {
 
     for (let i = 0; i < totalPages; i++) {
         const data = await readMany(model, { pageSize, page: i + 1, include });
+        const resourceConfig = await readOne('AppResource', model, { include: [ 'fields' ] });
+        const labelMap = new Map<string, string>();
+
+        if (resourceConfig) {
+            for (const field of resourceConfig.fields) {
+                if (field.labelNormalized) {
+                    labelMap.set(field.name, useCamelCase().to(field.labelNormalized));
+                }
+            }
+        }
 
         if (!data) {
             continue;
@@ -100,7 +110,7 @@ async function processItems(filePath: string, format: 'xml' | 'json') {
         for (const item of data.items) {
 
             if (format === 'json') {
-                const json = buildJsonExport(item);
+                const json = buildJsonExport(item, labelMap);
                 fs.appendFileSync(filePath, json);
                 fs.appendFileSync(filePath, ',');
             } else if (format === 'xml') {
@@ -600,44 +610,29 @@ async function buildSkosConceptScheme(model: string, resourceURI: string, concep
     return [conceptScheme];
 }
 
-function buildJsonExport(item: any) {
+function buildJsonExport(item: any, labelMap: Map<string, string>) {
     const newItem = {} as any;
 
+    function getLabel(item: any, property: string, valueCallback?: (value: any) => any) {
+        if (item[property]) {
+            const transformedValue = valueCallback ? valueCallback(item[property]) : item[property];
+            newItem[labelMap.get(property) ?? property] = transformedValue;
+        }
+    }
+    
     newItem.id = item.nameSlug;
-    newItem.name = item.name;
-    newItem.definition = item.definition;
-    newItem.parent = item.parent?.nameSlug;
-    newItem.isCategory = item.isCategory;
-
-    if (item.relatedEntries && item.relatedEntries.length > 0) {
-        newItem.relatedEntries = item.relatedEntries.map((entry: Entry) => {
-            return entry.nameSlug
-        });
-    }
-
-    if (item.references && item.references.length > 0) {
-        newItem.references = item.references.map((reference: Reference) => {
-            return reference.name
-        });
-    }
-
-    if (item.variations && item.variations.length > 0) {
-        newItem.variations = item.variations.map((variation: Variation) => {
-            return variation.name
-        });
-    }
-
-    if (item.translations && item.translations.length > 0) {
-        newItem.translations = item.translations.map((translation: Translation) => {
-            return {
-                language: translation.language?.name,
-                name: translation.name
-            }
-        });
-    }
+    getLabel(item, 'name');
+    getLabel(item, 'definition');
+    getLabel(item, 'parent', value => value?.nameSlug);
+    getLabel(item, 'relatedEntries', value => value.map((entry: Entry) => entry.nameSlug));
+    getLabel(item, 'references', value => value.map((reference: Reference) => reference.name));
+    getLabel(item, 'variations', value => value.map((variation: Variation) => variation.name));
+    getLabel(item, 'translations', value => value.map((translation: Translation) => ({
+        lang: translation.language?.name,
+        [labelMap.get('name') ?? 'name']: translation.name
+    })));
 
     return JSON.stringify(newItem, null, 2);
-
 }
 
 async function processRelations(createdEntries: Map<string | number, number>, related: Map<string, string[]>, parent: Map<string, string>) {

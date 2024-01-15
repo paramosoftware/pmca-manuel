@@ -24,11 +24,11 @@
 
                 <form class="mt-3 w-full md:w-2/5">
                     <div class="mb-3">
-                        <FieldSelect id="formato" label="Formato" :options="options" :required="true" v-model="exportConfig.format" />
+                        <FieldSelect id="formato" label="Formato" :options="options" :required="true" v-model="format" />
                     </div>
 
                     <div class="mb-3">
-                        <FieldCheckbox id="addMedia" label="Incluir imagens" v-model="exportConfig.addMedia" />
+                        <FieldCheckbox id="addMedia" label="Incluir imagens" v-model="addMedia" />
                     </div>
 
                     <div class="mb-3 text-right md:text-left">
@@ -69,9 +69,9 @@ async function exportData() {
         timeout: 0
     })
 
-    let filename = 'export-' +  Date.now() + '.' + exportConfig.value.addMedia ? 'zip' : exportConfig.value.format.id;
+    let filename = 'export-' +  Date.now() + '.' + addMedia.value ? 'zip' : format.value;
 
-    const response = await fetch('/api/export?format=' + exportConfig.value.format.id + '&addMedia=' + exportConfig.value.addMedia);
+    const response = await fetch('/api/entry/export?format=' + format.value + '&addMedia=' + addMedia.value);
 
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
@@ -93,16 +93,15 @@ async function exportData() {
     disableExport.value = false;
 }
 
-const exportConfig = ref({
-    format: { id: 'json', name: 'JSON' },
-    addMedia: false
-});
+
+const format = ref('json');
+const addMedia = ref(false);
 
 const options = ref([
    // { id: 'xlxs', name: 'XLXS (Excel)' },
    // { id: 'csv', name: 'CSV' },
-    { id: 'json', name: 'JSON' },
-    { id: 'xml', name: 'SKOS (Simple Knowledge Organization System)' }
+    { value: 'json', name: 'JSON' },
+    { value: 'xml', name: 'SKOS (Simple Knowledge Organization System)' }
 ]);
 
 </script>
