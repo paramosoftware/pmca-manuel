@@ -14,7 +14,11 @@ import  parseNumber from '~/utils/parseNumber';
 import  getTempPath  from '~/utils/getTempPath';
 import  getMediaPath  from '~/utils/getMediaPath';
 import  { useCamelCase  }  from '~/utils/useCamelCase';
+import { stringify } from 'csv-stringify';
+import ExcelJS from 'exceljs';
 
+// TODO: Merge this with dataFormatConverters.ts, 
+// remove the repeated code e create separate functions for each format
 
 const resourceURI = '#' // TODO: Change this to the correct URI
 const conceptSchemeId = 'A0'; // TODO: Create real concept scheme id
@@ -27,18 +31,32 @@ const xmlOptions = {
     ignorePiTags: true
 };
 
-export async function exportAll(format: 'xml' | 'json', addMedia: boolean = false) {
+const exportedFields = ['id', 'name', 'definition', 'isCategory', 'parent', 'relatedEntries', 'entries', 'references', 'variations', 'translations'];
+
+
+export async function exportAll(format: DataTransferFormat, addMedia: boolean = false) {
 
     const ext = format;
 
     const filePath = path.join(getTempPath(true), `export-${Date.now()}.${ext}`);
     const zipPath = path.join(getTempPath(true), `export-${Date.now()}.zip`);
 
-    openFile(filePath, format);
+    let mediaFiles = new Map<string, string>();
 
-    const mediaFiles = await processItems(filePath, format);
+    if (format === 'xlsx') {
+        
+        mediaFiles = await exportToXlsx(filePath);
 
-    closeFile(filePath, format);
+    } else if (format === 'csv') {
+
+        mediaFiles = await exportToCsv(filePath);
+
+    } else if (format === 'json' || format === 'xml') {
+        openFile(filePath, format);
+        mediaFiles = await processItems(filePath, format);
+        closeFile(filePath, format);
+    }
+
 
     if (addMedia) {
         createZip(mediaFiles, filePath, zipPath);
@@ -49,7 +67,7 @@ export async function exportAll(format: 'xml' | 'json', addMedia: boolean = fals
 
 }
 
-function openFile(filePath: string, format: 'xml' | 'json') {
+function openFile(filePath: string, format: DataTransferFormat) {
     fs.writeFileSync(filePath, '');
 
     if (format === 'json') {
@@ -62,7 +80,7 @@ function openFile(filePath: string, format: 'xml' | 'json') {
     }
 }
 
-function closeFile(filePath :string, format: 'xml' | 'json') {
+function closeFile(filePath :string, format: DataTransferFormat) {
     if (format === 'json') {
         const fd = fs.openSync(filePath, 'r+');
         fs.ftruncateSync(fd, fs.statSync(filePath).size - 1);
@@ -74,12 +92,25 @@ function closeFile(filePath :string, format: 'xml' | 'json') {
     }
 }
 
-async function processItems(filePath: string, format: 'xml' | 'json') {
+async function processItems(filePath: string, format: DataTransferFormat) {
 
     const include = QUERIES.get('Entry')?.include;
     const pageSize = 200;
     const model = 'entry';
     const xmlBuilder = new XMLBuilder(xmlOptions);
+    const resourceConfig = await readOne('AppResource', model, { include: [ 'fields' ] });
+    const camelCaseMap = new Map<string, string>();
+    const labelMap = new Map<string, string>();
+
+
+    if (resourceConfig) {
+        for (const field of resourceConfig.fields) {
+            if (field.labelNormalized) {
+                camelCaseMap.set(field.name, useCamelCase().to(field.labelNormalized));
+                labelMap.set(field.name, field.labelNormalized);
+            }
+        }
+    }
 
     const mediaFiles = new Map<string, string>();
     let totalPages = 1;
@@ -90,16 +121,6 @@ async function processItems(filePath: string, format: 'xml' | 'json') {
 
     for (let i = 0; i < totalPages; i++) {
         const data = await readMany(model, { pageSize, page: i + 1, include });
-        const resourceConfig = await readOne('AppResource', model, { include: [ 'fields' ] });
-        const labelMap = new Map<string, string>();
-
-        if (resourceConfig) {
-            for (const field of resourceConfig.fields) {
-                if (field.labelNormalized) {
-                    labelMap.set(field.name, useCamelCase().to(field.labelNormalized));
-                }
-            }
-        }
 
         if (!data) {
             continue;
@@ -110,8 +131,8 @@ async function processItems(filePath: string, format: 'xml' | 'json') {
         for (const item of data.items) {
 
             if (format === 'json') {
-                const json = buildJsonExport(item, labelMap);
-                fs.appendFileSync(filePath, json);
+                const obj = buildExportItem(item, camelCaseMap);
+                fs.appendFileSync(filePath, JSON.stringify(obj, null, 2));
                 fs.appendFileSync(filePath, ',');
             } else if (format === 'xml') {
                 const concept = buildSkosConcept(item, resourceURI, conceptSchemeId);
@@ -610,7 +631,7 @@ async function buildSkosConceptScheme(model: string, resourceURI: string, concep
     return [conceptScheme];
 }
 
-function buildJsonExport(item: any, labelMap: Map<string, string>) {
+function buildExportItem(item: any, labelMap: Map<string, string>) {
     const newItem = {} as any;
 
     function getLabel(item: any, property: string, valueCallback?: (value: any) => any) {
@@ -619,20 +640,24 @@ function buildJsonExport(item: any, labelMap: Map<string, string>) {
             newItem[labelMap.get(property) ?? property] = transformedValue;
         }
     }
+
+    if (item.entries) {
+        item.relatedEntries = item.relatedEntries.concat(item.entries);
+    }
     
     newItem.id = item.nameSlug;
     getLabel(item, 'name');
     getLabel(item, 'definition');
     getLabel(item, 'parent', value => value?.nameSlug);
     getLabel(item, 'relatedEntries', value => value.map((entry: Entry) => entry.nameSlug));
+    getLabel(item, 'isCategory'); 
     getLabel(item, 'references', value => value.map((reference: Reference) => reference.name));
     getLabel(item, 'variations', value => value.map((variation: Variation) => variation.name));
-    getLabel(item, 'translations', value => value.map((translation: Translation) => ({
-        lang: translation.language?.name,
-        [labelMap.get('name') ?? 'name']: translation.name
-    })));
+    getLabel(item, 'translations', value => value.map((translation: Translation) => (
+        translation.name + (translation.language ? ` (${translation.language.name})` : '')
+    )));
 
-    return JSON.stringify(newItem, null, 2);
+    return newItem;
 }
 
 async function processRelations(createdEntries: Map<string | number, number>, related: Map<string, string[]>, parent: Map<string, string>) {
@@ -698,3 +723,138 @@ async function upsertLanguage(languageName: any) {
     return newLanguage.id;
 }
 
+async function exportToXlsx(filePath: string) {
+
+    const include = QUERIES.get('Entry')?.include;
+    const pageSize = 200;
+    const model = 'entry';
+    const resourceConfig = await readOne('AppResource', model, { include: [ 'fields' ] });
+    const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({ filename: filePath });
+    const worksheet = workbook.addWorksheet(resourceConfig?.labelNormalized ?? 'Entries');
+    const camelCaseMap = new Map<string, string>();
+    const labelMap = new Map<string, string>();
+    const mediaFiles = new Map<string, string>();
+
+    if (resourceConfig) {
+        for (const field of resourceConfig.fields) {
+            if (field.labelNormalized && exportedFields.includes(field.name)) {
+                camelCaseMap.set(field.name, useCamelCase().to(field.labelNormalized));
+                labelMap.set(field.name, field.labelNormalized);
+            }
+        }
+    }
+
+    worksheet.columns = Array.from(labelMap.keys()).map((key) => ({ header: labelMap.get(key), key: camelCaseMap.get(key) }));
+
+    let totalPages = 1;
+
+    for (let i = 0; i < totalPages; i++) {
+        const data = await readMany(model, { pageSize, page: i + 1, include });
+
+        if (!data) {
+            continue;
+        }
+
+        totalPages = data.totalPages;
+
+        for (const item of data.items) {
+
+            const obj = buildExportItem(item, camelCaseMap);
+
+            const keys = Object.keys(obj);
+
+            for (const key of keys) {
+                if (obj[key] instanceof Array) {
+                    obj[key] = obj[key].join(';');
+                }
+            }
+
+            worksheet.addRow(obj).commit();
+
+            if (item.media) {
+                for (const media of item.media) {
+                    const fileName = media.media?.name;
+                    const extension = fileName.split('.').pop();
+                    const position = media.position ? media.position : 1;
+                    const newFileName = `${item.nameSlug}_${position}.${extension}`;
+                    mediaFiles.set(fileName, newFileName);
+                }
+            }
+        }
+    }
+
+    await workbook.commit();
+
+    return mediaFiles;
+}
+
+async function exportToCsv(filePath: string) {
+
+    const include = QUERIES.get('Entry')?.include;
+    const pageSize = 200;
+    const model = 'entry';
+    const resourceConfig = await readOne('AppResource', model, { include: ['fields'] });
+    const camelCaseMap = new Map<string, string>();
+    const labelMap = new Map<string, string>();
+    const mediaFiles = new Map<string, string>();
+
+    if (resourceConfig) {
+        for (const field of resourceConfig.fields) {
+            if (field.labelNormalized && exportedFields.includes(field.name)) {
+                camelCaseMap.set(field.name, useCamelCase().to(field.labelNormalized));
+                labelMap.set(field.name, field.labelNormalized);
+            }
+        }
+    }
+
+    const columns = Array.from(labelMap.keys()).map((key) => ({ header: labelMap.get(key), key: camelCaseMap.get(key) })) as { header: string; key: string }[];
+
+    let totalPages = 1;
+
+    for (let i = 0; i < totalPages; i++) {
+        const data = await readMany(model, { pageSize, page: i + 1, include });
+
+        if (!data) {
+            continue;
+        }
+
+        totalPages = data.totalPages;
+
+        const rows = [] as string[]
+
+        for (const item of data.items) {
+            const obj = buildExportItem(item, camelCaseMap);
+
+            const keys = Object.keys(obj);
+
+            for (const key of keys) {
+                if (obj[key] instanceof Array) {
+                    obj[key] = obj[key].join(';');
+                }
+            }
+
+            if (item.media) {
+                for (const media of item.media) {
+                    const fileName = media.media?.name;
+                    const extension = fileName.split('.').pop();
+                    const position = media.position ? media.position : 1;
+                    const newFileName = `${item.nameSlug}_${position}.${extension}`;
+                    mediaFiles.set(fileName, newFileName);
+                }
+            }
+
+            rows.push(obj);
+        }
+
+        await new Promise<void>((resolve, reject) => {
+            stringify(rows, { header: 0 === i, columns: columns, eof: false }, async (err, output) => {
+                if (err) return reject(err);
+                console.log(output);
+                fs.appendFileSync(filePath, output);
+                resolve();
+            });
+        });
+    }
+
+    return mediaFiles;
+}

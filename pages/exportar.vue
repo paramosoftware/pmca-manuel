@@ -98,8 +98,8 @@ const format = ref('json');
 const addMedia = ref(false);
 
 const options = ref([
-   // { id: 'xlxs', name: 'XLXS (Excel)' },
-   // { id: 'csv', name: 'CSV' },
+    { value: 'xlsx', name: 'XLSX (Excel)' },
+    { value: 'csv', name: 'CSV' },
     { value: 'json', name: 'JSON' },
     { value: 'xml', name: 'SKOS (Simple Knowledge Organization System)' }
 ]);

@@ -78,12 +78,12 @@ declare global {
         translations?: Translation[];
     };
 
-    export type Variation = Prisma.Variation & {
+    export type Variation = Prisma.EntryVariation & {
         entry?: Entry;
     };
 
 
-    export type Translation = Prisma.Translation & {
+    export type Translation = Prisma.EntryTranslation & {
         entry?: Entry;
         language?: Language;
     };
@@ -141,5 +141,8 @@ declare global {
         children: TreeNode[];
         isLeaf?: boolean;
     }
+
+
+    export type DataTransferFormat = 'json' | 'xml' | 'csv' | 'xlsx';
 
 }

@@ -7,10 +7,10 @@ import fs from 'fs';
 import ExcelJS from 'exceljs';
 
 
-export async function convertToFormatAndSend(data: any, format: string, res: express.Response, next: express.NextFunction) {
+export async function convertToFormatAndSend(data: any, format: DataTransferFormat, res: express.Response, next: express.NextFunction) {
 
-    if (data.data) {
-        data = data.data;
+    if (data.items) {
+        data = data.items;
     }
 
     const filePath = path.join(getTempPath(), `${Date.now()}.${format}`);
