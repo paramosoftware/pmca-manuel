@@ -2,7 +2,7 @@
 
     <template v-if="pending">
         <div class="flex flex-col justify-center items-center h-screen">
-            <Icon class="animate-spin w-40 h-40 mr-5" name="ph:circle-notch" />
+            <UIIcon class="animate-spin w-40 h-40 mr-5" name="ph:circle-notch" />
             <p class="text-2xl font-bold">Carregando...</p>
         </div>
     </template>

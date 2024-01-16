@@ -6,9 +6,11 @@
                <UIPageTitle>
                   {{ entry?.name }}
                   <client-only>
-                     <Icon class="text-pmca-accent cursor-pointer"
+                     <UIIcon class="text-pmca-accent cursor-pointer"
                         :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'"
-                        @click="entrySelected = toggle($event, id)" />
+                        @click="entrySelected = toggle($event, id)"
+                        :title="entrySelected ? 'Remover' : 'Adicionar'"
+                     />
                   </client-only>
                </UIPageTitle>
                <PublicEntryActions :entryId="entry!.id" :title="entry!.name" />

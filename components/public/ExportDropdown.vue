@@ -3,7 +3,7 @@
         <template #add-media="{ item }" class="cursor-pointer">
             <FieldCheckbox id="addMedia" v-model="addMedia" value="media" label="Incluir imagens" />
         </template>
-        <Icon name="ph:download" />
+        <UIIcon name="ph:download" title="Exportar" />
     </UDropdown>
 </template>
 

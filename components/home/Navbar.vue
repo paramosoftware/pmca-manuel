@@ -10,7 +10,7 @@
         <button @click="showMenu = !showMenu"
           class="block md:hidden text-right align-middle mr-3"
           type="button" aria-controls="navbar-main" aria-expanded="false" aria-label="Toggle navigation">
-          <Icon name="ph:list" class="w-9 h-9" />
+          <UIIcon name="ph:list" class="w-9 h-9" />
         </button>
         <div class="col-span-2 md:col-span-6">
           <PublicNavLinks :show-menu="showMenu" @update:show-menu="showMenu = $event" />

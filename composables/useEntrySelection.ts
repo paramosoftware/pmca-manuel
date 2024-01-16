@@ -15,8 +15,8 @@ export const useEntrySelection = () => {
     }
 
     const toggle = (event: Event, id: ID) => {
-        event.stopPropagation();
-        event.preventDefault();
+        event?.stopPropagation();
+        event?.preventDefault();
 
         let selectedEntries = getSelected();
         const index = selectedEntries.indexOf(id);

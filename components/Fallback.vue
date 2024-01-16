@@ -2,7 +2,7 @@
     <div class="flex flex-col justify-center items-center h-screen">
 
         <div class="flex flex-row justify-center items-center">
-            <Icon class="w-40 h-40 mr-5" name="ph:warning-circle" />
+            <UIIcon class="w-40 h-40 mr-5" name="ph:warning-circle" />
             <div class="flex flex-col justify-center items-center">
                 <h1 class="text-8xl font-bold">404</h1>
                 <p class="text-2xl font-bold">Página não encontrada</p>

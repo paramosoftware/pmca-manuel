@@ -17,15 +17,15 @@
             @blur="iconColor = 'text-gray-400'"
             color="gray" 
             variant="outline"
-            size="size"
+            :size="size"
         >
 
         <template #trailing v-if="showIcon && !loading">
-            <Icon :name="icon" class="w-6 h-6" :class="iconColor" />
+            <UIIcon :name="icon" class="w-6 h-6" :class="iconColor" />
         </template>
 
         <template #trailing v-if="loading">
-            <Icon :name="'ph:spinner'" class="w-6 h-6 animate-spin" />
+            <UIIcon :name="'ph:spinner'" class="w-6 h-6 animate-spin" />
         </template>
 
         </UInput>
@@ -80,7 +80,7 @@ const props = defineProps({
         default: false
     },
     size: {
-        type: String,
+        type: String as PropType<'sm' | 'md' | 'lg'>,
         default: 'md'
     },
     formStore: {

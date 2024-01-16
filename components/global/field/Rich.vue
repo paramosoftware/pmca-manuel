@@ -13,7 +13,7 @@
 
       <template #fallback>
         <div class="flex flex-col justify-center items-center">
-          <Icon class="animate-spin w-10 h-10 mr-5 text-pmca-secondary" name="ph:spinner" />
+          <UIIcon class="animate-spin w-10 h-10 mr-5 text-pmca-secondary" name="ph:spinner" />
         </div>
       </template>
 

@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-row justify-start items-center">
         <NuxtLink :to="href" class="text-pmca-secondary-dark hover:text-pmca-accent text-lg">
-            <Icon name="ph:arrow-left" class="w-5 h-5" />
+            <UIIcon name="ph:arrow-left" class="w-5 h-5" />
             Voltar
         </NuxtLink>
     </div>

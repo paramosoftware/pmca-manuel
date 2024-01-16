@@ -11,7 +11,7 @@
                     </span>
                 </span>
 
-                <Icon class="w-10 text-gray-300" :name="isOpenAccordion ? 'ph:caret-up' : 'ph:caret-down'" />
+                <UIIcon class="w-10 text-gray-300" :name="isOpenAccordion ? 'ph:caret-up' : 'ph:caret-down'" />
             </button>
         </h2>
 
@@ -41,7 +41,7 @@
                         <UIImg class="w-full h-32 object-cover rounded" :src="element.media.name" />
                         <div class="absolute top-0 right-0">
                             <UIButton @click="deleteMedia(element)" padding="p-1">
-                                <Icon class="w-4 h-4" name="ph:trash-simple" />
+                                <UIIcon class="w-4 h-4" name="ph:trash-simple" />
                             </UIButton>
                         </div>
                     </div>

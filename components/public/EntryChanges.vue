@@ -8,7 +8,7 @@
                 <th v-for="column in columns" :key="column.key" class="text-left px-3 py-3.5 font-semibold">
                   {{ column.label }}
                   <span v-if="column.sortable" class="cursor-pointer" @click="handleSort(column.key)">
-                    <Icon class="w-5 h-5 inline-block" :name="sortOrder.key === column.key ? sortOrder.order === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending' : 'ph:funnel-simple'"/>
+                    <UIIcon class="w-5 h-5 inline-block" :name="sortOrder.key === column.key ? sortOrder.order === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending' : 'ph:funnel-simple'"/>
                   </span>
                 </th>
             </tr>

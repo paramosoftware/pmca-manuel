@@ -14,11 +14,19 @@
                         </UITitle>  
                         <div class="flex flex-row items-center">
                             <client-only>
-                                <Icon 
+                                <UIIcon 
                                     class="text-pmca-accent text-2xl cursor-pointer" 
                                     :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'" 
                                     @click="entrySelected = toggle($event, entry.id)" 
                                 />
+
+                                <template #fallback>
+                                    <UIIcon 
+                                        class="text-pmca-accent text-2xl cursor-pointer" 
+                                        name="ph:bookmark-simple"
+                                    />
+                                </template>
+
                             </client-only>
                         </div>
                     </div>

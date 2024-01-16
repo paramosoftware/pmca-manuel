@@ -14,24 +14,31 @@
 
             <div class="mt-4">
                 <FieldInput id="filter" v-model="search" type="text" :placeholder="'Filtrar ' + uncapitalize(labelPlural)"
-                    :disabled="filterDisabled" />
+                    :disabled="filterDisabled" size="sm" />
             </div>
 
             <div v-if="pending" class="mt-4">
-                <Icon name="ph:spinner" class="animate-spin h-10 w-10 text-pmca-primary" />
+                <UIIcon name="ph:spinner" class="animate-spin h-10 w-10 text-pmca-primary" />
                 <p>Carregando {{ uncapitalize(labelPlural) }}...</p>
             </div>
 
-            <div class="mt-4 flex justify-between">
+            <div class="mt-4 md:flex md:flex-row md:justify-between md:items-center">
                 <div class="text-md" v-if="total > 0">
                     {{ total }} {{ total > 1 ? 'itens' : 'item' }} encontrado{{ total > 1 ? 's' : '' }}
                 </div>
                 <div class="text-md" v-else-if="total === 0 && search !== ''">
                     Nenhum item encontrado
-                    <span v-if="search !== ''">para "<i>{{ search }}</i>"</span>
+                    <span v-if="search !== ''">para "<i>{{ search.substring(0, 20) }}</i>"</span>
                 </div>
-                <div v-if="total > pageSize">
-                    <UPagination v-model="page" :total="total" :page-count="pageSize" show-last show-first :max="6" />
+                <div class="flex flex-row items-center justify-between mt-5 md:mt-0">
+                    <UIIcon 
+                        class="w-8 h-8 mr-3" 
+                        :name="sort === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending'" 
+                        title="Ordenar por nome"
+                        @click="listStore.sortByName()"
+                        v-if="total > 1"
+                    />
+                    <UPagination v-model="page" :total="total" :page-count="pageSize" show-last show-first v-if="total > pageSize" />
                 </div>
             </div>
 
@@ -49,9 +56,9 @@
                         </NuxtLink>
                         <div>
                             <NuxtLink :to="editUrl + '/' + item.id">
-                                <Icon name="ph:pencil-simple" class="w-6 h-6 m-1 cursor-pointer" />
+                                <UIIcon name="ph:pencil-simple" class="w-6 h-6 m-1 cursor-pointer" title="Editar" />
                             </NuxtLink>
-                            <Icon name="ph:trash-simple" class="w-6 h-6 m-1 cursor-pointer" @click="openModal(item)" />
+                            <UIIcon name="ph:trash-simple" class="w-6 h-6 m-1 cursor-pointer" @click="openModal(item)" title="Excluir" />
                         </div>
                     </div>
                 </div>
@@ -93,7 +100,7 @@ const modalButtonText = 'Excluir';
 const listStore = useListStore();
 await listStore.fetch(path);
 
-const { labelSlug, labelPlural, genderNoun, items, page, pageSize, total, search, pending, error } = storeToRefs(listStore);
+const { labelSlug, labelPlural, genderNoun, items, page, pageSize, sort, total, search, pending, error } = storeToRefs(listStore);
 
 const createUrl = ROUTES.create + labelSlug.value;
 const editUrl = ROUTES.edit + labelSlug.value;

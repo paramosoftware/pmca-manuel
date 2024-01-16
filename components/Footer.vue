@@ -6,7 +6,7 @@
                     <div class="pb-2">
                         <NuxtLink to="/login" v-if="showLoginButton">
                             <UIButton class="col-auto">
-                                <Icon name="ph:sign-in" class="w-6 h-6" />
+                                <UIIcon name="ph:sign-in" class="w-6 h-6" />
                                 <span class="text-lg">Acesso interno</span>
                             </UIButton>
                         </NuxtLink>
@@ -18,7 +18,7 @@
                             {{ blockTitle }}
                         </span>
                     </h1>
-                    <Icon name="ci:github" class="text-white p-1" />
+                    <UIIcon name="ci:github" class="text-white p-1" />
                     <div class="text-start mt-5">
                         <p class="text-sm text-start">Projeto Manuel Correia de Andrade (PMCA)</p>
                         <p class="text-sm text-start">Desenvolvimento por Páramo Software</p>

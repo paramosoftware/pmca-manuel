@@ -16,7 +16,7 @@
                     </div>
 
                     <button @click="removeItem(item)" class="ml-2">
-                        <Icon name="ph:trash-simple" class="w-6 h-6" title="Remover" />
+                        <UIIcon name="ph:trash-simple" class="w-6 h-6" title="Remover" />
                     </button>
                 </div>
             </div>
@@ -25,7 +25,7 @@
 
             <UButton size="sm" color="primary" variant="solid" @click="isModalOpen = true" :disabled="!canAddMore || disabled">
                 <template #leading>
-                    <Icon name="ph:plus-circle" class="w-4 h-4" title="Criar" />
+                    <UIIcon name="ph:plus-circle" class="w-4 h-4" title="Criar" />
                 </template>
                 <template v-if="!canAddMore">
                     Máximo de itens adicionados

@@ -7,13 +7,21 @@
             <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0" >
 
                 <span v-if="hasTree">
-                    <button @click="mode = 'alfa'">
-                        <Icon name="ph:cards" class="mr-3 cursor-pointer" :class="mode === 'alfa' ? 'text-pmca-accent' : ''" />
-                    </button>
-
-                    <button @click="mode = 'hier'">
-                        <Icon name="ph:tree-structure" class="cursor-pointer"  :class="mode === 'hier' ? 'text-pmca-accent' : ''" />
-                    </button>
+                    <UIIcon 
+                        name="ph:cards" 
+                        class="mr-3" 
+                        :class="mode === 'alfa' ? 'text-pmca-accent' : ''" 
+                        @click="mode = 'alfa'"
+                        title="Modo alfabético"
+                    /> 
+          
+                    <UIIcon 
+                        name="ph:tree-structure"
+                        :class="mode === 'hier' ? 'text-pmca-accent' : ''" 
+                        @click="mode = 'hier'"
+                        title="Modo hierárquico"
+                        />
+                   
                 </span>
 
 
@@ -41,10 +49,14 @@
                     <span v-if="search !== ''">para "<i>{{ search.substring(0, 20) }}</i>"</span>
                 </div>
                 <div class="flex flex-row items-center justify-between mt-5 md:mt-0">
-                    <button @click="entryStore.sortByName()" class="mr-3" v-if="total > 0">
-                        <Icon class="w-8 h-8" :name="sort === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending'" />
-                    </button>
-                    <UPagination v-model="page" :total="total" :page-count="pageSize" show-last show-first size="md" v-if="total > pageSize" />
+                    <UIIcon 
+                        class="w-8 h-8 mr-3" 
+                        :name="sort === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending'" 
+                        title="Ordenar por nome"
+                        @click="entryStore.sortByName()"
+                        v-if="total > 1"
+                    />
+                    <UPagination v-model="page" :total="total" :page-count="pageSize" show-last show-first v-if="total > pageSize" />
                 </div>
             </div>
 

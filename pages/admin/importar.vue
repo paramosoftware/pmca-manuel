@@ -14,7 +14,7 @@
             </p>
 
             <p class="mt-4">
-                <Icon name="ph:warning" class="h-10 w-10 text-pmca-warning mr-3" />
+                <UIIcon name="ph:warning" class="h-10 w-10 text-pmca-warning mr-3" />
 
                 <strong>Atenção:</strong> a importação sobrescreve os dados existentes no sistema.
             </p>
@@ -52,14 +52,14 @@
 
             <div class="mx-auto my-0 h-full mt-20" v-if="importing">
                 <div class="flex flex-col justify-center items-center">
-                    <Icon name="ph:spinner" class="h-16 w-16 animate-spin text-pmca-primary" />
+                    <UIIcon name="ph:spinner" class="h-16 w-16 animate-spin text-pmca-primary" />
                 </div>
                 <p>Importando...</p>
             </div>
 
             <div class="mx-auto my-0 h-full mt-20" v-if="completed">
                 <div class="flex flex-col justify-center items-center">
-                    <Icon name="ph:check-circle" class="h-16 w-16 text-pmca-accent" />
+                    <UIIcon name="ph:check-circle" class="h-16 w-16 text-pmca-accent" />
                 </div>
                 <p>Importação concluída!</p>
             </div>

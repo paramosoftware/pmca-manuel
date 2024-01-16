@@ -16,7 +16,7 @@
                     </div>
 
                     <button @click="removeItem(item)" class="ml-2">
-                        <Icon name="ph:trash-simple" class="w-6 h-6" title="Remover" />
+                        <UIIcon name="ph:trash-simple" class="w-6 h-6" title="Remover" />
                     </button>
 
                 </div>
@@ -54,7 +54,7 @@
                         <button type="button" @click="createItem(search)">
                             Cadastrar: {{ search }}
 
-                            <Icon name="ph:plus-circle" class="text-pmca-accent w-6 h-6" title="Criar" />
+                            <UIIcon name="ph:plus-circle" class="text-pmca-accent w-6 h-6" title="Criar" />
 
                         </button>
                     </li>

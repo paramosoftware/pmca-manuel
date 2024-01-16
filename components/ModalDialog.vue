@@ -8,7 +8,7 @@
             </UITitle>
         </template>
         
-        <Icon name="ph:warning" class="h-10 w-10 text-pmca-warning mr-3" />
+        <UIIcon name="ph:warning" class="h-10 w-10 text-pmca-warning mr-3" />
         {{ message  }}
 
         <slot />

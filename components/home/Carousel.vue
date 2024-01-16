@@ -14,10 +14,10 @@
 
         <span class="splide__arrows w-36 h-36">
             <button class="splide__arrow splide__arrow--prev">
-                    <Icon name="ph:caret-right" />
+                    <UIIcon name="ph:caret-right" />
             </button>
             <button class="splide__arrow splide__arrow--next">
-                    <Icon name="ph:caret-right" />
+                    <UIIcon name="ph:caret-right" />
             </button>
         </span>
 

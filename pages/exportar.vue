@@ -17,8 +17,8 @@
                 </p>
 
                 <p class="mt-4">
-                    Para exportar somente uma parte dos verbetes, selecione os verbetes desejados (utilize o ícone <Icon name="ph:bookmark-simple" class="text-pmca-accent w-6 h-6" />),
-                    acesse a página de verbetes selecionados (utilize o ícone <Icon class="text-pmca-accent w-6 h-6" name="ph:bookmarks-simple-fill" /> no menu superior) 
+                    Para exportar somente uma parte dos verbetes, selecione os verbetes desejados (utilize o ícone <UIIcon name="ph:bookmark-simple" class="text-pmca-accent w-6 h-6" />),
+                    acesse a página de verbetes selecionados (utilize o ícone <UIIcon class="text-pmca-accent w-6 h-6" name="ph:bookmarks-simple-fill" /> no menu superior) 
                     e clique na opção "Exportar".
                 </p>
 

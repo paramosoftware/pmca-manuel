@@ -28,7 +28,7 @@
           <div class="flex flex-row justify-end align-bottom">
             <UDropdown :items="items" :popper="{ placement: 'bottom-start' }" :ui="{ rounded: 'rounded-sm' }" >
               <UAvatar size="sm">
-                <Icon name="ph:user-circle" class="h-6 w-6"></Icon>
+                <UIIcon name="ph:user-circle" class="h-6 w-6"></UIIcon>
               </UAvatar>
             </UDropdown>
           </div>

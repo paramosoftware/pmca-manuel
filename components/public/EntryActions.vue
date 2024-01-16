@@ -1,7 +1,7 @@
 <template>
     <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
         <a v-for="item in socialMedia" :key="item.name" class="mr-2 cursor-pointer">
-            <Icon :name="item.icon" @click="share(item.name)" />
+            <UIIcon :name="item.icon" @click="share(item.name)" :title="item.title ?? ''" />
         </a>
         <PublicExportDropdown />
     </div>
@@ -27,7 +27,8 @@ const socialMedia = [
     {
         name: 'Baixar',
         icon: 'ph:file-pdf',
-        shareUrl: ''
+        shareUrl: '',
+        title: 'Baixar PDF'
     },
     {
         name: 'Facebook',

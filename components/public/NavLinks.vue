@@ -12,7 +12,7 @@
         </div>
         <div class="hidden md:flex col-span-1 text-end mr-3 md:mr-0"> 
             <NuxtLink to="/verbetes/selecionados">
-                <Icon class="text-pmca-accent text-2xl cursor-pointer" name="ph:bookmarks-simple-fill" />
+                <UIIcon class="text-pmca-accent text-2xl cursor-pointer" name="ph:bookmarks-simple-fill" title="Verbetes selecionados" />
             </NuxtLink>
         </div>
     </div>
