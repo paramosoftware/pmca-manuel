@@ -85,19 +85,6 @@ export async function refreshAccessToken(accessToken: string) {
 
 }
 
-export async function changePassword(userId: string, password: string, currentUserId: string, isAdmin: boolean = false) {
-
-        if (userId !== currentUserId && !isAdmin) {
-            throw new UnauthorizedError('Unauthorized');
-        }
-    
-        if (!setUserPassword(userId, password)) {
-            throw new ServerError('Password could not be changed');
-        }
-    
-        return true;
-}
-
 export async function setUserPassword(userId: string, password: string) {
 
     const hashedPassword = hashPassword(password);

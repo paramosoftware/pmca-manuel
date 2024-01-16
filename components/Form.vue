@@ -24,6 +24,13 @@
                 </template>
             </template>
 
+            <div v-if="model === 'AppUser'">
+                <FieldCheckbox id="changePassword" v-model="changePassword" label="Alterar senha" v-if="!isCreate" />
+                <template v-if="changePassword || isCreate">
+                    <FieldInput id="password" v-model="password" type="password" :label="isCreate ? 'Senha' : 'Nova senha'" :required="isCreate" />
+                </template>
+            </div>
+
             <div class="mt-5 text-end">
                 <UIButton :type='"submit"'>{{ (isAuxiliary ? 'Adicionar' : 'Salvar') }}</UIButton>
             </div>
@@ -45,12 +52,20 @@ const props = defineProps({
 const router = useRouter();
 const { model, label, genderNoun, labelSlug } = storeToRefs(props.formStore);
 
+const changePassword = ref(false);
+const password = ref('');
 const urlList = ROUTES.list + labelSlug.value;
 const urlCreate = ROUTES.create + labelSlug.value;
 const isCreate = !props.formStore.getId();
 const isAuxiliary = props.formStore.getIsAuxiliary();
 
 async function submit() {
+    // TODO: hardcoded
+    if (model.value === 'AppUser') {
+        if (changePassword.value || isCreate) {
+            props.formStore.setFieldData('restricted', { password: password.value });
+        }
+    }
 
     const id = await props.formStore.save();
 

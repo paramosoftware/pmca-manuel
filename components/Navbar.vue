@@ -62,6 +62,12 @@ const items = [
     disabled: true,
   }],
   [{
+    label: 'Alterar senha',
+    click: () => {
+      navigateTo(ROUTES.restricted + '/alterar-senha');
+    }
+  }],
+  [{
     label: 'Acesso público',
     click: () => {
       navigateTo('/');

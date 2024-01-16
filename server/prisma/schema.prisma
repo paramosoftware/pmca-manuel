@@ -188,7 +188,7 @@ model AppUser {
   nameNormalized  String?
   loginNormalized String?
 
-  restricted   AppUserRestricted?
+  restricted   AppUserRestricted? /// hidden:true
   entryChanges EntryChanges[] /// disabled:true|hidden:true
 
   createdAt DateTime? @default(now())
