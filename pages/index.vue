@@ -31,7 +31,7 @@
       </section>
     </div>
 
-    <div class="mt-10 max-w-screen-2xl mx-4 md:mx-auto">
+    <div class="container mx-auto">
       <HomeCarousel />
     </div>
 

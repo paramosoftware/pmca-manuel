@@ -3,7 +3,7 @@
         
         <HomeNavbar class="bg-white" />
 
-        <slot class="max-w-screen-2xl"/>
+        <slot />
 
         <Footer />
 

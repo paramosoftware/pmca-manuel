@@ -1,5 +1,5 @@
 <template>
-    <Splide :has-track="false" :options="options" class="py-5 sm:py-0 px-0 md:px-14" v-if="entries && entries.length > 0">
+    <Splide :has-track="false" :options="options" class="p-5 sm:px-14" v-if="entries && entries.length > 0">
         <UITitle id="carousel-heading" class="my-5">
             <span class="text-semibold text-3xl">
                 Verbetes selecionados
@@ -48,12 +48,8 @@ const options = {
             arrows: false,
             pagination: true
         },
-        768: {
-            perPage: 2,
-            gap: '1rem',
-        },
         1024: {
-            perPage: 3,
+            perPage: 2,
             gap: '1rem',
         },
     },
