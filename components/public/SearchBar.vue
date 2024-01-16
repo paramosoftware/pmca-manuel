@@ -50,7 +50,7 @@ const onSelect = (entry:  Entry) => {
 
 const onSearch = () => {
   if (currentInput.value) {
-    router.push(`/verbetes?search=${currentInput.value}`);
+    window.location.href = `/verbetes?search=${currentInput.value}`;
   }
 };
 </script>

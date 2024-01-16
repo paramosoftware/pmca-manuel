@@ -1,5 +1,5 @@
 <template>
-    <div class="container md:my-5 mb-auto mx-auto">
+    <div class="container mb-auto mx-auto">
       <section id="home" class="md:flex">
         <div class="p-2 md:p-4 mb-auto mx-auto">
           <div class="text-center">
@@ -29,11 +29,18 @@
           </div>
         </div>
       </section>
-
-      <HomeCarousel class="mt-10" />
-
-      <HomeNetwork class="mt-10 h-96" />
     </div>
+
+    <div class="mt-10 max-w-screen-2xl mx-4 md:mx-auto">
+      <HomeCarousel />
+    </div>
+
+    <div class="mt-5 md:mx-auto min-h-[60vh] w-full">
+      <HomeNetwork class="h-full w-full" />
+    </div>
+
+ 
+
 </template>
  
 <script setup lang="ts">

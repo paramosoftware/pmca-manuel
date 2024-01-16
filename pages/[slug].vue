@@ -1,5 +1,5 @@
 <template>
-    <article class="container mx-auto mb-auto p-2">
+    <article>
         <div class="flex flex-col justify-left">
             <UIPageTitle>
                 {{ page.name }}

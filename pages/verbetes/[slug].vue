@@ -1,54 +1,49 @@
 <template>
-   <div class="px-2 mb-auto">
-      <article class="container">
-         <div class="w-full">
-            <div class="sm:flex sm:justify-between sm:items-center">
-               <UIPageTitle>
-                  {{ entry?.name }}
-                  <client-only>
-                     <UIIcon class="text-pmca-accent cursor-pointer"
-                        :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'"
-                        @click="entrySelected = toggle($event, id)"
-                        :title="entrySelected ? 'Remover' : 'Adicionar'"
-                     />
-                  </client-only>
-               </UIPageTitle>
-               <PublicEntryActions :entryId="entry!.id" :title="entry!.name" />
+   <article>
+      <div class="sm:flex sm:justify-between sm:items-center">
+         <UIPageTitle>
+            {{ entry?.name }}
+            <client-only>
+               <UIIcon class="text-pmca-accent cursor-pointer"
+                  :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'"
+                  @click="entrySelected = toggle($event, id)" :title="entrySelected ? 'Remover' : 'Adicionar'" />
+            </client-only>
+         </UIPageTitle>
+         <PublicEntryActions :entryId="entry!.id" :title="entry!.name" />
+      </div>
+
+      <UITab :tabs="['Verbete', 'Hierárquica', 'Histórico de alterações']" @change="onTabChange">
+         <template #tabPanel-1>
+            <div class="flex flex-col">
+
+               <PublicEntryMedia :images=images v-if="images.length > 0" />
+
+               <PublicEntryAttribute title="Traduções" :content="translations" />
+
+               <PublicEntryAttribute title="Variações" :content="entry?.variations" />
+
+               <PublicEntryAttribute title="Definição" :content="entry?.definition" :is-html=true />
+
+               <PublicEntryAttribute title="Notas" :content="entry?.notes" :is-html=true />
+
+               <PublicEntryAttribute title="Referências" :content="entry?.references" :is-html=true :is-one-line="true" />
+
+               <PublicEntryRelatedEntries title="Verbetes relacionados" :entries="entry?.relatedEntries"
+                  :opposite-side="entry?.entries" />
             </div>
-
-            <UITab :tabs="['Verbete', 'Hierárquica', 'Histórico de alterações']" @change="onTabChange">
-               <template #tabPanel-1>
-                  <div class="flex flex-col">
-
-                     <PublicEntryMedia :images=images v-if="images.length > 0" />
-
-                     <PublicEntryAttribute title="Traduções" :content="translations" />
-
-                     <PublicEntryAttribute title="Variações" :content="entry?.variations" />
-
-                     <PublicEntryAttribute title="Definição" :content="entry?.definition" :is-html=true />
-
-                     <PublicEntryAttribute title="Notas" :content="entry?.notes" :is-html=true />
-
-                     <PublicEntryAttribute title="Referências" :content="entry?.references" :is-html=true :is-one-line="true" />
-
-                     <PublicEntryRelatedEntries title="Verbetes relacionados" :entries="entry?.relatedEntries" :opposite-side="entry?.entries" />
-                  </div>
-               </template>
-               <template #tabPanel-2>
-                  <div class="flex flex-col">
-                     <UITreeView :tree="categoriesTree" class="p-3 overflow-y-auto text-pmca-primary" />
-                  </div>
-               </template>
-               <template #tabPanel-3>
-                  <div class="flex flex-col">
-                     <PublicEntryChanges :entry-changes="entry?.changes" />
-                  </div>
-               </template>
-            </UITab>
-         </div>
-      </article>
-   </div>
+         </template>
+         <template #tabPanel-2>
+            <div class="flex flex-col">
+               <UITreeView :tree="categoriesTree" class="p-3 overflow-y-auto text-pmca-primary" />
+            </div>
+         </template>
+         <template #tabPanel-3>
+            <div class="flex flex-col">
+               <PublicEntryChanges :entry-changes="entry?.changes" />
+            </div>
+         </template>
+      </UITab>
+   </article>
 </template>
  
 <script setup lang="ts">

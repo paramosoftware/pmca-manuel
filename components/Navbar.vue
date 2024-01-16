@@ -1,8 +1,7 @@
 <template>
-  <nav id="navbar" class="py-4">
+  <nav id="navbar" class="p-4 border-b-2 border-b-pmca-primary">
 
-    <div class="container mx-auto border-b-2 pb-4 border-b-pmca-primary">
-
+    <div class="max-w-screen-2xl mx-auto">
       <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
         <div class="mt-1">
           <NuxtLink to="/">
@@ -26,17 +25,16 @@
 
         <div class="col-span-4 md:col-span-7">
           <div class="flex flex-row justify-end align-bottom">
-            <UDropdown :items="items" :popper="{ placement: 'bottom-start' }" :ui="{ rounded: 'rounded-sm' }" >
+            <UDropdown :items="items" :popper="{ placement: 'bottom-end' }" >
               <UAvatar size="sm">
                 <UIIcon name="ph:user-circle" class="h-6 w-6"></UIIcon>
               </UAvatar>
             </UDropdown>
           </div>
         </div>
-
-
       </div>
     </div>
+
 
   </nav>
 </template>

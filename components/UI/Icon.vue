@@ -38,7 +38,6 @@ const css = computed(() => props.class + ' ' + props.cursorClass);
 
 const emit = defineEmits(['click']);
 function onClick($event: Event) {
-    console.log('click');
     emit('click', $event);
 }
 

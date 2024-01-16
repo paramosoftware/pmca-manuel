@@ -68,6 +68,7 @@ export const useListStore = defineStore('list', () => {
 
 
     function sortByName() {
+        page.value = 1;
         sort.value === 'asc' ? sort.value = 'desc' : sort.value = 'asc';
     }
 

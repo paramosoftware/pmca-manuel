@@ -1,42 +1,36 @@
 <template>
-    <div class="flex flex-col justify-center items-center">
-        <div class="container max-w-screen-md mx-auto p-5 bg-white border border-neutral">
-            <form @submit.prevent="submit()">
-
-                <div class="text-end flex justify-between" :class="{ 'mt-5 mb-2': !isAuxiliary }">
-                    <UIAnchorReturn v-if="!isAuxiliary" :href=urlList />
-
-                    <template v-if="!isCreate && !isAuxiliary">
-                        <UIButton class="justify-items-start content-start items-start" @click="goToCreateForm">
-                            <template v-if="genderNoun === 'f'">
-                                Nova
-                            </template>
-                            <template v-else>
-                                Novo
-                            </template>
-                        </UIButton>
-                    </template>
-                </div>
-
-                <div class="justify-between flex flex-row items-center mt-2">
-
-                    <UITitle>{{ isAuxiliary ? 'Adicionar' : (isCreate ? 'Criar' : 'Editar') }} {{ uncapitalize(label) }}</UITitle>
-                    <UIButton v-if="!isAuxiliary" :type='"submit"'>Salvar</UIButton>
-
-                </div>
-
-                <template v-for="field in fields" :key="field.id">
-                    <template v-if="components.has(field.name)">
-                        <component :is="components.get(field.name)" :id="field.name" :formStore="formStore" />
-                    </template>
+    <UICardContainer>
+        <template #header>
+            <UIAnchorReturn v-if="!isAuxiliary" :href=urlList />
+            <div class="text-end flex justify-between" :class="{ 'mt-5 mb-2': !isAuxiliary }">
+                <UIContainerTitle>
+                    {{ isAuxiliary ? 'Adicionar' : (isCreate ? 'Criar' : 'Editar') }} {{ uncapitalize(label) }}
+                </UIContainerTitle>
+                <template v-if="!isCreate && !isAuxiliary">
+                    <UIIcon name="ph:plus-circle" @click="goToCreateForm" title="Criar novo" class="w-8 h-8 cursor-pointer" />
                 </template>
+            </div>
+        </template>
 
-                <div class="mt-5 text-end">
-                    <UIButton :type='"submit"'>{{ (isAuxiliary ? 'Adicionar' : 'Salvar') }}</UIButton>
-                </div>
-            </form>
-        </div>
-    </div>
+
+        <form @submit.prevent="submit">
+            <div class="text-end" v-if="visibleFields > 5 && !isAuxiliary ">
+                <UIButton :type='"submit"'>Salvar</UIButton>
+            </div>
+
+            <template v-for="field in fields" :key="field.id">
+                <template v-if="components.has(field.name)">
+                    <component :is="components.get(field.name)" :id="field.name" :formStore="formStore" />
+                </template>
+            </template>
+
+            <div class="mt-5 text-end">
+                <UIButton :type='"submit"'>{{ (isAuxiliary ? 'Adicionar' : 'Salvar') }}</UIButton>
+            </div>
+
+        </form>
+
+    </UICardContainer>
 </template>
 
 <script setup lang="ts">
@@ -48,14 +42,13 @@ const props = defineProps({
         required: true
     },
 });
-
+const router = useRouter();
 const { model, label, genderNoun, labelSlug } = storeToRefs(props.formStore);
 
 const urlList = ROUTES.list + labelSlug.value;
-const urlCreate = ROUTES.create  + labelSlug.value;
+const urlCreate = ROUTES.create + labelSlug.value;
 const isCreate = !props.formStore.getId();
 const isAuxiliary = props.formStore.getIsAuxiliary();
-const router = useRouter();
 
 async function submit() {
 
@@ -77,30 +70,33 @@ async function submit() {
     }
 }
 
-
 function goToCreateForm() {
     if (process.client) {
         window.location.href = urlCreate;
     }
 }
 
-
 const fields = props.formStore.getFieldsConfig();
 const components = new Map<string, any>();
+const visibleFields = ref(0);
 
 for (const [key, field] of Object.entries(fields)) {
     const componentField = 'Field' + capitalize(field.uiField);
 
-    if  (props.formStore.getIsAuxiliary()) {
+    if (props.formStore.getIsAuxiliary()) {
         if (props.formStore.parentModel === field.relatedResource?.name) {
             continue;
         }
     }
 
     if (vueComponentExists(componentField) && resolveComponent(componentField)) {
+        if (!field.hidden) {
+            visibleFields.value++;
+        }
         components.set(field.name, resolveComponent(componentField));
     } else {
         console.error('Component ' + componentField + ' not found');
     }
 }
+
 </script>

@@ -19,10 +19,4 @@ useHead({
          { hid: 'og:description', property: 'og:description', content: description.value },
     ],
 });
-
-
-onBeforeMount(async () => {
-    const entryStore = useEntryStore();
-    await entryStore.load('', true);
-});
 </script>

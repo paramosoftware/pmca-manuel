@@ -1,7 +1,8 @@
 <template>
-    <footer class="mb-2 text-white mt-6">
-        <div class="container">
-            <div class="grid md:grid-cols-2 bg-pmca-primary-light p-4">
+    <footer class="text-white bg-pmca-primary-light shadow-md">
+
+        <div class="max-w-screen-2xl mx-auto">
+            <div class="grid md:grid-cols-2 p-4">
                 <div class="flex flex-col">
                     <div class="pb-2">
                         <NuxtLink to="/login" v-if="showLoginButton">
@@ -43,6 +44,7 @@
                 </div>
             </div>
         </div>
+
     </footer>
 </template>
 

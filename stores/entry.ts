@@ -5,8 +5,8 @@ export const useEntryStore = defineStore('entry', () => {
     const model = 'Entry';
     const entryIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
-    const pageSize = ref(16);
-    const pageSizes = ref([20, 30, 40]);
+    const pageSize = ref(12);
+    const pageSizes = ref([12, 24, 36]);
     const total = ref(0);
     const totalPages = ref(0);
     const search = ref('');
@@ -99,9 +99,13 @@ export const useEntryStore = defineStore('entry', () => {
             params: query.value
         }) as { data: Ref<PaginatedResponse>, pending: Ref<boolean>, error: Ref<Error | undefined> };
 
-        entries.value = data.value.items || [];
-        total.value = data.value?.total || 0;
-        totalPages.value = data.value?.totalPages || 0;
+
+        if (data.value) {
+            entries.value = data.value.items || [];
+            total.value = data.value?.total || 0;
+            totalPages.value = data.value?.totalPages || 0;
+        }
+
         pending.value = pending.value;
     }
 
@@ -178,6 +182,12 @@ export const useEntryStore = defineStore('entry', () => {
         totalPages.value = 0;
         pending.value = false;
         error.value = undefined;
+        search.value = '';
+    }
+
+    async function clearSelection() {
+        useEntrySelection().clearSelected();
+        window.location.reload();
     }
 
     return {
@@ -201,7 +211,9 @@ export const useEntryStore = defineStore('entry', () => {
         fetchNetwork,
         fetchCategoriesTree,
         sortByName,
-        exportData
+        exportData,
+        clear,
+        clearSelection
     }
 
 })

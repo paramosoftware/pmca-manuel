@@ -1,71 +1,62 @@
 <template>
-    <div class="container mx-auto mb-auto p-2">
-        <div class="flex flex-col justify-left">
+    <UICardContainer>
+        <template #header>
+            <UIAnchorReturn href="/admin" />
+            <UIContainerTitle>Importar</UIContainerTitle>
+        </template>
 
-            <UIPageTitle>Importar</UIPageTitle>
+        <p class="mt-4">
+            É possível importar verbetes para o sistema nos formatos: <strong>JSON, CSV, XLXS e SKOS</strong> (extensão .xml).
+        </p>
+        <p class="mt-4">
+            Os dados devem estar no formato correto para que a importação seja realizada com sucesso. Abaixo é possível visualizar um exemplo de cada formato.
+            Arquivos exportados pelo sistema (pelo site ou outras instâncias), em qualquer formato, podem ser utilizados para importação sem necessidade de alterações.
+        </p>
 
-            <p class="mt-4">
-                É possível importar verbetes para o sistema nos formatos: <strong>JSON, CSV, XLXS e SKOS</strong> (extensão .xml).
-            </p>
+        <p class="mt-4">
+            <UIIcon name="ph:warning" class="h-10 w-10 text-pmca-warning mr-3" />
+            <strong>Atenção:</strong> a importação sobrescreve os dados existentes no sistema.
+        </p>
 
-            <p class="mt-4">
-                Os dados devem estar no formato correto para que a importação seja realizada com sucesso. Abaixo é possível visualizar um exemplo de cada formato.
-                Arquivos exportados pelo sistema (pelo site ou outras instâncias), em qualquer formato, podem ser utilizados para importação sem necessidade de alterações.
-            </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" v-show="!importing && !completed">
+            <div>
+                <FieldSelect id="formato" label="Formato" :options="options" :required="true" v-model="importFormat" />
 
-            <p class="mt-4">
-                <UIIcon name="ph:warning" class="h-10 w-10 text-pmca-warning mr-3" />
+                <p class="text-pmca-secondary text-lg mt-4">
+                    Exemplo de arquivo
+                </p>
 
-                <strong>Atenção:</strong> a importação sobrescreve os dados existentes no sistema.
-            </p>
+                <!-- TODO: add example files -->     
+            </div>
 
+            <div class="p-10">
 
-            <UDivider class="mt-4 mb-4" />
+                 <!-- TODO: add check box to confirm overwrite -->
 
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" v-show="!importing && !completed">
-
-                <div>
-                    <FieldSelect id="formato" label="Formato" :options="options" :required="true" v-model="importFormat" />
-
-                    <p class="text-pmca-secondary text-lg mt-4">
-                        Exemplo de arquivo
-                    </p>
-
-                    <!-- TODO: add example files -->
-                    
-                </div>
-
-                <div class="p-10">
-
-                    <!-- TODO: add check box to confirm overwrite -->
-
-                    <FieldDropzone url="/api/entry/import" 
-                        :max-files=1
-                        accepted-files="application/json, application/xml, application/zip, text/csv, text/xml, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        @start='importing=true' 
-                        @close='completed=true; importing=false'
+                <FieldDropzone url="/api/entry/import" 
+                    :max-files=1
+                    accepted-files="application/json, application/xml, application/zip, text/csv, text/xml, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    @start='importing=true' 
+                    @close='completed=true; importing=false'
                     />
-                </div>
             </div>
-
-
-            <div class="mx-auto my-0 h-full mt-20" v-if="importing">
-                <div class="flex flex-col justify-center items-center">
-                    <UIIcon name="ph:spinner" class="h-16 w-16 animate-spin text-pmca-primary" />
-                </div>
-                <p>Importando...</p>
-            </div>
-
-            <div class="mx-auto my-0 h-full mt-20" v-if="completed">
-                <div class="flex flex-col justify-center items-center">
-                    <UIIcon name="ph:check-circle" class="h-16 w-16 text-pmca-accent" />
-                </div>
-                <p>Importação concluída!</p>
-            </div>
-
         </div>
-    </div>
+
+
+        <div class="mx-auto my-0 h-full mt-20" v-if="importing">
+            <div class="flex flex-col justify-center items-center">
+                    <UIIcon name="ph:spinner" class="h-16 w-16 animate-spin text-pmca-primary" />
+            </div>
+            <p>Importando...</p>
+        </div>
+
+        <div class="mx-auto my-0 h-full mt-20" v-if="completed">
+            <div class="flex flex-col justify-center items-center">
+                <UIIcon name="ph:check-circle" class="h-16 w-16 text-pmca-accent" />
+            </div>
+            <p>Importação concluída!</p>
+        </div>
+    </UICardContainer>
 </template>
 
 <script setup lang="ts">

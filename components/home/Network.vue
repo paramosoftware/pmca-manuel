@@ -37,10 +37,6 @@ const data = {
 
 
 const options = {
-    autoResize: false,
-    layout: {
-      improvedLayout: false
-    },
     height: "100%",
     width: "100%",
     interaction: {
@@ -90,6 +86,16 @@ onMounted(() => {
     const entryId = event.nodes[0];
     const entrySlug = entries.value.find((entry) => entry.id === entryId).nameSlug;
     router.push('/verbetes/' + entrySlug);
+  });
+
+  network.on('stabilized', function() {
+      network.moveTo({
+          scale: 1,
+          animation: {
+              duration: 1500,
+              easingFunction: 'easeInOutQuad'
+          }
+      });
   });
 });
 </script>

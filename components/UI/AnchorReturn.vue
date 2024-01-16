@@ -1,8 +1,7 @@
 <template>
     <div class="flex flex-row justify-start items-center">
-        <NuxtLink :to="href" class="text-pmca-secondary-dark hover:text-pmca-accent text-lg">
-            <UIIcon name="ph:arrow-left" class="w-5 h-5" />
-            Voltar
+        <NuxtLink :to="href">
+            <UIIcon name="ph:arrow-circle-left" class="w-8 h-8" title="Voltar" />
         </NuxtLink>
     </div>
 </template>
