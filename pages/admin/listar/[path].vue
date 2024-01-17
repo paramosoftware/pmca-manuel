@@ -7,7 +7,7 @@
             </div>
 
             <div class="justify-between flex flex-row items-center my-4">
-                <UITitle>{{ labelPlural }}</UITitle>
+                <UIContainerTitle>{{ labelPlural }}</UIContainerTitle>
                 <UIIcon name="ph:plus-circle" @click="goToCreateForm" title="Criar novo" class="w-8 h-8 cursor-pointer" />
             </div>
 

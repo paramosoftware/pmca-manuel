@@ -33,9 +33,6 @@ if (error.value) {
     console.error(error.value);
 }
 
-if (pending.value) {
-    console.log('pending');
-}
 
 const resources = data.value.items as AppResource[] ?? [];
 
@@ -48,10 +45,12 @@ const links: { name: string, path: string, restrictedToAdmin: boolean }[] = [];
 for (const resource of resources) {
     links.push({
         name: resource.labelPlural,
-        path: getPath(resource.labelSlug!),
+        path: getPath(resource.labelSlug),
         restrictedToAdmin: false
     })
 }
+
+links.sort((a, b) => a.name.localeCompare(b.name));
 
 useHead({
     title: 'Painel | ' + useRuntimeConfig().public.appName,

@@ -39,6 +39,9 @@ const data = {
 const options = {
     height: "100%",
     width: "100%",
+    layout: {
+      improvedLayout: false,
+    },
     interaction: {
       hover: true,
       tooltipDelay: 200,
