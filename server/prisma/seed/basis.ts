@@ -1,6 +1,9 @@
 import { Prisma, PrismaClient } from '@prisma/client'
 import { createOneOrMany } from '../../express/prisma/create';
 import { MODELS as modelsTranslations, FIELDS as fieldsTranslations } from "~/config/translations";
+import LANGUAGES from '~/config/languages';
+import { updateOne } from '~/server/express/prisma/update';
+import { readMany } from '~/server/express/prisma/read';
 
 const prisma = new PrismaClient()
 const relatedResources = new Map<string, string>();
@@ -170,6 +173,33 @@ async function main() {
     })
 
     fieldRelationsCount++;
+  }
+
+  for (const [name, code] of LANGUAGES) {
+    const where = {
+      or: [
+        { name: name },
+        { code: code },
+        { code: name },
+        { name: code }
+      ]
+    }
+
+    const foundLanguage = await readMany('language', { where: where });
+
+    if (foundLanguage && foundLanguage.total > 0) {
+      if (foundLanguage.items[0].name !== name) {
+        await updateOne('language', foundLanguage.items[0].id, { name: name });
+      }
+
+      if (foundLanguage.items[0].code !== code) {
+        await updateOne('language', foundLanguage.items[0].id, { code: code });
+      }
+
+      continue;
+    }
+
+    const newLanguage = await createOneOrMany('language', { name, code });
   }
 
   console.log('Found ' + fieldRelations.size + ' relations and connected ' + fieldRelationsCount);
