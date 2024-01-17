@@ -72,7 +72,6 @@ const props = defineProps({
 const list = ref<{id?: ID, name: string, value: string | number }[]>([]);
 
 const defaultValue = getFormFieldConfig('defaultValue', '', props);
-const modelValue = getFormFieldConfig('modelValue', defaultValue?.value, props);
 const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
 const label = getFormFieldConfig('label', '', props);
@@ -81,6 +80,10 @@ const placeholder = getFormFieldConfig('placeholder', '', props);
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const defaultOptions = getFormFieldConfig('defaultOptions', '', props);
 const options = getFormFieldConfig('options', [], props);
+let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
+if (props.formStore) {
+    modelValue = computed(() => props.formStore?.getFieldData(props.id));
+}
 
 const loading = ref(false);
 
