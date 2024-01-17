@@ -132,7 +132,7 @@ export const useEntryStore = defineStore('entry', () => {
               pageSize: -1,
               select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
               where: {
-                isCategory: false,
+                isCategory: true,
               },
               include: {
                 children: {
@@ -152,7 +152,7 @@ export const useEntryStore = defineStore('entry', () => {
           });
         
           if (data.value) {
-            categoriesTree.value = buildTreeData(data.value, false, entry.value?.id, undefined, 'children');
+            categoriesTree.value = buildTreeData(data.value, false, entry.value?.id, undefined, 'children') as TreeNode[];
           }
 
     }

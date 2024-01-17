@@ -4,16 +4,16 @@
             {{ label }}
         </label>
 
-        <div v-if="tree">
+        <div v-if="tree && tree.children.length > 0">
             <Finder 
                 :tree="tree" 
                 @expand="onExpand"
-                :default-expanded="modelValue"
+                :default-expanded="parentIdExists ? modelValue : undefined"
                 class="h-64 border border-gray-300" 
             />
         </div>
-        <div v-else>
-            <p class="text-gray-700">Nenhum item cadastrado para montar a hierarquia.</p>
+        <div v-else-if="nodeIdToRemove">
+            <p>O item em edição é o único ramo disponível.</p>
         </div>
     </div>
 </template>
@@ -38,7 +38,6 @@ const props = defineProps({
     },
     relatedResource: {
         type: Object as PropType<{ name: string }>,
-        required: true,
     },
     defaultValue: {
         type: [String, Number],
@@ -50,7 +49,6 @@ const props = defineProps({
     },
     formStore: {
         type: Object as PropType<FormStore>,
-        required: true
     }
 })
 
@@ -71,15 +69,12 @@ if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
 }
 
 
-
-// TODO: still need to parametrize finder to be used inside "Category" (which will be an Entry under the hood)
-// and "Entry" forms (where it will be used to select the parent category)
 const defaultQuery = {
     pageSize: -1,
     select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
     where: {
         isCategory: true
-    },
+    }
 } as any;
 
 const { data } = await useFetchWithBaseUrl('/api/' + relatedResource.value.name, {
@@ -96,16 +91,21 @@ const { data } = await useFetchWithBaseUrl('/api/' + relatedResource.value.name,
 
 const tree = ref<TreeNode>();
 
+let nodeIdToRemove = undefined as ID | undefined;
+let parentIdExists = false;
+
 if (data.value)  {
 
     // don't show the descendants of the current node
-    let nodeIdToRemove = undefined;
-
-    if (relatedResource.value.name === props.formStore?.model) {
-        nodeIdToRemove = props.formStore?.getId();
+    if (relatedResource.value.name === props.formStore?.name) {
+        nodeIdToRemove = props.formStore?.getId() === 0 ? undefined : props.formStore?.getId();
     }
 
-    tree.value = buildTreeData(data.value, true, undefined, nodeIdToRemove)[0];
+    const builtTree = buildTreeData(data.value, true, undefined, nodeIdToRemove, undefined, modelValue.value);
+
+    tree.value = builtTree[0];
+    parentIdExists = builtTree[1] as boolean;
+    
 }
 
 // @ts-ignore
@@ -120,7 +120,11 @@ const onExpand = ({ expanded, sourceEvent, expandedItems }) => {
     }
 
     emit('update:modelValue', lastExpanded);
-    props.formStore.setFieldData(props.id, lastExpanded);
+
+
+    if (props.formStore) {
+        props.formStore.setFieldData(props.id, lastExpanded);
+    }
 }
 
 </script>

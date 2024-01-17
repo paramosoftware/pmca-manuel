@@ -2,66 +2,72 @@
 import parseNumber from "./parseNumber";
 
 export function buildTreeData(
-  hierarchalItems: HierarchicalItem[], 
-  addRootNode: boolean = true,
-  nodeIdToExpand?: ID, 
-  nodeIdToRemove?: ID, 
-  leavesKey?: string // when the leaves are in a different key
-): TreeNode[] 
-{
+    hierarchalItems: HierarchicalItem[],
+    addRootNode: boolean = true,
+    nodeIdToExpand?: ID,
+    nodeIdToRemove?: ID,
+    leavesKey?: string, // when the leaves are in a different key
+    nodeIdExistent?: ID // TODO: temporary solution to for finder component to work when the defaultExpanded value does not exist in the tree
+): TreeNode[] | [TreeNode, boolean] {
 
-  const nodeMap = new Map<ID, TreeNode>();
-  const rootNodes: TreeNode[] = [];
+    const tempLabel = '___' + Math.random().toString(36).substring(7);
+    const nodeMap = new Map<ID, TreeNode>();
+    const rootNode = createNode({ id: 'root', name: 'Root', parentId: null, children: [] });
+    let nodeIdExist = false;
 
-  const rootNode = createNode({ id: 'root', name: 'Root', parentId: null, children: [] });
+    if (!rootNode) { return []; }
 
-  if (!rootNode) {
-      return [];
-  }
+    for (const item of hierarchalItems) {
 
-  rootNodes.push(rootNode);
+        if (!nodeIdExist && nodeIdExistent) {
+            nodeIdExist = parseNumber(nodeIdExistent) === parseNumber(item.id);
+        }
 
-  for (const item of hierarchalItems) {
+        let currentNode = nodeMap.get(item.id);
 
-      let currentNode = nodeMap.get(item.id);
-      let tempNode = createNode(item, nodeIdToExpand, nodeIdToRemove, leavesKey);
+        if (currentNode && currentNode.label === tempLabel) {
+            const replaceNode = createNode(item, nodeIdToExpand, nodeIdToRemove, leavesKey);
+            if (!replaceNode) { continue; }
+            replaceNode.children = currentNode.children;
+            nodeMap.set(item.id, replaceNode);
+            currentNode = replaceNode;
+        }
 
-      if (!tempNode) { continue; }
+        let tempNode = createNode(item, nodeIdToExpand, nodeIdToRemove, leavesKey);
+  
+        if (!tempNode) { continue; }
+  
+        if (!currentNode) {
+            currentNode = tempNode;
+            nodeMap.set(item.id, currentNode);
+        }
+  
+        if (!currentNode) { continue; }
+  
+        if (item.parentId === null) {
+            currentNode.parentId = rootNode.id;
+            rootNode.children.push(currentNode);
+        } else {
+  
+            let parentNode = nodeMap.get(item.parentId);
+            let tempNode = createNode({ id: item.parentId, name: tempLabel, parentId: null, children: [] }, nodeIdToExpand, nodeIdToRemove, leavesKey);
+  
+            if (!tempNode) { continue; }
+            
+            if (!parentNode) {
+                parentNode = tempNode;
+                nodeMap.set(item.parentId, parentNode);
+            }
+  
+            parentNode.children.push(currentNode);
+        }
+    }
 
-      if (currentNode) {
-          currentNode = tempNode;
-      } else {
-          currentNode = tempNode;
-          nodeMap.set(item.id, currentNode);
-      }
+    if (!addRootNode) {
+        return rootNode.children;
+    }
 
-      if (!currentNode) { continue; }
-
-      if (item.parentId === null) {
-          currentNode.parentId = rootNode.id;
-          rootNode.children.push(currentNode);
-      } else {
-
-          let parentNode = nodeMap.get(item.parentId);
-          let tempNode = createNode(item, nodeIdToExpand, nodeIdToRemove, leavesKey);
-
-          if (!tempNode) { continue; }
-          
-          if (!parentNode) {
-              parentNode = tempNode;
-              nodeMap.set(item.parentId, parentNode);
-          }
-
-          parentNode.children.push(currentNode);
-          currentNode.parentId = parentNode.id;
-      }
-  }
-
-  if (!addRootNode) {
-      return rootNodes[0].children;
-  }
-
-  return rootNodes;
+    return [rootNode, nodeIdExist];
 }
 
 
