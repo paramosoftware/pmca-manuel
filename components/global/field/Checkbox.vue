@@ -55,7 +55,8 @@ const label = getFormFieldConfig('label', '', props);
 let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
 
 if (props.formStore) {
-    modelValue = computed(() => props.formStore?.getFieldData(props.id));
+    modelValue = computed(() => props.formStore?.getFieldData(props.id) ?? defaultValue.value);
+    props.formStore.setFieldData(props.id, modelValue.value);
 }
 
 const emit = defineEmits(['update:modelValue']);
