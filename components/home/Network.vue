@@ -1,5 +1,9 @@
 <template>
-    <div id="vis-network"></div>
+  <div class="mt-5 md:mx-auto min-h-[60vh] w-full" v-if="entries.length > 0">
+
+      <div id="vis-network" class="w-full h-full"></div>
+
+  </div>
 </template>
   
 <script setup>
@@ -84,6 +88,11 @@ let network;
 
 onMounted(() => {
   const container = document.getElementById("vis-network");
+
+  if (!container) {
+    return;
+  }
+
   network = new Network(container, data, options);
   network.on("click", function (event) {
     const entryId = event.nodes[0];

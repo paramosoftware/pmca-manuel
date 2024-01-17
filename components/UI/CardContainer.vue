@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col justify-center items-center m-5 mb-auto">
-        <div class="container mx-auto p-5 bg-white border border-neutral rounded-md shadow-sm mb-5" :class="size">
+        <div class="container mx-auto p-5 bg-white mb-5 max-w-screen-lg" :class="css">
 
         <slot name="header" />
 
@@ -14,11 +14,15 @@
 
 <script setup lang="ts">
 const props = defineProps({
-    size: {
-        type: String as PropType<'sm' | 'md' | 'lg' | 'xl' | '2xl'>,
-        default: 'lg'
+    border: {
+        type: Boolean,
+        default: true
     }
 });
 
-const size = computed(() => 'max-w-screen-' + props.size) as ComputedRef<string>;
+const css = computed(() => {
+    const border = 'rounded-md shadow-md border border-neutral'
+    return props.border ? (border) : '';
+    
+}) as ComputedRef<string>;
 </script>

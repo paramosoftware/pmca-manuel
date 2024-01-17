@@ -69,6 +69,9 @@
                 </div>
             </div>
         </div>
+        <div v-else-if="total === 0 && search === '' && !pending" class="mt-4">
+            <p>Nenhum item cadastrado.</p>
+        </div>
 
         <div class="mt-5 flex justify-end">
             <div v-if="total > pageSize">
@@ -123,9 +126,9 @@ const deleteItem = async () => {
 }
 
 function goToCreateForm() {
-    if (process.client) {
-        window.location.href = createUrl;
-    }
+
+    navigateTo(createUrl);
+
 }
 
 onUnmounted(() => {

@@ -96,7 +96,7 @@ export const useListStore = defineStore('list', () => {
             })
         }
 
-        await fetch(resourceStore.model);
+        await fetch(resourceStore.name);
     }
 
     function destroy() {

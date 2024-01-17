@@ -1,5 +1,5 @@
 <template>
-    <UICardContainer>
+    <UICardContainer :border="!isAuxiliary">
         <template #header>
             <UIAnchorReturn v-if="!isAuxiliary" :href=urlList />
             <div class="text-end flex justify-between" :class="{ 'mt-5 mb-2': !isAuxiliary }">

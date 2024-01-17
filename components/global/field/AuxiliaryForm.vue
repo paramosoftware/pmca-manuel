@@ -35,7 +35,7 @@
                 </template>
             </UButton>
 
-            <UModal :id="relatedResource.name + '-modal-form'" v-model="isModalOpen">
+            <UModal :id="relatedResource.name + '-modal-form'" v-model="isModalOpen" :ui="{ padding: 'p-0' }">
                 <UICloseButton @click="isModalOpen = false" />
                 <Form :form-store="auxiliaryFormStore" :id="relatedResource.name + '-form'" />
             </UModal>

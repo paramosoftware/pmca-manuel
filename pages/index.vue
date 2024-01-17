@@ -31,13 +31,10 @@
       </section>
     </div>
 
-    <div class="container mx-auto">
-      <HomeCarousel />
-    </div>
+    <HomeCarousel />
 
-    <div class="mt-5 md:mx-auto min-h-[60vh] w-full">
-      <HomeNetwork class="h-full w-full" />
-    </div>
+    <HomeNetwork />
+
 
  
 

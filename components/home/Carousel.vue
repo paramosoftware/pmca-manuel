@@ -1,27 +1,29 @@
 <template>
-    <Splide :has-track="false" :options="options" class="p-5 sm:px-14" v-if="entries && entries.length > 0">
-        <UITitle id="carousel-heading" class="my-5">
-            <span class="text-semibold text-3xl">
-                Verbetes selecionados
+    <div class="container mx-auto" v-if="entries && entries.length > 0">
+        <Splide :has-track="false" :options="options" class="p-5 sm:px-14">
+            <UITitle id="carousel-heading" class="my-5">
+                <span class="text-semibold text-3xl">
+                    Verbetes selecionados
+                </span>
+            </UITitle>
+            <SplideTrack>
+                <SplideSlide v-for="entry in entries" :key="entry.id" class="mx-auto items-center justify-center">
+                    <PublicEntryCard :entry="entry" />
+                </SplideSlide>
+            </SplideTrack>
+
+
+            <span class="splide__arrows w-36 h-36">
+                <button class="splide__arrow splide__arrow--prev">
+                        <UIIcon name="ph:caret-right" />
+                </button>
+                <button class="splide__arrow splide__arrow--next">
+                        <UIIcon name="ph:caret-right" />
+                </button>
             </span>
-        </UITitle>
-        <SplideTrack>
-            <SplideSlide v-for="entry in entries" :key="entry.id" class="mx-auto items-center justify-center">
-                <PublicEntryCard :entry="entry" />
-            </SplideSlide>
-        </SplideTrack>
 
-
-        <span class="splide__arrows w-36 h-36">
-            <button class="splide__arrow splide__arrow--prev">
-                    <UIIcon name="ph:caret-right" />
-            </button>
-            <button class="splide__arrow splide__arrow--next">
-                    <UIIcon name="ph:caret-right" />
-            </button>
-        </span>
-
-    </Splide>
+        </Splide>
+    </div>
 </template>
 
 <script setup>

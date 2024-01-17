@@ -15,6 +15,9 @@
         <div v-else-if="nodeIdToRemove">
             <p>O item em edição é o único ramo disponível.</p>
         </div>
+        <div v-else>
+            <p>Nenhum item disponível para montar a hierarquia.</p>
+        </div>
     </div>
 </template>
   
@@ -97,7 +100,7 @@ let parentIdExists = false;
 if (data.value)  {
 
     // don't show the descendants of the current node
-    if (relatedResource.value.name === props.formStore?.name) {
+    if (relatedResource.value.name === props.formStore?.model) {
         nodeIdToRemove = props.formStore?.getId() === 0 ? undefined : props.formStore?.getId();
     }
 

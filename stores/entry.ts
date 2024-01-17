@@ -45,7 +45,9 @@ export const useEntryStore = defineStore('entry', () => {
                         }
                     }
                 ],
-                and: []
+                and: [{
+                        isCategory: false
+                    }]
             },
             orderBy: {
                 name: sort.value
