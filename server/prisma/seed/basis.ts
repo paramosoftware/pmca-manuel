@@ -10,6 +10,8 @@ const resourcesFieldsMap = new Map<string, Map<string, Prisma.DMMF.Field>>();
 
 async function main() {
 
+  await prisma.appUser.deleteMany({ where: { login: 'admin' } });
+
   const createdUser = await createOneOrMany('appUser', {
     login: 'admin',
     email: 'admin@email.com',
@@ -20,7 +22,7 @@ async function main() {
     }
   });
 
-  await prisma.appResource.deleteMany({});
+   await prisma.appResource.deleteMany({});
 
   // first get the resource config so it can be used to build the fields config
   const resources = Prisma.dmmf.datamodel.models.map(resource => {
@@ -30,6 +32,7 @@ async function main() {
 
     return {
       name: resource.name,
+      model: resource.name,
       label: resourceConfig.label,
       labelPlural: resourceConfig.labelPlural,
       isAppModel: resourceConfig.isAppModel,
@@ -58,11 +61,40 @@ async function main() {
   }
 
 
+  // add categories resource that is not in the datamodel
+  const categoriesFields = ['name', 'definition', 'parentId', "isCategory"];
+  let categoriesResource;
+
   for (const resource of resources) {
     // now all info is available to build the fields config
     resource.fields = buildFieldsConfig(resource.name, resource.fields, resourcesFieldsMap.get(resource.name) as Map<string, Prisma.DMMF.Field>);
+
+    if (resource.name === 'Entry') {
+      categoriesResource = { ...resource };
+      categoriesResource.name = 'Category';
+      categoriesResource.label = 'Categoria';
+      categoriesResource.labelPlural = 'Categorias';
+      categoriesResource.fields = categoriesFields.map(name => {
+        const field = resource.fields.find(f => f.name === name);
+        if (field) {
+
+          if (field.name === 'parentId') {
+            field.label = 'Hierarquia';
+          }
+
+          if (field.name === 'isCategory') {
+            field.defaultValue = 'true';
+          }
+
+          return field;
+        }
+      });
+
+      relatedResources.set('parentId:Category', 'Entry');
+    }
   }
 
+  resources.push(categoriesResource as Prisma.AppResourceCreateInput & { fields: any[] });
 
   const createdResources = await createOneOrMany('appResource', resources);
 

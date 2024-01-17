@@ -3,6 +3,7 @@ export const createFormStore = (name: string) => {
     return defineStore(name, () => {
 
         const id = ref<ID>(0);
+        const name = ref('');
         const model = ref('');
         const label = ref('');
         const labelPlural = ref('');
@@ -44,7 +45,8 @@ export const createFormStore = (name: string) => {
             if (!resourceStore.model) {
                 throw new Error('Resource not found');
             }
-
+            
+            name.value = resourceStore.name;
             model.value = resourceStore.model;
             label.value = resourceStore.label || '';
             labelPlural.value = resourceStore.labelPlural || '';
@@ -341,6 +343,7 @@ export const createFormStore = (name: string) => {
         }
 
         return {
+            name,
             label,
             labelPlural,
             labelSlug,

@@ -33,15 +33,15 @@ export const useListStore = defineStore('list', () => {
             }
         }
 
-        if (QUERIES.get(resourceStore.model)?.where) {
-            q.where = Object.assign(q.where, QUERIES.get(resourceStore.model)?.where);
+        if (QUERIES.get(resourceStore.name)?.where) {
+            q.where = Object.assign(q.where, QUERIES.get(resourceStore.name)?.where);
         }
 
         return q;
     });
 
     watch(() => query.value, async () => {
-       await fetch(resourceStore.model);
+       await fetch(resourceStore.name);
     }, { deep: true });
 
     async function fetch(resourceIdentifier: string) {
@@ -72,7 +72,7 @@ export const useListStore = defineStore('list', () => {
         sort.value === 'asc' ? sort.value = 'desc' : sort.value = 'asc';
     }
 
-    async function deleteItem(id: number | string) {
+    async function deleteItem(id: ID) {
 
         const urlDelete = computed(() => `/api/${resourceStore.model}/${id}`);
 

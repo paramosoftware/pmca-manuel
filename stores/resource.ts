@@ -1,5 +1,6 @@
 export const useResourceStore = defineStore('resource', () => {
 
+    const name = ref('');
     const model = ref('');
     const label = ref('');
     const labelSlug = ref('');
@@ -37,7 +38,8 @@ export const useResourceStore = defineStore('resource', () => {
         };
 
         if (data.value) {
-            model.value = data.value.name || '';
+            name.value = data.value.name || '';
+            model.value = data.value.model || '';
             label.value = data.value.label || '';
             labelSlug.value = data.value.labelSlug || '';
             labelPlural.value = data.value.labelPlural || '';
@@ -51,6 +53,7 @@ export const useResourceStore = defineStore('resource', () => {
     }
 
     return {
+        name,
         model,
         label,
         labelPlural,

@@ -112,7 +112,8 @@ model AppMedia {
 
 model AppResource {
   id             Int      @id @default(autoincrement())
-  name           String   @unique /// disabled:true
+  name           String   @unique
+  model          String
   label          String
   labelPlural    String
   description    String?
@@ -122,6 +123,7 @@ model AppResource {
   isAppModel     Boolean? @default(false)
   isPublic       Boolean? @default(false)
 
+  modelNormalized       String
   nameSlug              String  @unique
   labelSlug             String  @unique
   nameNormalized        String?
@@ -140,7 +142,7 @@ model AppResource {
 
 model AppResourceField {
   id             Int      @id @default(autoincrement())
-  name           String /// disabled:true
+  name           String
   label          String
   valueType      String   @default("string") /// defaultOptions:string,number,boolean,object,array
   uiField        String   @default("input") /// defaultOptions:input,textarea,rich,select,checkbox,autocomplete,finder,media,auxiliaryForm,dropzone
