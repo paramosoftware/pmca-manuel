@@ -7,6 +7,10 @@ export default function parseNumber(value: any): any {
         return value.map((v) => parseNumber(v));
     }
 
+    if (value instanceof Date) {
+        return value;
+    }
+
     const parsed = Number(value);
 
     if (isNaN(parsed)) {
