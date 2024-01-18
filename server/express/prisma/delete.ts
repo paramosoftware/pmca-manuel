@@ -12,7 +12,7 @@ export async function deleteOne(model: string, id: string, next: express.NextFun
     try {
 
         // TODO: Temporary solution for deleting media
-        if (model === 'entry') {
+        if (model === 'Entry') {
             entryMedia = await prisma.entryMedia.findMany({
                 where: {
                     entryId: parseInt(id)
@@ -60,7 +60,7 @@ export async function deleteOneOrManyWithQuery(model: string, body: Partial<Pagi
         const query = convertPaginatedQueryToPrismaQuery(request, model);
 
         // TODO: Temporary solution for deleting media
-        if (model === 'entry') {
+        if (model === 'Entry') {
             const entries = await prisma.entry.findMany(query);
             const ids = entries.map(entry => entry.id);
 
@@ -79,6 +79,8 @@ export async function deleteOneOrManyWithQuery(model: string, body: Partial<Pagi
                 entryMedia.push(entry);
             });
         }
+
+        query.orderBy = undefined;
 
         // @ts-ignore
         const data = await prisma[model].deleteMany(query);
