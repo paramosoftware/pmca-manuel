@@ -278,6 +278,7 @@ function buildFieldsConfig(resource: string, fields: Prisma.DMMF.Field[], fields
       relatedResource: docConfig.relatedResource || getRelatedResource(resource, field, fieldsMap),
       oppositeField: undefined,
       position: docConfig.position || Array.from(fieldsMap.keys()).indexOf(field.name) + 1,
+      includeExport: docConfig.includeExport === 'true' || false,
     } as Prisma.AppResourceFieldCreateInput & { resource: undefined };
 
     fieldsConfig.push(fieldConfig);

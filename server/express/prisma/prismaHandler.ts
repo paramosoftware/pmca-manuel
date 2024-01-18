@@ -8,9 +8,9 @@ import { convertQueryParamsToPaginatedQuery, getParamsFromPath } from './helpers
 import { importUploadFile, uploadMedia } from './media';
 import { readOne, readMany } from './read';
 import { updateMany, updateOne } from './update';
-import { convertToFormatAndSend } from './dataFormatConverters';
-import { exportData, importAll } from './export';
+import { exportData } from './export';
 import fs from 'fs';
+import { importData } from './import';
 
 const prismaHandler =  async (req: express.Request, res: express.Response, next: express.NextFunction) => {
 
@@ -58,7 +58,7 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
         switch (method) {
             case 'GET':
                 if (isExport) {
-                    response = await exportData(format, addMedia, query);
+                    response = await exportData.exportToFormat(model, format, addMedia, query);
                 } else if (id) {
                     response = readOne(model, id, query, next);
                 } else {
@@ -81,7 +81,7 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
                      response = uploadMedia(model, id, body, req, res, next);
                 } else if (isImport) {
                     const importFilePath = await importUploadFile(req, res, next) as string;
-                    await importAll(importFilePath);
+                    await importData.importFrom(model, importFilePath);
                     response = { message: 'Imported successfully' };
                 } else {
                     response = createOneOrMany(model, body, next);

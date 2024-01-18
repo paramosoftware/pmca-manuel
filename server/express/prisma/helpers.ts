@@ -8,7 +8,7 @@ import  hashPassword from '~/utils/hashPassword';
 import getBoolean from '~/utils/getBoolean';
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '~/server/prisma/prisma';
-import uncapitalize from '~/utils/uncapitalize';
+import capitalize from '~/utils/capitalize';
 import parseNumber  from '~/utils/parseNumber';
 
 
@@ -312,7 +312,7 @@ export function getParamsFromPath(path: string) {
 
     const parts = path.replace('/api/', '').split('/');
 
-    info.model = uncapitalize(parts[0]);
+    info.model = capitalize(parts[0]);
 
     parts.shift();
 

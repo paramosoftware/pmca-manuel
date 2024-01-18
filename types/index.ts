@@ -60,6 +60,7 @@ declare global {
         media?: AppMedia[];
         relatedEntries?: Entry[];
         entries?: Entry[];
+        children?: Entry[];
     };
 
 

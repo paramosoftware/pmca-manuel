@@ -159,6 +159,7 @@ model AppResourceField {
   isHierarchical Boolean? @default(false)
   allowCreate    Boolean? @default(true)
   allowMultiple  Boolean? @default(true)
+  includeExport  Boolean? @default(false)
   position       Int      @default(0)
 
   oppositeFieldId       Int?
@@ -226,24 +227,24 @@ model AppUserSession {
 }
 
 model Entry {
-  id         Int     @id @default(autoincrement())
-  name       String
+  id         Int     @id @default(autoincrement()) /// includeExport:true
+  name       String  /// includeExport:true
   nameSlug   String  @unique
-  isCategory Boolean @default(false) /// hidden:true
-  definition String?
-  notes      String?
+  isCategory Boolean @default(false) /// hidden:true|includeExport:true
+  definition String? /// includeExport:true
+  notes      String? /// includeExport:true
 
   parentId Int?
   children Entry[] @relation("EntryToChildren")
-  parent   Entry?  @relation("EntryToChildren", fields: [parentId], references: [id])
+  parent   Entry?  @relation("EntryToChildren", fields: [parentId], references: [id]) /// includeExport:true
 
-  variations   EntryVariation[]
-  translations EntryTranslation[]
+  variations   EntryVariation[] /// includeExport:true
+  translations EntryTranslation[] /// includeExport:true
 
-  entries        Entry[] @relation("EntryToEntry")
-  relatedEntries Entry[] @relation("EntryToEntry")
+  entries        Entry[] @relation("EntryToEntry") /// includeExport:true
+  relatedEntries Entry[] @relation("EntryToEntry") /// includeExport:true
 
-  references Reference[]
+  references Reference[] /// includeExport:true
   media      EntryMedia[]
 
   accessCount Int            @default(0) /// disabled:true|hidden:true

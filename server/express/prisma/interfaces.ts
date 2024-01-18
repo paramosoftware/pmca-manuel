@@ -6,12 +6,12 @@ export interface Where {
     and?: Condition | Condition[];
     or?: Condition | Condition[];
     not?: Condition | Condition[];
-    [key: string]: string | number | string[] | number[] | Condition | Condition[] | undefined;
+    [key: string]: string | number | Date | string[] | number[] | Condition | Condition[] | undefined;
 }
 
 export interface Condition {
     [key: string]: {
-        [key in Operator]?: string | number | string[] | number[]
+        [key in Operator]?: string | Date | number | string[] | number[]
     } | string | number | string[] | number[] | Condition | Condition[] | undefined;
 }
 
