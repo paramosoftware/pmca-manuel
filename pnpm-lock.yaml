@@ -35,6 +35,9 @@ dependencies:
   diff:
     specifier: ^5.1.0
     version: 5.1.0
+  dotenv:
+    specifier: ^16.3.2
+    version: 16.3.2
   exceljs:
     specifier: ^4.4.0
     version: 4.4.0
@@ -1267,7 +1270,7 @@ packages:
       create-require: 1.1.1
       defu: 6.1.4
       destr: 2.0.2
-      dotenv: 16.3.1
+      dotenv: 16.3.2
       git-url-parse: 13.1.1
       is-docker: 3.0.0
       jiti: 1.21.0
@@ -3096,7 +3099,7 @@ packages:
     dependencies:
       chokidar: 3.5.3
       defu: 6.1.4
-      dotenv: 16.3.1
+      dotenv: 16.3.2
       giget: 1.2.1
       jiti: 1.21.0
       mlly: 1.5.0
@@ -3935,8 +3938,8 @@ packages:
     resolution: {integrity: sha512-YXQl1DSa4/PQyRfgrv6aoNjhasp/p4qs9FjJ4q4cQk+8m4r6k4ZSiEyytKG8f8W9gi8WsQtIObNmKd+tMzNTmA==}
     dev: true
 
-  /dotenv@16.3.1:
-    resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
+  /dotenv@16.3.2:
+    resolution: {integrity: sha512-HTlk5nmhkm8F6JcdXvHIzaorzCoziNQT9mGxLPVXW8wJF1TiGSL60ZGB4gHWabHOaMmWmhvk2/lPHfnBiT78AQ==}
     engines: {node: '>=12'}
 
   /dotenv@9.0.2:

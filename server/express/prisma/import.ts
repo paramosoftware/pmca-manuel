@@ -7,14 +7,14 @@ import { v4 as uuidv4 } from 'uuid';
 import LANGUAGES from '~/config/languages';
 import { prisma } from '~/server/prisma/prisma';
 import deleteFolder from '~/utils/deleteFolder';
-import getMediaPath from '~/utils/getMediaPath';
-import getTempPath from '~/utils/getTempPath';
+import getDataFolderPath from '~/utils/getDataFolderPath';
 import parseNumber from '~/utils/parseNumber';
 import { useCamelCase } from '~/utils/useCamelCase';
 import { createOneOrMany } from './create';
 import { deleteOneOrManyWithQuery } from './delete';
 import { saveMedia } from './media';
 import { readMany, readOne } from './read';
+
 
 
 export const importData = function () {
@@ -58,7 +58,7 @@ export const importData = function () {
 
         await setResourceConfig();
     
-        const importPath = path.join(getTempPath(true), 'import');
+        const importPath = path.join(getDataFolderPath('temp'), 'import');
         const zipPath = filePath;
     
         if (path.extname(filePath) === '.zip') {
@@ -525,14 +525,14 @@ export const importData = function () {
     
             const newFileName = `${uuidv4()}.${ext}`;
     
-            const entryId = createdEntries.get(oldId) ??  createdEntries.get('#' + oldId);
+            const entryId = createdEntries.get(oldId) ?? createdEntries.get('#' + oldId);
 
             if (entryId) {
                 await saveMedia(entryId, newFileName, mediaFile, parseNumber(position));
             }
     
             const oldPath = path.join(mediaPath, mediaFile);
-            const newPath = path.join(getMediaPath(true), newFileName);
+            const newPath = path.join(getDataFolderPath('media'), newFileName);
     
             fs.renameSync(oldPath, newPath);
         }

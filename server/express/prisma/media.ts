@@ -3,15 +3,14 @@ import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import getMediaPath from '~/utils/getMediaPath';
-import getTempPath from '~/utils/getTempPath';
 import { prisma } from '../../prisma/prisma';
 import { UploadError } from '../error';
+import getDataFolderPath from '~/utils/getDataFolderPath';
 
 
 export async function uploadMedia(model: string, id: string, body: any, req: express.Request, res: express.Response, next: express.NextFunction) {
 
-    const mediaPath = await importUploadFile(req, res, next, getMediaPath(true)) as string;
+    const mediaPath = await importUploadFile(req, res, next, getDataFolderPath('media')) as string;
 
     if (!mediaPath || !fs.existsSync(mediaPath)) {
         return next(new UploadError('Error uploading file'));
@@ -34,7 +33,7 @@ export async function deleteMedia(entryMedia: Array<EntryMedia>) {
             return;
         }
 
-        const mediaPath = getMediaPath() + '/' + media.media.name;
+        const mediaPath = path.join(getDataFolderPath('media'), media.media.name);
         
         if (fs.existsSync(mediaPath)) {
             fs.unlinkSync(mediaPath);
@@ -121,7 +120,7 @@ export async function saveMedia(entryId: string | Number, fileName: string, orig
 export async function importUploadFile(req: express.Request, res: express.Response, next: express.NextFunction, destinationFolder: string = '') {
 
     if (!destinationFolder) {
-        destinationFolder = getTempPath(true);
+        destinationFolder = getDataFolderPath('temp');
     }
 
     if (!fs.existsSync(destinationFolder)) {

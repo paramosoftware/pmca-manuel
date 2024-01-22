@@ -4,25 +4,20 @@ const net = require('net');
 const fs = require('fs');
 const path = require('path');
 
-
 const isProduction = process.env.NODE_ENV !== 'development';
-const userDataPath = app.getPath('userData');
-process.env.USER_DATA_PATH = userDataPath;
 
 isProduction ?
   process.env.ROOT = path.join(process.resourcesPath) :
   process.env.ROOT = path.resolve(__dirname, "../")
 
+assignEnvsFromFile();
 
 if (isProduction) {
-  moveDatabaseFile();
-  createFolders();
+  handleAppData();
   assignPort();
-
   process.env.NUXT_PUBLIC_BASE_URL = "http://localhost:" + process.env.PORT;
+  process.env.DATA_DIR = path.join(app.getPath('userData'), 'data');
 }
-
-assignEnvsFromFile();
 
 
 protocol.registerSchemesAsPrivileged([
@@ -45,7 +40,7 @@ app.whenReady().then(async () => {
 
   protocol.handle('app', (request) => {
     const filePath = request.url.slice('app://'.length);
-    const file = path.join(userDataPath, filePath);
+    const file = path.join(process.env.DATA_DIR, filePath);
     const fileUrl = pathToFileURL(file).href;
 
     return electronNet.fetch(fileUrl);
@@ -94,30 +89,19 @@ app.on('window-all-closed', () => {
     }
 })
 
-function moveDatabaseFile() {
-  const databasePath = path.join(process.env.ROOT, '.output/server/node_modules/.prisma/client/app.sqlite');
-  const userDatabasePath = path.join(userDataPath, 'app.sqlite');
 
-  if (app.isPackaged) {
-    if (!fs.existsSync(userDatabasePath)) {
-      fs.copyFileSync(databasePath, userDatabasePath);
-    }
-  
-  }
+function handleAppData() {
+  const appDataPath = path.join(process.env.ROOT, 'data');
+  const userDataPath = path.join(app.getPath('userData'), 'data');
 
-  process.env.DATABASE_URL = "file:" + userDatabasePath;
-}
+  if (app.isPackaged && !fs.existsSync(userDataPath)) {
+    fs.mkdirSync(userDataPath);
 
-function createFolders() {
-  const tempPath = path.join(process.env.USER_DATA_PATH, 'temp');
-  const mediaPath = path.join(process.env.USER_DATA_PATH, 'media');
-
-  if (!fs.existsSync(tempPath)) {
-    fs.mkdirSync(tempPath);
-  }
-
-  if (!fs.existsSync(mediaPath)) {
-    fs.mkdirSync(mediaPath);
+    fs.cpSync(appDataPath, userDataPath, {
+      recursive: true,
+      overwrite: false,
+      errorOnExist: true
+    });
   }
 }
 
@@ -141,46 +125,60 @@ async function assignPort(port = 3458) {
 }
 
 function assignEnvsFromFile() {
-  let envPath;
-
   if (isProduction) {
-    envPath = path.join(userDataPath, '.env');
+    envPath = path.join(app.getPath('userData'), '.env');
   } else {
     envPath = path.join(process.env.ROOT, '.env');
   }
 
-  if (!fs.existsSync(envPath) && app.isPackaged) {
+  if (app.isPackaged && !fs.existsSync(envPath)) {
     generateEnvFile();
   }
 
-  const env = fs.readFileSync(envPath, 'utf8');
+  const envFile = fs.readFileSync(envPath, 'utf-8');
 
-  env.split('\n').forEach((line) => {
+  envFile.split('\n').forEach((line) => {
     const [key, value] = line.split('=');
-
     process.env[key] = value;
   });
+
 }
 
 function generateEnvFile() {
   const crypto = require('crypto');
 
+  const userDataPath = path.join(app.getPath('userData'), 'data');
+
   const env = {
-    APP_NAME: 'Glossário de conservação-restauro de livros e documentos',
-    APP_DESCRIPTION: '',
+    DATA_DIR: userDataPath,
+    DATABASE_URL: 'file:' + path.join(userDataPath, 'db', 'app.sqlite'),
     ACCESS_TOKEN_SECRET: crypto.randomBytes(64).toString('hex'),
-    REFRESH_TOKEN_SECRET: crypto.randomBytes(64).toString('hex'),
-    AUTH_SECRET: crypto.randomBytes(64).toString('hex'),
+    REFRESH_TOKEN_SECRET: crypto.randomBytes(64).toString('hex')
   }
 
-  fs.writeFileSync(
-    path.join(userDataPath, '.env'),
-    Object.entries(env).map(([key, value]) => `${key}=${value}`).join('\n')
-  );
+  const envExamplePath = path.join(process.env.ROOT, '.env.example');
+  const envPath = path.join(app.getPath('userData'), '.env');
 
-  for (const [key, value] of Object.entries(env)) {
-    process.env[key] = value;
-  }
+  const envExampleFile = fs.readFileSync(envExamplePath, 'utf-8');
+
+  const envExample = {};
+
+  envExampleFile.split('\n').forEach((line) => {
+    const [key, value] = line.split('=');
+    envExample[key] = value;
+  });
+
+  Object.keys(envExample).forEach((key) => {
+    if (env[key]) {
+      envExample[key] = env[key];
+    }
+  });
+
+  const envFile = Object.keys(envExample).map((key) => {
+    return `${key}=${envExample[key]}`;
+  }).join('\n');
+
+  fs.writeFileSync(envPath, envFile);
 }
 
 async function startWebServer() {

@@ -1,5 +1,5 @@
 {
-  "name": "glossario-pmca",
+  "name": "pmca-glossario",
   "version": "0.3.0",
   "author": "Páramo Software <email@email.com>",
   "description": "Glossário de conservação-restauro de livros e documentos em papel do Projeto Manuel Correia de Andrade (PMCA)",
@@ -11,12 +11,10 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "scaffold": "pnpm install && pnpm prisma generate && pnpm prisma db push && pnpm prisma:seed-basis",
-    "electron:build": "nuxt build && pnpm prisma:prod && pnpm prisma:seed-basis && node build.js",
-    "electron:build-test": "nuxt build && pnpm prisma:prod && pnpm prisma:seed-basis && NODE_ENV=development DEBUG=electron-builder node build.js",
-    "electron:dev": "pnpm dev & NODE_ENV=development electron electron/main.js",
-    "prisma:prod": "pnpm prisma generate && pnpm prisma migrate deploy --schema .output/server/node_modules/.prisma/client/schema.prisma && pnpm prisma db push --schema .output/server/node_modules/.prisma/client/schema.prisma",
-    "prisma:seed-basis": "tsx server/prisma/seed/basis.ts"
+    "scaffold": "pnpm install && pnpm prisma generate && pnpm prisma db push && pnpm prisma db seed",
+    "web:prod": "pnpm build && pnpm prisma generate && pnpm prisma migrate deploy && pnpm prisma db seed",
+    "electron:dev": "nuxt build && NODE_ENV=development DEBUG=electron-builder node build.js",
+    "electron:prod": "pnpm scaffold && pnpm build && node build.js"
   },
   "devDependencies": {
     "@nuxt/ui": "^2.12.3",
@@ -48,6 +46,7 @@
     "cookie-parser": "^1.4.6",
     "csv": "^6.3.6",
     "diff": "^5.1.0",
+    "dotenv": "^16.3.2",
     "exceljs": "^4.4.0",
     "express": "^4.18.2",
     "fast-xml-parser": "^4.3.3",
@@ -62,6 +61,7 @@
     "vuedraggable": "next"
   },
   "prisma": {
-    "schema": "server/prisma/schema.prisma"
+    "schema": "server/prisma/schema.prisma",
+    "seed": "tsx server/prisma/seed/basis.ts"
   }
 }

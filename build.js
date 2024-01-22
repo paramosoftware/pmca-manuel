@@ -12,7 +12,9 @@ const config = {
     "!node_modules/**/*"
   ],
   extraResources: [
-    ".output/**/*"
+    ".output/**/*",
+    "data/**/*",
+    ".env.example",
   ],
   directories: {
     output: "builds/${version}"
@@ -40,7 +42,7 @@ const config = {
 };
 
 
-let platform = process.env.BUILD_TARGET || "LINUX";
+let platform = process.env.BUILD_TARGET ?? "LINUX";
 
 builder
 .build({

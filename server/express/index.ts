@@ -6,6 +6,7 @@ import helmet from 'helmet'
 import auth from './auth'
 import prismaHandler from './prisma/prismaHandler'
 import errorHandler from './error/errorHandler'
+import getDataFolderPath  from '~/utils/getDataFolderPath'
 
 const app = express();
 
@@ -25,6 +26,8 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working' });
 });
 
+
+app.use('/api/media', express.static(getDataFolderPath('media')));
 
 app.use(errorHandler);
 

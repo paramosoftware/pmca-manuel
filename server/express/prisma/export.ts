@@ -6,8 +6,7 @@ import { XMLBuilder } from 'fast-xml-parser';
 import fs from 'fs';
 import path from 'path';
 import QUERIES from '~/config/queries';
-import getMediaPath from '~/utils/getMediaPath';
-import getTempPath from '~/utils/getTempPath';
+import getDataFolderPath from '~/utils/getDataFolderPath';
 import { useCamelCase } from '~/utils/useCamelCase';
 import type { Include, PaginatedQuery, Where } from './interfaces';
 import { readMany, readOne } from './read';
@@ -38,7 +37,13 @@ export const exportData = function () {
     let where: Where | undefined;
     let labelNormalized: string | undefined;
 
-    async function exportToFormat(model: string, format: DataTransferFormat, addMedia: boolean = false, query?: Partial<PaginatedQuery>) {
+    async function exportToFormat(
+        model: string, 
+        format: DataTransferFormat, 
+        addMedia: boolean = false, 
+        query?: Partial<PaginatedQuery>, 
+        template?: string
+    ) {
 
         if (!model || !format) {
             return;
@@ -50,8 +55,8 @@ export const exportData = function () {
 
         await setResourceConfig();
 
-        const filePath = path.join(getTempPath(true), `export-${Date.now()}.${format}`);
-        const zipPath = path.join(getTempPath(true), `export-${Date.now()}.zip`);
+        const filePath = path.join(getDataFolderPath('temp'), `export-${Date.now()}.${format}`);
+        const zipPath = path.join(getDataFolderPath('temp'), `export-${Date.now()}.zip`);
 
         switch (format) {
             case 'xlsx':
@@ -85,7 +90,7 @@ export const exportData = function () {
         const zip = new Zip();
 
         for (const [fileName, newFileName] of mediaFiles) {
-            const absoluteFilePath = path.join(getMediaPath(true), fileName);
+            const absoluteFilePath = path.join(getDataFolderPath('media'), fileName);
             if (fs.existsSync(absoluteFilePath)) {
                 zip.addLocalFile(absoluteFilePath, 'media', newFileName);
             }
@@ -551,16 +556,16 @@ export const exportData = function () {
         newItem.notes = item.notes;
         newItem.parent = item.parent?.nameSlug;
         newItem.isCategory = item.isCategory ? '1' : '0';
-        newItem.references = item.references?.map((reference: Reference) => reference.name);
-        newItem.variations = item.variations?.map((variation: Variation) => variation.name);
+        newItem.references = item.references?.map((reference: Reference) => reference.name) ?? [];
+        newItem.variations = item.variations?.map((variation: Variation) => variation.name) ?? [];
         newItem.translations = item.translations?.map((translation: Translation) => (
-            translation.name + (translation.language ? ` (${translation.language.name})` : '')
-        ));
+            translation.name + (translation.language ? ` (${translation.language.name})` : '') 
+        )) ?? [];
 
         const entries = item.entries?.map((entry: Entry) => entry.nameSlug) ?? [];
         const relatedEntries = item.relatedEntries?.map((entry: Entry) => entry.nameSlug) ?? [];
 
-        newItem.entries = entries?.concat(relatedEntries);
+        newItem.entries = entries?.concat(relatedEntries) ?? [];
 
         return newItem;
     }
