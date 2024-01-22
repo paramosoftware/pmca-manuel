@@ -18,7 +18,8 @@ export const useFetchWithBaseUrl: typeof useFetch = (request, opts?) => {
 
     return useFetch(request, { 
         headers: headers,
-        baseURL: config.public.baseURL, 
+        baseURL: config.public.baseURL,
+        credentials: 'include',
         ...opts
     });
 }

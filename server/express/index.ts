@@ -3,6 +3,7 @@ import csrfHandler from './auth/csrfHandler'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
+import cors from 'cors'
 import auth from './auth'
 import prismaHandler from './prisma/prismaHandler'
 import errorHandler from './error/errorHandler'
@@ -14,6 +15,13 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
 //app.use(csrfHandler);  // TODO: need refactoring based in the new API and auth strategy
+
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS,
+  credentials: true,
+  exposedHeaders: ['set-cookie']
+}));
+
 app.use(prismaHandler);
 
 function useApiRoute(app: any, route: string, handler: any) {
