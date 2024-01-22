@@ -24,7 +24,7 @@ const props = defineProps({
 const srcImg = ref(props.src);
 
 
-if (isElectron()) {
+if (isElectron() && props.src) {
     srcImg.value = 'app://' + props.src;
 } else if (props.src) {
     srcImg.value = '/api/media/' + props.src;
