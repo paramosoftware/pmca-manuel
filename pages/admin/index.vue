@@ -25,7 +25,13 @@ definePageMeta({
     middleware: 'auth'
 });
 
-const { data, pending, error } = await useFetchWithBaseUrl('/api/appResource') as { 
+const { data, pending, error } = await useFetchWithBaseUrl('/api/appResource', {
+    method: 'GET',
+    params: {
+        where: { isAppModel: false, isRelation: false }
+    }
+
+}) as { 
     data: Ref<PaginatedResponse>, pending: Ref<boolean>, error: Ref<Error | undefined>
 };
 
