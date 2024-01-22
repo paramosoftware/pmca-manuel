@@ -44,10 +44,7 @@ export const useEntryStore = defineStore('entry', () => {
                             like: search.value
                         }
                     }
-                ],
-                and: [{
-                        isCategory: false
-                    }]
+                ]
             },
             orderBy: {
                 name: sort.value
@@ -133,15 +130,8 @@ export const useEntryStore = defineStore('entry', () => {
             params: {
               pageSize: -1,
               select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
-              where: {
-                isCategory: true,
-              },
               include: {
-                children: {
-                  where: {
-                    isCategory: false
-                  }
-                }
+                children: true
               }
             },
             transform: (data: PaginatedResponse) => {

@@ -50,9 +50,6 @@ QUERIES.set('Entry', {
         },
         children: true
     },
-    where: {
-        isCategory: false
-    }
 });
 
 
@@ -60,22 +57,7 @@ QUERIES.set('network', {
     pageSize: -1,
     select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
     include: JSON.stringify(['relatedEntries', 'entries']),
-    where: {
-        isCategory: false
-    }
 });
-
-
-
-QUERIES.set('Category', {
-    include: {
-        parent: true
-    },
-    where: {
-        isCategory: true
-    }
-});
-
 
 export default QUERIES;
 

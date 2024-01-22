@@ -182,6 +182,7 @@ model AppResourceField {
   @@unique([resourceId, name])
 }
 
+// isAppModel:false
 model AppUser {
   id    String @id @default(uuid())
   login String @unique // TODO: create validation for login

@@ -64,38 +64,10 @@ async function main() {
   }
 
 
-  // add categories resource that is not in the datamodel
-  const categoriesFields = ['name', 'definition', 'parentId', "isCategory"];
-  let categoryResource = {} as Prisma.AppResourceCreateInput & { fields: any[] };
-
   for (const resource of resources) {
-    // now all info is available to build the fields config
     resource.fields = buildFieldsConfig(resource.name, resource.fields, resourcesFieldsMap.get(resource.name) as Map<string, Prisma.DMMF.Field>);
-
-    if (resource.name === 'Entry') {
-      categoryResource = JSON.parse(JSON.stringify({ ...resource }));
-      categoryResource.name = 'Category';
-      categoryResource.label = 'Categoria';
-      categoryResource.labelPlural = 'Categorias';
-      categoryResource.fields = categoryResource.fields
-        .filter(field => categoriesFields.includes(field.name))
-        .map(field => {
-          if (field.name === 'parentId') {
-            field.label = 'Hierarquia';
-          }
-
-          if (field.name === 'isCategory') {
-            field.defaultValue = 'true';
-          }
-
-          return field;
-        });
-    }
-
-    relatedResources.set('parentId:Category', 'Entry');
   }
 
-  resources.push(categoryResource as Prisma.AppResourceCreateInput & { fields: any[] });
 
   const createdResources = await createOneOrMany('appResource', resources);
 

@@ -529,7 +529,7 @@ export const exportData = function () {
         } as any;
 
 
-        const where = { isCategory: true, parentId: { isNull: true } };
+        const where = { parentId: { isNull: true } };
 
         const topConcepts = await readMany(model, { pageSize: -1, page: 1, where });
 

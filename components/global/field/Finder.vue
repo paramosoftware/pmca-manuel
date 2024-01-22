@@ -75,9 +75,6 @@ if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
 const defaultQuery = {
     pageSize: -1,
     select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
-    where: {
-        isCategory: true
-    }
 } as any;
 
 const { data } = await useFetchWithBaseUrl('/api/' + relatedResource.value.name, {
