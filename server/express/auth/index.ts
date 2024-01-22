@@ -2,7 +2,7 @@ import express from 'express';
 import decodeJwt from '~/utils/decodeJwt';
 import getCookiePrefix from '~/utils/getCookiePrefix';
 import { InvalidCredentialError, ServerError } from '../error';
-import { setAccessTokenCookie, setCsrfCookie, login, logout, changePassword, refreshAccessToken, setUserPassword } from './helpers';
+import { setAccessTokenCookie, setCsrfCookie, login, logout, refreshAccessToken, setUserPassword } from './helpers';
 
 const router = express.Router();
 

@@ -21,8 +21,11 @@
         </div>
     </div>
 
-    <div v-if="mode === 'hier'" class="justify-start items-start">
-        <UITreeView :tree="categoriesTree" class="mt-6" />
+    <div v-if="mode === 'hier'" class="justify-start items-start border-t border-gray-200 mt-3">
+        <UITreeView :tree="categoriesTree" class="mt-6" v-if="categoriesTree.length > 0" />
+        <div class="text-xl mt-3" v-else-if="!pending">
+            Nenhuma categoria encontrada.
+        </div>
     </div>
 
     <div class="mt-6" v-else>
