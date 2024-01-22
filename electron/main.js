@@ -40,8 +40,13 @@ app.whenReady().then(async () => {
 
   protocol.handle('app', (request) => {
     const filePath = request.url.slice('app://'.length);
-    const file = path.join(process.env.DATA_DIR, filePath);
-    const fileUrl = pathToFileURL(file).href;
+    const file = path.join(process.env.DATA_DIR, 'media', filePath);
+
+    let fileUrl = pathToFileURL(file).href;
+
+    if (fileUrl.endsWith('/')) {
+      fileUrl = fileUrl.slice(0, -1);
+    }
 
     return electronNet.fetch(fileUrl);
   })
