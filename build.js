@@ -1,4 +1,6 @@
 const builder = require('electron-builder');
+require('dotenv').config();
+
 const Platform = builder.Platform;
 /**
 * @type {import('electron-builder').Configuration}
