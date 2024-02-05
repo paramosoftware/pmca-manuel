@@ -146,9 +146,8 @@ FIELDS.set('groups', 'Grupos');
 FIELDS.set('sessions', 'Sessões');
 FIELDS.set('refreshToken', 'Token de atualização');
 FIELDS.set('accessCount', 'Contagem de acessos');
-FIELDS.set('isCategory', 'É categoria?');
 FIELDS.set('notes', 'Notas');
-FIELDS.set('parentId', 'Categoria');
+FIELDS.set('parentId', 'Verbete superior');
 FIELDS.set('changes', 'Alterações');
 FIELDS.set('translations', 'Traduções');
 FIELDS.set('variations', 'Variações');
@@ -170,7 +169,7 @@ FIELDS.set('oppositeFieldId', 'Campo oposto (para relacionamentos bidirecionais)
 FIELDS.set('relatedOppositeFields', 'Campos opostos relacionados');
 FIELDS.set('isRelation', 'É uma tabela de relacionamento?');
 FIELDS.set('parent', 'Objeto superior');
-FIELDS.set('children', 'Objetos subordinados');
+FIELDS.set('children', 'Verbetes inferiores');
 FIELDS.set('type', 'Tipo');
 
 export { MODELS, FIELDS }

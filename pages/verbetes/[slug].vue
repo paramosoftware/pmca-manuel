@@ -34,7 +34,7 @@
          </template>
          <template #tabPanel-2>
             <div class="flex flex-col">
-               <UITreeView :tree="categoriesTree" class="p-3 overflow-y-auto text-pmca-primary" />
+               <UITreeView :tree="entriesTree" class="p-3 overflow-y-auto text-pmca-primary" />
             </div>
          </template>
          <template #tabPanel-3>
@@ -61,7 +61,7 @@ const { isSelected, toggle } = useEntrySelection();
 const entryStore = useEntryStore();
 await entryStore.load(slug.value);
 
-const { entry, pending, sort, error, categoriesTree } = storeToRefs(entryStore);
+const { entry, pending, sort, error, entriesTree } = storeToRefs(entryStore);
 
 if (!error.value && !entry.value) {
    // TODO: 404
@@ -101,8 +101,8 @@ if (entry.value?.media && entry.value.media.length > 0) {
 }
 
 const onTabChange = async (value: number) => {
-   if (value === 2 && categoriesTree.value.length === 0) {
-      await entryStore.fetchCategoriesTree();
+   if (value === 2 && entriesTree.value.length === 0) {
+      await entryStore.fetchEntriesTree();
    }
 }
 

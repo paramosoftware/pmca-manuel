@@ -3,8 +3,7 @@
   "nome": "abrasão",
   "definicao": "Dano ocasionado pela fricção entre os materiais ou com algum material abrasivo, como a poeira, que resulta no desgaste das superfícies e mídias nas obras em papel.",
   "notas": "A abrasão, em geral, é resultado de manuseio inadequado e falta de limpeza nos locais de guarda. A poeira depositada sobre as superfícies, por exemplo, funciona com uma lixa durante a movimentação de livros.",
-  "objetoSuperior": null,
-  "eCategoria?": "0",
+  "verbeteSuperior": null,
   "referencias": [
     "BOJANOSKI, S., ALMADA, M. Glossário ilustrado de conservação e restauração de obras em papel: danos e tratamentos: Português, Espanhol, Inglês, Grego. [s.l.] Fino Traço Editora, 2021."
   ],
@@ -22,8 +21,7 @@
   "nome": "amarelecimento",
   "definicao": "Alteração da cor do papel, em geral em decorrência da degradação da lignina e celulose causada pela oxidação, hidrólise e reação fotoquímica.",
   "notas": "Apesar do amarelecimento frequentemente ser indicado como um dano, por vezes pode ser apenas uma característica do envelhecimento natural do papel e, portanto, um vestígio histórico.",
-  "objetoSuperior": "danos",
-  "eCategoria?": "0",
+  "verbeteSuperior": "danos",
   "referencias": [
     "BOJANOSKI, S., ALMADA, M. Glossário ilustrado de conservação e restauração de obras em papel: danos e tratamentos: Português, Espanhol, Inglês, Grego. [s.l.] Fino Traço Editora, 2021."
   ],
@@ -43,8 +41,7 @@
   "nome": "Danos",
   "definicao": null,
   "notas": null,
-  "objetoSuperior": null,
-  "eCategoria?": "1",
+  "verbeteSuperior": null,
   "referencias": [],
   "variacoes": [],
   "traducoes": [],

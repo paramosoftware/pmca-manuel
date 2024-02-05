@@ -1,14 +1,11 @@
 <template>
-    <div v-if="node.isLeaf">
-        <UILink :href="'/verbetes/' + node.slug" class="p-3 font-semibold">
-            {{ node.label }}
-        </UILink>
-    </div>
-    <div v-else @click="node.children.length > 0 && $emit('toggle-children', node)"  :class="{ 'cursor-pointer': node.children.length > 0 }">
+    <div @click="node.children.length > 0 && $emit('toggle-children', node)"  :class="{ 'cursor-pointer': node.children.length > 0 }">
         <div class="align-middle items-center">
             <UIIcon v-if="node.expanded && node.children.length > 0" name="ph:minus-square" class="h-4 w-4 mr-1" />
             <UIIcon v-else-if="node.children.length > 0" name="ph:plus-square" class="h-4 w-4 mr-1 align-middle" />
-            <span :class="{ 'text-xl font-bold': level === 1 }">{{ node.label }}</span>
+            <UILink :href="'/verbetes/' + node.slug" class="p-3 font-semibold" :class="level === 1 ? 'uppercase' : 'text-lg'">
+                {{ node.label }}
+            </UILink>
         </div>
     </div>
     <ul v-if="node.expanded && node.children.length > 0" class="ml-4">

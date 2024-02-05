@@ -55,8 +55,8 @@
             <div v-for="item in items" :key="item.id" class="w-full py-4 border-b border-pmca-accent last:border-b-0">
                 <div class="w-full h-full flex items-center justify-between">
                     <NuxtLink :to="editUrl + '/' + item.id">
-                        <h1 v-if="item.label" v-html="item.label"></h1>
-                        <h1 v-else-if="item.name" v-html="item.name"></h1>
+                        <h1 v-if="item.label" v-html="stripHtmlTags(item.label, ['s', 'em', 'strong'])"></h1>
+                        <h1 v-else-if="item.name" v-html="stripHtmlTags(item.name, ['s', 'em', 'strong'])"></h1>
                         <h1 v-else>Item sem rótulo ({{ item.id }})</h1>
                     </NuxtLink>
                     <div>

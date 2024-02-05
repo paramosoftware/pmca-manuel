@@ -49,7 +49,6 @@ const translations = {
   'name': 'Nome',
   'definition': 'Definição',
   'notes': 'Notas',
-  'category': 'Categoria',
   'relatedEntries': 'Verbetes relacionados',
   'entries': 'Verbetes',
   'variations': 'Variações',

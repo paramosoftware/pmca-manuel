@@ -22,7 +22,7 @@
     </div>
 
     <div v-if="mode === 'hier'" class="justify-start items-start border-t border-gray-200 mt-3">
-        <UITreeView :tree="categoriesTree" class="mt-6" v-if="categoriesTree.length > 0" />
+        <UITreeView :tree="entriesTree" class="mt-6" v-if="entriesTree.length > 0" />
         <div class="text-xl mt-3" v-else-if="!pending">
             Nenhuma categoria encontrada.
         </div>
@@ -103,9 +103,9 @@ if (!props.hasTree) {
 
 const entryStore = useEntryStore();
 await entryStore.load('', props.userSelection);
-await entryStore.fetchCategoriesTree();
+await entryStore.fetchEntriesTree();
 
-const { entries, page, pageSize, total, search, pending, sort, error, categoriesTree } = storeToRefs(entryStore);
+const { entries, page, pageSize, total, search, pending, sort, error, entriesTree } = storeToRefs(entryStore);
 
 search.value = query.value?.search?.toString() || '';
 

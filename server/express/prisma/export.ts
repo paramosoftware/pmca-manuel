@@ -269,10 +269,8 @@ export const exportData = function () {
     async function addSkosProperties(filePath: string, xmlBuilder: XMLBuilder, resourceURI: string, conceptSchemeId: string, model: string) {
 
         const referenceNote = buildRdfProperty('referenceNote', 'Bibliographic reference to the concept', 'Reference', 'http://www.w3.org/2004/02/skos/core#editorialNote', resourceURI);
-        const isCategory = buildRdfProperty('isCategory', 'Indicates if the concept is a category', 'Is category', 'http://www.w3.org/2004/02/skos/core#editorialNote', resourceURI);
 
         fs.appendFileSync(filePath, xmlBuilder.build(referenceNote));
-        fs.appendFileSync(filePath, xmlBuilder.build(isCategory));
 
         const conceptScheme = await buildSkosConceptScheme(model, resourceURI, conceptSchemeId);
 
@@ -433,23 +431,6 @@ export const exportData = function () {
             }
         }
 
-        if (entry.isCategory) {
-            concept['skos:Concept'].push({
-                "skos:isCategory": ""
-            });
-
-            if (!entry.parent) {
-                concept['skos:Concept'].push({
-                    "skos:topConceptOf": "",
-                    ":@": {
-                        "@_rdf:resource": resourceURI + conceptSchemeId,
-
-                    }
-                });
-            }
-        }
-
-
         if (entry.relatedEntries && entry.relatedEntries.length > 0) {
             for (const relatedEntry of entry.relatedEntries) {
                 concept['skos:Concept'].push({
@@ -478,6 +459,14 @@ export const exportData = function () {
                 "skos:broader": "",
                 ":@": {
                     "@_rdf:resource": resourceURI + entry.parent.nameSlug
+                }
+            });
+        } else {
+            concept['skos:Concept'].push({
+                "skos:topConceptOf": "",
+                ":@": {
+                    "@_rdf:resource": resourceURI + conceptSchemeId,
+
                 }
             });
         }
@@ -555,7 +544,6 @@ export const exportData = function () {
         newItem.definition = item.definition;
         newItem.notes = item.notes;
         newItem.parent = item.parent?.nameSlug;
-        newItem.isCategory = item.isCategory ? '1' : '0';
         newItem.references = item.references?.map((reference: Reference) => reference.name) ?? [];
         newItem.variations = item.variations?.map((variation: Variation) => variation.name) ?? [];
         newItem.translations = item.translations?.map((translation: Translation) => (

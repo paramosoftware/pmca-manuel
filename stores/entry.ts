@@ -17,7 +17,7 @@ export const useEntryStore = defineStore('entry', () => {
     const randomEntryIds = ref<number[]>([]);
     const entries = ref<Entry[]>([]);
     const entriesNetwork = ref<Entry[]>([]); // only used to build network for home
-    const categoriesTree = ref<TreeNode[]>([]);
+    const entriesTree = ref<TreeNode[]>([]);
 
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
@@ -44,7 +44,8 @@ export const useEntryStore = defineStore('entry', () => {
                             like: search.value
                         }
                     }
-                ]
+                ],
+                and: []
             },
             orderBy: {
                 name: sort.value
@@ -123,16 +124,13 @@ export const useEntryStore = defineStore('entry', () => {
         // TODO: implement
     }
 
-    async function fetchCategoriesTree() {
+    async function fetchEntriesTree() {
 
         const { data } = await useFetchWithBaseUrl('/api/Entry', {
             method: 'GET',
             params: {
               pageSize: -1,
-              select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
-              include: {
-                children: true
-              }
+              select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId'])
             },
             transform: (data: PaginatedResponse) => {
                 if (!data) {
@@ -144,7 +142,7 @@ export const useEntryStore = defineStore('entry', () => {
           });
         
           if (data.value) {
-            categoriesTree.value = buildTreeData(data.value, false, entry.value?.id, undefined, 'children') as TreeNode[];
+            entriesTree.value = buildTreeData(data.value, false, entry.value?.id) as TreeNode[];
           }
 
     }
@@ -196,12 +194,12 @@ export const useEntryStore = defineStore('entry', () => {
         randomEntryIds,
         entries,
         entriesNetwork,
-        categoriesTree,
+        entriesTree,
         pending,
         error,
         load,
         fetchNetwork,
-        fetchCategoriesTree,
+        fetchEntriesTree,
         sortByName,
         exportData,
         clear,

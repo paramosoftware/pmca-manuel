@@ -167,10 +167,6 @@ export const importData = function () {
                         entry.notes = item[key];
                         break;
 
-                    case camelCaseMap.get('isCategory'):
-                        entry.isCategory = item[key];
-                        break;
-
                     case camelCaseMap.get('parent'):
                         parent.set(oldId, item[key]);
                         break;
@@ -267,9 +263,6 @@ export const importData = function () {
                     case labelMap.get('notes'):
                         entry.notes = value;
                         break;
-                    case labelMap.get('isCategory'):
-                        entry.isCategory = value;
-                        break;
                     case labelMap.get('parent'):
                         parent.set(oldId, value);
                         break;
@@ -362,10 +355,6 @@ export const importData = function () {
 
                     if (attribute['skos:scopeNote']) {
                         entry.notes = attribute['skos:scopeNote'][0]['#text'];
-                    }
-    
-                    if (attribute['skos:isCategory']) {
-                        entry.isCategory = true;
                     }
     
                     if (attribute['skos:broader'] && attribute[':@']?.['@_rdf:resource']) {

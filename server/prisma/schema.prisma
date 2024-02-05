@@ -231,7 +231,6 @@ model Entry {
   id         Int     @id @default(autoincrement()) /// includeExport:true
   name       String  /// includeExport:true
   nameSlug   String  @unique
-  isCategory Boolean @default(false) /// hidden:true|includeExport:true
   definition String? /// includeExport:true
   notes      String? /// includeExport:true
 
