@@ -1,10 +1,10 @@
 <template>
-    <div class="flex flex-col h-screen justify-between text-pmca-primary bg-white text-md p-2 max-w-screen-2xl mx-auto">
+    <div class="flex flex-col h-screen justify-between text-pmca-primary text-md">
         
-        
-        <Navbar />
-
-            <slot />
+ 
+        <Navbar class="bg-white" />
+      
+        <slot class="mx-auto max-w-screen-2xl px-2" />
 
         <Footer />
 

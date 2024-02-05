@@ -1,9 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
 }
 
 datasource db {
@@ -11,202 +8,346 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// This schema is main source of truth for the app. 
+// It is used to generate the Prisma schema and seed the configuration of forms and fields.
+// As such, it is extended with Prisma reconigzed comments (starting with ///) to provide additional information for the seed script.
+// These configuration can be changed in the admin interface.
 
-model Category { 
-  id        Int          @id @default(autoincrement())
-  name      String       @unique
-  nameNormalized String? @unique  
-  definition String?
-  definitionNormalized String?           
+// Any @unique field can be used as id for the model (normally called identifier throughout the app to avoid confusion with the id field).
 
-  children  Category[]   @relation("SubCategories")
-  parent    Category?    @relation("SubCategories", fields: [parentId], references: [id])
-  parentId  Int?
+// Non-hierarchal assosiative relations (like friends), that should appear in both sides of the relation, are configured as follows:
+// friends: Friend[] @relation("FriendToFriend")
+// oppositeFriends: Friend[] @relation("FriendToFriend")
+// The relation name in the same model allows the app to know that the relation is assosiative 
+// and should be displayed in both sides of the relation in the form, keeping the opposite field in hidden mode.
 
-  entries   Entry[]
+// In hierarchal models (like tags), the following fields are required:
+// - parentId: Int? (the id of the parent category)
+// - children: Tag[] @relation("TagToChildren") (the children categories)
+// - parent: Tag? @relation("TagToChildren", fields: [parentId], references: [id]) (the parent tag)
+// This allows the app to know that the model is hierarchal.
+
+// The following fields are always generated and don't need to be sent in the form:
+// - id: Int @id @default(autoincrement())
+// - createdAt: DateTime? @default(now())
+// - updatedAt: DateTime? @updatedAt
+// - [prefix]Normalized: String? (normalized version of the field)
+// - [prefix]Slug: String? (slug version of the field)
+
+// The following conventions are used for AppResource models:
+// - The name of the model is the name of the resource.
+// - Models starting with "App" are considered system models (isAppModel = true).
+// - Models starting with "App" are private (isPublic = false).
+// - Models starting with another resource name are considered relations (isRelation = true). Example: [AppResource]Field is a relation of [AppResource]. 
+
+// The following conventions are used for models:
+// - In one-to-one or one-to-many relations, in the one side of the relation, the scalar field should be the same as the relation field but with the suffix "Id". 
+//     Example: user User @relation(fields: [userId], references: [id]) and userId Int.
+// - The name field is the main label of the object and when possible should be in the model schema.
+// - All text fields, that need to be searchable, should have a normalized version of the field, with the suffix "Normalized". Example: nameNormalized String?
+// - Slugs can be used to generate urls for the object and should be unique.
+
+// The following conventions for the generated form:
+// - The order of the fields in the model is the position in which they will be displayed in the form (position = index).
+// - Generated fields (listed above) are not displayed in the form (disabled = true and hidden = true).
+// - Fields with a name ending in "Id" are displayed as a select field and their counterpart is hidden.
+// - Lists are displayed as an autocomplete field.
+// - Description, definition and notes fields are displayed as textareas.
+// - Relation fields which model is a relation of the current model are displayed as a auxiliary form field. Example: variations EntryVariation[] - 
+
+// Comments syntax for models: key:value|key:value|... The keys are any of the fields of the AppResource model.
+// Comments syntax for fields: key:value|key:value|... The keys are any of the fields of the AppResourceField model.  
+
+model AppGroup {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  users       AppUserRestricted[]
+  permissions AppPermission[]
+
+  nameSlug              String  @unique
+  nameNormalized        String?
+  descriptionNormalized String?
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model AppPermission {
+  id Int @id @default(autoincrement())
+
+  resourceId Int
+  resource   AppResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  groupId    Int
+  group      AppGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  read   Boolean? @default(true)
+  create Boolean? @default(true)
+  update Boolean? @default(true)
+  delete Boolean? @default(true)
+  batch  Boolean? @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppMedia {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  originalFilename String?
+  path             String?
+  subtitle         String?
+  type             String?
+  isPublic         Boolean? @default(false)
+
+  entryMedia EntryMedia[] /// disabled:true|hidden:true
+
+  subtitleNormalized String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppResource {
+  id             Int      @id @default(autoincrement())
+  name           String   @unique
+  model          String
+  label          String
+  labelPlural    String
+  description    String?
+  genderNoun     String   @default("n") /// defaultOptions:n,m,f
+  isRelation     Boolean? @default(false)
+  isHierarchical Boolean? @default(false)
+  isAppModel     Boolean? @default(false)
+  isPublic       Boolean? @default(false)
+
+  modelNormalized       String
+  nameSlug              String  @unique
+  labelSlug             String  @unique
+  nameNormalized        String?
+  labelNormalized       String?
+  labelPluralNormalized String?
+  descriptionNormalized String?
+
+  permissions AppPermission[] /// disabled:true|hidden:true
+
+  fields        AppResourceField[]
+  relatedFields AppResourceField[] @relation("RelatedFields") /// disabled:true|hidden:true
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model AppResourceField {
+  id             Int      @id @default(autoincrement())
+  name           String
+  label          String
+  valueType      String   @default("string") /// defaultOptions:string,number,boolean,object,array
+  uiField        String   @default("input") /// defaultOptions:input,textarea,rich,select,checkbox,autocomplete,finder,media,auxiliaryForm,dropzone
+  required       Boolean? @default(false) @map("required")
+  hidden         Boolean? @default(false)
+  disabled       Boolean? @default(false)
+  inputType      String?  @default("text") /// defaultOptions:text,number,email,date,color,password,search,hidden,checkbox,radio
+  placeholder    String?
+  defaultValue   String?
+  defaultOptions String?
+  query          String?
+  max            Int?
+  isRich         Boolean? @default(false)
+  isHierarchical Boolean? @default(false)
+  allowCreate    Boolean? @default(true)
+  allowMultiple  Boolean? @default(true)
+  includeExport  Boolean? @default(false)
+  position       Int      @default(0)
+
+  oppositeFieldId       Int?
+  relatedOppositeFields AppResourceField[] @relation("OppositeField")
+  oppositeField         AppResourceField?  @relation("OppositeField", fields: [oppositeFieldId], references: [id])
+
+  relatedResourceId Int?
+  relatedResource   AppResource? @relation(fields: [relatedResourceId], references: [id], onDelete: Cascade, name: "RelatedFields")
+
+  resourceId Int
+  resource   AppResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  nameNormalized        String?
+  labelNormalized       String?
+  placeholderNormalized String?
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@unique([resourceId, name])
+}
+
+// isAppModel:false
+model AppUser {
+  id    String @id @default(uuid())
+  login String @unique // TODO: create validation for login
+  email String @unique
+  name  String
+
+  nameNormalized  String?
+  loginNormalized String?
+
+  restricted   AppUserRestricted? /// hidden:true
+  entryChanges EntryChanges[] /// disabled:true|hidden:true
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+// Workaround for lack of an easy way to exclude scalar fields from a model in Prisma
+model AppUserRestricted {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  password  String
+  isBlocked Boolean?         @default(false)
+  isAdmin   Boolean?         @default(false)
+  groups    AppGroup[] /// uiField:select
+  sessions  AppUserSession[] /// disabled:true|hidden:true
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AppUserSession {
+  id     String @id @default(uuid())
+  userId String
+
+  refreshToken String @unique
+
+  user AppUserRestricted @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("categories")
+  @@unique([userId, refreshToken])
 }
 
-
 model Entry {
-  id                          Int      @id @default(autoincrement())
-  slug                        String   @unique
-  name                        String   @unique
-  nameNormalized              String?  @map("name_normalized")
-  definition                  String?
-  definitionNormalized        String?  @map("definition_normalized")
-  notes                       String?
-  notesNormalized             String?  @map("notes_normalized")
-  accessCount                 Int      @default(0) @map("access_count")
- 
-  references      Reference[] @relation("entries_references")
+  id         Int     @id @default(autoincrement()) /// includeExport:true
+  name       String  /// includeExport:true
+  nameSlug   String  @unique
+  definition String? /// includeExport:true
+  notes      String? /// includeExport:true
 
-  media           EntryMedia[]
-  
-  variations      Variation[]
-  translations    Translation[]
+  parentId Int?
+  children Entry[] @relation("EntryToChildren")
+  parent   Entry?  @relation("EntryToChildren", fields: [parentId], references: [id]) /// includeExport:true
 
-  entries         Entry[]   @relation("entries_entries")
-  relatedEntries  Entry[]   @relation("entries_entries")
+  variations   EntryVariation[] /// includeExport:true
+  translations EntryTranslation[] /// includeExport:true
 
-  categoryId      Int?       @map("category_id")
-  category        Category?  @relation(fields: [categoryId], references: [id])
+  entries        Entry[] @relation("EntryToEntry") /// includeExport:true
+  relatedEntries Entry[] @relation("EntryToEntry") /// includeExport:true
 
-  entryChanges    EntryChanges[]
+  references Reference[] /// includeExport:true
+  media      EntryMedia[]
 
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  accessCount Int            @default(0) /// disabled:true|hidden:true
+  changes     EntryChanges[] /// disabled:true|hidden:true
 
-  @@map("entries")
+  definitionNormalized String?
+  nameNormalized       String?
+  notesNormalized      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EntryChanges {
-  id          Int       @id @default(autoincrement())
-  entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id])
+  id      Int    @id @default(autoincrement())
+  entryId Int
+  changes String
 
-  userId      Int       @map("user_id")
-  user        User      @relation(fields: [userId], references: [id])
+  userId String?
 
-  changes     String    @map("changes")
+  user  AppUser? @relation(fields: [userId], references: [id])
+  entry Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@map("entries_changes")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EntryMedia {
-  id          Int       @id @default(autoincrement())
-  
-  entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id])
+  id       Int @id @default(autoincrement())
+  entryId  Int
+  mediaId  Int
+  position Int @default(0)
 
-  mediaId     Int       @map("media_id")
-  media       Media     @relation(fields: [mediaId], references: [id])
+  entry Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  media AppMedia @relation(fields: [mediaId], references: [id], onDelete: Cascade)
 
-  position    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+model EntryVariation {
+  id   Int    @id @default(autoincrement())
+  name String
 
-  @@map("entries_media")
+  nameNormalized String?
+
+  entryId Int
+  entry   Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EntryTranslation {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  languageId Int
+  language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  entryId    Int
+  entry      Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  nameNormalized String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Language {
-  id            Int       @id @default(autoincrement())
-  name          String    @unique
-  nameNormalized String?  @map("name_normalized")
-  abbreviation  String?   @unique
-  code          String?   @unique
+  id           Int     @id @default(autoincrement())
+  name         String  @unique
+  code         String? @unique
 
-  translations  Translation[]
+  translations EntryTranslation[] /// disabled:true|hidden:true
 
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  nameNormalized String?
 
-  @@map("languages")
-}
-
-
-model Media {
-  id          Int       @id @default(autoincrement())
-  name        String
-  path        String?
-  subtitle    String?
-  subtitleNormalized String? @map("subtitle_normalized")
-
-  private     Boolean?   @default(false)
-  // TODO: create a media type model
-  type        String?
-
-  entries     EntryMedia[]
-
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@map("media")
-}
-
-model User {
-  id            Int         @id @default(autoincrement())
-  email         String      @unique @map("email") 
-  name          String      @unique @default("")
-  nameNormalized String?    @map("name_normalized")
-
-  password      String   
-
-  role          Int?      @default(1)
-
-  refreshToken  String?     @unique @map("refresh_token")
-
-  EntryChanges  EntryChanges[]
-
-  createdAt     DateTime?   @default(now()) @map("created_at")
-  updatedAt     DateTime?   @updatedAt @map("updated_at")
-
-  @@map("users")
-}
-  
-model Variation {
-  id          Int       @id @default(autoincrement())
-  name        String
-  nameNormalized String? @map("name_normalized")
-
-  entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id])
-
-  @@map("variations")
-}
-
-model Translation {
-  id          Int       @id @default(autoincrement())
-  name        String
-  nameNormalized String? @map("name_normalized")
-
-  languageId  Int
-  language    Language  @relation(fields: [languageId], references: [id])
-
-  entryId     Int       @map("entry_id")
-  entry       Entry     @relation(fields: [entryId], references: [id])
-
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@map("translations")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Reference {
-  id          Int       @id @default(autoincrement())
-  name        String
-  nameNormalized String? @map("name_normalized")
-  
-  entries     Entry[]   @relation("entries_references")
+  id   Int    @id @default(autoincrement())
+  name String @unique /// uiField:rich
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  nameNormalized String?
 
-  @@map("references")
+  entries Entry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-
 model WebPage {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  nameNormalized String? @map("name_normalized")
-  menuName    String    @map("menu_name")
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  nameSlug String @unique
+  content  String
+  menuName String
 
-  slug        String    @unique
+  nameNormalized    String?
+  contentNormalized String?
 
-  content     String
-  contentNormalized String? @map("content_normalized")
-
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@map("web_pages")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

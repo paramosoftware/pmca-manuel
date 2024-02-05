@@ -1,9 +1,15 @@
 <template>
-    <div class="flex flex-col h-screen justify-between text-pmca-primary bg-white text-lg p-2 max-w-screen-2xl mx-auto">
+    <div class="flex flex-col h-screen justify-between text-pmca-primary text-lg">
 
         <PublicNavbar />
 
-            <slot />
+        <main class="mb-auto">
+            <div class="p-5 mx-auto max-w-screen-2xl mt-5">
+                <div class="w-full mb-8">
+                    <slot />
+                </div>
+            </div>
+        </main>
 
         <Footer />
 

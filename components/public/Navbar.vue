@@ -1,6 +1,6 @@
 <template>
-  <nav id="navbar" class="py-4">
-    <div class="container border-b-2 pb-4 border-b-pmca-primary">
+  <nav id="navbar" class="p-4 border-b-2 border-b-pmca-primary">
+    <div class="max-w-screen-2xl mx-auto">
       <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
         <div class="mt-1">
           <NuxtLink to="/">
@@ -16,10 +16,10 @@
         </div>
         <div class="block md:hidden text-right align-middle col-span-4 md:col-span-0 mr-3">
             <NuxtLink to="/verbetes-selecionados">
-                <Icon class="text-pmca-accent w-9 h-9 cursor-pointer mr-2" name="ph:bookmarks-simple-fill" />
+                <UIIcon class="text-pmca-accent w-9 h-9 cursor-pointer mr-2" name="ph:bookmarks-simple-fill" />
             </NuxtLink>
             <button @click="showMenu = !showMenu" type="button"  aria-controls="navbar-main" aria-expanded="false" aria-label="Abrir menu">
-              <Icon name="ph:list" class="w-9 h-9" />
+              <UIIcon name="ph:list" class="w-9 h-9" />
             </button>
         </div>
         <div class="col-span-1 md:col-span-1">

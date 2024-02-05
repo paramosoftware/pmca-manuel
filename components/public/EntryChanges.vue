@@ -8,7 +8,7 @@
                 <th v-for="column in columns" :key="column.key" class="text-left px-3 py-3.5 font-semibold">
                   {{ column.label }}
                   <span v-if="column.sortable" class="cursor-pointer" @click="handleSort(column.key)">
-                    <Icon class="w-5 h-5 inline-block" :name="sortOrder.key === column.key ? sortOrder.order === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending' : 'ph:funnel-simple'"/>
+                    <UIIcon class="w-5 h-5 inline-block" :name="sortOrder.key === column.key ? sortOrder.order === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending' : 'ph:funnel-simple'"/>
                   </span>
                 </th>
             </tr>
@@ -35,17 +35,20 @@
 import * as Diff from "diff";
 
 const props = defineProps({
-  entryId: {
-    type: Number,
+  entryChanges: {
+    type: Array,
     required: true
   }
 })
+
+
+const changes = ref(props.entryChanges);
+const rows = computed(() => formatRows(changes.value));
 
 const translations = {
   'name': 'Nome',
   'definition': 'Definição',
   'notes': 'Notas',
-  'category': 'Categoria',
   'relatedEntries': 'Verbetes relacionados',
   'entries': 'Verbetes',
   'variations': 'Variações',
@@ -168,11 +171,5 @@ const handleSort = (key: string) => {
     return 0;
   });
 }
-
-
-
-const { data, pending, error } = await useFetchWithBaseUrl('/api/entries/' + props.entryId + '/changes');
-const changes = ref(data as unknown as EntryChanges[]);
-const rows = computed(() => formatRows(changes.value));
 
 </script>

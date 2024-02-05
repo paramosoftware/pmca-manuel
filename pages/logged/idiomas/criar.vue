@@ -1,4 +1,0 @@
-<template>
-    <FormLanguage />
-</template>
-

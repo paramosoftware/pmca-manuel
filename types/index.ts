@@ -1,148 +1,138 @@
+
+import type * as Prisma from '@prisma/client';
 export { };
 
 declare global {
 
-    export interface Category {
-        id: number;
-        name: string;
-        definition?: string;
-        parentId?: number;
-        children?: Category[];
-        entries?: Entry[];
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
+    export type AppGroup = Prisma.AppGroup & {
+        users?: AppUser[];
+        resources?: AppResource[];
+    };
 
-    export interface Change {
-        added?: string[];
-        removed?: string[];
-        new?: string,
-        old?: string
-    }
-    
-    export interface Entry {
-        id: number;
-        slug?: string;
-        name: string;
-        definition?: string;
-        notes?: string;
-        references?: Reference[];
-        media?: EntryMedia[];
+    export type AppPermission = Prisma.AppPermission & {
+        group?: AppGroup;
+        resource?: AppResource;
+    };
+
+    export type AppMedia = Prisma.AppMedia & {
+        entryMedia: EntryMedia[];
+    };
+
+    export type AppResource = Prisma.AppResource & {
+        groups?: AppGroup[];
+        fields?: AppResourceField[];
+    };
+
+    export type AppResourceField = Prisma.AppResourceField & {
+        resource?: AppResource;
+        relatedResource?: AppResource;
+    };
+
+    export type AppUser = Prisma.AppUser & {
+        restricted?: AppUserRestricted;
+    };
+
+    export type AppUserRestricted = Prisma.AppUserRestricted & {
+        user?: AppUser;
+    };
+
+    export type AppUserSession = Prisma.AppUserSession & {
+        user?: AppUser;
+    };
+
+    export type Entry = Prisma.Entry & {
+        parent?: Entry;
+        translations?: Translation[];
         variations?: Variation[];
-        translations?: Translation[];
+        references?: Reference[];
+        changes?: EntryChanges[];
+        media?: AppMedia[];
         relatedEntries?: Entry[];
-        entryChanges?: EntryChanges[];
-        category?: Category;
-        categoryId?: number;
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-
-    export interface EntryChanges {
-        id: number;
-        entryId: number;
-        entry: Entry;
-        userId: number;
-        user?: User;
-        changes: string;
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-    
-    export interface Language {
-        id: number;
-        name: string;
-        abbreviation?: string;
-        code?: string;
-        translations?: Translation[];
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-
-    export interface EntryMedia {
-        id: number;
-        mediaId: number;
-        entryId: number;
-        position?: number;
-
-        media?: Media;
-        entry?: Entry;
-
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-
-    export interface Media {
-        id: number;
-        name: string;
-        path?: string;
-        subtitle?: string;
-        private?: boolean;
-        position?: number;
-        type?: string;
-        entries?: EntryMedia[];
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-
-
-    export interface User {
-        id: number;
-        email: string;
-        password: string;
-
-        refreshToken: string;
-
-        name: string;
-        
-        firstName?: string;
-        lastName?: string;
-
-        role?: number;
-
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
-
-    export interface Reference {
-        id: number;
-        name: string;
-
         entries?: Entry[];
+        children?: Entry[];
+    };
 
-        createdAt?: Date;
-        updatedAt?: Date;
-    }
 
-    export interface Translation {
-        id: number;
-        name: string;
-        language?: Language;
-        languageId?: number;
-        entry: Entry;
-        createdAt?: Date;
-        updatedAt?: Date;   
-    }
-
-    export interface Variation {
-        id?: number;
-        name: string;
+    export type EntryChanges = Prisma.EntryChanges & {
         entry?: Entry;
+        user?: AppUser;
+    };
+
+    export type EntryMedia = Prisma.EntryMedia & {
+        entry?: Entry;
+        media?: AppMedia;
+    };
+
+
+    export type Language = Prisma.Language & {
+        translations?: Translation[];
+    };
+
+    export type Variation = Prisma.EntryVariation & {
+        entry?: Entry;
+    };
+
+
+    export type Translation = Prisma.EntryTranslation & {
+        entry?: Entry;
+        language?: Language;
+    };
+
+    export type Reference = Prisma.Reference & {
+        entries?: Entry[];
+    };
+
+    export type WebPage = Prisma.WebPage;
+
+    export type FormField = Prisma.AppResourceField & {
+        resource?: AppResource | undefined,
+        relatedResource?: AppResource | undefined,
+    }
+
+    export type ValueType = 'string' | 'number' | 'boolean' | 'object' | 'array'
+    export type UIField = 'autocomplete' | 'auxiliaryForm' | 'checkbox' | 'dropzone' | 'finder' | 'input' | 'media' | 'rich' | 'select' | 'textarea'
+    export type InputType = 'text' | 'number' | 'email' | 'date' | 'color' | 'password' | 'search' | 'hidden' | 'checkbox' | 'radio'
+    export type GenderNoun = 'm' | 'f' | 'n'
+    
+    export type FormStore = ReturnType<typeof useFormStore>;
+    export type ResourceStore = ReturnType<typeof useResourceStore>;
+    export type ListStore = ReturnType<typeof useListStore>;
+
+    export type Item = {
+        id: ID; 
+        name: string; 
+        nameSlug?: string;
+        label?: string 
+        labelSlug?: string
+    };
+
+    export type HierarchicalItem = Item & {
+        parentId: ID;
+        parent?: HierarchicalItem;
+        children?: any[]
+    };
+
+    export type PaginatedResponse = {
+        pageSize: number;
+        totalPages: number;
+        page: number;
+        total: number;
+        items: any[];
+    }
+
+    export type ID = number | string | null;
+
+    export type TreeNode = {
+        id: ID;
+        parentId: ID;
+        label: string;
+        slug?: string;
+        expanded: boolean;
+        children: TreeNode[];
+        isLeaf?: boolean;
     }
 
 
-    export interface WebPage {
-        id: number;
-        name: string;
-        menuName?: string;
+    export type DataTransferFormat = 'json' | 'xml' | 'csv' | 'xlsx';
 
-
-        slug: string;
-
-        content?: string;
-
-        createdAt?: Date;
-        updatedAt?: Date;
-
-    }
 }

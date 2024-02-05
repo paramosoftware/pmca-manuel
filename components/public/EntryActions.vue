@@ -1,21 +1,14 @@
 <template>
-        <div class="flex justify-between mb-4 mt-4 sm:mt-0">
-            <div>
-
-            </div>
-            <div>
-                <a v-for="item in socialMedia" :key="item.name" class="mr-2 cursor-pointer" @click="share(item.name)">
-                    <span class="sr-only">{{ "Compartilhar no " + item.name }}</span>
-                    <Icon :name="item.icon" />
-                </a>
-            </div>
-        </div>
+    <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
+        <a v-for="item in socialMedia" :key="item.name" class="mr-2 cursor-pointer">
+            <UIIcon :name="item.icon" @click="share(item.name)" :title="item.title ?? ''" />
+        </a>
+        <PublicExportDropdown />
+    </div>
 </template>
 
 
 <script setup lang="ts">
-
-
 const props = defineProps({
     title: {
         type: String,
@@ -34,7 +27,8 @@ const socialMedia = [
     {
         name: 'Baixar',
         icon: 'ph:file-pdf',
-        shareUrl: ''
+        shareUrl: '',
+        title: 'Baixar PDF'
     },
     {
         name: 'Facebook',
@@ -51,15 +45,10 @@ const socialMedia = [
         name: 'WhatsApp',
         icon: 'ph:whatsapp-logo',
         shareUrl: 'https://api.whatsapp.com/send?text={title} {url}',
-    },
-    {
-        name: 'Link',
-        icon: 'ph:link',
-    },
+    }
 ]
 
-
-const share = (name: String) => {
+const share = (name: string) => {
 
     let url = window.location.href
     let title = props.title

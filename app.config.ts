@@ -4,7 +4,15 @@ export default defineAppConfig({
       class: 'icon' // default <Icon> class applied
     },
     ui: {
-      primary: 'red',
+      primary: 'pmca-green',
       gray: 'cool',
+      default: {
+        size: 'md'
+      },
+      button: {
+        default: {
+          size: 'md'
+        }
+      }
     }
   })

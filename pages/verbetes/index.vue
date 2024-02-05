@@ -1,12 +1,10 @@
 <template>
-
-  <PublicEntriesGrid :has-view-mode=true />
-
+    <PublicEntriesGrid :title="title" />
 </template>
    
 <script setup lang="ts">
 definePageMeta({
-    layout: false,
+    layout: 'public',
 });
 
 const config = useRuntimeConfig();

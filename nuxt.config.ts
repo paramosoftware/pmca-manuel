@@ -27,7 +27,8 @@ export default defineNuxtConfig({
     },
     modules: [
         'nuxt-icon',
-        '@nuxthq/ui'
+        '@nuxt/ui',
+        '@pinia/nuxt'
     ],
     serverHandlers: [
         {

@@ -11,8 +11,8 @@
             </ul>
         </div>
         <div class="hidden md:flex col-span-1 text-end mr-3 md:mr-0"> 
-            <NuxtLink to="/verbetes-selecionados">
-                <Icon class="text-pmca-accent text-2xl cursor-pointer" name="ph:bookmarks-simple-fill" />
+            <NuxtLink to="/verbetes/selecionados">
+                <UIIcon class="text-pmca-accent text-2xl cursor-pointer" name="ph:bookmarks-simple-fill" title="Verbetes selecionados" />
             </NuxtLink>
         </div>
     </div>
@@ -41,18 +41,22 @@ const links = ref([
     {
         name: 'Verbetes',
         path: '/verbetes'
+    },
+    {
+        name: 'Exportar',
+        path: '/exportar'
     }
 ]);
 
 
-const { data, pending, error } = await useFetchWithBaseUrl('/api/web-pages');
+const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage');
 
-webPages.value = data.value;
+webPages.value = data.value.items ?? [];
 
 for (const webPage of webPages.value) {
     links.value.push({
         name: webPage.menuName === '' ? webPage.name : webPage.menuName,
-        path: '/' + webPage.slug
+        path: '/' + webPage.nameSlug
     });
 }
 </script>

@@ -23,19 +23,13 @@ const props = defineProps({
 
 const srcImg = ref(props.src);
 
-if (props.src) {
 
-    const pathImg = '/media/' + props.src
-
-    if (useElectron().isElectron) {
-        srcImg.value = 'app://' + pathImg
-    } else {
-        srcImg.value = pathImg
-    }
-    
+if (isElectron() && props.src) {
+    srcImg.value = 'app://' + props.src;
+} else if (props.src) {
+    srcImg.value = '/api/media/' + props.src;
 } else {
-    srcImg.value = '/placeholder.png'
+    srcImg.value = '/placeholder.png';
 }
-
 
 </script>

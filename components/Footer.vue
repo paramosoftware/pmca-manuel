@@ -1,12 +1,13 @@
 <template>
-    <footer class="mb-2 text-white mt-6">
-        <div class="container">
-            <div class="grid md:grid-cols-2 bg-pmca-primary-light p-4">
+    <footer class="text-white bg-pmca-primary-light shadow-md">
+
+        <div class="max-w-screen-2xl mx-auto">
+            <div class="grid md:grid-cols-2 p-4">
                 <div class="flex flex-col">
                     <div class="pb-2">
                         <NuxtLink to="/login" v-if="showLoginButton">
                             <UIButton class="col-auto">
-                                <Icon name="ph:sign-in" class="w-6 h-6" />
+                                <UIIcon name="ph:sign-in" class="w-6 h-6" />
                                 <span class="text-lg">Acesso interno</span>
                             </UIButton>
                         </NuxtLink>
@@ -18,7 +19,7 @@
                             {{ blockTitle }}
                         </span>
                     </h1>
-                    <Icon name="ci:github" class="text-white p-1" />
+                    <UIIcon name="ci:github" class="text-white p-1" />
                     <div class="text-start mt-5">
                         <p class="text-sm text-start">Projeto Manuel Correia de Andrade (PMCA)</p>
                         <p class="text-sm text-start">Desenvolvimento por Páramo Software</p>
@@ -43,16 +44,18 @@
                 </div>
             </div>
         </div>
+
     </footer>
 </template>
 
 <script setup lang="ts">
+import ROUTES from '~/config/routes';
 const router = useRouter();
 
 const showLoginButton = ref(false);
 const path = router.currentRoute.value.path;
 
-if (useElectron().isElectron && !path.includes('/logged')) {
+if (isElectron() && !path.includes(ROUTES.restricted)) {
     showLoginButton.value = true;
 }
 

@@ -1,6 +1,7 @@
 const builder = require('electron-builder');
-const Platform = builder.Platform;
+require('dotenv').config();
 
+const Platform = builder.Platform;
 /**
 * @type {import('electron-builder').Configuration}
 */
@@ -14,7 +15,8 @@ const config = {
   ],
   extraResources: [
     ".output/**/*",
-    "server/prisma/app.sqlite"
+    "data/**/*",
+    ".env.example",
   ],
   directories: {
     output: "builds/${version}"
@@ -37,12 +39,12 @@ const config = {
   nsis: {
     oneClick: false,
     perMachine: false,
-    deleteAppDataOnUninstall: false // TODO: see if is the better approach
+    deleteAppDataOnUninstall: true
   }
 };
 
 
-let platform = "LINUX"
+let platform = process.env.BUILD_TARGET ?? "LINUX";
 
 builder
 .build({

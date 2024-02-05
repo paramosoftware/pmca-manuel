@@ -1,77 +1,72 @@
 <template>
-    <NuxtLayout name="public">
-        <main class="container mb-auto p-2 mx-auto">
-            <div class="flex items-center justify-between">
-                <div class="flex flex-col">
-                    <UIPageTitle>{{ title }}</UIPageTitle>
+    <div class="sm:flex sm:justify-between sm:items-center">
+        <UIPageTitle>
+            {{ title }}
+        </UIPageTitle>
+        <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
+
+            <span v-if="hasTree">
+                <UIIcon name="ph:cards" class="mr-3" :class="mode === 'alfa' ? 'text-pmca-accent' : ''"
+                    @click="mode = 'alfa'" title="Modo alfabético" />
+
+                <UIIcon name="ph:tree-structure" :class="mode === 'hier' ? 'text-pmca-accent' : ''" @click="mode = 'hier'"
+                    title="Modo hierárquico" />
+            </span>
+
+            <span v-if="userSelection">
+                <UIIcon name="ph:broom" class="ml-3" title="Desmarcar todos" @click="entryStore.clearSelection()" />
+                <PublicExportDropdown  class="ml-3" />
+            </span>
+
+        </div>
+    </div>
+
+    <div v-if="mode === 'hier'" class="justify-start items-start border-t border-gray-200 mt-3">
+        <UITreeView :tree="entriesTree" class="mt-6" v-if="entriesTree.length > 0" />
+        <div class="text-xl mt-3" v-else-if="!pending">
+            Nenhuma categoria encontrada.
+        </div>
+    </div>
+
+    <div class="mt-6" v-else>
+        <div class="flex flex-col md:flex-row mt-5">
+            <div class="w-full md:w-1/3">
+                <FieldInput id="filter" v-model="search" type="text" :placeholder="placeholder"
+                    :disabled="filterDisabled" />
+            </div>
+        </div>
+        <div class="mt-4 md:flex md:flex-row md:justify-between md:items-center">
+            <div class="text-md" v-if="total > 0">
+                {{ total }} {{ total > 1 ? 'itens' : 'item' }} encontrado{{ total > 1 ? 's' : '' }}
+            </div>
+            <div class="text-md" v-else-if="total === 0 && search !== ''">
+                Nenhum item encontrado
+                <span v-if="search !== ''">para "<i>{{ search.substring(0, 20) }}</i>"</span>
+            </div>
+            <div class="flex flex-row items-center justify-between mt-5 md:mt-0">
+                <UIIcon class="w-8 h-8 mr-3" :name="sort === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending'"
+                    title="Ordenar por nome" @click="entryStore.sortByName()" v-if="total > 1" />
+                <UPagination v-model="page" :total="total" :page-count="pageSize" show-last show-first
+                    v-if="total > pageSize" />
+            </div>
+        </div>
+
+        <div class="flex flex-col mt-5 border-t border-gray-200 py-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <div v-for="entry in entries" :key="entry.id">
+                    <PublicEntryCard :entry="entry" />
                 </div>
             </div>
+        </div>
 
-            <div class="flex flex-col md:flex-row mt-5">
+        <div class="text-xl" v-if="search === '' && total === 0 && !pending">
+            Nenhum verbete {{ props.userSelection ? 'selecionado' : 'encontrado' }}.
+        </div>
 
-                <div class="w-full md:w-7/10">
-                    <label class="text-lg text-pmca-secondary" for="filter">
-                        Filtrar
-                    </label>
-                    <input v-model="filter" @input=handleFilter
-                        class="w-full bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm leading-none"
-                        id="filter" type="text" placeholder="Filtrar verbetes">
-                </div>
-
-                <div class="w-full sm:w-3/10 md:ml-3" v-if="hasViewMode">
-                    <label class="text-lg text-pmca-secondary" for="list-mode">
-                        Modo de exibição
-                    </label>
-                    <select v-model="listMode" @input=handleMode
-                        class="w-full text-md bg-gray-50 border border-gray-200 p-2 focus:outline-none focus:border-pmca-accent rounded-sm"
-                        id="list-mode">
-                        <option value="hier">Hierárquico</option>
-                        <option value="alfa">Alfabético</option>
-                    </select>
-                </div>
-
-            </div>
-
-            <div v-if="listMode === 'hier' && hasViewMode">
-                <UITreeView :tree="tree" class="mt-6" />
-            </div>
-
-            <div v-else class="mt-6">
-
-                <div class="flex flex-row justify-between">
-                    <div class="flex flex-row text-xl">
-                        <p v-if="filteredEntries.length > 0">
-                            {{ filteredEntries.length }}
-                            <span v-if="filteredEntries.length === 1">verbete </span>
-                            <span v-else>verbetes </span>
-                            <span v-if="filter.length > 0"> encontrado<span v-if="filteredEntries.length > 1">s
-                                </span></span>
-                        </p>
-                        <p v-if="filteredEntries.length === 0">
-                            Nenhum resultado encontrado
-                        </p>
-                    </div>
-                    <div class="flex flex-row">
-                        <button class="flex flex-col items-end justify-center" @click="handleSort">
-                            <Icon class="w-8 h-8"
-                                :name="sortOrder === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending'" />
-                        </button>
-                    </div>
-                </div>
-
-                <div class="flex flex-col mt-5">
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                        <div v-for="entry in filteredEntries" :key="entry.id" :entry="entry">
-                            <PublicEntryCard :entry="entry" />
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-
-        </main>
-    </NuxtLayout>
+        <div class="flex flex-row items-center justify-end mt-5" v-if="total > pageSize">
+            <UPagination v-model="page" :total="total" :page-count="pageSize" show-last show-first size="md" />
+        </div>
+    </div>
 </template>
        
 <script setup lang="ts">
@@ -80,15 +75,19 @@ const props = defineProps({
         type: String,
         default: 'Verbetes'
     },
-    hasViewMode: {
-        type: Boolean,
-        default: false
-    },
     userSelection: {
         type: Boolean,
         default: false
+    },
+    hasTree: {
+        type: Boolean,
+        default: true
     }
 });
+
+// TODO: transform the internal search into a filter of the large search
+// TODO: filter tree view based on search
+// TODO: add transition/animations to page change
 
 const router = useRouter();
 
@@ -96,118 +95,44 @@ const query = computed(() => {
     return router.currentRoute.value.query;
 });
 
-const entries = ref([])
-const sortOrder = ref('asc');
-const filter = ref('');
-const tree = ref({});
+const mode = ref(query.value?.modo || 'alfa');
 
-if (props.hasViewMode) {
-
-    const { data: hierarchy } = await useFetchWithBaseUrl('/api/categories', {
-        transform: (categories) =>
-            categories.map((category: Category) => ({
-                id: category.id,
-                name: category.name,
-                parentId: category.parentId,
-                entries: category.entries,
-            })),
-    });
-
-    tree.value = useConvertToTreeData(hierarchy.value, false, true, null);
+if (!props.hasTree) {
+    mode.value = 'alfa';
 }
 
-if (props.userSelection) {
-    const fetchEntries = async (ids: string[]) => {
-        const fetch = useFetchWithBaseUrl('/api/entries/find-many-by-id', {
-            immediate: false,
-            method: 'POST',
-            body: JSON.stringify({
-                ids: ids
-            })
-        });
+const entryStore = useEntryStore();
+await entryStore.load('', props.userSelection);
+await entryStore.fetchEntriesTree();
 
-        await fetch.execute({ _initial: true });
-        entries.value = fetch.data.value;
-    };
+const { entries, page, pageSize, total, search, pending, sort, error, entriesTree } = storeToRefs(entryStore);
 
-    const { selectedEntries } = useEntrySelection();
-    if (selectedEntries.length > 0) {
-        await fetchEntries(selectedEntries);
-    }
+search.value = query.value?.search?.toString() || '';
 
-} else {
-    const fetchEntries = async (query) => {
-        const { data } = await useFetchWithBaseUrl('/api/entries/search', {
-            method: 'POST',
-            body: JSON.stringify({
-                query: query
-            })
-        });
+const filterDisabled = ref(search.value === '' && total.value === 0 && !pending.value);
 
-        entries.value = data.value;
-    }
-
-    await fetchEntries(query.value);
-
-    watch(() => query.value, async (newQuery) => {
-        await fetchEntries(newQuery)
-    });
-}
-
-const filteredEntries = computed(() => {
-
-    if (!filter.value) {
-        return entries.value;
-    }
-
-    const normalizedFilterValue = filter.value
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase();
-
-    return entries.value.filter(entry =>
-        entry.name
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .includes(normalizedFilterValue)
-    );
-
+watch(total, () => {
+    filterDisabled.value = search.value === '' && total.value === 0 && !pending.value;
 });
 
-// hierarchical (hier) or alphabetical (alfa)
-const listMode = computed(() => {
-    return query.value?.modo || 'hier';
+watch(mode, () => {
+    page.value = 1;
 });
 
-const handleFilter = (event: Event) => {
-    if (listMode.value === 'hier') {
-        router.push({
-            query: {
-                ...query.value,
-                modo: 'alfa'
-            }
-        });
-    }
-    filter.value = event.target.value;
-};
+const userSelection = computed(() => {
+    return props.userSelection;
+});
 
-const handleMode = (event: Event) => {
-    router.push({
-        query: {
-            ...query.value,
-            modo: event.target.value
-        }
-    });
+watch(userSelection, async () => {
+    await entryStore.load('', true);
+});
 
-    listMode.value = event.target.value;
+const placeholder = computed(() => {
+    return props.userSelection ? 'Filtrar verbetes' : 'Pesquisar verbetes';
+});
 
-};
-
-const handleSort = () => {
-    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
-    entries.value = entries.value.reverse();
-};
-
+onUnmounted(() => {
+    search.value = '';
+});
 </script>
       

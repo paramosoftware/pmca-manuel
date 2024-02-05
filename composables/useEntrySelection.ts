@@ -1,35 +1,43 @@
 export const useEntrySelection = () => {
+    if (!process.client) return { isSelected: () => false, toggle: () => false, getSelected: () => [], clearSelected: () => false };
 
-    if (!process.client) return { isSelected: () => false, handleEntrySelection: () => { }, selectedEntries: [] }
-
-    const selectedEntries = JSON.parse(localStorage.getItem('selectedEntries')!) || [];
-
-    const isSelected = (id: number) => {
-        return selectedEntries.includes(id);
+    const getSelected = () => {
+        try {
+            return JSON.parse(localStorage.getItem('selectedEntries') ?? '[]');
+        } catch (error) {
+            clearSelected();
+            return [];
+        }
     }
 
-    const handleEntrySelection = (event: Event, id: number) => {
+    const isSelected = (id: ID) => {
+        return getSelected().includes(id);
+    }
 
-        event.stopPropagation();
-        event.preventDefault();
+    const toggle = (event: Event, id: ID) => {
+        event?.stopPropagation();
+        event?.preventDefault();
 
-        let selectedEntry = isSelected(id);
+        let selectedEntries = getSelected();
+        const index = selectedEntries.indexOf(id);
 
-        if (selectedEntry) {
-            const index = selectedEntries.indexOf(id);
+        if (index !== -1) {
             selectedEntries.splice(index, 1);
-            selectedEntry = false;
         } else {
             selectedEntries.push(id);
-            selectedEntry = true;
         }
 
         localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries));
 
-        return selectedEntry
+        return index === -1;
     }
 
-    return { isSelected, handleEntrySelection, selectedEntries }
+    const clearSelected = () => {
+        localStorage.removeItem('selectedEntries');
+    }
+
+    return { isSelected, toggle, getSelected, clearSelected }
 }
+
 
 

@@ -12,10 +12,10 @@
 
         <span class="splide__arrows w-36 h-36">
             <button class="splide__arrow splide__arrow--prev">
-                <Icon name="ph:caret-right" />
+                <UIIcon name="ph:caret-right" />
             </button>
             <button class="splide__arrow splide__arrow--next">
-                <Icon name="ph:caret-right" />
+                <UIIcon name="ph:caret-right" />
             </button>
         </span>
     </Splide>
@@ -28,9 +28,21 @@ import '@splidejs/vue-splide/css';
 const props = defineProps({
     entries: {
         type: Array as PropType<Entry[]>,
-        required: true
+        required: true,
+        default: []
+    },
+    oppositeSide: {
+        type: Array as PropType<Entry[]>,
+        default: []
     }
 })
+
+
+const entries = computed(() => {
+     return props.entries.concat(props.oppositeSide)
+})
+
+
 
 const options = ref({
     perPage: 6,

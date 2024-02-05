@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+
+<rdf:Property rdf:about="#referenceNote">
+  <rdfs:comment>Bibliographic reference to the concept</rdfs:comment>
+  <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2004/02/skos/core#editorialNote"/>
+  <rdfs:label>Reference</rdfs:label>
+</rdf:Property>
+<skos:ConceptScheme rdf:about="#A0">
+  <skos:prefLabel xml:lang="pt">Glossário de conservação-restauro de livros e documentos</skos:prefLabel>
+  <skos:definition xml:lang="pt">O Glossário de conservação-restauro de livros e documentos em papel é um software de código aberto desenvolvido como parte do Projeto Manuel Correia de Andrade (PMCA)</skos:definition>
+  <skos:hasTopConcept rdf:resource="#danos-0ce5"/>
+</skos:ConceptScheme>
+<skos:Concept rdf:about="#abrasao-e93e">
+  <skos:inScheme rdf:resource="#A0"/>
+  <skos:prefLabel xml:lang="pt">abrasão</skos:prefLabel>
+  <skos:prefLabel xml:lang="es">abrasión  </skos:prefLabel>
+  <skos:prefLabel xml:lang="en">abrasion  </skos:prefLabel>
+  <skos:prefLabel xml:lang="el">εκτριβή  </skos:prefLabel>
+  <dc:created>2024-01-22T16:36:37.291Z</dc:created>
+  <dc:modified>2024-01-22T16:36:37.329Z</dc:modified>
+  <skos:definition xml:lang="pt">Dano ocasionado pela fricção entre os materiais ou com algum material abrasivo, como a poeira, que resulta no desgaste das superfícies e mídias nas obras em papel.</skos:definition>
+  <skos:scopeNote xml:lang="pt">A abrasão, em geral, é resultado de manuseio inadequado e falta de limpeza nos locais de guarda. A poeira depositada sobre as superfícies, por exemplo, funciona com uma lixa durante a movimentação de livros.</skos:scopeNote>
+  <skos:referenceNote xml:lang="pt">BOJANOSKI, S., ALMADA, M. Glossário ilustrado de conservação e restauração de obras em papel: danos e tratamentos: Português, Espanhol, Inglês, Grego. [s.l.] Fino Traço Editora, 2021.</skos:referenceNote>
+  <skos:related rdf:resource="#amarelecimento-1df4"/>
+  <skos:broader rdf:resource="#danos-0ce5"/>
+</skos:Concept>
+<skos:Concept rdf:about="#amarelecimento-1df4">
+  <skos:inScheme rdf:resource="#A0"/>
+  <skos:prefLabel xml:lang="pt">amarelecimento</skos:prefLabel>
+  <skos:prefLabel xml:lang="es">amarillamiento  </skos:prefLabel>
+  <skos:prefLabel xml:lang="en">yellowing  </skos:prefLabel>
+  <skos:prefLabel xml:lang="el">κιτρίνισμα  </skos:prefLabel>
+  <skos:altLabel xml:lang="pt">Pergaminho</skos:altLabel>
+  <dc:created>2024-01-22T16:36:37.303Z</dc:created>
+  <dc:modified>2024-01-22T16:36:37.333Z</dc:modified>
+  <skos:definition xml:lang="pt">Alteração da cor do papel, em geral em decorrência da degradação da lignina e celulose causada pela oxidação, hidrólise e reação fotoquímica.</skos:definition>
+  <skos:scopeNote xml:lang="pt">Apesar do amarelecimento frequentemente ser indicado como um dano, por vezes pode ser apenas uma característica do envelhecimento natural do papel e, portanto, um vestígio histórico.</skos:scopeNote>
+  <skos:referenceNote xml:lang="pt">BOJANOSKI, S., ALMADA, M. Glossário ilustrado de conservação e restauração de obras em papel: danos e tratamentos: Português, Espanhol, Inglês, Grego. [s.l.] Fino Traço Editora, 2021.</skos:referenceNote>
+  <skos:related rdf:resource="#abrasao-e93e"/>
+  <skos:broader rdf:resource="#danos-0ce5"/>
+</skos:Concept>
+<skos:Concept rdf:about="#danos-0ce5">
+  <skos:inScheme rdf:resource="#A0"/>
+  <skos:prefLabel xml:lang="pt">Danos</skos:prefLabel>
+  <dc:created>2024-01-22T16:36:37.311Z</dc:created>
+  <dc:modified>2024-01-22T16:36:37.311Z</dc:modified>
+  <skos:topConceptOf rdf:resource="#A0"/>
+  <skos:narrower rdf:resource="#abrasao-e93e"/>
+  <skos:narrower rdf:resource="#amarelecimento-1df4"/>
+</skos:Concept>
+</rdf:RDF>
