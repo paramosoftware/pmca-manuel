@@ -9,6 +9,7 @@ import { prisma } from '~/server/prisma/prisma';
 import deleteFolder from '~/utils/deleteFolder';
 import getDataFolderPath from '~/utils/getDataFolderPath';
 import parseNumber from '~/utils/parseNumber';
+import normalizeString from '~/utils/normalizeString';
 import { useCamelCase } from '~/utils/useCamelCase';
 import { createOneOrMany } from './create';
 import { deleteOneOrManyWithQuery } from './delete';
@@ -139,7 +140,9 @@ export const importData = function () {
     
         for (const item of items) {
     
-            const oldId = item.id ?? item[camelCaseMap.get('name') ?? 'name'] ?? undefined;
+            let oldId = item.id ?? item[camelCaseMap.get('name') ?? 'name'] ?? undefined;
+
+            oldId = normalizeString(oldId, true);
 
             if (!oldId) { continue; }
 
@@ -178,13 +181,19 @@ export const importData = function () {
                     case camelCaseMap.get('translations'):
                         const translations = item[key];
                         for (const translation of translations) {
-                            entry.translations.push({ ... await getTranslationAndLanguage(translation) });
+
+                            const translationAndLanguage = await getTranslationAndLanguage(translation);
+
+                            if (translationAndLanguage.name && translationAndLanguage.languageId) {
+                                entry.translations.push(translationAndLanguage);
+                            }
+
                         }
                         break;
 
                     case camelCaseMap.get('references'):
                         // @ts-ignore
-                        entry.references = item[key].map((reference) => {
+                        entry.references = item[key].filter((reference) => reference != '').map((reference) => {
                             return {
                                 name: reference
                             }
@@ -193,7 +202,7 @@ export const importData = function () {
 
                     case camelCaseMap.get('variations'):
                         // @ts-ignore
-                        entry.variations = item[key].map((variation) => {
+                        entry.variations = item[key].filter((variation) => variation != '').map((variation) => {
                             return {
                                 name: variation
                             }
@@ -235,6 +244,8 @@ export const importData = function () {
             if (!oldId) {
                 oldId = rows[i].getCell(headerRow.indexOf(labelMap.get('name') ?? 'name')).value as string;
             }
+
+            oldId = normalizeString(oldId, true);
     
             if (!oldId) { continue; }
     
@@ -267,26 +278,35 @@ export const importData = function () {
                         parent.set(oldId, value);
                         break;
                     case labelMap.get('relatedEntries'):
-                        related.set(oldId, value.split(';'));
+                        related.set(oldId, value.split(';').filter((relatedEntry) => relatedEntry != ''));
                         break;
                     case labelMap.get('references'):
                         value.split(';').forEach((reference) => {
-                            entry.references.push({
-                                name: reference
-                            });
+                            if (reference) {
+                                entry.references.push({
+                                    name: reference
+                                });
+                            }
                         });
                         break;
                     case labelMap.get('variations'):
                         value.split(';').forEach((variation) => {
-                            entry.variations.push({
-                                name: variation
-                            });
+                            if (variation) { 
+                                entry.variations.push({
+                                    name: variation
+                                });
+                            }
                         });
                         break;
                     case labelMap.get('translations'):
                         const translations = value.split(';');
                         for (const translation of translations) {
-                            entry.translations.push({ ... await getTranslationAndLanguage(translation) });
+
+                            const translationAndLanguage = await getTranslationAndLanguage(translation);
+
+                            if (translationAndLanguage.name && translationAndLanguage.languageId) {
+                                entry.translations.push(translationAndLanguage);
+                            }
                         }
                         break;
                 }
@@ -309,7 +329,9 @@ export const importData = function () {
     
             if (item['skos:Concept']) {
     
-                const oldId = item[':@']?.['@_rdf:about'] ?? undefined;
+                let oldId = item[':@']?.['@_rdf:about'] ?? undefined;
+
+                oldId = normalizeString(oldId, true);
     
                 if (!oldId) { continue; }
     
@@ -394,8 +416,9 @@ export const importData = function () {
         for (const [oldId, relatedEntries] of related) {
        
             // delete relations in other direction in related map to avoid duplicate relations
-            for (const relatedEntry of relatedEntries) {
-                const relatedEntryRelations = related.get(relatedEntry) ?? [];
+            for (let relatedEntry of relatedEntries) {
+                relatedEntry = normalizeString(relatedEntry, true);
+                const relatedEntryRelations = (related.get(relatedEntry) ?? []).map((relatedEntry) => { return normalizeString(relatedEntry, true); });
                 const index = relatedEntryRelations.indexOf(oldId);
                 if (index > -1) {
                     relatedEntryRelations.splice(index, 1);
@@ -410,10 +433,10 @@ export const importData = function () {
                 data: {
                     relatedEntries: {
                         connect: relatedEntries.filter((relatedEntry) => {
-                            return createdEntries.get(relatedEntry);
+                            return createdEntries.get(normalizeString(relatedEntry, true));
                         }).map((relatedEntry) => {
                             return {
-                                id: createdEntries.get(relatedEntry)
+                                id: createdEntries.get(normalizeString(relatedEntry, true))
                             }
                         })
                     }
@@ -424,7 +447,9 @@ export const importData = function () {
         }
     
     
-        for (const [entryId, parentResourceId] of parent) {
+        for (let [entryId, parentResourceId] of parent) {
+
+            parentResourceId = normalizeString(parentResourceId, true);
     
             if (!createdEntries.get(entryId) || !createdEntries.get(parentResourceId)) {
                 continue;
@@ -477,15 +502,38 @@ export const importData = function () {
 
     async function getTranslationAndLanguage(translation: string) {
 
-        const languageName = translation.split('(')[1].replace(')', '');
+        const translationAndLanguage = {
+            name: undefined,
+            languageId: undefined
+        }
+
+        if (!translation) {
+            return translationAndLanguage;
+        }
+
+        let languageName = '';
+
+        if (translation.includes('(')) {
+            languageName = translation.split('(')[1].replace(')', '');
+        } else {
+            // TODO: Log error
+            return translationAndLanguage;
+        }
+       
         
         if (!languages.get(languageName)) {
             const languageId = await upsertLanguage(languageName);
             languages.set(languageName, languageId);
         }
 
+        const translationName = translation.split('(')[0].trim();
+
+        if (!translationName) {
+            return translationAndLanguage;
+        }
+
         return {
-            name: translation.split('(')[0],
+            name: translationName,
             languageId: languages.get(languageName)
         };
     }
@@ -513,6 +561,8 @@ export const importData = function () {
             }
     
             const newFileName = `${uuidv4()}.${ext}`;
+
+            oldId = normalizeString(oldId, true);
     
             const entryId = createdEntries.get(oldId) ?? createdEntries.get('#' + oldId);
 

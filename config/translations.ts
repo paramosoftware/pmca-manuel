@@ -168,7 +168,7 @@ FIELDS.set('oppositeField', 'Campo oposto (para relacionamentos bidirecionais)')
 FIELDS.set('oppositeFieldId', 'Campo oposto (para relacionamentos bidirecionais)');
 FIELDS.set('relatedOppositeFields', 'Campos opostos relacionados');
 FIELDS.set('isRelation', 'É uma tabela de relacionamento?');
-FIELDS.set('parent', 'Objeto superior');
+FIELDS.set('parent', 'Verbete superior');
 FIELDS.set('children', 'Verbetes inferiores');
 FIELDS.set('type', 'Tipo');
 
