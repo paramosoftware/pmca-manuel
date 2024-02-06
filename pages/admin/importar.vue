@@ -49,6 +49,7 @@
 
                 <FieldDropzone url="/api/entry/import" 
                     :max-files=1
+                    :max-filesize=10000000
                     accepted-files="application/json, application/xml, application/zip, application/*, text/csv, text/xml, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     @start='importing=true' 
                     @close='completed=true; importing=false'

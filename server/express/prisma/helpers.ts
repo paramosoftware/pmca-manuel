@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import type { ParsedQs } from 'qs';
 import { ApiValidationError } from '../error';
-import sanitizeHtml from 'sanitize-html'
+import sanitizeString from '~/utils/sanitizeString';
 import normalizeString from '~/utils/normalizeString';
 import type { Condition, Include, Order, PaginatedQuery, Query, Where } from './interfaces';
 import  hashPassword from '~/utils/hashPassword';
@@ -75,7 +75,7 @@ export async function convertBodyToPrismaUpdateOrCreateQuery(model: string, body
 
         } else if (field.type.toLowerCase() === 'string') {
 
-            prismaQuery[key] = key === 'password' ? hashPassword(body[key]) : sanitizeHtml(body[key]);
+            prismaQuery[key] = key === 'password' ? hashPassword(body[key]) : sanitizeString(body[key]);
 
         } else if (field.type.toLowerCase() === 'boolean') {
 
@@ -228,7 +228,7 @@ async function addConnectOrCreateFields(modelFields: Prisma.DMMF.Field[] | undef
 
             if (body[f.name]) {
 
-               prismaQuery.where[f.name] = body[f.name];
+               prismaQuery.where[f.name] = f.type.toLowerCase() === 'string' ? sanitizeString(body[f.name]) : body[f.name];
 
             } else { 
 

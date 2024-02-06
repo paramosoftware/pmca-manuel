@@ -10,7 +10,7 @@ if (!fs.existsSync(fileLog)) {
 
 module.exports = {
   apps : [        {
-    name: "pcma-glossario",
+    name: "pmca-glossario",
     script: ".output/server/index.mjs",
     watch: true,
     node_args: "-r dotenv/config",

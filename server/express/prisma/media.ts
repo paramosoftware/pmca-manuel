@@ -138,7 +138,7 @@ export async function importUploadFile(req: express.Request, res: express.Respon
 
     const upload = multer({
         storage: storage,
-        limits: { fileSize: 1024 * 1024 * 20 }
+        limits: { fileSize: 1024 * 1024 * 100 }
     }).single('file')
 
 
