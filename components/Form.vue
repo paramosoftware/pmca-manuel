@@ -3,9 +3,7 @@
         <template #header>
             <UIAnchorReturn v-if="!isAuxiliary" :href=urlList />
             <div class="text-end flex justify-between" :class="{ 'mt-5 mb-2': !isAuxiliary }">
-                <UIContainerTitle>
-                    {{ isAuxiliary ? 'Adicionar' : (isCreate ? 'Criar' : 'Editar') }} {{ uncapitalize(label) }}
-                </UIContainerTitle>
+                <UIContainerTitle> {{ formTitle }} </UIContainerTitle>
                 <template v-if="!isCreate && !isAuxiliary">
                     <UIIcon name="ph:plus-circle" @click="goToCreateForm" title="Criar novo" class="w-8 h-8 cursor-pointer" />
                 </template>
@@ -32,7 +30,7 @@
             </div>
 
             <div class="mt-5 text-end">
-                <UIButton :type='"submit"'>{{ (isAuxiliary ? 'Adicionar' : 'Salvar') }}</UIButton>
+                <UIButton :type='"submit"'>{{ buttonLabel }}</UIButton>
             </div>
 
         </form>
@@ -47,7 +45,7 @@ const props = defineProps({
     formStore: {
         type: Object as PropType<FormStore>,
         required: true
-    },
+    }
 });
 const router = useRouter();
 const { model, label, genderNoun, labelSlug } = storeToRefs(props.formStore);
@@ -58,6 +56,19 @@ const urlList = ROUTES.list + labelSlug.value;
 const urlCreate = ROUTES.create + labelSlug.value;
 const isCreate = !props.formStore.getId();
 const isAuxiliary = props.formStore.getIsAuxiliary();
+
+const isAdd = computed(() => {
+    return isAuxiliary && isCreate;
+});
+
+
+const formTitle = computed(() => {
+    return (isAdd.value ? 'Adicionar' : (isCreate ? 'Criar' : 'Editar')) + ' ' + uncapitalize(label.value);
+});
+
+const buttonLabel = computed(() => {
+    return isAdd.value ? 'Adicionar' : 'Salvar';
+});
 
 async function submit() {
     // TODO: hardcoded

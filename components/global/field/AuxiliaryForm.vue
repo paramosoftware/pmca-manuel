@@ -6,18 +6,25 @@
                 {{ label }} 
             </UILabel>
 
-            <div class="flex flex-wrap mb-2" v-if="selectedItems.length > 0">
+            <div class="flex flex-wrap mb-2 md:grid md:grid-cols-2 gap-2" v-if="selectedItems.length > 0">
                 <div v-for="item in selectedItems" :key="item.id"
-                    class="flex justify-between items-center px-2 border border-pmca-accent p-1 my-1 mr-2 rounded-md shadow-md">
+                    class="flex justify-between items-center border border-gray-200 bg-gray-100 p-1 pl-2 rounded-md w-full shadow-md">
 
-                    <div v-if="isHtml" v-html="item.label ?? item.name"></div>
-                    <div v-else>
-                        {{ item.label ?? item.name }}
+                    <div class="w-11/12 truncate mr-3" :title="item.label ?? item.name">
+                        <div v-if="isHtml" v-html="item.label ?? item.name"></div>
+                        <div v-else>
+                            {{ item.label ?? item.name }}
+                        </div>
                     </div>
 
-                    <button @click="removeItem(item)" class="ml-2">
-                        <UIIcon name="ph:trash-simple" class="w-6 h-6" title="Remover" />
-                    </button>
+                    <div class="flex items-center">
+                        <UIButton size="sm" @click="editItem(item)" square class="mr-1">
+                            <UIIcon name="ph:pencil-simple" class="w-5 h-5" title="Editar" />
+                        </UIButton>
+                        <UIButton size="sm" @click="removeItem(item)" square>
+                            <UIIcon name="ph:trash-simple" class="w-5 h-5" title="Remover" />
+                        </UIButton>
+                    </div>
                 </div>
             </div>
 
@@ -86,11 +93,12 @@ await auxiliaryFormStore.load(relatedResource.value.name);
 
 const emit = defineEmits(['update:modelValue']);
 const isModalOpen = ref(false);
+const itemId = ref();
 
 watch(() => isModalOpen.value, async (value) => {
     if (value) {
         auxiliaryFormStore.setIsAuxiliary(true, props.formStore.model);
-        await auxiliaryFormStore.load(relatedResource.value.name);
+        await auxiliaryFormStore.load(relatedResource.value.name, itemId.value);
         auxiliaryFormStore.$onAction(({ name, after }) => {
             after(() => {
                 if (name === 'save') {
@@ -99,8 +107,9 @@ watch(() => isModalOpen.value, async (value) => {
                     isModalOpen.value = false;
                 }
             })
-        })
+        });
     }
+    itemId.value = null;
 });
 
 const selectedItems = computed(() => {
@@ -120,4 +129,10 @@ function removeItem(item: Item) {
         props.formStore.removeFieldData(props.id, item);
     }
 }
+
+async function editItem(item: Item) {
+    itemId.value = item.id;
+    isModalOpen.value = true;
+}
+
 </script>

@@ -26,6 +26,8 @@ export const createFormStore = (name: string) => {
 
             if (itemId) {
                 id.value = itemId;
+            } else {
+                id.value = 0;
             }
 
             await loadResource(resourceIdentifier);
@@ -284,7 +286,8 @@ export const createFormStore = (name: string) => {
                 throw new Error('Resource not found');
             }
         
-            if (getIsAuxiliary()) {
+            // TODO: The auxiliary should only be saved with the parent?
+            if (getIsAuxiliary() && !id.value) {
                 return;
             }
         
@@ -296,23 +299,26 @@ export const createFormStore = (name: string) => {
                 body: JSON.stringify(treatDataBeforeSave()),
             }) as { data: Ref<Item>, error: Ref<any> };
 
-            const toast = useToast();
-        
-            if (error.value) {
-                console.error(error.value.data ?? error.value);
-                toast.add({
-                    title: 'Erro ao salvar dados.',
-                    color: 'red',
-                    icon: 'i-heroicons-x-circle',
-                });
-                return false;
-            } 
 
-            if (data.value) {
-                toast.add({
-                    title: 'Dados salvos com sucesso.',
-                })
-                return data.value.id;
+            if (!getIsAuxiliary()) {
+                const toast = useToast();
+            
+                if (error.value) {
+                    console.error(error.value.data ?? error.value);
+                    toast.add({
+                        title: 'Erro ao salvar dados.',
+                        color: 'red',
+                        icon: 'i-heroicons-x-circle',
+                    });
+                    return false;
+                } 
+
+                if (data.value) {
+                    toast.add({
+                        title: 'Dados salvos com sucesso.',
+                    })
+                    return data.value.id;
+                }
             }
         }
 
