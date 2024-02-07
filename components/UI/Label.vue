@@ -1,5 +1,5 @@
 <template>
-    <label class="text-lg text-pmca-secondary first-letter:uppercase" :for="id" v-if="showLabel">
+    <label class="text-xl text-pmca-secondary first-letter:uppercase" :for="id" v-if="showLabel">
         <slot />
     </label>
 </template>

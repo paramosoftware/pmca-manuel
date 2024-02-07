@@ -18,6 +18,8 @@
             color="gray" 
             variant="outline"
             :size="size"
+            class="mt-1"
+            padding="sm"
         >
 
         <template #trailing v-if="showIcon && !loading">
@@ -80,8 +82,8 @@ const props = defineProps({
         default: false
     },
     size: {
-        type: String as PropType<'sm' | 'md' | 'lg'>,
-        default: 'md'
+        type: String as PropType<'sm' | 'md' | 'lg' | 'xl'>,
+        default: 'xl'
     },
     formStore: {
         type: Object as PropType<FormStore>,

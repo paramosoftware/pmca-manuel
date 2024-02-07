@@ -15,8 +15,8 @@
             :options="list"
             option-attribute="name"
             @input="onInput"
-            size="md"
-            class="w-full"
+            size="xl"
+            class="w-full mt-1"
             variant="outline"
             color="gray"
         >

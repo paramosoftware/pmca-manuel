@@ -13,7 +13,7 @@
 
         <form @submit.prevent="submit">
             <div class="text-end" v-if="visibleFields > 5 && !isAuxiliary ">
-                <UIButton :type='"submit"'>Salvar</UIButton>
+                <UIButton :type='"submit"' size="xl">Salvar</UIButton>
             </div>
 
             <template v-for="field in fields" :key="field.id">
@@ -30,7 +30,7 @@
             </div>
 
             <div class="mt-5 text-end">
-                <UIButton :type='"submit"'>{{ buttonLabel }}</UIButton>
+                <UIButton :type='"submit"' size="xl">{{ buttonLabel }}</UIButton>
             </div>
 
         </form>

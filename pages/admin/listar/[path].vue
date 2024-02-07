@@ -52,19 +52,23 @@
         </div>
 
         <div v-if="items && items?.length > 0" class="mt-4">
-            <div v-for="item in items" :key="item.id" class="w-full py-4 border-b border-pmca-accent last:border-b-0">
+            <div v-for="item in items" :key="item.id" class="w-full border border-gray-200 bg-gray-100 p-1 pl-2 rounded-md shadow-md mt-4">
                 <div class="w-full h-full flex items-center justify-between">
-                    <NuxtLink :to="editUrl + '/' + item.id">
+                    <NuxtLink :to="editUrl + '/' + item.id" class="mr-2">
                         <h1 v-if="item.label" v-html="stripHtmlTags(item.label, ['s', 'em', 'strong'])"></h1>
                         <h1 v-else-if="item.name" v-html="stripHtmlTags(item.name, ['s', 'em', 'strong'])"></h1>
                         <h1 v-else>Item sem rótulo ({{ item.id }})</h1>
                     </NuxtLink>
-                    <div>
+
+                    <div class="flex items-center">
                         <NuxtLink :to="editUrl + '/' + item.id">
-                            <UIIcon name="ph:pencil-simple" class="w-6 h-6 m-1 cursor-pointer" title="Editar" />
+                            <UIButton size="sm" square class="mr-1">
+                                <UIIcon name="ph:pencil-simple" class="w-5 h-5" title="Editar" />
+                            </UIButton>
                         </NuxtLink>
-                        <UIIcon name="ph:trash-simple" class="w-6 h-6 m-1 cursor-pointer" @click="openModal(item)"
-                            title="Excluir" />
+                        <UIButton size="sm" square>
+                            <UIIcon name="ph:trash-simple" class="w-5 h-5" title="Excluir" @click="openModal(item)" />
+                        </UIButton>
                     </div>
                 </div>
             </div>

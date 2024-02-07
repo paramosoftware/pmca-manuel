@@ -9,6 +9,7 @@
     <ClientOnly>
       <QuillEditor theme="snow" :toolbar="toolbarOptions" v-model:content="content" content-type="html"
         :placeholder="placeholder" :read-only="disabled" :disabled="disabled"
+        class="mt-1"
         :class="{ 'cursor-not-allowed': disabled }" />
 
       <template #fallback>

@@ -30,14 +30,14 @@
 
             <p></p>
 
-            <UButton size="sm" color="primary" variant="solid" @click="isModalOpen = true" :disabled="!canAddMore || disabled">
+            <UButton size="lg" color="primary" variant="solid" @click="isModalOpen = true" :disabled="!canAddMore || disabled" class="mt-1">
                 <template #leading>
-                    <UIIcon name="ph:plus-circle" class="w-4 h-4" title="Criar" />
+                    <UIIcon name="ph:plus-circle" class="w-5 h-5" title="Criar" />
                 </template>
                 <template v-if="!canAddMore">
                     Máximo de itens adicionados
                 </template>
-                <template v-else>
+                <template v-else class="text-lg">
                     Adicionar
                 </template>
             </UButton>

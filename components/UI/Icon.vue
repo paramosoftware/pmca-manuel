@@ -1,5 +1,5 @@
 <template>
-    <span class="inline-block align-middle" v-if="title">
+    <span class="flex" v-if="title">
         <UDropdown 
             mode="hover" 
             :items="items" 

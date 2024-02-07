@@ -1,10 +1,10 @@
 <template>
    <article>
       <div class="sm:flex sm:justify-between sm:items-center">
-         <UIPageTitle>
+         <UIPageTitle class="flex items-center">
             {{ entry?.name }}
             <client-only>
-               <UIIcon class="text-pmca-accent cursor-pointer"
+               <UIIcon class="text-pmca-accent cursor-pointer ml-2"
                   :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'"
                   @click="entrySelected = toggle($event, id)" :title="entrySelected ? 'Remover' : 'Adicionar'" />
             </client-only>

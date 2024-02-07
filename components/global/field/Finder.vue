@@ -1,10 +1,11 @@
 <template>
     <div class="mt-4">
-        <label class="text-lg text-pmca-secondary first-letter:uppercase" :for="id">
-            {{ label }}
-        </label>
 
-        <div v-if="tree && tree.children.length > 0">
+        <UILabel :for="id">
+            {{ label }}
+        </UILabel>
+
+        <div v-if="tree && tree.children.length > 0" class="mt-1">
             <Finder 
                 :tree="tree" 
                 @expand="onExpand"

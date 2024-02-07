@@ -3,22 +3,25 @@
         <div class="w-full relative">
 
             <UILabel :for="id">
-                {{ label }}
+                {{ label }} 
             </UILabel>
 
-            <div class="flex flex-wrap mb-2" v-if="selectedItems.length > 0 && showSelected">
+            <div class="flex flex-wrap mb-2 md:grid md:grid-cols-2 gap-2" v-if="selectedItems.length > 0">
                 <div v-for="item in selectedItems" :key="item.id"
-                    class="flex justify-between items-center px-2 border border-pmca-accent p-1 my-1 mr-2 rounded-md shadow-md">
+                    class="flex justify-between items-center border border-gray-200 bg-gray-100 p-1 pl-2 rounded-md w-full shadow-md">
 
-                    <div v-if="isHtml" v-html="item.label ?? item.name"></div>
-                    <div v-else>
-                        {{ item.label ?? item.name }}
+                    <div class="w-11/12 truncate mr-3" :title="item.label ?? item.name">
+                        <div v-if="isHtml" v-html="item.label ?? item.name"></div>
+                        <div v-else>
+                            {{ item.label ?? item.name }}
+                        </div>
                     </div>
 
-                    <button @click="removeItem(item)" class="ml-2">
-                        <UIIcon name="ph:trash-simple" class="w-6 h-6" title="Remover" />
-                    </button>
-
+                    <div class="flex items-center">
+                        <UIButton size="sm" @click="removeItem(item)" square>
+                            <UIIcon name="ph:trash-simple" class="w-5 h-5" title="Remover" />
+                        </UIButton>
+                    </div>
                 </div>
             </div>
 
@@ -121,8 +124,8 @@ const props = defineProps({
         default: true
     },
     size: {
-        type: String,
-        default: 'md'
+        type: String as PropType<'sm' | 'md' | 'lg' | 'xl'>,
+        default: 'xl'
     },
     formStore: {
         type: Object as PropType<FormStore>,
