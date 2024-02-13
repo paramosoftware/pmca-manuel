@@ -41,7 +41,8 @@ datasource db {
 // - Models starting with another resource name are considered relations (isRelation = true). Example: [AppResource]Field is a relation of [AppResource]. 
 
 // The following conventions are used for models:
-// - In one-to-one or one-to-many relations, in the one side of the relation, the scalar field should be the same as the relation field but with the suffix "Id". 
+// - In one-to-one or one-to-many relations, in the one side of the relation, the scalar field should be the same as the relation field but with the suffix "Id".
+// By default, the relation name given by Prisma is used: Model + 'To' + RelatedModel and should not be changed. Example: UserToGroup.
 //     Example: user User @relation(fields: [userId], references: [id]) and userId Int.
 // - The name field is the main label of the object and when possible should be in the model schema.
 // - All text fields, that need to be searchable, should have a normalized version of the field, with the suffix "Normalized". Example: nameNormalized String?
@@ -63,7 +64,7 @@ model AppGroup {
   name        String  @unique
   description String?
 
-  users       AppUserRestricted[]
+  users       AppUserRestricted[] /// uiField:autocomplete
   permissions AppPermission[]
 
   nameSlug              String  @unique
@@ -78,9 +79,9 @@ model AppPermission {
   id Int @id @default(autoincrement())
 
   resourceId Int
-  resource   AppResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  resource   AppResource @relation(fields: [resourceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   groupId    Int
-  group      AppGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group      AppGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   read   Boolean? @default(true)
   create Boolean? @default(true)

@@ -1,5 +1,5 @@
 import { prisma } from '../../prisma/prisma';
-import { convertBodyToPrismaUpdateOrCreateQuery } from './helpers';
+import { processRequestBody } from './helpers';
 import type express from 'express';
 
 export async function createOneOrMany(model: string, body: any, next: express.NextFunction | undefined = undefined) {
@@ -13,7 +13,7 @@ export async function createOneOrMany(model: string, body: any, next: express.Ne
         const inserts: any[] = [];
 
         for (const item of body) {
-            const query = await convertBodyToPrismaUpdateOrCreateQuery(model, item);
+            const query = await processRequestBody(model, item);
             // @ts-ignore
             inserts.push(prisma[model].create({ data: query }));
         }
