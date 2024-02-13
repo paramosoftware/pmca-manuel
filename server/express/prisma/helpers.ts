@@ -4,7 +4,7 @@ import { ApiValidationError } from '../error';
 import sanitizeString from '~/utils/sanitizeString';
 import normalizeString from '~/utils/normalizeString';
 import type { Condition, Include, Order, PaginatedQuery, Query, Where } from './interfaces';
-import  hashPassword from '~/utils/hashPassword';
+import hashPassword from '~/utils/hashPassword';
 import getBoolean from '~/utils/getBoolean';
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '~/server/prisma/prisma';
@@ -226,7 +226,9 @@ function getAction(relatedObject: any) {
             if (isIdValid(relatedObject.id)) {
                 return sentAction;
             } else {
-                throw new ApiValidationError('id is required for ' + sentAction + ' action');
+               if (sentAction === 'connect') {
+                   throw new ApiValidationError('id is required for connect action');
+               }
             }
         }
     }
