@@ -65,7 +65,7 @@ model AppGroup {
   description String?
 
   users       AppUserRestricted[] /// uiField:autocomplete
-  permissions AppPermission[]
+  permissions AppPermission[] /// uiField:permission
 
   nameSlug              String  @unique
   nameNormalized        String?
@@ -146,7 +146,7 @@ model AppResourceField {
   name           String
   label          String
   valueType      String   @default("string") /// defaultOptions:string,number,boolean,object,array
-  uiField        String   @default("input") /// defaultOptions:input,textarea,rich,select,checkbox,autocomplete,finder,media,auxiliaryForm,dropzone
+  uiField        String   @default("input") /// defaultOptions:input,textarea,rich,select,checkbox,autocomplete,finder,media,auxiliaryForm,dropzone,permission
   required       Boolean? @default(false) @map("required")
   hidden         Boolean? @default(false)
   disabled       Boolean? @default(false)
