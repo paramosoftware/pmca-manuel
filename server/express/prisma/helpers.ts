@@ -83,7 +83,7 @@ export async function processRequestBody(model: string, body: any, isUpdate: boo
             const relatedModel = field.type;
 
             if (!field.isList) {
-                if (fieldsMap.get(key + 'Id') !== undefined) {
+                if (fieldsMap.get(key + 'Id') !== undefined && isIdValid(body[key + 'Id'])) {
                     continue;
                 } else {
                     prismaQuery[key] = await processOneToManyRelation(relatedModel, model, body, key);
