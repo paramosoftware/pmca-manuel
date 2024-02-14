@@ -3,42 +3,32 @@
 const MODELS = new Map<string, { label: string; labelPlural: string; genderNoun: GenderNoun; }>();
 
 
-MODELS.set('AppGroup', {
+MODELS.set('Group', {
     label: 'Grupo',
     labelPlural: 'Grupos',
     genderNoun: 'm'
 });
-MODELS.set('AppPermission', {
+MODELS.set('GroupPermission', {
     label: 'Permissão',
     labelPlural: 'Permissões',
     genderNoun: 'f'
 });
-MODELS.set('AppMedia', {
-    label: 'Mídia',
-    labelPlural: 'Mídias',
-    genderNoun: 'f'
-});
-MODELS.set('AppResource', {
+MODELS.set('Resource', {
     label: 'Recurso',
     labelPlural: 'Recursos',
     genderNoun: 'm'
 });
-MODELS.set('AppResourceField', {
+MODELS.set('ResourceField', {
     label: 'Campo',
     labelPlural: 'Campos',
     genderNoun: 'm'
 });
-MODELS.set('AppUser', {
+MODELS.set('User', {
     label: 'Usuário',
     labelPlural: 'Usuários',
     genderNoun: 'm'
 });
-MODELS.set('AppUserRestricted', {
-    label: 'Dados restritos do usuário',
-    labelPlural: 'Dados restritos dos usuários',
-    genderNoun: 'm'
-});
-MODELS.set('AppUserSession', {
+MODELS.set('UserSession', {
     label: 'Sessão do usuário',
     labelPlural: 'Sessões dos usuários',
     genderNoun: 'f'
@@ -82,6 +72,11 @@ MODELS.set('WebPage', {
     label: 'Página web',
     labelPlural: 'Páginas web',
     genderNoun: 'f'
+});
+MODELS.set('Author', {
+    label: 'Autor',
+    labelPlural : 'Autores',
+    genderNoun: 'm'
 });
 
 

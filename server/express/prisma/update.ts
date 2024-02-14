@@ -3,38 +3,22 @@ import { prisma } from '../../prisma/prisma';
 import { ApiValidationError } from '../error';
 import { processRequestBody, convertWhereToPrismaQuery, validateWhere } from './helpers';
 import { handleMedia } from './media';
+import { Prisma } from '@prisma/client';
 
 export async function updateOne(model: string, id: string | number, body: any, next: express.NextFunction | undefined = undefined, userId: string = '') {
 
     try {
 
-        // TODO: Temporary solution for media
-        let media = [];
-
-        if (model === 'entry' && body.media) {
-            media = body.media;
-            body.media = undefined;
-        }
-
-        const query = await processRequestBody(model, body, true);
-
-        query.id = undefined;
-
-        // @ts-ignore
-        const data = await prisma[model].update({
+        body = {
             where: {
-                id: isNaN(Number(id)) ? id : Number(id)
+                id
             },
-            data: query
-        });
+            data: body
+        };
+        
+        const data = await updateMany(model, [body], next, userId);
 
-
-        if (model === 'entry') {
-            trackChanges(body, userId);
-            handleMedia(media, id);
-        }
-
-        return data;
+        return data![0];
 
     } catch (error) {
 
@@ -46,15 +30,24 @@ export async function updateOne(model: string, id: string | number, body: any, n
     }
 }
 
-
-export async function updateMany(model: string, body: any, next: express.NextFunction | undefined = undefined) {
+// TODO: Track entry changes
+export async function updateMany(model: string, body: any, next: express.NextFunction | undefined = undefined, userId: string = '') {
     try {
+
+        const modelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === model.toLowerCase())?.fields!;
+
+        const fieldsMap = new Map<string, Prisma.DMMF.Field>();
+
+        modelFields?.forEach(f => {
+            fieldsMap.set(f.name, f);
+        });
 
         if (!Array.isArray(body)) {
             body = [body];
         }
 
         const updates: any[] = [];
+        const mediaUpdates = new Map<number, EntryMedia[]>();
 
         for (const item of body) {
 
@@ -68,19 +61,9 @@ export async function updateMany(model: string, body: any, next: express.NextFun
 
             const query = await processRequestBody(model, item.data, true);
 
-            // TODO: Temporary solution for media
-            let media: any[] = [];
-            if (model === 'entry' && item.data.media) {
-                media = item.data.media;
-            }
-
             validateWhere(item.where);
-            const where = convertWhereToPrismaQuery(item.where);
+            const where = convertWhereToPrismaQuery(item.where, model, fieldsMap);
 
-            // TODO: Is there a performance issue? 
-            // Pros: 1. Allow nested updates 2. Allow complex where clauses
-            // Cons: 1. Multiple queries
-            // Create a flag to control if this should be a transaction
             // @ts-ignore
             const ids = await prisma[model].findMany({
                 where,
@@ -89,7 +72,7 @@ export async function updateMany(model: string, body: any, next: express.NextFun
                 }
             });
 
-            ids.forEach((id: { id: number | string }) => {
+            for (const id of ids) {
                 // @ts-ignore
                 updates.push(prisma[model].update({
                     where: {
@@ -98,19 +81,25 @@ export async function updateMany(model: string, body: any, next: express.NextFun
                     data: query
                 }));
 
-                if (model === 'entry') {
-                    handleMedia(media, id.id);
+                if (model.toLowerCase() === 'entry') {
+                    const oldMedia = await prisma.entryMedia.findMany({
+                        where: {
+                            entryId: id.id
+                        }
+                    });
+
+                    mediaUpdates.set(id.id, oldMedia);
                 }
-            });
+            }
         }
 
         const data = await prisma.$transaction(updates);
 
-        if (data.length === 1) {
-            return data[0]
-        } else {
-            return data
+        for (const [id, media] of mediaUpdates) {
+            await handleMedia(media, id);
         }
+
+        return data;
 
     } catch (error) {
         if (next) {

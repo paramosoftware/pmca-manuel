@@ -330,9 +330,9 @@ export const createFormStore = (name: string) => {
 
                 const fieldConfig = getFieldConfig(field);
 
-                if (!fieldConfig) { continue; }
+                if (!fieldConfig || fieldConfig.disabled) { continue; }
 
-                if (fieldConfig.disabled) {
+                if (fieldConfig.valueType === 'object' && Object.keys(data[field]).length === 0) {
                     continue;
                 }
 

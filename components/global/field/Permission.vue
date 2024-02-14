@@ -39,7 +39,7 @@ const props = defineProps({
 });
 
 
-const { data, pending, error } = await useFetchWithBaseUrl('/api/appResource', {
+const { data, pending, error } = await useFetchWithBaseUrl('/api/resource', {
     method: 'GET',
     params: {
         where: {
@@ -53,7 +53,7 @@ const currentPermissions = props.formStore.getFieldData('permissions') as any[] 
 
 const permissions = ['read', 'create', 'update', 'delete'];
 
-const resources = data.value.items as AppResource[] ?? [];
+const resources = data.value.items as Resource[] ?? [];
 
 const formPermissions = reactive([] as any[]);
 

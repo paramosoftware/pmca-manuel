@@ -1,40 +1,16 @@
 import express from 'express';
 import { prisma } from '../../prisma/prisma';
-import { deleteMedia } from './media';
+import { deleteEntryMedia } from './media';
 import type { PaginatedQuery } from './interfaces';
 import { createRequest, validatePaginatedQuery, convertPaginatedQueryToPrismaQuery } from './helpers';
 
 export async function deleteOne(model: string, id: string, next: express.NextFunction | undefined = undefined) {
 
-
-    let entryMedia: string | any[] = [];
-
     try {
 
-        // TODO: Temporary solution for deleting media
-        if (model === 'Entry') {
-            entryMedia = await prisma.entryMedia.findMany({
-                where: {
-                    entryId: parseInt(id)
-                },
-                include: {
-                    media: true
-                }
-            });
-        }
+        await deleteOneOrManyWithQuery(model, { where: { id } }, next);
 
-        // @ts-ignore
-        const data = await prisma[model].delete({
-            where: {
-                id: isNaN(Number(id)) ? id : Number(id)
-            }
-        });
-
-        if (entryMedia.length > 0) {
-            deleteMedia(entryMedia);
-        }
-
-        return data;
+        return id;
 
     } catch (error) {
         if (next) {
@@ -59,8 +35,7 @@ export async function deleteOneOrManyWithQuery(model: string, body: Partial<Pagi
 
         const query = convertPaginatedQueryToPrismaQuery(request, model);
 
-        // TODO: Temporary solution for deleting media
-        if (model === 'Entry') {
+        if (model.toLowerCase() === 'entry') {
             const entries = await prisma.entry.findMany(query);
             const ids = entries.map(entry => entry.id);
 
@@ -69,9 +44,6 @@ export async function deleteOneOrManyWithQuery(model: string, body: Partial<Pagi
                     entryId: {
                         in: ids
                     }
-                },
-                include: {
-                    media: true
                 }
             });
 
@@ -86,7 +58,7 @@ export async function deleteOneOrManyWithQuery(model: string, body: Partial<Pagi
         const data = await prisma[model].deleteMany(query);
 
         if (entryMedia.length > 0) {
-            deleteMedia(entryMedia);
+            deleteEntryMedia(entryMedia);
         }
 
         return data;

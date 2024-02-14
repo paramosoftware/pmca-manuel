@@ -78,7 +78,7 @@ const translations = ref<{ name: string, link: string }[]>([]);
 
 if (entry.value?.media) {
    entry.value.media.forEach((media: EntryMedia) => {
-      images.value.push(media.media.name)
+      images.value.push(media.name)
    })
 }
 
@@ -93,10 +93,9 @@ if (entry.value?.translations) {
 
 const url = ref('');
 
-if (entry.value?.media && entry.value.media.length > 0) {
-   const image = entry.value.media[0].media?.name;
+if (images.value.length > 0) {
    if (process.client) {
-      url.value = window.location.protocol + '//' + window.location.host + '/media/' + image;
+      url.value = window.location.protocol + '//' + window.location.host + '/media/' + images.value[0];
    }
 }
 

@@ -108,7 +108,7 @@ export const importData = function () {
 
     async function setResourceConfig() {
 
-        const resourceConfig = await readOne('AppResource', importModel, { 
+        const resourceConfig = await readOne('Resource', importModel, { 
             include: {
                 fields: {
                     orderBy: {

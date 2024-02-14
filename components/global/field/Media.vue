@@ -34,11 +34,10 @@
                 </UModal>
             </div>
 
-            <draggable class="grid grid-cols-6 gap-4" :list="media" @end="updateMediaPosition" :animation="200"
-                item-key="id">
+            <draggable class="grid grid-cols-6 gap-4" :list="media" @end="updateMediaPosition" :animation="200" item-key="id">
                 <template #item="{ element }">
                     <div class="relative">
-                        <UIImg class="w-full h-32 object-cover rounded" :src="element.media.name" />
+                        <UIImg class="w-full h-32 object-cover rounded" :src="element.name" />
                         <div class="absolute top-0 right-0">
                             <UIButton @click="deleteMedia(element)" padding="p-1">
                                 <UIIcon class="w-4 h-4" name="ph:trash-simple" />
@@ -132,6 +131,8 @@ const updateMediaPosition = (event: any) => {
         
         media.map((item: EntryMedia, index: number) => {
             item.position = index + 1;
+            // @ts-ignore
+            item._action_ = 'update';
         });
 
         if (props.formStore) {

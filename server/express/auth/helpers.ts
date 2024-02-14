@@ -27,13 +27,9 @@ export async function logout(accessToken: string, res: express.Response, next: e
 
 export async function login(login: string, password: string) {
 
-    const user = await findUserByLoginOrId(login, true) as AppUser
+    const user = await findUserByLoginOrId(login) as User
     
-    if (!user.restricted) {
-        throw new InvalidCredentialError('Invalid credentials');
-    }
-
-    if (!user || !bcrypt.compareSync(password, user.restricted.password)) {
+    if (!user || !bcrypt.compareSync(password, user.password)) {
         throw new InvalidCredentialError('Invalid credentials');
     }
 
@@ -47,7 +43,7 @@ export async function login(login: string, password: string) {
     }
 
     const csrf = uuidv4();
-    const accessToken = generateToken( { sessionId, userId, csrf , isAdmin: user.restricted.isAdmin }, 'access');
+    const accessToken = generateToken( { sessionId, userId, csrf , isAdmin: user.isAdmin }, 'access');
     return { accessToken, csrf };
 }
 
@@ -76,10 +72,10 @@ export async function refreshAccessToken(accessToken: string) {
         throw new InvalidCredentialError('Invalid refresh token');
     }
 
-    const user = await findUserByLoginOrId(session.userId, true) as AppUser;
+    const user = await findUserByLoginOrId(session.userId) as User;
 
     const csrf = uuidv4();
-    const newAccessToken = generateToken({ sessionId: session.id, userId: user.id, csrf, isAdmin: user.restricted?.isAdmin }, 'access');
+    const newAccessToken = generateToken({ sessionId: session.id, userId: user.id, csrf, isAdmin: user.isAdmin }, 'access');
 
     return { accessToken: newAccessToken, csrf };
 
@@ -90,16 +86,12 @@ export async function setUserPassword(userId: string, password: string) {
     const hashedPassword = hashPassword(password);
 
     try {
-        await prisma.appUser.update({
+        await prisma.user.update({
             where: {
                 id: userId,
             },
             data: {
-                restricted: {
-                    update: {
-                        password: hashedPassword,
-                    },
-                },
+                password: hashedPassword,
             },
         });
         
@@ -109,7 +101,7 @@ export async function setUserPassword(userId: string, password: string) {
     }
 }
 
-export async function findUserByLoginOrId(login: string, includeRestricted = false) {
+export async function findUserByLoginOrId(login: string) {
 
     const query = {
         where: {
@@ -121,20 +113,13 @@ export async function findUserByLoginOrId(login: string, includeRestricted = fal
         },
     };
 
-    if (includeRestricted) {
-        // @ts-ignore
-        query.include = {
-            restricted: true,
-        };
-    }
-
-    return await prisma.appUser.findFirst(query);
+    return await prisma.user.findFirst(query);
 }
 
 export async function deleteSession(sessionId: string) {
 
     try {
-        await prisma.appUserSession.deleteMany({
+        await prisma.userSession.deleteMany({
             where: {
                 id: sessionId,
             },
@@ -149,7 +134,7 @@ export async function deleteSession(sessionId: string) {
 
 export async function getSession(sessionId: string) {
 
-    const session = await prisma.appUserSession.findFirst({
+    const session = await prisma.userSession.findFirst({
         where: {
             id: sessionId,
         },
@@ -160,7 +145,7 @@ export async function getSession(sessionId: string) {
 
 export async function setSession(userId: string, refreshToken: string) {
 
-    const session = await prisma.appUserSession.upsert({
+    const session = await prisma.userSession.upsert({
         where: {
             userId_refreshToken: {
                 userId,

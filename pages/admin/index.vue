@@ -25,12 +25,8 @@ definePageMeta({
     middleware: 'auth'
 });
 
-const { data, pending, error } = await useFetchWithBaseUrl('/api/appResource', {
-    method: 'GET',
-    params: {
-        where: { isAppModel: false, isRelation: false }
-    }
-
+const { data, pending, error } = await useFetchWithBaseUrl('/api/resource', {
+    method: 'GET'
 }) as { 
     data: Ref<PaginatedResponse>, pending: Ref<boolean>, error: Ref<Error | undefined>
 };
@@ -40,7 +36,7 @@ if (error.value) {
 }
 
 
-const resources = data.value.items as AppResource[] ?? [];
+const resources = data.value.items as Resource[] ?? [];
 
 const getPath = (path: string) => {
     return ROUTES.list + path;

@@ -4,40 +4,38 @@ export { };
 
 declare global {
 
-    export type AppGroup = Prisma.AppGroup & {
-        users?: AppUser[];
-        resources?: AppResource[];
+    export type Group = Prisma.Group & {
+        users?: User[];
+        resources?: Resource[];
     };
 
-    export type AppPermission = Prisma.AppPermission & {
-        group?: AppGroup;
-        resource?: AppResource;
+    export type GroupPermission = Prisma.GroupPermission & {
+        group?: Group;
+        resource?: Resource;
     };
 
-    export type AppMedia = Prisma.AppMedia & {
-        entryMedia: EntryMedia[];
+    export type Resource = Prisma.Resource & {
+        groups?: Group[];
+        fields?: ResourceField[];
     };
 
-    export type AppResource = Prisma.AppResource & {
-        groups?: AppGroup[];
-        fields?: AppResourceField[];
+    export type ResourceField = Prisma.ResourceField & {
+        resource?: Resource;
+        relatedResource?: Resource;
     };
 
-    export type AppResourceField = Prisma.AppResourceField & {
-        resource?: AppResource;
-        relatedResource?: AppResource;
+    export type User = Prisma.User & {
+        groups?: Group[];
+        sessions?: UserSession[];
+        author?: Author;
     };
 
-    export type AppUser = Prisma.AppUser & {
-        restricted?: AppUserRestricted;
+    export type UserSession = Prisma.UserSession & {
+        user?: User;
     };
 
-    export type AppUserRestricted = Prisma.AppUserRestricted & {
-        user?: AppUser;
-    };
-
-    export type AppUserSession = Prisma.AppUserSession & {
-        user?: AppUser;
+    export type Author = Prisma.Author & {
+        user?: User;
     };
 
     export type Entry = Prisma.Entry & {
@@ -46,7 +44,7 @@ declare global {
         variations?: Variation[];
         references?: Reference[];
         changes?: EntryChanges[];
-        media?: AppMedia[];
+        media?: EntryMedia[];
         relatedEntries?: Entry[];
         entries?: Entry[];
         children?: Entry[];
@@ -55,14 +53,12 @@ declare global {
 
     export type EntryChanges = Prisma.EntryChanges & {
         entry?: Entry;
-        user?: AppUser;
+        user?: User;
     };
 
     export type EntryMedia = Prisma.EntryMedia & {
         entry?: Entry;
-        media?: AppMedia;
     };
-
 
     export type Language = Prisma.Language & {
         translations?: Translation[];
@@ -84,9 +80,9 @@ declare global {
 
     export type WebPage = Prisma.WebPage;
 
-    export type FormField = Prisma.AppResourceField & {
-        resource?: AppResource | undefined,
-        relatedResource?: AppResource | undefined,
+    export type FormField = Prisma.ResourceField & {
+        resource?: Resource | undefined,
+        relatedResource?: Resource | undefined,
     }
 
     export type ValueType = 'string' | 'number' | 'boolean' | 'object' | 'array'

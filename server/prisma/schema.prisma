@@ -34,11 +34,11 @@ datasource db {
 // - [prefix]Normalized: String? (normalized version of the field)
 // - [prefix]Slug: String? (slug version of the field)
 
-// The following conventions are used for AppResource models:
+// The following conventions are used for Resource models:
 // - The name of the model is the name of the resource.
 // - Models starting with "App" are considered system models (isAppModel = true).
 // - Models starting with "App" are private (isPublic = false).
-// - Models starting with another resource name are considered relations (isRelation = true). Example: [AppResource]Field is a relation of [AppResource]. 
+// - Models starting with another resource name are considered relations (isRelation = true). Example: [Resource]Field is a relation of [Resource]. 
 
 // The following conventions are used for models:
 // - In one-to-one or one-to-many relations, in the one side of the relation, the scalar field should be the same as the relation field but with the suffix "Id".
@@ -56,16 +56,16 @@ datasource db {
 // - Description, definition and notes fields are displayed as textareas.
 // - Relation fields which model is a relation of the current model are displayed as a auxiliary form field. Example: variations EntryVariation[] - 
 
-// Comments syntax for models: key:value|key:value|... The keys are any of the fields of the AppResource model.
-// Comments syntax for fields: key:value|key:value|... The keys are any of the fields of the AppResourceField model.  
+// Comments syntax for models: key:value|key:value|... The keys are any of the fields of the Resource model.
+// Comments syntax for fields: key:value|key:value|... The keys are any of the fields of the ResourceField model.  
 
-model AppGroup {
+model Group {
   id          Int     @id @default(autoincrement())
   name        String  @unique
   description String?
 
-  users       AppUserRestricted[] /// uiField:autocomplete
-  permissions AppPermission[] /// uiField:permission
+  users       User[] /// uiField:autocomplete
+  permissions GroupPermission[] /// uiField:permission
 
   nameSlug              String  @unique
   nameNormalized        String?
@@ -75,13 +75,13 @@ model AppGroup {
   updatedAt DateTime? @updatedAt
 }
 
-model AppPermission {
+model GroupPermission {
   id Int @id @default(autoincrement())
 
   resourceId Int
-  resource   AppResource @relation(fields: [resourceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   groupId    Int
-  group      AppGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  group      Group    @relation(fields: [groupId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   read   Boolean? @default(true)
   create Boolean? @default(true)
@@ -93,25 +93,8 @@ model AppPermission {
   updatedAt DateTime @updatedAt
 }
 
-model AppMedia {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-
-  originalFilename String?
-  path             String?
-  subtitle         String?
-  type             String?
-  isPublic         Boolean? @default(false)
-
-  entryMedia EntryMedia[] /// disabled:true|hidden:true
-
-  subtitleNormalized String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model AppResource {
+/// isAppModel:true
+model Resource {
   id             Int      @id @default(autoincrement())
   name           String   @unique
   model          String
@@ -132,21 +115,21 @@ model AppResource {
   labelPluralNormalized String?
   descriptionNormalized String?
 
-  permissions AppPermission[] /// disabled:true|hidden:true
+  permissions GroupPermission[] /// disabled:true|hidden:true
 
-  fields        AppResourceField[]
-  relatedFields AppResourceField[] @relation("RelatedFields") /// disabled:true|hidden:true
+  fields        ResourceField[]
+  relatedFields ResourceField[] @relation("RelatedFields") /// disabled:true|hidden:true
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 }
 
-model AppResourceField {
+model ResourceField {
   id             Int      @id @default(autoincrement())
   name           String
   label          String
   valueType      String   @default("string") /// defaultOptions:string,number,boolean,object,array
-  uiField        String   @default("input") /// defaultOptions:input,textarea,rich,select,checkbox,autocomplete,finder,media,auxiliaryForm,dropzone,permission
+  uiField        String   @default("input") /// defaultOptions:input,textarea,rich,select,checkbox,autocomplete,finder,media,auxiliaryForm,dropzone,permission,password
   required       Boolean? @default(false) @map("required")
   hidden         Boolean? @default(false)
   disabled       Boolean? @default(false)
@@ -164,14 +147,14 @@ model AppResourceField {
   position       Int      @default(0)
 
   oppositeFieldId       Int?
-  relatedOppositeFields AppResourceField[] @relation("OppositeField")
-  oppositeField         AppResourceField?  @relation("OppositeField", fields: [oppositeFieldId], references: [id])
+  relatedOppositeFields ResourceField[] @relation("OppositeField")
+  oppositeField         ResourceField?  @relation("OppositeField", fields: [oppositeFieldId], references: [id])
 
   relatedResourceId Int?
-  relatedResource   AppResource? @relation(fields: [relatedResourceId], references: [id], onDelete: Cascade, name: "RelatedFields")
+  relatedResource   Resource? @relation(fields: [relatedResourceId], references: [id], onDelete: Cascade, name: "RelatedFields")
 
   resourceId Int
-  resource   AppResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   nameNormalized        String?
   labelNormalized       String?
@@ -183,44 +166,37 @@ model AppResourceField {
   @@unique([resourceId, name])
 }
 
-// isAppModel:false
-model AppUser {
+model User {
   id    String @id @default(uuid())
   login String @unique // TODO: create validation for login
   email String @unique
   name  String
 
+  password  String  /// uiField:password
+  isBlocked Boolean?      @default(false)
+  isAdmin   Boolean?      @default(false)
+  sessions  UserSession[] /// disabled:true|hidden:true
+
+  authorId Int? /// hidden:true
+  author   Author? @relation(fields: [authorId], references: [id]) /// hidden:true|disabled:false
+
+  groupId Int?
+  group Group? @relation(fields: [groupId], references: [id])
+
   nameNormalized  String?
   loginNormalized String?
-
-  restricted   AppUserRestricted? /// hidden:true
-  entryChanges EntryChanges[] /// disabled:true|hidden:true
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 }
 
-// Workaround for lack of an easy way to exclude scalar fields from a model in Prisma
-model AppUserRestricted {
-  id     String @id @default(uuid())
-  userId String @unique
-
-  password  String
-  isBlocked Boolean?         @default(false)
-  isAdmin   Boolean?         @default(false)
-  groups    AppGroup[] /// uiField:select
-  sessions  AppUserSession[] /// disabled:true|hidden:true
-
-  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model AppUserSession {
-  id     String @id @default(uuid())
-  userId String
+model UserSession {
+  id String @id @default(uuid())
 
   refreshToken String @unique
 
-  user AppUserRestricted @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -228,9 +204,22 @@ model AppUserSession {
   @@unique([userId, refreshToken])
 }
 
+model Author {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  nameNormalized String?
+
+  users        User[]  /// max:1|label:Usuário relacionado|uiField:autocomplete|allowCreate:false
+  entryChanges EntryChanges[] /// disabled:true|hidden:true
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Entry {
   id         Int     @id @default(autoincrement()) /// includeExport:true
-  name       String  /// includeExport:true
+  name       String /// includeExport:true
   nameSlug   String  @unique
   definition String? /// includeExport:true
   notes      String? /// includeExport:true
@@ -261,26 +250,32 @@ model Entry {
 
 model EntryChanges {
   id      Int    @id @default(autoincrement())
-  entryId Int
   changes String
 
-  userId String?
-
-  user  AppUser? @relation(fields: [userId], references: [id])
-  entry Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  authorId Int
+  author   Author @relation(fields: [authorId], references: [id])
+  entryId  Int
+  entry    Entry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model EntryMedia {
-  id       Int @id @default(autoincrement())
-  entryId  Int
-  mediaId  Int
-  position Int @default(0)
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  position Int    @default(0)
 
-  entry Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  media AppMedia @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  originalFilename String?
+  path             String?
+  subtitle         String?
+  type             String?
+  isPublic         Boolean? @default(false)
+
+  subtitleNormalized String?
+
+  entryId Int
+  entry   Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -315,9 +310,9 @@ model EntryTranslation {
 }
 
 model Language {
-  id           Int     @id @default(autoincrement())
-  name         String  @unique
-  code         String? @unique
+  id   Int     @id @default(autoincrement())
+  name String  @unique
+  code String? @unique
 
   translations EntryTranslation[] /// disabled:true|hidden:true
 
