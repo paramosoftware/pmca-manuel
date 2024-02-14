@@ -287,9 +287,9 @@ function getWhereClause(modelFields: readonly Prisma.DMMF.Field[], body: any) {
 
     modelFields.forEach(f => {
      
-        if (f.isUnique) {
+        if (f.isUnique || f.isId) {
             if (body[f.name]) {
-               where[f.name] = f.type.toLowerCase() === 'string' ? sanitizeString(body[f.name]) : body[f.name];
+               where[f.name] = f.type.toLowerCase() === 'string' ? sanitizeString(body[f.name]) : parseNumber(body[f.name]);
             } 
         }
 

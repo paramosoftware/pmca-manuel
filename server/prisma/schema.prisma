@@ -84,13 +84,15 @@ model GroupPermission {
   group      Group    @relation(fields: [groupId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   read   Boolean? @default(true)
-  create Boolean? @default(true)
-  update Boolean? @default(true)
-  delete Boolean? @default(true)
+  create Boolean? @default(false)
+  update Boolean? @default(false)
+  delete Boolean? @default(false)
   batch  Boolean? @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([resourceId, groupId])
 }
 
 /// isAppModel:true
