@@ -887,3 +887,46 @@ async function calculateSlug(name: string, model: string, key: string) {
         return await calculateSlug(name + '-' + uuidv4().substring(0, 4), model, key);
     }
 }
+
+export async function canAccess(model: string, method: string, permissions: Permission, isAdmin = false) {
+
+    const modelFields = Prisma.dmmf.datamodel.models.find(m => m.name.toLowerCase() === model.toLowerCase())?.fields;
+
+    const resourceConfig = await prisma.resource.findFirst({ 
+        where: { nameNormalized: normalizeString(model) }, 
+        include: { parent: true }
+    });
+
+    if (!resourceConfig) { return false;  }
+
+    if (resourceConfig.isPublic && method === 'GET') {
+        return true;
+    }
+
+    if (isAdmin) { return true; }
+
+    if (!permissions || Object.keys(permissions).length === 0) { return false; }
+
+    if (resourceConfig.parent) {
+        model = resourceConfig.parent.name;
+    }
+
+    const permission = permissions[model];
+
+    if (!permission) {
+        return false;
+    }
+
+    switch (method) {
+        case 'GET':
+            return permission.read;
+        case 'PUT':
+            return permission.update;
+        case 'POST':
+            return permission.create;
+        case 'DELETE':
+            return permission.delete;
+        default:
+            return false;
+    }
+}

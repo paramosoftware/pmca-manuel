@@ -7,8 +7,7 @@ import getCookiePrefix from '~/utils/getCookiePrefix';
 import hashPassword from '~/utils/hashPassword';
 import isHTTPS from '~/utils/isHTTPS';
 import { prisma } from '../../prisma/prisma';
-import { InvalidCredentialError, ServerError, UnauthorizedError } from '../error';
-
+import { InvalidCredentialError } from '../error';
 
 export async function logout(accessToken: string, res: express.Response, next: express.NextFunction) {
     
@@ -29,11 +28,13 @@ export async function login(login: string, password: string) {
 
     const user = await findUserByLoginOrId(login) as User
     
-    if (!user || !bcrypt.compareSync(password, user.password)) {
+    if (!user || user.isBlocked || !bcrypt.compareSync(password, user.password)) {
         throw new InvalidCredentialError('Invalid credentials');
     }
 
     const userId = user.id;
+
+    const permissions = getPermissions(user);
 
     const refreshToken = generateToken( { userId }, 'refresh');
     const sessionId = await setSession(user.id, refreshToken);
@@ -43,7 +44,7 @@ export async function login(login: string, password: string) {
     }
 
     const csrf = uuidv4();
-    const accessToken = generateToken( { sessionId, userId, csrf , isAdmin: user.isAdmin }, 'access');
+    const accessToken = generateToken( { sessionId, userId, csrf , isAdmin: user.isAdmin, permissions }, 'access');
     return { accessToken, csrf };
 }
 
@@ -110,7 +111,7 @@ export async function findUserByLoginOrId(login: string) {
                 { login: login },
                 { id: login    }
             ],
-        },
+        }
     };
 
     return await prisma.user.findFirst(query);
@@ -210,6 +211,44 @@ export function setCsrfCookie(res: express.Response, csrf: string) {
     });
 }
 
+
+async function getPermissions(user: User) {
+
+    const permissions = {} as Permission;
+
+    if (user.groupId && !user.isBlocked) {
+        const groupPermissions = await prisma.groupPermission.findMany({
+            where: {
+                groupId: {
+                    in: [user.groupId]
+                }
+            },
+            include: {
+                resource: true
+            }
+        });
+
+        for (const groupPermission of groupPermissions) {
+            const resource = groupPermission.resource.name as string;
+
+            if (!permissions[resource]) {
+                permissions[resource] = {
+                    create: groupPermission.create ?? false,
+                    read: groupPermission.read ?? false,
+                    update: groupPermission.update ?? false,
+                    delete: groupPermission.delete ?? false,
+                };
+            } else {
+                permissions[resource].create = (permissions[resource].create || groupPermission.create) ?? false;
+                permissions[resource].read = (permissions[resource].read || groupPermission.read) ?? false;
+                permissions[resource].update = (permissions[resource].update || groupPermission.update) ?? false;
+                permissions[resource].delete = (permissions[resource].delete || groupPermission.delete) ?? false;
+            }
+        }
+    }
+
+    return permissions;
+}
 
 
 

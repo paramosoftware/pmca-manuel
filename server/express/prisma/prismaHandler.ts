@@ -4,7 +4,7 @@ import getCookiePrefix from '~/utils/getCookiePrefix';
 import { prisma } from '../../prisma/prisma';
 import { createOneOrMany } from './create';
 import { deleteOne, deleteOneOrManyWithQuery } from './delete';
-import { convertQueryParamsToPaginatedQuery, getParamsFromPath } from './helpers';
+import { convertQueryParamsToPaginatedQuery, getParamsFromPath, canAccess } from './helpers';
 import { importUploadFile, uploadMedia } from './media';
 import { readOne, readMany } from './read';
 import { updateMany, updateOne } from './update';
@@ -47,7 +47,13 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
 
     const accessToken = req.cookies[getCookiePrefix() + 'jwt'];
 
-    const decodedToken = decodeJwt(accessToken, process.env.ACCESS_TOKEN_SECRET!) as { userId: string; };
+    const { userId, permissions, isAdmin } = decodeJwt(accessToken, process.env.ACCESS_TOKEN_SECRET!) as { userId: string; permissions: Permission; isAdmin: boolean; };
+
+    const isAllowed = await canAccess(model, method, permissions, isAdmin);
+
+    if (!isAllowed) {
+        res.status(403).json({ message: 'Access denied' });
+    }
 
 
     try {
@@ -67,7 +73,7 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
                 break;
             case 'PUT':
                 if (id) {
-                    response = updateOne(model, id, body, next, decodedToken.userId);
+                    response = updateOne(model, id, body, next, userId);
                 } else {
                     response = updateMany(model, body, next);
                 }
@@ -79,7 +85,7 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
                     response = readMany(model, body, next);
                 } else if (isUpload) {
                      response = uploadMedia(model, id, body, req, res, next);
-                } else if (isImport) {
+                } else if (isImport && isAdmin) {
                     const importFilePath = await importUploadFile(req, res, next) as string;
                     await importData.importFrom(model, importFilePath);
                     response = { message: 'Imported successfully' };
@@ -90,7 +96,7 @@ const prismaHandler =  async (req: express.Request, res: express.Response, next:
             case 'DELETE':
                 if (id) {
                     response = deleteOne(model, id, next);
-                } else if (hasQuery) {
+                } else if (hasQuery && isAdmin) {
                     response = deleteOneOrManyWithQuery(model, body, next);
                 }
                 break;

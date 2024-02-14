@@ -50,16 +50,25 @@ async function main() {
   });
 
 
-  for (const resource of resources) {
-    resource.isRelation = resources.some(r => resource.name.startsWith(r.name) && resource.name !== r.name);
+  const parentResourcesMap = new Map<string, string>();
 
-    // if config is changed, update it
-    if (resource.isRelation) {
-      resource.isPublic = false;
+  for (const resource of resources) {
+
+    const parentResource = resources.find(r => resource.name.startsWith(r.name) && resource.name !== r.name);
+
+    if (parentResource) {
+      resource.isRelation = true;
+      resource.isPublic = parentResource.isPublic;
+      resource.isAppModel = parentResource.isAppModel;
+
+      parentResourcesMap.set(resource.name, parentResource.name);
+
       const resourceConfig = resourcesConfig.get(resource.name);
+
       if (resourceConfig) {
         resourceConfig.isRelation = true;
-        resourceConfig.isPublic = false;
+        resourceConfig.isPublic = parentResource.isPublic;
+        resourceConfig.isAppModel = parentResource.isAppModel;
         resourcesConfig.set(resource.name, resourceConfig);
       }
     }
@@ -72,6 +81,21 @@ async function main() {
 
 
   const createdResources = await createOneOrMany('resource', resources);
+
+
+  for (const [resourceName, parentResourceName] of parentResourcesMap) {
+    await prisma.resource.update({
+      where: { name: resourceName },
+      data: {
+        parent: {
+          connect: {
+            name: parentResourceName
+          }
+        }
+      }
+    });
+  }
+
 
   let relatedResourcesCount = 0;
   for (const [fieldResource, relatedResource] of relatedResources) {
@@ -212,9 +236,9 @@ function buildResourceConfig(resource: Prisma.DMMF.Model) {
     const resourceConfig = {
       name: resource.name,
       label: modelsTranslations.get(resource.name)?.label || docConfig.label || resource.name,
-      labelPlural: modelsTranslations.get(resource.name)?.labelPlural || docConfig.labelPlural || resource.name,
-      isAppModel: docConfig.isAppModel == 'true' || resource.name.toLowerCase().startsWith('app'),
-      isPublic:   docConfig.isPublic == 'true' || !resource.name.toLowerCase().startsWith('app'),
+      labelPlural: docConfig.labelPlural || modelsTranslations.get(resource.name)?.labelPlural || resource.name,
+      isAppModel: docConfig.isAppModel == 'true' || false,
+      isPublic:   docConfig.isPublic == 'true' || false,
       isRelation: docConfig.isRelation == 'true' || false,
       isHierarchical: docConfig.isHierarchical == 'true' || fieldsMap.has('parentId'),
       genderNoun: modelsTranslations.get(resource.name)?.genderNoun || docConfig.genderNoun || 'n',

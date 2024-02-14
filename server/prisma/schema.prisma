@@ -36,9 +36,8 @@ datasource db {
 
 // The following conventions are used for Resource models:
 // - The name of the model is the name of the resource.
-// - Models starting with "App" are considered system models (isAppModel = true).
-// - Models starting with "App" are private (isPublic = false).
 // - Models starting with another resource name are considered relations (isRelation = true). Example: [Resource]Field is a relation of [Resource]. 
+// - Relations inherit the following configuration of the parent model: isPublic and isAppModel
 
 // The following conventions are used for models:
 // - In one-to-one or one-to-many relations, in the one side of the relation, the scalar field should be the same as the relation field but with the suffix "Id".
@@ -108,6 +107,10 @@ model Resource {
   isHierarchical Boolean? @default(false)
   isAppModel     Boolean? @default(false)
   isPublic       Boolean? @default(false)
+
+  parent Resource? @relation("ResourceToChildren", fields: [parentId], references: [id])
+  parentId       Int?
+  children       Resource[] @relation("ResourceToChildren")
 
   modelNormalized       String
   nameSlug              String  @unique
@@ -219,6 +222,7 @@ model Author {
   updatedAt DateTime @updatedAt
 }
 
+/// isPublic:true
 model Entry {
   id         Int     @id @default(autoincrement()) /// includeExport:true
   name       String /// includeExport:true
@@ -336,6 +340,7 @@ model Reference {
   updatedAt DateTime @updatedAt
 }
 
+/// isPublic:true
 model WebPage {
   id       Int    @id @default(autoincrement())
   name     String @unique
