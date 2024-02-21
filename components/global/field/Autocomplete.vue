@@ -281,23 +281,23 @@ async function searchItems() {
      // TODO: search by label
     const query = {
         where: {
-            or: [{
+            OR: [{
                 name: {
                     like: search.value
                 }
             }],
-            and: []
+            AND: []
         },
         pageSize: 10
     } as any;
 
 
     if (QUERIES.get(relatedResource.value.name)?.where) {
-        query.where.and.push(QUERIES.get(relatedResource.value.name)?.where);
+        query.where.AND.push(QUERIES.get(relatedResource.value.name)?.where);
     }
 
     if (relatedResource.value.name === props.formStore?.model) {
-        query.where.and.push({
+        query.where.AND.push({
             id: {
                 not: props.formStore?.getId()
             }

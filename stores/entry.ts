@@ -28,7 +28,7 @@ export const useEntryStore = defineStore('entry', () => {
             pageSize: pageSize.value,
             include: QUERIES.get(model)?.include,
             where: {
-                or: [
+                OR: [
                     {
                         name: {
                             like: search.value
@@ -45,7 +45,7 @@ export const useEntryStore = defineStore('entry', () => {
                         }
                     }
                 ],
-                and: []
+                AND: []
             },
             orderBy: {
                 name: sort.value
@@ -53,7 +53,7 @@ export const useEntryStore = defineStore('entry', () => {
         } as any;
 
         if (fetchSelected.value) {
-            q.where.and.push({
+            q.where.AND.push({
                 id: {
                     in: useEntrySelection().getSelected()
                 }

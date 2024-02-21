@@ -1,10 +1,8 @@
 import { Prisma, PrismaClient } from '@prisma/client'
-import { createOneOrMany } from '../../express/prisma/create';
 import { MODELS as modelsTranslations, FIELDS as fieldsTranslations } from "~/config/translations";
 import LANGUAGES from '~/config/languages';
-import { updateOne } from '~/server/express/prisma/update';
-import { readMany } from '~/server/express/prisma/read';
 import  getBoolean from '~/utils/getBoolean';
+import PrismaService from '../PrismaService';
 
 const prisma = new PrismaClient()
 const relatedResources = new Map<string, string>();
@@ -14,9 +12,11 @@ const resourcesFieldsMap = new Map<string, Map<string, Prisma.DMMF.Field>>();
 
 async function main() {
 
-  await prisma.user.deleteMany({ where: { login: 'admin' } });
+  const userService = new PrismaService('user');
 
-  const createdUser = await createOneOrMany('user', {
+  await userService.deleteOne('admin');
+  
+  const createdUser = await userService.createOne({
     login: 'admin',
     email: 'admin@email.com',
     name: 'Admin',
@@ -80,7 +80,8 @@ async function main() {
   }
 
 
-  const createdResources = await createOneOrMany('resource', resources);
+  const resourceService = new PrismaService('resource');
+  const createdResources = await resourceService.createMany(resources);
 
 
   for (const [resourceName, parentResourceName] of parentResourcesMap) {
@@ -175,7 +176,7 @@ async function main() {
 
   for (const [name, code] of LANGUAGES) {
     const where = {
-      or: [
+      OR: [
         { name: name },
         { code: code },
         { code: name },
@@ -183,21 +184,22 @@ async function main() {
       ]
     }
 
-    const foundLanguage = await readMany('language', { where: where });
+    const languageService = new PrismaService('language');
+    const foundLanguage = await languageService.readMany({ where: where });
 
     if (foundLanguage && foundLanguage.total > 0) {
       if (foundLanguage.items[0].name !== name) {
-        await updateOne('language', foundLanguage.items[0].id, { name: name });
+        await languageService.updateOne(foundLanguage.items[0].id, { name: name });
       }
 
       if (foundLanguage.items[0].code !== code) {
-        await updateOne('language', foundLanguage.items[0].id, { code: code });
+        await languageService.updateOne(foundLanguage.items[0].id, { code: code });
       }
 
       continue;
     }
 
-    const newLanguage = await createOneOrMany('language', { name, code });
+    const newLanguage = await languageService.createOne({ name, code });
   }
 
   console.log('Found ' + fieldRelations.size + ' relations and connected ' + fieldRelationsCount);
