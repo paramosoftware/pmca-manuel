@@ -291,6 +291,7 @@ class PrismaService {
    */
   async deleteMany(request: Query) {
     try {
+      this.request = request;
       this.validator.validate(this.request);
       let query = this.converter.convertRequestToPrismaQuery(
         this.request,
