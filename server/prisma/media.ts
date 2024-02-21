@@ -3,8 +3,8 @@ import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { prisma } from '../../prisma/prisma';
-import { UploadError } from '../error';
+import { prisma } from './prisma';
+import { UploadError } from '../express/error';
 import getDataFolderPath from '~/utils/getDataFolderPath';
 
 
@@ -28,7 +28,7 @@ export async function deleteEntryMedia(entryMedia: Array<EntryMedia>) {
     entryMedia.forEach((media: EntryMedia) => {
 
         const mediaPath = path.join(getDataFolderPath('media'), media.name);
-        
+
         if (fs.existsSync(mediaPath)) {
             fs.unlinkSync(mediaPath);
         }
@@ -60,7 +60,7 @@ export async function handleMedia(oldMedia: Array<EntryMedia>, entryId: number) 
     deleteEntryMedia(mediaToDelete);
 }
 
-export async function saveMedia(entryId: number, fileName: string, originalFilename: string, position: number = 1){
+export async function saveMedia(entryId: number, fileName: string, originalFilename: string, position: number = 1) {
     try {
         const media = await prisma.entryMedia.create({
             data: {
@@ -121,7 +121,7 @@ export async function importUploadFile(req: express.Request, res: express.Respon
 
             } catch (error) {
 
-                const filePath = path.join(destinationFolder, req.file?.filename);
+                const filePath = path.join(destinationFolder, req.file?.filename!);
 
                 if (fs.existsSync(filePath)) {
                     fs.unlink(filePath, (err) => {

@@ -140,4 +140,47 @@ declare global {
         };
     }
 
+    export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+
+    type Operator = string | any;
+
+    type Direction = 'asc' | 'desc';
+
+
+    export type WhereValueType = string | number | boolean | Date | string[] | number[] | Condition | Condition[] | undefined;
+
+    export interface Where {
+        AND?: Condition | Condition[];
+        OR?: Condition | Condition[];
+        NOT?: Condition | Condition[];
+        [key: string]: WhereValueType;
+    }
+
+    export interface Condition {
+        [key: string]: {
+            [key: string]: string | Date | number | string[] | number[]
+        } | WhereValueType;
+    }
+
+    export interface Order {
+        [key: string]: Direction;
+    }
+
+    export interface Include {
+        [key: string]: Query | boolean;
+    }
+
+    export type Select = string[];
+
+    export interface Query {
+        pageSize?: number;
+        page?: number;
+        select?: string[];
+        where?: Where;
+        include?: Include | string[] | '*';
+        orderBy?: Order;
+        take?: number;
+        skip?: number;
+    }
 }
