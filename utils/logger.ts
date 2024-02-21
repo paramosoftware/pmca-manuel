@@ -1,4 +1,4 @@
-import getDataFolderPath  from '~/utils/getDataFolderPath';
+import getDataFolderPath from '~/utils/getDataFolderPath';
 import pino from "pino";
 
 // TODO: redact sensitive data from logs
@@ -10,7 +10,7 @@ const logPath = getDataFolderPath('logs') + `/log-${date}.log`;
 const level = process.env.LOG_LEVEL || 'trace';
 
 const options = {
-    level: level,
+    level: level
 };
 
 const transport = pino.transport({
