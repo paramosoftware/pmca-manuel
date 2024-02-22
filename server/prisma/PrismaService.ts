@@ -15,26 +15,28 @@ class PrismaService {
   public model: string;
   public modelFields: readonly Prisma.DMMF.Field[] = [];
   public fieldsMap = new Map<string, Prisma.DMMF.Field>();
-  public permissions: Permission = {};
+  private checkPermissions: boolean = true;
+  private permissions: Permission = {};
   private method: Method = "GET";
   private id: ID = 0;
   private request: any = {};
   private userId: ID = "";
-  private isAdmin: boolean = false;
   private validator: PrismaServiceValidator;
   private converter: PrismaServiceConverter;
 
-  constructor(model: string) {
+  constructor(model: string, checkPermissions = true) {
     this.model = model;
+    this.checkPermissions = checkPermissions;
     this.setModelFields();
     this.validator = new PrismaServiceValidator(model);
     this.converter = new PrismaServiceConverter(
       model,
       this.modelFields,
-      this.fieldsMap
-      );
+      this.fieldsMap,
+      this.checkPermissions,
+      this.permissions
+    );
   }
-
 
   /**
    * Reads one record.
@@ -52,7 +54,7 @@ class PrismaService {
     try {
       this.request = request ?? {};
       this.validator.validate(this.request);
-      const query = this.converter.convertRequestToPrismaQuery(
+      const query = await this.converter.convertRequestToPrismaQuery(
         this.request,
         false,
         identifier
@@ -79,7 +81,7 @@ class PrismaService {
     try {
       this.request = request;
       this.validator.validate(this.request);
-      const query = this.converter.convertRequestToPrismaQuery(
+      const query = await this.converter.convertRequestToPrismaQuery(
         this.request,
         true
       );
@@ -156,7 +158,7 @@ class PrismaService {
   async updateOne(identifier: ID, request?: object) {
     try {
       this.validator.validate(this.request);
-      const request = this.converter.convertRequestToPrismaQuery(
+      const request = await this.converter.convertRequestToPrismaQuery(
         this.request,
         false,
         identifier
@@ -184,6 +186,7 @@ class PrismaService {
    */
   async updateMany(request: Array<object>) {
     try {
+      this.request = request;
       if (!Array.isArray(this.request)) {
         this.request = [this.request];
       }
@@ -197,14 +200,18 @@ class PrismaService {
         }
 
         if (item.data === undefined) {
-          throw new ApiValidationError("Update must have a data clause: " + item);
+          throw new ApiValidationError(
+            "Update must have a data clause: " + item
+          );
         }
 
         this.validator.validate(item);
-        const where = this.converter.convertRequestToPrismaQuery(
+        const q = await this.converter.convertRequestToPrismaQuery(
           item,
           false
-        ).where;
+        );
+        
+        const where = q.where;
 
         const query = await this.processCreateOrUpdateRequest(
           this.model,
@@ -265,7 +272,7 @@ class PrismaService {
    */
   async deleteOne(identifier: ID) {
     try {
-      const query = this.converter.convertRequestToPrismaQuery(
+      const query = await this.converter.convertRequestToPrismaQuery(
         this.request,
         false,
         identifier
@@ -293,7 +300,7 @@ class PrismaService {
     try {
       this.request = request;
       this.validator.validate(this.request);
-      let query = this.converter.convertRequestToPrismaQuery(
+      let query = await this.converter.convertRequestToPrismaQuery(
         this.request,
         false
       );
@@ -787,7 +794,7 @@ class PrismaService {
     });
   }
 
-  public async canAccess() {
+  async canAccess() {
     const resourceConfig = await prisma.resource.findFirst({
       where: { nameNormalized: normalizeString(this.model) },
       include: { parent: true },
@@ -798,10 +805,6 @@ class PrismaService {
     }
 
     if (resourceConfig.isPublic && this.method === "GET") {
-      return true;
-    }
-
-    if (this.isAdmin) {
       return true;
     }
 
@@ -848,10 +851,6 @@ class PrismaService {
 
   setUserId(userId: ID) {
     this.userId = userId;
-  }
-
-  setIsAdmin(isAdmin: boolean) {
-    this.isAdmin = isAdmin;
   }
 
   setPermissions(permissions: Permission) {

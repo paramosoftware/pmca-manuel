@@ -247,6 +247,20 @@ async function getPermissions(user: User) {
         }
     }
 
+    if (user.isAdmin) {
+        const resources = await prisma.resource.findMany();
+        for (const resource of resources) {
+            if (!permissions[resource.name]) {
+                permissions[resource.name] = {
+                    create: true,
+                    read: true,
+                    update: true,
+                    delete: true,
+                };
+            }
+        }
+    }
+
     return permissions;
 }
 

@@ -4,6 +4,7 @@ import getBoolean from "~/utils/getBoolean";
 import normalizeString from "~/utils/normalizeString";
 import parseNumber from "~/utils/parseNumber";
 import { ApiValidationError } from "../express/error";
+import { prisma } from "../prisma/prisma";
 
 class PrismaServiceConverter {
   private model: string;
@@ -11,27 +12,33 @@ class PrismaServiceConverter {
   private page: number = 1;
   private modelFields: readonly Prisma.DMMF.Field[];
   private fieldsMap: Map<string, Prisma.DMMF.Field>;
+  private checkPermissions: boolean = true;
+  private permissions: Permission = {};
 
   constructor(
     model: string,
     modelFields: readonly Prisma.DMMF.Field[],
-    fieldsMap: Map<string, Prisma.DMMF.Field>
+    fieldsMap: Map<string, Prisma.DMMF.Field>,
+    checkPermissions: boolean = true,
+    permissions: Permission = {}
   ) {
     this.model = model;
     this.modelFields = modelFields;
     this.fieldsMap = fieldsMap;
+    this.checkPermissions = checkPermissions;
+    this.permissions = permissions;
   }
 
   /**
    * Converts the request to a Prisma query
    * @param body
    * @param paginated
-   * @param identifierToAddUniqueFields - Identifier to add unique fields to the where clause with OR as: where: { OR: [{ id: 1 }, { name: 1 }] }
+   * @param identifierToAddUniqueFields - Identifier to add unique fields to the where clause with OR as: where: { OR: [{ id: 'article' }, { name: 'article' }, { nameSlug: 'article' }] }
    * @returns A Prisma query or a paginated Prisma query
    * @throws ApiValidationError
    * @example body = { select: ['id', 'name'], where: { id: 1 }, include: { user: { select ['id', 'name'] } }, orderBy: { name: 'asc' }, pageSize: 20, page: 1 }
    */
-  convertRequestToPrismaQuery(
+  async convertRequestToPrismaQuery(
     request: Query,
     paginated: boolean = false,
     identifierToAddUniqueFields?: ID | undefined
@@ -42,6 +49,10 @@ class PrismaServiceConverter {
       include: request.include || undefined,
       orderBy: request.orderBy || undefined,
     } as Query;
+
+    if (this.checkPermissions) {
+      await this.mergePublicPermissions();
+    }
 
     const prismaQuery = this.convertQuery(query, this.model);
 
@@ -122,9 +133,21 @@ class PrismaServiceConverter {
 
     if (query.select) {
       prismaQuery.select = {};
+
+      if (!Array.isArray(query.select)) {
+        throw new ApiValidationError(
+          "The select property must be an array of strings"
+        );
+      }
+
       query.select.forEach((field) => {
         this.fieldExists(fieldsMap, field, model);
-        prismaQuery.select[field] = true;
+
+        if (fieldsMap.get(field)?.kind === "object") {
+          logger.info("Field " + field + " is a relation in model: " + model);
+        } else {
+          prismaQuery.select[field] = true;
+        }
       });
     }
 
@@ -218,8 +241,10 @@ class PrismaServiceConverter {
     let isNormalized = false;
     const prismaQuery: any = {};
 
-    if (!this.fieldExists(fieldsMap, field, model)) {
-      logger.info("Field " + field + " not found in model: " + model);
+    if (
+      !this.fieldExists(fieldsMap, field, model) ||
+      !this.checkFieldPermission(model, field)
+    ) {
       return prismaQuery;
     }
 
@@ -337,7 +362,10 @@ class PrismaServiceConverter {
       const prismaQuery: any = {};
       if (include === "*") {
         fieldsMap.forEach((f) => {
-          if (f.kind === "object") {
+          if (
+            f.kind === "object" &&
+            this.checkFieldPermission(f.type, f.name)
+          ) {
             prismaQuery[f.name] = true;
           }
         });
@@ -349,9 +377,19 @@ class PrismaServiceConverter {
 
     if (Array.isArray(include)) {
       include.forEach((field) => {
-        this.fieldExists(fieldsMap, field, model);
-
-        prismaQuery[field] = true;
+        if (this.fieldExists(fieldsMap, field, model)) {
+          const modelField = fieldsMap.get(field);
+          if (
+            modelField?.kind === "object" &&
+            this.checkFieldPermission(modelField.type, field)
+          ) {
+            prismaQuery[field] = true;
+          } else {
+            logger.info(
+              "Field " + field + " is not a relation in model: " + model
+            );
+          }
+        }
       });
     } else if (typeof include === "object") {
       const fields = Object.keys(include);
@@ -360,23 +398,25 @@ class PrismaServiceConverter {
         const modelField = fieldsMap.get(field);
 
         if (modelField) {
-          if (typeof include[field] === "boolean") {
-            prismaQuery[field] = include[field];
+          if (
+            typeof include[field] === "boolean" &&
+            this.checkFieldPermission(modelField.type, field)
+          ) {
+            prismaQuery[field] = true;
           } else {
-            if (modelField?.kind !== "object") {
-              throw new ApiValidationError(
-                field +
-                  " is not a relation, got: " +
-                  modelField?.kind +
-                  "in model: " +
-                  model
+            if (modelField?.kind === "object") {
+              if (this.checkFieldPermission(modelField.type, field)) {
+                prismaQuery[field] = this.convertQuery(
+                  include[field] as Query,
+                  modelField?.type || "",
+                  false
+                );
+              }
+            } else {
+              logger.info(
+                "Field " + field + " is not a relation in model: " + model
               );
             }
-            prismaQuery[field] = this.convertQuery(
-              include[field] as Query,
-              modelField?.type || "",
-              false
-            );
           }
         } else {
           logger.info("Field " + field + " not found in model: " + model);
@@ -394,13 +434,27 @@ class PrismaServiceConverter {
   ) {
     const orderBy: Order[] = [];
 
-    const processField = (field: string, direction: "asc" | "desc" = "asc") => {
+    const processField = (field: string, direction: Direction = "asc") => {
       if (fieldsMap.get(field + "Normalized") !== undefined) {
         field = field + "Normalized";
       }
 
       if (this.fieldExists(fieldsMap, field, model)) {
-        orderBy.push({ [field]: direction });
+        const modelField = fieldsMap.get(field);
+        if (
+          modelField?.kind !== "object" &&
+          this.checkFieldPermission(model, field)
+        ) {
+          orderBy.push({ [field]: direction });
+        } else {
+          // TODO: Add support for ordering by relation fields 
+          logger.info(
+            "Order by relation field is still not supported: " +
+              field +
+              " in model: " +
+              model
+          );
+        }
       }
     };
 
@@ -430,6 +484,69 @@ class PrismaServiceConverter {
 
   private calculateSkip(pageSize: number, page: number) {
     return (page - 1) * pageSize;
+  }
+
+
+
+  /**
+   * Merge public permissions with the permissions provided in the constructor
+   * @throws ApiValidationError
+  */
+  private async mergePublicPermissions() {
+    const publicResources = await prisma.resource.findMany({
+      where: {
+        isPublic: true,
+      },
+      include: {
+        children: true,
+      },
+    });
+
+    for (const resource of publicResources) {
+      if (!this.permissions[resource.name]) {
+        this.permissions[resource.name] = {
+          create: false,
+          read: true,
+          update: false,
+          delete: false,
+        };
+      }
+
+      if (resource.children.length > 0) {
+        for (const child of resource.children) {
+          if (!this.permissions[child.name]) {
+            this.permissions[child.name] = {
+              create: false,
+              read: true,
+              update: false,
+              delete: false,
+            };
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Check if the checkPermissions flag is set and if the model has read permission
+   * @param model
+   * @param field name
+   * @returns Whether the field has read permission
+   * @throws ApiValidationError
+   */
+  private checkFieldPermission(model: string, field: string) {
+    if (this.checkPermissions) {
+      if (this.permissions[model]?.read) {
+        return true;
+      } else {
+        logger.warn(
+          "No read permission for type " + model + " of the field " + field
+        );
+        return false;
+      }
+    } else {
+      return true;
+    }
   }
 
   setPageSize(pageSize: number) {

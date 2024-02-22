@@ -12,7 +12,7 @@ const resourcesFieldsMap = new Map<string, Map<string, Prisma.DMMF.Field>>();
 
 async function main() {
 
-  const userService = new PrismaService('user');
+  const userService = new PrismaService('user', false);
 
   await userService.deleteOne('admin');
   
@@ -80,7 +80,7 @@ async function main() {
   }
 
 
-  const resourceService = new PrismaService('resource');
+  const resourceService = new PrismaService('resource', false);
   const createdResources = await resourceService.createMany(resources);
 
 
@@ -184,7 +184,7 @@ async function main() {
       ]
     }
 
-    const languageService = new PrismaService('language');
+    const languageService = new PrismaService('language', false);
     const foundLanguage = await languageService.readMany({ where: where });
 
     if (foundLanguage && foundLanguage.total > 0) {

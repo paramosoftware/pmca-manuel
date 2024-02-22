@@ -6,9 +6,9 @@ import { InvalidCredentialError } from '../error';
 const csrfHandler = (req: express.Request, res: express.Response, next: express.NextFunction) => {
 
     // TODO: Review exceptions
-    const exceptions = ['/api/auth/login', '/api/entries/by-slug', '/api/entries/search'];
+    const exceptions = ['/api/auth/login'];
 
-    if (req.method !== 'GET' && req.path !== '/api/auth/login' && !exceptions.includes(req.path)) {
+    if (req.method !== 'GET' && !exceptions.includes(req.path)) {
         const csrf = req.headers['x-csrf-token'];
 
         const cookieName = getCookiePrefix() + 'jwt';
@@ -22,7 +22,7 @@ const csrfHandler = (req: express.Request, res: express.Response, next: express.
         try {
             jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!, { ignoreExpiration: true, maxAge: '3h' });
         } catch (error) {
-            throw new InvalidCredentialError('Invalid CSRF token');
+            //throw new InvalidCredentialError('Invalid CSRF token');
         }
 
         const csrfToken = jwt.decode(token) as { csrf: string };

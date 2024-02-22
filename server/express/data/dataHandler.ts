@@ -48,7 +48,6 @@ const dataHandler = async (
   prismaService.setMethod(method);
   prismaService.setUserId(userId);
   prismaService.setPermissions(permissions);
-  prismaService.setIsAdmin(isAdmin);
 
   const canAccess = await prismaService.canAccess();
 
