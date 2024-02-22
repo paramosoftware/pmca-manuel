@@ -206,11 +206,8 @@ class PrismaService {
         }
 
         this.validator.validate(item);
-        const q = await this.converter.convertRequestToPrismaQuery(
-          item,
-          false
-        );
-        
+        const q = await this.converter.convertRequestToPrismaQuery(item, false);
+
         const where = q.where;
 
         const query = await this.processCreateOrUpdateRequest(
@@ -445,21 +442,29 @@ class PrismaService {
           ) {
             continue;
           } else {
-            prismaQuery[attribute] = await this.processOneToManyRelation(
+            const relatedObject = await this.processOneToManyRelation(
               relatedModel,
               model,
               request,
               attribute
             );
+
+            if (Object.keys(relatedObject).length > 0) {
+              prismaQuery[attribute] = relatedObject;
+            }
           }
         } else {
-          prismaQuery[attribute] = await this.processManyToManyRelation(
+          const relatedObjects = await this.processManyToManyRelation(
             relatedModel,
             model,
             request,
             attribute,
             isUpdate
           );
+
+          if (Object.keys(relatedObjects).length > 0) {
+            prismaQuery[attribute] = relatedObjects;
+          }
         }
       }
     }
@@ -490,7 +495,7 @@ class PrismaService {
 
     const relatedObject = request[field];
 
-    const action = this.getAction(relatedObject);
+    const action = this.getAction(relatedObject, relatedModel, field);
 
     const processedRelatedObject = await this.processCreateOrUpdateRequest(
       relatedModel,
@@ -504,7 +509,7 @@ class PrismaService {
       prismaQuery.update = processedRelatedObject;
     } else if (action === "connect") {
       prismaQuery.connect = { id: relatedObject.id };
-    } else {
+    } else if (action === "create") {
       prismaQuery.connectOrCreate = {
         create: processedRelatedObject,
         where: this.getUpsertWhereClause(modelFields, relatedObject),
@@ -564,7 +569,7 @@ class PrismaService {
     }
 
     for (const item of request[field]) {
-      const action = this.getAction(item);
+      const action = this.getAction(item, model, field);
       const processedRelatedObject = await this.processCreateOrUpdateRequest(
         model,
         item,
@@ -609,7 +614,7 @@ class PrismaService {
           create: relatedObject,
           update: relatedObject,
         });
-      } else {
+      } else if (action === "create") {
         if (!prismaQuery.connectOrCreate) {
           prismaQuery.connectOrCreate = [];
         }
@@ -625,15 +630,25 @@ class PrismaService {
     return prismaQuery;
   }
 
-  private getAction(relatedObject: any) {
+  /**
+   * Gets the action for the related object and throws an error the user doesn't have permission
+   * @param relatedObject - The related object
+   * @param model - The related model
+   * @param field - The field name
+   * @returns The action - connect, create, or update
+   * @throws ApiValidationError
+   */
+  private getAction(relatedObject: any, model: string, field: string) {
     const validActions = ["connect", "create", "update"];
 
     const sentAction = relatedObject["_action_"] ?? undefined;
 
+    let action = "create";
+
     if (sentAction && validActions.includes(sentAction)) {
       if (sentAction === "update" || sentAction === "connect") {
         if (this.isIdValid(relatedObject.id)) {
-          return sentAction;
+          action = sentAction;
         } else {
           if (sentAction === "connect") {
             throw new ApiValidationError(
@@ -645,10 +660,14 @@ class PrismaService {
     }
 
     if (this.isIdValid(relatedObject.id)) {
-      return "connect";
+      action = "update";
     }
 
-    return "create";
+    if (action === "update" || action === "create") {
+      this.checkFieldPermission(field, model, action === "update");
+    }
+
+    return action;
   }
 
   private isIdValid(id: ID) {
@@ -855,6 +874,37 @@ class PrismaService {
 
   setPermissions(permissions: Permission) {
     this.permissions = permissions;
+  }
+
+  /**
+   * Check if the checkPermissions flag is set and if the model has create or update permission
+   * @param model
+   * @param field name
+   * @param isUpdate - Whether it's an update request
+   * @returns Whether the field has read permission
+   * @throws ApiValidationError
+   */
+  private checkFieldPermission(
+    model: string,
+    field: string,
+    isUpdate: boolean = false
+  ) {
+    const action = isUpdate ? "update" : "create";
+
+    if (this.checkPermissions) {
+      if (this.permissions[model] && this.permissions[model][action]) {
+        return true;
+      } else {
+        throw new ApiValidationError(
+          "No permission to " +
+            action +
+            " field " +
+            field +
+            " of model " +
+            model
+        );
+      }
+    }
   }
 }
 
