@@ -18,16 +18,6 @@ export class ApiValidationError extends CustomError {
     }
 }
 
-export class InvalidCredentialError extends CustomError {
-    public statusCode: number;
-
-    constructor(message : string) {
-        super(message);
-        this.name = 'InvalidCredentialError';
-        this.statusCode = 401;
-    }
-}
-
 export class UnauthorizedError extends CustomError {
     public statusCode: number;
 
@@ -35,6 +25,16 @@ export class UnauthorizedError extends CustomError {
         super(message);
         this.name = 'UnauthorizedError';
         this.statusCode = 401;
+    }
+}
+
+export class ForbiddenError extends CustomError {
+    public statusCode: number;
+
+    constructor(message : string) {
+        super(message);
+        this.name = 'ForbiddenError';
+        this.statusCode = 403;
     }
 }
 

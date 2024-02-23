@@ -1,7 +1,7 @@
 import express from 'express';
 import decodeJwt from '~/utils/decodeJwt';
 import getCookiePrefix from '~/utils/getCookiePrefix';
-import { InvalidCredentialError, ServerError } from '../error';
+import { UnauthorizedError, ServerError } from '../error';
 import { setAccessTokenCookie, setCsrfCookie, login, logout, refreshAccessToken, setUserPassword } from './helpers';
 
 const router = express.Router();
@@ -25,12 +25,8 @@ router.get('/refresh', async (req, res, next) => {
     const currentAccessToken = req.cookies[getCookiePrefix() + 'jwt'] || '';
 
     try {
-        const { accessToken, csrf } = await refreshAccessToken(currentAccessToken);
-        setAccessTokenCookie(res, accessToken);
-        setCsrfCookie(res, csrf);
-
+        await refreshAccessToken(currentAccessToken, res);
         res.json({ message: 'Access token refreshed' });
-
     } catch (error) {
         await logout(currentAccessToken, res, next);
     }
@@ -57,7 +53,7 @@ router.post('/change-password', async (req, res, next) => {
         const decodedToken = decodeJwt(accessToken, process.env.ACCESS_TOKEN_SECRET!) as { isAdmin: boolean; userId: string; }
     
         if (!decodedToken) {
-            throw new InvalidCredentialError('Invalid credentials');
+            throw new UnauthorizedError('Invalid credentials');
         }
 
         if (!setUserPassword(decodedToken.userId, password)) {

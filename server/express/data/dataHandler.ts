@@ -9,8 +9,9 @@ import PrismaService from "../../prisma/PrismaService";
 import { exportData } from "../../prisma/export";
 import { importData } from "../../prisma/import";
 import { importUploadFile, uploadMedia } from "../../prisma/media";
-import { ApiValidationError } from "../error";
+import { ApiValidationError, ForbiddenError } from "../error";
 import { prisma } from "../../prisma/prisma";
+import { refreshAccessToken } from "../auth/helpers";
 
 const dataHandler = async (
   req: express.Request,
@@ -39,10 +40,28 @@ const dataHandler = async (
 
   const accessToken = req.cookies[getCookiePrefix() + "jwt"];
 
-  const { userId, permissions, isAdmin } = decodeJwt(
-    accessToken,
-    process.env.ACCESS_TOKEN_SECRET!
-  ) as { userId: string; permissions: Permission; isAdmin: boolean };
+  let userId = "";
+  let permissions: Permission = {};
+  let isAdmin = false;
+
+  if (accessToken) {
+    try {
+      const refreshToken = await refreshAccessToken(accessToken, res);
+
+      const decodedToken = decodeJwt(
+        refreshToken.accessToken,
+        process.env.ACCESS_TOKEN_SECRET!
+      ) as { userId: string; permissions: Permission; isAdmin: boolean };
+
+      userId = decodedToken.userId;
+      permissions = decodedToken.permissions;
+      isAdmin = decodedToken.isAdmin;
+
+    } catch (error) {
+      logger.error(error);
+      next(error);
+    }
+  }
 
   const prismaService = new PrismaService(model);
   prismaService.setMethod(method);
@@ -52,8 +71,8 @@ const dataHandler = async (
   const canAccess = await prismaService.canAccess();
 
   if (!canAccess) {
-    res.status(403).json({ message: "Access denied" });
-    return;
+    logger.debug({ userId, permissions, isAdmin }, "Access denied");
+    next(new ForbiddenError("Access denied"));
   }
 
   try {
