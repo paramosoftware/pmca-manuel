@@ -20,13 +20,11 @@ class PrismaServiceConverter {
     modelFields: readonly Prisma.DMMF.Field[],
     fieldsMap: Map<string, Prisma.DMMF.Field>,
     checkPermissions: boolean = true,
-    permissions: Permission = {}
   ) {
     this.model = model;
     this.modelFields = modelFields;
     this.fieldsMap = fieldsMap;
     this.checkPermissions = checkPermissions;
-    this.permissions = permissions;
   }
 
   /**
@@ -556,6 +554,11 @@ class PrismaServiceConverter {
   setPage(page: number) {
     this.page = page;
   }
+
+  setPermissions(permissions: Permission) {
+    this.permissions = permissions;
+  }
+
 }
 
 export default PrismaServiceConverter;

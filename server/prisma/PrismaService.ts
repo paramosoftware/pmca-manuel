@@ -24,6 +24,12 @@ class PrismaService {
   private validator: PrismaServiceValidator;
   private converter: PrismaServiceConverter;
 
+
+  /**
+   * PrismaService constructor
+   * @param model - The model name
+   * @param checkPermissions - Whether to check permissions. Permissions can be set with setPermissions.
+   */
   constructor(model: string, checkPermissions = true) {
     this.model = model;
     this.checkPermissions = checkPermissions;
@@ -33,8 +39,7 @@ class PrismaService {
       model,
       this.modelFields,
       this.fieldsMap,
-      this.checkPermissions,
-      this.permissions
+      this.checkPermissions
     );
   }
 
@@ -874,6 +879,7 @@ class PrismaService {
 
   setPermissions(permissions: Permission) {
     this.permissions = permissions;
+    this.converter.setPermissions(permissions);
   }
 
   /**
