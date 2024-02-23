@@ -105,7 +105,7 @@ export async function refreshAccessToken(
     "access"
   );
 
-  setAccessTokenCookie(res, accessToken);
+  setAccessTokenCookie(res, newAccessToken);
   setCsrfCookie(res, csrf);
 
   return { accessToken: newAccessToken, csrf };
