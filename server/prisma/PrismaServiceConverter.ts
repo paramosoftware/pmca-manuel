@@ -19,7 +19,7 @@ class PrismaServiceConverter {
     model: string,
     modelFields: readonly Prisma.DMMF.Field[],
     fieldsMap: Map<string, Prisma.DMMF.Field>,
-    checkPermissions: boolean = true,
+    checkPermissions: boolean = true
   ) {
     this.model = model;
     this.modelFields = modelFields;
@@ -426,32 +426,76 @@ class PrismaServiceConverter {
   }
 
   private convertOrder(
-    order: Order | string[],
+    order: OrderBy | string[],
     model: string,
     fieldsMap: Map<string, Prisma.DMMF.Field>
   ) {
-    const orderBy: Order[] = [];
+    const orderBy: OrderBy[] = [];
 
-    const processField = (field: string, direction: Direction = "asc") => {
+    const processField = (
+      field: string,
+      direction: Direction | OrderBy = "asc"
+    ) => {
       if (fieldsMap.get(field + "Normalized") !== undefined) {
         field = field + "Normalized";
       }
 
       if (this.fieldExists(fieldsMap, field, model)) {
         const modelField = fieldsMap.get(field);
-        if (
-          modelField?.kind !== "object" &&
-          this.checkFieldPermission(model, field)
-        ) {
-          orderBy.push({ [field]: direction });
+        if (modelField?.kind !== "object") {
+          const allowedKeys = ["sort", "nulls"];
+
+          if (typeof direction === "string") {
+            orderBy.push({ [field]: direction === "desc" ? "desc" : "asc" });
+          } else if (typeof direction === "object") {
+            const order = {} as OrderBy;
+            const keys = Object.keys(direction);
+            for (const k of keys) {
+              if (allowedKeys.includes(k)) {
+                order[k] = direction[k];
+              } else {
+                logger.info(
+                  "Order key must be one of " +
+                    allowedKeys.join(", ") +
+                    ", got " +
+                    k
+                );
+              }
+              orderBy.push({ [field]: order });
+            }
+          }
         } else {
-          // TODO: Add support for ordering by relation fields 
-          logger.info(
-            "Order by relation field is still not supported: " +
-              field +
-              " in model: " +
-              model
-          );
+          if (this.checkFieldPermission(modelField.type, field)) {
+            if (typeof direction === "object") {
+              if (modelField.isList) {
+                const order = {} as OrderBy;
+                const allowedKeys = ["_count"];
+
+                const keys = Object.keys(direction);
+                for (const k of keys) {
+                  if (allowedKeys.includes(k)) {
+                    order[k] = direction[k];
+                  } else {
+                    logger.info(
+                      "Order key must be one of " +
+                        allowedKeys.join(", ") +
+                        ", got " +
+                        k
+                    );
+                  }
+                }
+                orderBy.push({ [field]: order });
+              } else {
+                const order = this.convertQuery(
+                  { orderBy: direction as OrderBy },
+                  modelField.type,
+                  false
+                );
+
+                order[field] = order.orderBy;
+              }
+            }
+          }
         }
       }
     };
@@ -460,7 +504,7 @@ class PrismaServiceConverter {
       order.forEach((field) => processField(field));
     } else {
       Object.entries(order).forEach(([key, direction]) =>
-        processField(key, direction)
+        processField(key, direction as OrderBy | Direction)
       );
     }
 
@@ -484,12 +528,10 @@ class PrismaServiceConverter {
     return (page - 1) * pageSize;
   }
 
-
-
   /**
    * Merge public permissions with the permissions provided in the constructor
    * @throws ApiValidationError
-  */
+   */
   private async mergePublicPermissions() {
     const publicResources = await prisma.resource.findMany({
       where: {
@@ -530,7 +572,6 @@ class PrismaServiceConverter {
    * @param model
    * @param field name
    * @returns Whether the field has read permission
-   * @throws ApiValidationError
    */
   private checkFieldPermission(model: string, field: string) {
     if (this.checkPermissions) {
@@ -558,7 +599,6 @@ class PrismaServiceConverter {
   setPermissions(permissions: Permission) {
     this.permissions = permissions;
   }
-
 }
 
 export default PrismaServiceConverter;

@@ -147,6 +147,8 @@ declare global {
 
     type Direction = 'asc' | 'desc';
 
+    type Nulls = 'first' | 'last';
+
 
     export type WhereValueType = string | number | boolean | Date | string[] | number[] | Condition | Condition[] | undefined;
 
@@ -163,8 +165,14 @@ declare global {
         } | WhereValueType;
     }
 
-    export interface Order {
-        [key: string]: Direction;
+    export interface OrderByNested {
+        sort?: Direction;
+        nulls?: Nulls;
+        _count?: Direction;
+    }
+    
+    export interface OrderBy {
+        [key: string]: OrderByNested | Direction | OrderBy;
     }
 
     export interface Include {
@@ -179,7 +187,7 @@ declare global {
         select?: string[];
         where?: Where;
         include?: Include | string[] | '*';
-        orderBy?: Order;
+        orderBy?: OrderBy;
         take?: number;
         skip?: number;
     }

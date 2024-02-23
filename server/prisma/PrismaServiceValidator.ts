@@ -2,7 +2,6 @@ import { ApiValidationError } from "../express/error";
 import { prisma } from "./prisma";
 
 class PrismaServiceValidator {
-
   private model: string;
 
   constructor(model: string) {
@@ -17,7 +16,6 @@ class PrismaServiceValidator {
    * { pageSize: 20, page: 1, select: ['id', 'name'], where: { id: 1 }, include: ['user'], orderBy: { id: 'asc' } }
    */
   validate(query: Query) {
-
     // @ts-ignore
     if (!prisma[this.model]) {
       throw new ApiValidationError("Model " + this.model + " does not exist");
@@ -119,14 +117,40 @@ class PrismaServiceValidator {
     }
   }
 
-  private validateOrder(order: Order | string[]) {
+  private validateOrder(order: OrderBy | string[]) {
     if (Array.isArray(order)) {
       return order.length > 0;
     }
 
+    const allowedKeys = ["sort", "nulls", "_count"];
+
     for (const key in order) {
-      if (order[key] !== "asc" && order[key] !== "desc") {
-        throw new ApiValidationError("Order must be asc or desc");
+      if (typeof order[key] === "string") {
+        if (order[key] !== "asc" && order[key] !== "desc") {
+          throw new ApiValidationError("Order must be asc or desc");
+        }
+      }
+
+      if (typeof order[key] === "object") {
+        const keys = Object.keys(order[key]);
+
+        for (const k of keys) {
+          if (allowedKeys.includes(k)) {
+            if (k === "sort" || k === "_count") {
+              // @ts-ignore
+              if (order[key][k] !== "asc" && order[key][k] !== "desc") {
+                throw new ApiValidationError("Order must be asc or desc");
+              }
+            }
+
+            if (k === "nulls") {
+              // @ts-ignore
+              if (order[key][k] !== "first" && order[key][k] !== "last") {
+                throw new ApiValidationError("Nulls must be first or last");
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -175,7 +199,6 @@ class PrismaServiceValidator {
       }
     }
   }
-
 
   private getValidOperators() {
     return [
