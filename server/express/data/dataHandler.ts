@@ -60,6 +60,7 @@ const dataHandler = async (
     } catch (error) {
       logger.error(error);
       next(error);
+      return;
     }
   }
 

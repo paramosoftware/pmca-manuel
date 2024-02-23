@@ -162,15 +162,16 @@ class PrismaService {
    */
   async updateOne(identifier: ID, request?: object) {
     try {
+      this.request = request ?? {};
       this.validator.validate(this.request);
-      const request = await this.converter.convertRequestToPrismaQuery(
+      const w = await this.converter.convertRequestToPrismaQuery(
         this.request,
         false,
         identifier
       );
 
       this.request = {
-        where: request.where,
+        where: w.where,
         data: this.request,
       };
 
@@ -665,11 +666,11 @@ class PrismaService {
     }
 
     if (this.isIdValid(relatedObject.id)) {
-      action = "update";
+      action = "connect";
     }
 
     if (action === "update" || action === "create") {
-      this.checkFieldPermission(field, model, action === "update");
+      this.checkFieldPermission(model, field, action === "update");
     }
 
     return action;
