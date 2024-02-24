@@ -530,7 +530,6 @@ class PrismaServiceConverter {
 
   /**
    * Merge public permissions with the permissions provided in the constructor
-   * @throws ApiValidationError
    */
   private async mergePublicPermissions() {
     const publicResources = await prisma.resource.findMany({
@@ -550,6 +549,8 @@ class PrismaServiceConverter {
           update: false,
           delete: false,
         };
+      } else {
+        this.permissions[resource.name].read = true;
       }
 
       if (resource.children.length > 0) {
@@ -561,6 +562,8 @@ class PrismaServiceConverter {
               update: false,
               delete: false,
             };
+          } else {
+            this.permissions[child.name].read = true;
           }
         }
       }
