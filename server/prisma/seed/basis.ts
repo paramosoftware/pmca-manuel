@@ -79,7 +79,6 @@ async function main() {
     resource.fields = buildFieldsConfig(resource.name, resource.fields, resourcesFieldsMap.get(resource.name) as Map<string, Prisma.DMMF.Field>);
   }
 
-
   const resourceService = new PrismaService('resource', false);
   const createdResources = await resourceService.createMany(resources);
 
@@ -202,10 +201,74 @@ async function main() {
     const newLanguage = await languageService.createOne({ name, code });
   }
 
+
+  await createDefaultGroups();
+
   console.log('Found ' + fieldRelations.size + ' relations and connected ' + fieldRelationsCount);
   console.log('Found ' + relatedResources.size + ' related resources and connected ' + relatedResourcesCount);
   console.log('Created ' + createdResources.length + ' resources');
   console.log('Created user', createdUser);
+
+}
+
+
+async function createDefaultGroups() {
+
+  const resources = await prisma.resource.findMany({
+    where: {
+      isAppModel: false,
+      isRelation: false
+    }
+  });
+
+  const userPermissions = ["Entry", "Reference"];
+  const editorPermissions = ["Author", "Language", "WebPage"].concat(
+    userPermissions
+  );
+
+  const adminGroup = {
+    name: 'Administradores',
+    permissions: [] as any[]
+  };
+
+  const editorGroup = {
+    name: 'Editores',
+    permissions: [] as any[]
+  };
+
+  const userGroup = {
+    name: 'Cadastradores',
+    permissions: [] as any[]
+  };
+
+  for (const resource of resources) {
+
+    const permission = {
+      resourceId: resource.id,
+      read: true,
+      create: true,
+      update: true,
+      delete: true,
+      _action_: 'create'
+    };
+
+    adminGroup.permissions.push(permission);
+
+    if (editorPermissions.includes(resource.name)) {
+      editorGroup.permissions.push(permission);
+    }
+
+    if (userPermissions.includes(resource.name)) {
+      userGroup.permissions.push(permission);
+    }
+  }
+
+  const groups = [adminGroup, editorGroup, userGroup];
+
+  const groupService = new PrismaService('group', false);
+  const createdGroups = await groupService.createMany(groups);
+
+  console.log('Created ' + createdGroups.length + ' groups');
 
 }
 
@@ -431,7 +494,6 @@ function checkFieldVisibility(resource: string, field: Prisma.DMMF.Field, fields
   return field.isId || field.isUpdatedAt || field.isGenerated || postfixes.some(p => field.name.endsWith(p)) || fieldsMap.has(field.name + 'Id');
 
 }
-
 
 function checkFieldRequired(field: Prisma.DMMF.Field) {
   const postfixes = ['id', 'createdAt', 'updatedAt', 'Slug', 'Normalized'];
