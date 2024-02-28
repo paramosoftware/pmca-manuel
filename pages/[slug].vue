@@ -21,7 +21,7 @@ definePageMeta({
 const router = useRoute();
 const slug = ref(router.params.slug.toString());
 
-const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage/' + slug.value);
+const { data, pending, error } = await useFetchWithBaseUrl('/api/public/webPage/' + slug.value);
 
 
 if (error.value || !data.value) {

@@ -18,7 +18,7 @@ const dataHandler = async (
   res: express.Response,
   next: express.NextFunction
 ) => {
-  const { model, id, hasQuery, isUpload, isImport, isExport } =
+  const { model, id, hasQuery, isUpload, isImport, isExport, isPublic } =
     getParamsFromPath(req.path);
 
   // @ts-ignore
@@ -44,7 +44,7 @@ const dataHandler = async (
   let permissions: Permission = {};
   let isAdmin = false;
 
-  if (accessToken) {
+  if (!isPublic && accessToken) {
     try {
       const refreshToken = await refreshAccessToken(accessToken, res);
 
@@ -155,6 +155,7 @@ function getParamsFromPath(path: string): {
   model: string;
   id: string;
   hasQuery: boolean;
+  isPublic: boolean;
   isUpload: boolean;
   isImport: boolean;
   isExport: boolean;
@@ -163,12 +164,18 @@ function getParamsFromPath(path: string): {
     model: "",
     id: "",
     hasQuery: false,
+    isPublic: false,
     isUpload: false,
     isImport: false,
     isExport: false,
   };
 
   const parts = path.replace("/api/", "").split("/");
+
+  if (parts[0] === "public") {
+    info.isPublic = true;
+    parts.shift();
+  }
 
   info.model = capitalize(parts[0]);
 

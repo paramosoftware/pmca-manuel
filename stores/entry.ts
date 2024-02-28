@@ -79,7 +79,7 @@ export const useEntryStore = defineStore('entry', () => {
     }
 
     async function fetchOne(resourceIdentifier: ID) {
-        const urlData = computed(() => `/api/${model}/${resourceIdentifier}`);
+        const urlData = computed(() => `/api/public/${model}/${resourceIdentifier}`);
 
         const { data, pending, error } = await useFetchWithBaseUrl(urlData, {
             method: 'GET',
@@ -93,7 +93,7 @@ export const useEntryStore = defineStore('entry', () => {
 
     async function fetchList() {
         entryIdentifier.value = '';
-        const urlData = computed(() => `/api/${model}`);
+        const urlData = computed(() => `/api/public/${model}`);
 
         const { data, pending, error } = await useFetchWithBaseUrl(urlData, {
             params: query.value
@@ -111,7 +111,7 @@ export const useEntryStore = defineStore('entry', () => {
 
     async function fetchNetwork() {
 
-        const { data, pending, error } = await useFetchWithBaseUrl(`api/${model}`, {
+        const { data, pending, error } = await useFetchWithBaseUrl(`/api/public/${model}`, {
             params: {
                 ...QUERIES.get('network')
             }
@@ -126,7 +126,7 @@ export const useEntryStore = defineStore('entry', () => {
 
     async function fetchEntriesTree() {
 
-        const { data } = await useFetchWithBaseUrl('/api/Entry', {
+        const { data } = await useFetchWithBaseUrl(`/api/public/${model}`, {
             method: 'GET',
             params: {
               pageSize: -1,
