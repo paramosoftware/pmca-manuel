@@ -370,6 +370,7 @@ class PrismaService {
     const attributes = Object.keys(request);
 
     const fieldsMap = new Map<string, Prisma.DMMF.Field>();
+    const relations = new Map<string, string>();
 
     modelFields?.forEach((f) => {
       if (
@@ -380,6 +381,12 @@ class PrismaService {
       }
 
       fieldsMap.set(f.name, f);
+
+      if (f.kind.toLowerCase() === "object") {
+        if (f.relationFromFields?.length === 1) {
+          relations.set(f.relationFromFields[0], f.name);
+        }
+      }
     });
 
     for (const attribute of attributes) {
@@ -423,9 +430,14 @@ class PrismaService {
         continue;
       }
 
+
+      const relatedField = relations.get(attribute);
       const fieldType = field.type.toLowerCase();
 
-      if (fieldType === "int" || (field.name.endsWith("Id"))) {
+      if (relatedField) {
+        prismaQuery[relatedField] = { connect: { id: this.processInt(request[attribute], attribute) } };
+        request[relatedField] = undefined;
+      } else if (fieldType === "int") {
         prismaQuery[attribute] = this.processInt(request[attribute], attribute);
       } else if (fieldType === "string") {
         prismaQuery[attribute] =
@@ -648,7 +660,7 @@ class PrismaService {
 
     const sentAction = relatedObject["_action_"] ?? undefined;
 
-    let action = "create";
+    let action = undefined;
 
     if (sentAction && validActions.includes(sentAction)) {
       if (sentAction === "update" || sentAction === "connect") {
@@ -664,8 +676,10 @@ class PrismaService {
       }
     }
 
-    if (this.isIdValid(relatedObject.id)) {
+    if (this.isIdValid(relatedObject.id) && !action) {
       action = "connect";
+    } else if (!action) {
+      action = "create";
     }
 
     if (action === "update" || action === "create") {
