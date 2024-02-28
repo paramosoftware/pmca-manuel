@@ -419,14 +419,13 @@ class PrismaService {
       }
 
       if (request[attribute] === "" || request[attribute] == null) {
-        request[attribute] =
-          request[attribute + "Id"] !== undefined ? undefined : null;
+        request[attribute] = request[attribute + "Id"] !== undefined ? undefined : null;
         continue;
       }
 
       const fieldType = field.type.toLowerCase();
 
-      if (fieldType === "int") {
+      if (fieldType === "int" || (field.name.endsWith("Id"))) {
         prismaQuery[attribute] = this.processInt(request[attribute], attribute);
       } else if (fieldType === "string") {
         prismaQuery[attribute] =
