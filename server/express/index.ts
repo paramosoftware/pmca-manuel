@@ -14,7 +14,7 @@ const app = express();
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
-app.use(csrfHandler);  // TODO: need refactoring based in the new API and auth strategy
+app.use(csrfHandler);
 
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS,

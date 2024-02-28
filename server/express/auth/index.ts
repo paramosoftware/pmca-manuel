@@ -26,7 +26,7 @@ router.get('/refresh', async (req, res, next) => {
 
     try {
         await refreshAccessToken(currentAccessToken, res);
-        res.json({ message: 'Access token refreshed' });
+        res.json({ message: 'refreshed' });
     } catch (error) {
         await logout(currentAccessToken, res, next);
     }
