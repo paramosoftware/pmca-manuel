@@ -262,7 +262,9 @@ class PrismaServiceConverter {
       conditionType === "boolean"
     ) {
       if (Array.isArray(condition)) {
-        prismaQuery[field].in = parseNumber(condition);
+        prismaQuery[field].in = isNormalized
+          ? condition.map((c) => normalizeString(c as string))
+          : parseNumber(condition);
       } else {
         if (conditionType === "boolean") {
           prismaQuery[field].equals = getBoolean(condition);
