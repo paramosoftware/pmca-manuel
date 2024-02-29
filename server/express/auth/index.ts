@@ -67,4 +67,30 @@ router.post('/change-password', async (req, res, next) => {
     }
 });
 
+
+router.get('/user', async (req, res, next) => {
+
+    const accessToken = req.cookies[getCookiePrefix() + 'jwt'] || '';
+
+    try {
+        const decodedToken = decodeJwt(accessToken, process.env.ACCESS_TOKEN_SECRET!) as { 
+            isAdmin: boolean; 
+            userId: string; 
+            permissions: Permission;
+            name: string;
+        }
+
+        if (!decodedToken) {
+            throw new UnauthorizedError('Invalid credentials');
+        }
+        
+
+        res.json({ isAdmin: decodedToken.isAdmin, id: decodedToken.userId, permissions: decodedToken.permissions, name: decodedToken.name });
+
+    } catch (error) {
+        next(error);
+    }
+});
+
+
 export default router;

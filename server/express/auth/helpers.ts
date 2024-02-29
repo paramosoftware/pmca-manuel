@@ -7,7 +7,7 @@ import getCookiePrefix from "~/utils/getCookiePrefix";
 import hashPassword from "~/utils/hashPassword";
 import isHTTPS from "~/utils/isHTTPS";
 import { prisma } from "../../prisma/prisma";
-import { UnauthorizedError } from "../error";
+import { UnauthorizedError, ForbiddenError } from "../error";
 
 export async function logout(
   accessToken: string,
@@ -51,7 +51,7 @@ export async function login(login: string, password: string) {
 
   const csrf = uuidv4();
   const accessToken = generateToken(
-    { sessionId, userId, csrf, isAdmin: user.isAdmin, permissions },
+    { sessionId, userId, csrf, isAdmin: user.isAdmin, permissions, name: user.name },
     "access"
   );
   return { accessToken, csrf };
@@ -65,7 +65,7 @@ export async function refreshAccessToken(
     accessToken,
     process.env.ACCESS_TOKEN_SECRET!,
     true
-  ) as { sessionId: string; csrf: string };
+  ) as { sessionId: string; csrf: string; userId: string };
 
   if (!decodedToken) {
     throw new UnauthorizedError("Invalid credentials");
@@ -75,6 +75,12 @@ export async function refreshAccessToken(
     accessToken,
     process.env.ACCESS_TOKEN_SECRET!
   );
+
+  const user = (await findUserByLoginOrId(decodedToken.userId)) as User;
+
+  if (user.isBlocked) {
+    throw new ForbiddenError("User is blocked");
+  }
 
   if (!isAccessTokenExpired) {
     return { accessToken, csrf: decodedToken.csrf };
@@ -90,7 +96,6 @@ export async function refreshAccessToken(
     throw new UnauthorizedError("Invalid refresh token");
   }
 
-  const user = (await findUserByLoginOrId(session.userId)) as User;
 
   const permissions = await getPermissions(user);
 
@@ -102,6 +107,7 @@ export async function refreshAccessToken(
       csrf,
       isAdmin: user.isAdmin,
       permissions,
+      name: user.name
     },
     "access"
   );

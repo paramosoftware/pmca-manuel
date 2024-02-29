@@ -137,6 +137,7 @@ declare global {
             read: boolean;
             update: boolean;
             delete: boolean;
+            import: boolean;
         };
     }
 
