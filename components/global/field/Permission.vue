@@ -7,7 +7,6 @@
     </UILabel>
 </div>
 
-
 <table class="w-full">
     <thead class="bg-gray-200 border border-b">
         <tr class="bg-gray-100 border border-b">
@@ -16,6 +15,7 @@
             <th class="text-left">Criar</th>
             <th class="text-left">Editar</th>
             <th class="text-left">Excluir</th>
+            <th class="text-left">Importar</th>
         </tr>
     </thead>
     <tbody>
@@ -51,7 +51,7 @@ const { data, pending, error } = await useFetchWithBaseUrl('/api/resource', {
 
 const currentPermissions = props.formStore.getFieldData('permissions') as any[] ?? [];
 
-const permissions = ['read', 'create', 'update', 'delete'];
+const permissions = ['read', 'create', 'update', 'delete', 'import'];
 
 const resources = data.value.items as Resource[] ?? [];
 
@@ -68,6 +68,7 @@ for (const resource of resources) {
         create: found?.create ?? false,
         update: found?.update ?? false,
         delete: found?.delete ?? false,
+        import: found?.import ?? false,
         _action_: 'update'
     };
     formPermissions.push(permission);

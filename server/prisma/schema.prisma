@@ -87,6 +87,7 @@ model GroupPermission {
   update Boolean? @default(false)
   delete Boolean? @default(false)
   batch  Boolean? @default(false)
+  import Boolean? @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -94,7 +95,7 @@ model GroupPermission {
   @@unique([resourceId, groupId])
 }
 
-/// isAppModel:true
+/// isAppModel:true|isPublic:true
 model Resource {
   id             Int      @id @default(autoincrement())
   name           String   @unique
@@ -315,6 +316,7 @@ model EntryTranslation {
   updatedAt DateTime @updatedAt
 }
 
+/// isPublic:true
 model Language {
   id   Int     @id @default(autoincrement())
   name String  @unique
@@ -328,6 +330,7 @@ model Language {
   updatedAt DateTime @updatedAt
 }
 
+/// isPublic:true
 model Reference {
   id   Int    @id @default(autoincrement())
   name String @unique /// uiField:rich

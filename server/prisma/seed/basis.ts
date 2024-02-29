@@ -202,6 +202,7 @@ async function main() {
   }
 
 
+  await prisma.group.deleteMany({});
   await createDefaultGroups();
 
   console.log('Found ' + fieldRelations.size + ' relations and connected ' + fieldRelationsCount);
@@ -210,7 +211,6 @@ async function main() {
   console.log('Created user', createdUser);
 
 }
-
 
 async function createDefaultGroups() {
 
@@ -228,7 +228,7 @@ async function createDefaultGroups() {
 
   const adminGroup = {
     name: 'Administradores',
-    permissions: [] as any[]
+    permissions: [] as any[],
   };
 
   const editorGroup = {
@@ -249,10 +249,9 @@ async function createDefaultGroups() {
       create: true,
       update: true,
       delete: true,
-      _action_: 'create'
+      import: false,
+      _action_: "create",
     };
-
-    adminGroup.permissions.push(permission);
 
     if (editorPermissions.includes(resource.name)) {
       editorGroup.permissions.push(permission);
@@ -261,6 +260,9 @@ async function createDefaultGroups() {
     if (userPermissions.includes(resource.name)) {
       userGroup.permissions.push(permission);
     }
+
+    permission.import = true;
+    adminGroup.permissions.push(permission);
   }
 
   const groups = [adminGroup, editorGroup, userGroup];

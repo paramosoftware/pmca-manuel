@@ -548,6 +548,7 @@ class PrismaServiceConverter {
           read: true,
           update: false,
           delete: false,
+          import: false,
         };
       } else {
         this.permissions[resource.name].read = true;
@@ -561,6 +562,7 @@ class PrismaServiceConverter {
               read: true,
               update: false,
               delete: false,
+              import: false,
             };
           } else {
             this.permissions[child.name].read = true;

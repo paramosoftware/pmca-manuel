@@ -91,6 +91,7 @@ export async function refreshAccessToken(
   }
 
   const user = (await findUserByLoginOrId(session.userId)) as User;
+
   const permissions = await getPermissions(user);
 
   const csrf = uuidv4();
@@ -250,6 +251,7 @@ async function getPermissions(user: User) {
           read: groupPermission.read ?? false,
           update: groupPermission.update ?? false,
           delete: groupPermission.delete ?? false,
+          import: groupPermission.import ?? false,
         };
       } else {
         permissions[resource].create =
@@ -260,6 +262,8 @@ async function getPermissions(user: User) {
           (permissions[resource].update || groupPermission.update) ?? false;
         permissions[resource].delete =
           (permissions[resource].delete || groupPermission.delete) ?? false;
+        permissions[resource].import =
+          (permissions[resource].import || groupPermission.import) ?? false;
       }
     }
   }
@@ -272,6 +276,7 @@ async function getPermissions(user: User) {
           read: true,
           update: true,
           delete: true,
+          import: true,
         };
     }
   }
