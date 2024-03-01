@@ -8,7 +8,7 @@
 
             <div class="justify-between flex flex-row items-center my-4">
                 <UIContainerTitle>{{ labelPlural }}</UIContainerTitle>
-                <UIIcon name="ph:plus-circle" @click="goToCreateForm" title="Criar novo" class="w-8 h-8 cursor-pointer" />
+                <UIIcon name="ph:plus-circle" @click="goToCreateForm" title="Criar novo" class="w-8 h-8 cursor-pointer" v-if="canCreate" />
             </div>
 
         </template>
@@ -54,19 +54,20 @@
         <div v-if="items && items?.length > 0" class="mt-4">
             <div v-for="item in items" :key="item.id" class="w-full border border-gray-200 bg-gray-100 p-1 pl-2 rounded-md shadow-md mt-4">
                 <div class="w-full h-full flex items-center justify-between">
-                    <NuxtLink :to="editUrl + '/' + item.id" class="mr-2">
+                    <NuxtLink :to="editUrl + '/' + item.id" class="flex-grow">
+                        <!-- TODO: Refactor this: remove stripHtmlTags -->
                         <h1 v-if="item.label" v-html="stripHtmlTags(item.label, ['s', 'em', 'strong'])"></h1>
                         <h1 v-else-if="item.name" v-html="stripHtmlTags(item.name, ['s', 'em', 'strong'])"></h1>
                         <h1 v-else>Item sem rótulo ({{ item.id }})</h1>
                     </NuxtLink>
 
                     <div class="flex items-center">
-                        <NuxtLink :to="editUrl + '/' + item.id">
+                        <NuxtLink :to="editUrl + '/' + item.id" v-if="canUpdate">
                             <UIButton size="sm" square class="mr-1">
                                 <UIIcon name="ph:pencil-simple" class="w-5 h-5" title="Editar" />
                             </UIButton>
                         </NuxtLink>
-                        <UIButton size="sm" square>
+                        <UIButton size="sm" square v-if="canDelete">
                             <UIIcon name="ph:trash-simple" class="w-5 h-5" title="Excluir" @click="openModal(item)" />
                         </UIButton>
                     </div>
@@ -91,9 +92,8 @@
 
 <script setup lang="ts">
 import ROUTES from '~/config/routes';
-
 definePageMeta({
-    middleware: 'auth'
+    middleware: ['auth', 'read'],
 });
 
 const path = useRoute().params.path as string;
@@ -107,10 +107,10 @@ const modalButtonText = 'Excluir';
 const listStore = useListStore();
 await listStore.fetch(path);
 
-const { labelSlug, labelPlural, genderNoun, items, page, pageSize, sort, total, search, pending, error } = storeToRefs(listStore);
+const { labelSlug, labelPlural, genderNoun, items, page, pageSize, sort, total, search, pending, error, canCreate, canDelete, canUpdate } = storeToRefs(listStore);
 
 const createUrl = ROUTES.create + labelSlug.value;
-const editUrl = ROUTES.edit + labelSlug.value;
+const editUrl = computed(() => canUpdate.value ? (ROUTES.edit + labelSlug.value) : (ROUTES.list + labelSlug.value));
 
 const filterDisabled = computed(() => {
     return search.value === '' && total.value === 0 && !pending.value;
@@ -130,9 +130,7 @@ const deleteItem = async () => {
 }
 
 function goToCreateForm() {
-
     navigateTo(createUrl);
-
 }
 
 onUnmounted(() => {
