@@ -4,7 +4,7 @@
             <UIAnchorReturn v-if="!isAuxiliary" :href=urlList />
             <div class="text-end flex justify-between" :class="{ 'mt-5 mb-2': !isAuxiliary }">
                 <UIContainerTitle> {{ formTitle }} </UIContainerTitle>
-                <template v-if="!isCreate && !isAuxiliary">
+                <template v-if="!isCreate && !isAuxiliary && canCreate">
                     <UIIcon name="ph:plus-circle" @click="goToCreateForm" title="Criar novo" class="w-8 h-8 cursor-pointer" />
                 </template>
             </div>
@@ -41,7 +41,7 @@ const props = defineProps({
     }
 });
 const router = useRouter();
-const { model, label, genderNoun, labelSlug } = storeToRefs(props.formStore);
+const { model, label, genderNoun, labelSlug, canCreate } = storeToRefs(props.formStore);
 
 const urlList = ROUTES.list + labelSlug.value;
 const urlCreate = ROUTES.create + labelSlug.value;

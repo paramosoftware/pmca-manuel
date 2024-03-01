@@ -20,13 +20,32 @@
    
 <script setup lang="ts">
 import ROUTES from '~/config/routes';
-
 definePageMeta({
     middleware: 'auth'
 });
 
+const userStore = useUserStore();
+await userStore.fetch();
+
+const { permissions, name } = storeToRefs(userStore);
+
+const permissionsKeys = Object.keys(permissions.value);
+
+const allowedResources = [];
+
+for (const key of permissionsKeys) {
+    if (permissions.value[key] && permissions.value[key].update) {
+        allowedResources.push(key);
+    }
+}
+
 const { data, pending, error } = await useFetchWithBaseUrl('/api/resource', {
-    method: 'GET'
+    method: 'GET',
+    params: {
+        where: {
+            name: allowedResources
+        }
+    }
 }) as { 
     data: Ref<PaginatedResponse>, pending: Ref<boolean>, error: Ref<Error | undefined>
 };

@@ -15,6 +15,10 @@ export const useListStore = defineStore('list', () => {
     const total = ref(0);
     const totalPages = ref(0);
     const resourceStore = useResourceStore();
+    const userStore = useUserStore();
+    const canCreate = computed(() => userStore.permissions[resourceStore.model]?.create);
+    const canUpdate = computed(() => userStore.permissions[resourceStore.model]?.update);
+    const canDelete = computed(() => userStore.permissions[resourceStore.model]?.delete);
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
 
@@ -47,6 +51,7 @@ export const useListStore = defineStore('list', () => {
     async function fetch(resourceIdentifier: string) {
 
         await resourceStore.fetch(resourceIdentifier);
+        await userStore.fetch();
 
         const urlData = computed(() => `/api/${resourceStore.model}`);
 
@@ -105,24 +110,27 @@ export const useListStore = defineStore('list', () => {
 
 
     return {
-        label,
-        labelPlural,
-        labelSlug,
-        genderNoun,
-        sort,
-        page,
-        pageSize,
-        total,
-        totalPages,
-        search,
-        items,
-        query,
-        pending,
-        error,
-        sortByName,
-        deleteItem,
-        fetch,
-        destroy
-    }
+      label,
+      labelPlural,
+      labelSlug,
+      genderNoun,
+      sort,
+      page,
+      pageSize,
+      total,
+      totalPages,
+      search,
+      items,
+      query,
+      pending,
+      error,
+      canCreate,
+      canUpdate,
+      canDelete,
+      sortByName,
+      deleteItem,
+      fetch,
+      destroy,
+    };
 
 })

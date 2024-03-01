@@ -14,6 +14,8 @@ export const createFormStore = (name: string) => {
         const isAuxiliary = ref(false);
         const parentModel = ref('');
         const resourceStore = useResourceStore();
+        const userStore = useUserStore();
+        const canCreate = computed(() => userStore.permissions[resourceStore.model]?.create);
         const pending = ref(false);
         const error = ref('');
 
@@ -358,6 +360,7 @@ export const createFormStore = (name: string) => {
             parentModel,
             pending,
             error,
+            canCreate,
             load,
             save,
             getId,

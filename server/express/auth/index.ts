@@ -83,12 +83,11 @@ router.get('/user', async (req, res, next) => {
         if (!decodedToken) {
             throw new UnauthorizedError('Invalid credentials');
         }
-        
 
         res.json({ isAdmin: decodedToken.isAdmin, id: decodedToken.userId, permissions: decodedToken.permissions, name: decodedToken.name });
 
     } catch (error) {
-        next(error);
+        await logout(accessToken, res, next);
     }
 });
 

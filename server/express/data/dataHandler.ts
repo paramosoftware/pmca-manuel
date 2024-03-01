@@ -72,7 +72,7 @@ const dataHandler = async (
   const canAccess = await prismaService.canAccess();
 
   if (!canAccess) {
-    logger.debug({ userId, permissions, isAdmin }, "Access denied");
+    logger.debug({ userId, model, permissions, isAdmin }, "Access denied");
     next(new ForbiddenError("Access denied"));
   }
 
