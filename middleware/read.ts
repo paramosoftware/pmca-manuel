@@ -5,7 +5,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   await userStore.fetch();
 
   const resourceStore = useResourceStore();
-  await resourceStore.fetch(from.params?.path as string);
+  await resourceStore.fetch(to.params?.path as string);
 
   const { permissions } = storeToRefs(userStore);
   const { model } = storeToRefs(resourceStore);
