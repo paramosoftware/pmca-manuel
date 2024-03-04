@@ -9,7 +9,7 @@
 
         <div class="flex flex-col">
             <span v-for="link in links" :key="link.name" class="text-2xl my-2">
-                <UILink  v-if="!link.restrictedToAdmin" :href="link.path">
+                <UILink :href="link.path">
                     {{ link.name }}
                 </UILink>
             </span>
@@ -27,7 +27,7 @@ definePageMeta({
 const userStore = useUserStore();
 await userStore.fetch();
 
-const { permissions, name } = storeToRefs(userStore);
+const { permissions } = storeToRefs(userStore);
 
 const permissionsKeys = Object.keys(permissions.value);
 
@@ -61,13 +61,12 @@ const getPath = (path: string) => {
     return ROUTES.list + path;
 }
 
-const links: { name: string, path: string, restrictedToAdmin: boolean }[] = [];
+const links: { name: string, path: string }[] = [];
 
 for (const resource of resources) {
     links.push({
         name: resource.labelPlural,
-        path: getPath(resource.labelSlug),
-        restrictedToAdmin: false
+        path: getPath(resource.labelSlug)
     })
 }
 
