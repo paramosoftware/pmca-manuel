@@ -418,7 +418,7 @@ class PrismaServiceConverter {
               );
             }
           }
-        } else {
+        } else if (field !== '_action_') {
           logger.info("Field " + field + " not found in model: " + model);
         }
       });
@@ -518,7 +518,7 @@ class PrismaServiceConverter {
     field: string,
     model: string
   ) {
-    if (fieldsMap.get(field) === undefined) {
+    if (fieldsMap.get(field) === undefined && field !== '_action_') {
       logger.info("Field " + field + " not found in model: " + model);
       return false;
     }
