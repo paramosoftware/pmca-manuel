@@ -82,7 +82,7 @@ export const importData = function () {
         await processRelations(createdEntries, related, parent);
 
         if (overwrite) {
-            const prismaService = new PrismaService(model);
+            const prismaService = new PrismaService(model, false);
             await prismaService.deleteMany({ where: { createdAt: { lte: startDateTime } } });
         }
 
@@ -106,7 +106,7 @@ export const importData = function () {
     async function setResourceConfig() {
 
 
-        const resourceService = new PrismaService("Resource");
+        const resourceService = new PrismaService("Resource", false);
 
         const resourceConfig = await resourceService.readOne(importModel, {
         include: {
@@ -214,7 +214,7 @@ export const importData = function () {
             }
 
 
-            const entryService = new PrismaService('Entry');
+            const entryService = new PrismaService('Entry', false);
             const newEntry = await entryService.createOne(entry);
             createdEntries.set(oldId, newEntry.id);
         }
@@ -240,7 +240,7 @@ export const importData = function () {
     
         const headerRow = rows[0].values as string[];
 
-        const prismaService = new PrismaService(importModel);
+        const prismaService = new PrismaService(importModel, false);
     
         for (let i = 1; i < rows.length; i++) {
     
@@ -329,7 +329,7 @@ export const importData = function () {
         const xml = fs.readFileSync(filePath, 'utf-8');
         const result = xmlParser.parse(xml);
         const data = result[0]['rdf:RDF'] ?? [];
-        const prismaService = new PrismaService(importModel);
+        const prismaService = new PrismaService(importModel, false);
     
         for (const item of data) {
     
@@ -486,7 +486,7 @@ export const importData = function () {
             ]
         };
     
-        const langService = new PrismaService('Language');
+        const langService = new PrismaService('Language', false);
         const foundLanguage = await langService.readMany({ where: where });
     
         if (foundLanguage && foundLanguage.total > 0) {
