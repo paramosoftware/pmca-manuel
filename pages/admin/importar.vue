@@ -77,7 +77,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-    middleware: ["auth", "import"]
+    middleware: ["auth", "resource"]
 });
 
 useHead({

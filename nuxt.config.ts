@@ -46,5 +46,8 @@ export default defineNuxtConfig({
     colorMode: {
         preference: 'light',
         fallback: 'light'
+    },
+    experimental: {
+        asyncContext: true
     }
 })

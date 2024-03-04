@@ -93,7 +93,7 @@
 <script setup lang="ts">
 import ROUTES from '~/config/routes';
 definePageMeta({
-    middleware: ['auth', 'read'],
+    middleware: ['auth', 'resource'],
 });
 
 const path = useRoute().params.path as string;

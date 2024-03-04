@@ -18,7 +18,7 @@
    
 <script setup lang="ts">
 definePageMeta({
-    middleware: ['auth', 'update']
+    middleware: ['auth', 'resource']
 });
 
 const formStore = useFormStore();
