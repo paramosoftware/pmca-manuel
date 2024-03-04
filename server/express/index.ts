@@ -14,14 +14,17 @@ const app = express();
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
+
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS,
+    credentials: true,
+    exposedHeaders: ["set-cookie"],
+  })
+);
+
+
 app.use(csrfHandler);
-
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS,
-  credentials: true,
-  exposedHeaders: ['set-cookie']
-}));
-
 app.use(dataHandler);
 
 function useApiRoute(app: any, route: string, handler: any) {
