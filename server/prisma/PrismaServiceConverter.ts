@@ -13,7 +13,7 @@ class PrismaServiceConverter {
   private modelFields: readonly Prisma.DMMF.Field[];
   private fieldsMap: Map<string, Prisma.DMMF.Field>;
   private checkPermissions: boolean = true;
-  private permissions: Permission = {};
+  public permissions: Permission = {};
 
   constructor(
     model: string,
@@ -49,7 +49,7 @@ class PrismaServiceConverter {
     } as Query;
 
     if (this.checkPermissions) {
-      await this.mergePublicPermissions();
+      await this.mergeRelatedPermissions();
     }
 
     const prismaQuery = this.convertQuery(query, this.model);
@@ -533,7 +533,10 @@ class PrismaServiceConverter {
   /**
    * Merge public permissions with the permissions provided in the constructor
    */
-  private async mergePublicPermissions() {
+  private async mergeRelatedPermissions() {
+
+    const userPermissions = Object.keys(this.permissions);
+
     const publicResources = await prisma.resource.findMany({
       where: {
         isPublic: true,
@@ -568,6 +571,39 @@ class PrismaServiceConverter {
             };
           } else {
             this.permissions[child.name].read = true;
+          }
+        }
+      }
+    }
+
+    const currentPermissions = await prisma.resource.findMany({
+      where: {
+        name: {
+          in: userPermissions,
+        }
+      },
+      include: {
+        children: true,
+      },
+    });
+
+    for (const resource of currentPermissions) {
+      if (resource.children.length > 0) {
+        for (const child of resource.children) {
+          if (!this.permissions[child.name]) {
+            this.permissions[child.name] = {
+              create: this.permissions[resource.name].create,
+              read: this.permissions[resource.name].read,
+              update: this.permissions[resource.name].update,
+              delete: this.permissions[resource.name].delete,
+              import: this.permissions[resource.name].import,
+            };
+          } else {
+            this.permissions[child.name].create = this.permissions[resource.name].create;
+            this.permissions[child.name].read = this.permissions[resource.name].read;
+            this.permissions[child.name].update = this.permissions[resource.name].update;
+            this.permissions[child.name].delete = this.permissions[resource.name].delete;
+            this.permissions[child.name].import = this.permissions[resource.name].import;
           }
         }
       }

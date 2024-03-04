@@ -924,7 +924,7 @@ class PrismaService {
     const action = isUpdate ? "update" : "create";
 
     if (this.checkPermissions) {
-      if (this.permissions[model] && this.permissions[model][action]) {
+      if (this.converter.permissions[model] && this.converter.permissions[model][action]) {
         return true;
       } else {
         throw new ApiValidationError(
