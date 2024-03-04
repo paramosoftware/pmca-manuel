@@ -402,8 +402,11 @@ class PrismaService {
           };
         }
       }
-      delete request[rawId];
-      delete request[relatedField];
+
+      if (request[rawId] !== undefined) {
+        delete request[rawId];
+        delete request[relatedField];
+      }
     }
 
     const attributes = Object.keys(request);
@@ -650,7 +653,7 @@ class PrismaService {
       }
     }
 
-    if (request[field].length === 0) {
+    if (request[field].length === 0 && isUpdate) {
       prismaQuery.set = [];
     }
 
