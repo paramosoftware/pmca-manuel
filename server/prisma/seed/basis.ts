@@ -259,8 +259,9 @@ async function createDefaultGroups(userId: string) {
       userGroup.permissions.push(permission);
     }
 
-    permission.import = true;
-    adminGroup.permissions.push(permission);
+    const permissionCopy = JSON.parse(JSON.stringify(permission));
+    permissionCopy.import = true;
+    adminGroup.permissions.push(permissionCopy);
   }
 
   const groups = [adminGroup, editorGroup, userGroup]
