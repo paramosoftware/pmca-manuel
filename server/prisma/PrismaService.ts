@@ -366,9 +366,6 @@ class PrismaService {
     )?.fields!;
 
     const prismaQuery: any = {};
-
-    const attributes = Object.keys(request);
-
     const fieldsMap = new Map<string, Prisma.DMMF.Field>();
     const relations = new Map<string, string>();
 
@@ -388,6 +385,28 @@ class PrismaService {
         }
       }
     });
+
+    for (const [rawId, relatedField] of relations) {
+      if (request[rawId] !== undefined) {
+        const validId = this.isIdValid(request[rawId]);
+
+        if (validId) {
+          prismaQuery[relatedField] = {
+            connect: { 
+              id: this.processInt(request[rawId], rawId)
+            }
+          };
+        } else if (request[rawId] == null || request[rawId] == "" || request[rawId] == 0) {
+          prismaQuery[relatedField] = { 
+            disconnect: true 
+          };
+        }
+      }
+      delete request[rawId];
+      delete request[relatedField];
+    }
+
+    const attributes = Object.keys(request);
 
     for (const attribute of attributes) {
       const field = fieldsMap.get(attribute);
@@ -421,29 +440,21 @@ class PrismaService {
         request[attribute] = undefined;
       }
 
-      if (attribute.endsWith("Id") && !this.isIdValid(request[attribute])) {
-        request[attribute] = undefined;
-      }
-
-      if (request[attribute] === "" || request[attribute] == null) {
-        request[attribute] = request[attribute + "Id"] !== undefined ? undefined : null;
-        continue;
-      }
-
-
-      const relatedField = relations.get(attribute);
       const fieldType = field.type.toLowerCase();
 
-      if (relatedField) {
-        prismaQuery[relatedField] = { connect: { id: this.processInt(request[attribute], attribute) } };
-        request[relatedField] = undefined;
-      } else if (fieldType === "int") {
-        prismaQuery[attribute] = this.processInt(request[attribute], attribute);
+      if (fieldType === "int") {
+        if (request[attribute] != undefined) {
+          prismaQuery[attribute] = this.processInt(request[attribute], attribute);
+        }
       } else if (fieldType === "string") {
-        prismaQuery[attribute] =
-          attribute === "password"
-            ? hashPassword(request[attribute])
-            : sanitizeString(request[attribute]);
+        if (request[attribute] === "") {
+          prismaQuery[attribute] = null;
+        } else {
+          prismaQuery[attribute] =
+            attribute === "password"
+              ? hashPassword(request[attribute])
+              : sanitizeString(request[attribute]);
+        }
       } else if (fieldType === "boolean") {
         prismaQuery[attribute] = this.processBoolean(
           request[attribute],
@@ -453,12 +464,6 @@ class PrismaService {
         const relatedModel = field.type;
 
         if (!field.isList) {
-          if (
-            fieldsMap.get(attribute + "Id") !== undefined &&
-            this.isIdValid(request[attribute + "Id"])
-          ) {
-            continue;
-          } else {
             const relatedObject = await this.processOneToManyRelation(
               relatedModel,
               model,
@@ -469,7 +474,6 @@ class PrismaService {
             if (Object.keys(relatedObject).length > 0) {
               prismaQuery[attribute] = relatedObject;
             }
-          }
         } else {
           const relatedObjects = await this.processManyToManyRelation(
             relatedModel,
@@ -512,7 +516,17 @@ class PrismaService {
 
     const relatedObject = request[field];
 
+    if (relatedObject == null || Object.keys(relatedObject).length === 0) {
+      prismaQuery.disconnect = true;
+      return prismaQuery;
+    }
+
     const action = this.getAction(relatedObject, relatedModel, field);
+
+    if (action === "connect") {
+      prismaQuery.connect = { id: relatedObject.id };
+      return prismaQuery;
+    }
 
     const processedRelatedObject = await this.processCreateOrUpdateRequest(
       relatedModel,
@@ -524,8 +538,6 @@ class PrismaService {
 
     if (action === "update") {
       prismaQuery.update = processedRelatedObject;
-    } else if (action === "connect") {
-      prismaQuery.connect = { id: relatedObject.id };
     } else if (action === "create") {
       prismaQuery.connectOrCreate = {
         create: processedRelatedObject,
@@ -608,12 +620,6 @@ class PrismaService {
           prismaQuery.upsert = [];
         }
 
-        const relatedObject = await this.processCreateOrUpdateRequest(
-          model,
-          item,
-          true
-        );
-
         const relationField = this.getRelationField(
           model,
           parentModel,
@@ -621,15 +627,15 @@ class PrismaService {
         );
 
         if (relationField) {
-          relatedObject[relationField] = undefined;
+          processedRelatedObject[relationField] = undefined;
         }
 
-        relatedObject.id = undefined;
+        processedRelatedObject.id = undefined;
 
         prismaQuery.upsert.push({
           where: this.getUpsertWhereClause(modelFields, item),
-          create: relatedObject,
-          update: relatedObject,
+          create: processedRelatedObject,
+          update: processedRelatedObject,
         });
       } else if (action === "create") {
         if (!prismaQuery.connectOrCreate) {
@@ -642,6 +648,10 @@ class PrismaService {
           where: this.getUpsertWhereClause(modelFields, item),
         });
       }
+    }
+
+    if (request[field].length === 0) {
+      prismaQuery.set = [];
     }
 
     return prismaQuery;
@@ -690,7 +700,7 @@ class PrismaService {
   }
 
   private isIdValid(id: ID) {
-    return id != undefined && id != 0 && id != null;
+    return id != 0 && id != null && id != "";
   }
 
   private processBoolean(value: any, key: string) {
@@ -704,6 +714,8 @@ class PrismaService {
   private processInt(value: any, key: string) {
     if (!isNaN(parseInt(value))) {
       return parseInt(value);
+    } else if (value === null || value === "" || value == 0) {
+      return null;
     } else {
       throw new ApiValidationError(key + " must be a number, got " + value);
     }
