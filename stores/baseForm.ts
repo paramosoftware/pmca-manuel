@@ -77,7 +77,7 @@ export const createFormStore = (name: string) => {
                 throw new Error(error.value.message);
             }
 
-            fieldsData.value = data.value;
+            setFieldsData(data.value);
         }
 
         function getId() {
@@ -123,6 +123,17 @@ export const createFormStore = (name: string) => {
             return fieldsData.value[field];
         }
 
+        function setFieldsData(data: Record<string, any>) {
+            const fields = Object.keys(data).reduce((acc: Record<string, any>, key: string) => {
+                if (data[key] !== null && data[key] !== undefined) {
+                    acc[key] = data[key];
+                }
+                return acc;
+            }, {});
+
+            fieldsData.value = fields;
+        }
+
         function setFieldData(field: string, value: any) {
 
             const fieldConfig = getFieldConfig(field);
@@ -138,6 +149,11 @@ export const createFormStore = (name: string) => {
 
             fieldsData.value[field] = value;
         }
+
+        function unsetFieldData(field: string) {
+            delete fieldsData.value[field];
+        }
+
 
         function getIsAuxiliary() {
             return isAuxiliary.value;
@@ -262,27 +278,6 @@ export const createFormStore = (name: string) => {
             });
         }
 
-        function createEmptyFields() {
-
-            const fields = {} as Record<string, any>;
-
-            for (const field of Object.keys(fieldsConfig.value)) {
-                const fieldConfig = getFieldConfig(field);
-
-                if (!fieldConfig) { return; }
-
-                if (fieldConfig.valueType === 'array') {
-                    fields[field] = [];
-                } else if (fieldConfig.valueType === 'object') {
-                    fields[field] = {};
-                } else {
-                    fields[field] = null;
-                }
-            }
-
-            return fields;
-        }
-
         async function save() {
             if (!model) {
                 throw new Error('Resource not found');
@@ -368,7 +363,8 @@ export const createFormStore = (name: string) => {
             setIsAuxiliary,
             resetFieldData,
             addFieldData,
-            removeFieldData
+            removeFieldData,
+            unsetFieldData
         }
     });
 }
