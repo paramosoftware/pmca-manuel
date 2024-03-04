@@ -17,7 +17,7 @@
             resize
             color="gray"
             variant="outline"
-            size="xl"
+            size="md"
             class="w-full mt-1"
         />
     </div>

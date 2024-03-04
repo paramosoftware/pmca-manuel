@@ -83,7 +83,7 @@ const props = defineProps({
     },
     size: {
         type: String as PropType<'sm' | 'md' | 'lg' | 'xl'>,
-        default: 'xl'
+        default: 'md'
     },
     formStore: {
         type: Object as PropType<FormStore>,

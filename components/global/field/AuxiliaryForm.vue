@@ -30,7 +30,7 @@
 
             <p></p>
 
-            <UButton size="lg" color="primary" variant="solid" @click="isModalOpen = true" :disabled="!canAddMore || disabled" class="mt-1">
+            <UButton size="md" color="primary" variant="solid" @click="isModalOpen = true" :disabled="!canAddMore || disabled" class="mt-1">
                 <template #leading>
                     <UIIcon name="ph:plus-circle" class="w-5 h-5" title="Criar" />
                 </template>
@@ -42,7 +42,7 @@
                 </template>
             </UButton>
 
-            <UModal :id="relatedResource.name + '-modal-form'" v-model="isModalOpen" :ui="{ padding: 'p-0' }">
+            <UModal :id="relatedResource.name + '-modal-form'" v-model="isModalOpen" :ui="{ padding: 'p-0', width: 'sm:max-w-3xl' }" >
                 <UICloseButton @click="isModalOpen = false" />
                 <Form :form-store="auxiliaryFormStore" :id="relatedResource.name + '-form'" />
             </UModal>
