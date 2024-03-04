@@ -180,7 +180,7 @@ model User {
 
   password  String  /// uiField:password
   isBlocked Boolean?      @default(false)
-  isAdmin   Boolean?      @default(false)
+  isAdmin   Boolean?      @default(false) /// disabled:true|hidden:true
   sessions  UserSession[] /// disabled:true|hidden:true
 
   authorId Int? /// hidden:true
