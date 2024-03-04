@@ -71,6 +71,8 @@ const dataHandler = async (
 
   const canAccess = await prismaService.canAccess();
 
+  const canImport = permissions[model] && permissions[model].import;
+
   if (!canAccess) {
     logger.debug({ userId, model, permissions, isAdmin }, "Access denied");
     next(new ForbiddenError("Access denied"));
@@ -105,7 +107,7 @@ const dataHandler = async (
           response = prismaService.readMany(request);
         } else if (isUpload) {
           response = uploadMedia(model, id, body, req, res, next);
-        } else if (isImport && isAdmin) {
+        } else if (isImport && canImport) {
           const importFilePath = (await importUploadFile(
             req,
             res,
