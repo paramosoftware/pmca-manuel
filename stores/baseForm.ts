@@ -37,7 +37,7 @@ export const createFormStore = (name: string) => {
             if (id.value) {
                 await loadFieldsData();
             } else {
-                fieldsData.value = createEmptyFields() || {};
+                fieldsData.value = {};
             }
         }
 
@@ -333,18 +333,13 @@ export const createFormStore = (name: string) => {
                 const fieldConfig = getFieldConfig(field);
 
                 if (!fieldConfig || fieldConfig.disabled) { continue; }
-
-                if (fieldConfig.valueType === 'object' && Object.keys(data[field]).length === 0) {
-                    continue;
-                }
-
+            
                 if (fieldConfig.valueType === 'boolean') {
                     treatedData[field] = getBoolean(data[field]);
                     continue;
                 }
 
                 treatedData[field] = data[field];
-
             }
 
             return treatedData;
