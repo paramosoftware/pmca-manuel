@@ -21,9 +21,9 @@ async function main() {
     email: 'admin@email.com',
     name: 'Admin',
     password: 'admin',
-    isAdmin: true,
+    isAdmin: false,
     author: {
-      name: 'Admin'
+      name: 'Administrador(a)',
     }
   });
 
@@ -203,7 +203,7 @@ async function main() {
 
 
   await prisma.group.deleteMany({});
-  await createDefaultGroups();
+  await createDefaultGroups(createdUser.id);
 
   console.log('Found ' + fieldRelations.size + ' relations and connected ' + fieldRelationsCount);
   console.log('Found ' + relatedResources.size + ' related resources and connected ' + relatedResourcesCount);
@@ -212,13 +212,12 @@ async function main() {
 
 }
 
-async function createDefaultGroups() {
-
+async function createDefaultGroups(userId: string) {
   const resources = await prisma.resource.findMany({
     where: {
       isAppModel: false,
-      isRelation: false
-    }
+      isRelation: false,
+    },
   });
 
   const userPermissions = ["Entry", "Reference"];
@@ -227,30 +226,29 @@ async function createDefaultGroups() {
   );
 
   const adminGroup = {
-    name: 'Administradores',
+    name: "Administradores",
+    users: [{ id: userId }],
     permissions: [] as any[],
   };
 
   const editorGroup = {
-    name: 'Editores',
-    permissions: [] as any[]
+    name: "Editores",
+    permissions: [] as any[],
   };
 
   const userGroup = {
-    name: 'Cadastradores',
-    permissions: [] as any[]
+    name: "Cadastradores",
+    permissions: [] as any[],
   };
 
   for (const resource of resources) {
-
     const permission = {
-      resourceId: resource.id,
       read: true,
       create: true,
       update: true,
       delete: true,
       import: false,
-      _action_: "create",
+      resourceId: resource.id,
     };
 
     if (editorPermissions.includes(resource.name)) {
@@ -265,12 +263,13 @@ async function createDefaultGroups() {
     adminGroup.permissions.push(permission);
   }
 
-  const groups = [adminGroup, editorGroup, userGroup];
+  const groups = [adminGroup, editorGroup, userGroup]
 
-  const groupService = new PrismaService('group', false);
-  const createdGroups = await groupService.createMany(groups);
-
-  console.log('Created ' + createdGroups.length + ' groups');
+  const groupService = new PrismaService("group", false);
+  for (const group of groups) {
+    let groupCopy = JSON.parse(JSON.stringify(group));
+    await groupService.createOne(groupCopy);
+  }
 
 }
 
