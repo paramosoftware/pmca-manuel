@@ -144,7 +144,7 @@ function assignEnvsFromFile() {
 
   envFile.split('\n').forEach((line) => {
     const [key, value] = line.split('=');
-    process.env[key] = value;
+    process.env[key] = value.replace(/(\r\n|\n|\r)/gm, '');
   });
 
 }
@@ -189,10 +189,14 @@ function generateEnvFile() {
 async function startWebServer() {
   const serverPath = path.join(process.env.ROOT, '.output/server/index.mjs');
   const serverUrl = pathToFileURL(serverPath).href;
-  const { default: startServer } = await import(serverUrl);
 
-  if (typeof startServer === 'function') {
-    startServer();
+  try {
+    const { default: startServer } = await import(serverUrl);
+    if (typeof startServer === 'function') {
+      startServer();
+    }
+  } catch (error) {
+    log(error);
   }
 }
 
@@ -211,4 +215,9 @@ function createWindow() {
     })
     
     return win;
+}
+
+function log(message) {
+  const logPath = path.join(app.getPath('userData'), 'log.txt');
+  fs.appendFileSync(logPath, message + '\n');
 }
