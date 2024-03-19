@@ -5,7 +5,7 @@ export const useResourceStore = defineStore('resource', () => {
     const label = ref('');
     const labelSlug = ref('');
     const labelPlural = ref('');
-    const fields = ref<AppResourceField[]>([]);
+    const fields = ref<ResourceField[]>([]);
     const isAppModel = ref(false);
     const isPublic = ref(false);
     const genderNoun = ref('n');
@@ -29,12 +29,12 @@ export const useResourceStore = defineStore('resource', () => {
 
     async function fetch(resourceIdentifier: string) {
 
-        const urlResource = computed(() => `/api/appResource/${resourceIdentifier}`);
+        const urlResource = computed(() => `/api/resource/${resourceIdentifier}`);
 
         const { data, pending, error } = await useFetchWithBaseUrl(urlResource, {
             params: query.value
         }) as {
-            data: Ref<AppResource>, pending: Ref<boolean>, error: Ref<Error | undefined>
+            data: Ref<Resource>, pending: Ref<boolean>, error: Ref<Error | undefined>
         };
 
         if (data.value) {

@@ -1,10 +1,9 @@
 <template>
   <nav id="navbar" class="p-4 border-b-2 border-b-pmca-primary">
-
     <div class="max-w-screen-2xl mx-auto">
       <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
         <div class="mt-1">
-          <NuxtLink to="/">
+          <NuxtLink to="/admin">
             <img src="/icons/icon-pmca.png " alt="Logo" class="w-14 h-14" />
           </NuxtLink>
         </div>
@@ -12,30 +11,34 @@
           <div class="flex flex-col justify-between">
             <div>
               <h1 class="text-2xl font-semibold flex-row mb-2">
-                {{title}}
+                {{ title }}
               </h1>
-            </div>
-            <div>
-              <UILink v-for="link in links" :key="link.name" :href="link.path" class="text-2xl mr-5">
-                {{ link.name }}
-              </UILink>
             </div>
           </div>
         </div>
 
         <div class="col-span-4 md:col-span-7">
           <div class="flex flex-row justify-end align-bottom">
-            <UDropdown :items="items" :popper="{ placement: 'bottom-end' }" >
-              <UAvatar size="sm">
-                <UIIcon name="ph:user-circle" class="h-6 w-6"></UIIcon>
-              </UAvatar>
-            </UDropdown>
+            <span v-for="menu in menus" :key="menu.title">
+              <span v-if="menu.items" class="mr-4">
+                <UDropdown :items="menu.items" :popper="{ placement: 'bottom-end' }">
+                  <UAvatar size="sm">
+                    <UIIcon :name="menu.icon" class="h-6 w-6" :title="menu.title">
+                    </UIIcon>
+                  </UAvatar>
+                </UDropdown>
+              </span>
+              <span v-else-if="menu.onClick" class="mr-4">
+                <UAvatar size="sm">
+                  <UIIcon :name="menu.icon" class="h-6 w-6" :title="menu.title" @click="menu.onClick">
+                  </UIIcon>
+                </UAvatar>
+              </span>
+            </span>
           </div>
         </div>
       </div>
     </div>
-
-
   </nav>
 </template>
 
@@ -44,48 +47,74 @@ import ROUTES from '~/config/routes';
 const config = useRuntimeConfig();
 const title = ref(config.public.appName);
 
-const links = ref([
-    {
-      name: 'Cadastrar',
-      path: ROUTES.restricted
-    },
-    {
-      name: 'Importar',
-      path: ROUTES.import
-    }
-]);
+const userStore = useUserStore();
+await userStore.fetch();
 
+const { name, resources, canImport } = storeToRefs(userStore);
 
-const items = [
-  [{
-    label: 'Nome',
-    disabled: true,
-  }],
-  [{
-    label: 'Alterar senha',
-    click: () => {
-      navigateTo(ROUTES.restricted + '/alterar-senha');
+const menus = [
+  {
+    icon: 'ph:list',
+    title: 'Listar',
+    items: [
+      resources.value.map((resource: Resource) => {
+        return {
+          label: resource.labelPlural,
+          click: () => {
+            navigateTo(ROUTES.list + resource.labelSlug);
+          }
+        }
+      })
+    ]
+  }
+] as any[];
+
+if (canImport.value) {
+  menus.push({
+    icon: 'ph:upload-simple',
+    title: 'Importar',
+    onClick: () => {
+      navigateTo(ROUTES.import);
     }
-  }],
-  [{
-    label: 'Acesso público',
-    click: () => {
-      navigateTo('/');
-    }
-  }],
-  [{
-    label: 'Sair',
-    click: () => {
-      logout();
-    }
-  }]
-]
+  });
+}
+
+menus.push({
+  icon: 'ph:user-circle',
+  title: 'Opções do usuário',
+  items: [
+    [
+      {
+        label: name.value,
+        disabled: true,
+      },
+      {
+        label: 'Alterar senha',
+        click: () => {
+          navigateTo(ROUTES.restricted + '/alterar-senha');
+        }
+      },
+      {
+        label: 'Acesso público',
+        click: () => {
+          navigateTo('/');
+        }
+      },
+      {
+        label: 'Sair',
+        click: () => {
+          logout();
+        }
+      },
+    ],
+  ]
+});
 
 const logout = async () => {
   const { data, error } = await useFetchWithBaseUrl('/api/auth/logout', {
-      method: 'POST',
+    method: 'POST',
   });
-  
+
   navigateTo('/')
 };
 </script>

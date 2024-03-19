@@ -5,7 +5,7 @@
         </UIPageTitle>
         <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
 
-            <span v-if="hasTree">
+            <span v-if="hasTree" class="flex items-center">
                 <UIIcon name="ph:cards" class="mr-3" :class="mode === 'alfa' ? 'text-pmca-accent' : ''"
                     @click="mode = 'alfa'" title="Modo alfabético" />
 
@@ -13,7 +13,7 @@
                     title="Modo hierárquico" />
             </span>
 
-            <span v-if="userSelection">
+            <span v-if="userSelection" class="flex items-center">
                 <UIIcon name="ph:broom" class="ml-3" title="Desmarcar todos" @click="entryStore.clearSelection()" />
                 <PublicExportDropdown  class="ml-3" />
             </span>
@@ -32,7 +32,7 @@
         <div class="flex flex-col md:flex-row mt-5">
             <div class="w-full md:w-1/3">
                 <FieldInput id="filter" v-model="search" type="text" :placeholder="placeholder"
-                    :disabled="filterDisabled" />
+                    :disabled="filterDisabled" size="lg" />
             </div>
         </div>
         <div class="mt-4 md:flex md:flex-row md:justify-between md:items-center">

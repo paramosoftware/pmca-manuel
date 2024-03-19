@@ -49,7 +49,7 @@ const links = ref([
 ]);
 
 
-const { data, pending, error } = await useFetchWithBaseUrl('/api/webPage');
+const { data, pending, error } = await useFetchWithBaseUrl('/api/public/webPage');
 
 webPages.value = data.value.items ?? [];
 

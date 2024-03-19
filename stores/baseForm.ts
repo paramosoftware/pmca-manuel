@@ -14,6 +14,8 @@ export const createFormStore = (name: string) => {
         const isAuxiliary = ref(false);
         const parentModel = ref('');
         const resourceStore = useResourceStore();
+        const userStore = useUserStore();
+        const canCreate = computed(() => userStore.permissions[resourceStore.model]?.create);
         const pending = ref(false);
         const error = ref('');
 
@@ -26,6 +28,8 @@ export const createFormStore = (name: string) => {
 
             if (itemId) {
                 id.value = itemId;
+            } else {
+                id.value = 0;
             }
 
             await loadResource(resourceIdentifier);
@@ -33,7 +37,7 @@ export const createFormStore = (name: string) => {
             if (id.value) {
                 await loadFieldsData();
             } else {
-                fieldsData.value = createEmptyFields() || {};
+                fieldsData.value = {};
             }
         }
 
@@ -73,7 +77,7 @@ export const createFormStore = (name: string) => {
                 throw new Error(error.value.message);
             }
 
-            fieldsData.value = data.value;
+            setFieldsData(data.value);
         }
 
         function getId() {
@@ -119,6 +123,17 @@ export const createFormStore = (name: string) => {
             return fieldsData.value[field];
         }
 
+        function setFieldsData(data: Record<string, any>) {
+            const fields = Object.keys(data).reduce((acc: Record<string, any>, key: string) => {
+                if (data[key] !== null && data[key] !== undefined) {
+                    acc[key] = data[key];
+                }
+                return acc;
+            }, {});
+
+            fieldsData.value = fields;
+        }
+
         function setFieldData(field: string, value: any) {
 
             const fieldConfig = getFieldConfig(field);
@@ -134,6 +149,11 @@ export const createFormStore = (name: string) => {
 
             fieldsData.value[field] = value;
         }
+
+        function unsetFieldData(field: string) {
+            delete fieldsData.value[field];
+        }
+
 
         function getIsAuxiliary() {
             return isAuxiliary.value;
@@ -258,33 +278,13 @@ export const createFormStore = (name: string) => {
             });
         }
 
-        function createEmptyFields() {
-
-            const fields = {} as Record<string, any>;
-
-            for (const field of Object.keys(fieldsConfig.value)) {
-                const fieldConfig = getFieldConfig(field);
-
-                if (!fieldConfig) { return; }
-
-                if (fieldConfig.valueType === 'array') {
-                    fields[field] = [];
-                } else if (fieldConfig.valueType === 'object') {
-                    fields[field] = {};
-                } else {
-                    fields[field] = null;
-                }
-            }
-
-            return fields;
-        }
-
         async function save() {
             if (!model) {
                 throw new Error('Resource not found');
             }
         
-            if (getIsAuxiliary()) {
+            // TODO: The auxiliary should only be saved with the parent?
+            if (getIsAuxiliary() && !id.value) {
                 return;
             }
         
@@ -296,23 +296,26 @@ export const createFormStore = (name: string) => {
                 body: JSON.stringify(treatDataBeforeSave()),
             }) as { data: Ref<Item>, error: Ref<any> };
 
-            const toast = useToast();
-        
-            if (error.value) {
-                console.error(error.value.data ?? error.value);
-                toast.add({
-                    title: 'Erro ao salvar dados.',
-                    color: 'red',
-                    icon: 'i-heroicons-x-circle',
-                });
-                return false;
-            } 
 
-            if (data.value) {
-                toast.add({
-                    title: 'Dados salvos com sucesso.',
-                })
-                return data.value.id;
+            if (!getIsAuxiliary()) {
+                const toast = useToast();
+            
+                if (error.value) {
+                    console.error(error.value.data ?? error.value);
+                    toast.add({
+                        title: 'Erro ao salvar dados.',
+                        color: 'red',
+                        icon: 'i-heroicons-x-circle',
+                    });
+                    return false;
+                } 
+
+                if (data.value) {
+                    toast.add({
+                        title: 'Dados salvos com sucesso.',
+                    })
+                    return data.value.id;
+                }
             }
         }
 
@@ -324,19 +327,14 @@ export const createFormStore = (name: string) => {
 
                 const fieldConfig = getFieldConfig(field);
 
-                if (!fieldConfig) { continue; }
-
-                if (fieldConfig.disabled) {
-                    continue;
-                }
-
+                if (!fieldConfig || fieldConfig.disabled) { continue; }
+            
                 if (fieldConfig.valueType === 'boolean') {
                     treatedData[field] = getBoolean(data[field]);
                     continue;
                 }
 
                 treatedData[field] = data[field];
-
             }
 
             return treatedData;
@@ -352,6 +350,7 @@ export const createFormStore = (name: string) => {
             parentModel,
             pending,
             error,
+            canCreate,
             load,
             save,
             getId,
@@ -364,7 +363,8 @@ export const createFormStore = (name: string) => {
             setIsAuxiliary,
             resetFieldData,
             addFieldData,
-            removeFieldData
+            removeFieldData,
+            unsetFieldData
         }
     });
 }

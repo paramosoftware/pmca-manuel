@@ -11,16 +11,12 @@ import getDataFolderPath from '~/utils/getDataFolderPath';
 import parseNumber from '~/utils/parseNumber';
 import normalizeString from '~/utils/normalizeString';
 import { useCamelCase } from '~/utils/useCamelCase';
-import { createOneOrMany } from './create';
-import { deleteOneOrManyWithQuery } from './delete';
 import { saveMedia } from './media';
-import { readMany, readOne } from './read';
-
+import PrismaService from './PrismaService';
 
 
 export const importData = function () {
-
-    // TODO: Consider passing down these variables as parameters
+    // TODO: Convert to class
     // TODO: Memory optimization: reading the whole file at once is not optimal
     // TODO: Error handling
     // TODO: Allow updating existing entries based on identifier
@@ -86,7 +82,8 @@ export const importData = function () {
         await processRelations(createdEntries, related, parent);
 
         if (overwrite) {
-            await deleteOneOrManyWithQuery(model, { where: { createdAt: { lte: startDateTime } } });
+            const prismaService = new PrismaService(model, false);
+            await prismaService.deleteMany({ where: { createdAt: { lte: startDateTime } } });
         }
 
         const mediaPath = path.join(importPath, 'media');
@@ -108,15 +105,19 @@ export const importData = function () {
 
     async function setResourceConfig() {
 
-        const resourceConfig = await readOne('AppResource', importModel, { 
-            include: {
-                fields: {
-                    orderBy: {
-                        position: 'asc'
-                    }
-                }
-            }
+
+        const resourceService = new PrismaService("Resource", false);
+
+        const resourceConfig = await resourceService.readOne(importModel, {
+        include: {
+            fields: {
+            orderBy: {
+                position: "asc",
+            },
+            },
+        },
         });
+
 
         if (resourceConfig) {
             for (const field of resourceConfig.fields) {
@@ -212,7 +213,9 @@ export const importData = function () {
 
             }
 
-            const newEntry = await createOneOrMany('entry', entry);
+
+            const entryService = new PrismaService('Entry', false);
+            const newEntry = await entryService.createOne(entry);
             createdEntries.set(oldId, newEntry.id);
         }
     }
@@ -236,6 +239,8 @@ export const importData = function () {
         if (!rows) { return createdEntries; }
     
         const headerRow = rows[0].values as string[];
+
+        const prismaService = new PrismaService(importModel, false);
     
         for (let i = 1; i < rows.length; i++) {
     
@@ -312,7 +317,7 @@ export const importData = function () {
                 }
             }
     
-            const newEntry = await createOneOrMany('entry', entry);
+            const newEntry = await prismaService.createOne(entry);
             createdEntries.set(oldId, newEntry.id);
         }
 
@@ -324,6 +329,7 @@ export const importData = function () {
         const xml = fs.readFileSync(filePath, 'utf-8');
         const result = xmlParser.parse(xml);
         const data = result[0]['rdf:RDF'] ?? [];
+        const prismaService = new PrismaService(importModel, false);
     
         for (const item of data) {
     
@@ -362,6 +368,7 @@ export const importData = function () {
                             } else {
                                 entry.translations.push({
                                     name: prefLabel['#text'],
+                                    // @ts-ignore
                                     languageId: languages.get(translation)
                                 });
                             }
@@ -405,7 +412,7 @@ export const importData = function () {
                     }
                 }
     
-                const newEntry = await createOneOrMany('entry', entry);
+                const newEntry = await prismaService.createOne(entry);
                 createdEntries.set(oldId, newEntry.id);
             }
         }
@@ -473,13 +480,14 @@ export const importData = function () {
     async function upsertLanguage(languageName: any) {
     
         const where = {
-            or: [
+            OR: [
                 { name: languageName },
                 { code: languageName }
             ]
-        }
+        };
     
-        const foundLanguage = await readMany('language', { where: where });
+        const langService = new PrismaService('Language', false);
+        const foundLanguage = await langService.readMany({ where: where });
     
         if (foundLanguage && foundLanguage.total > 0) {
             return foundLanguage.items[0].id;
@@ -496,7 +504,8 @@ export const importData = function () {
             }
         }
 
-        const newLanguage = await createOneOrMany('language', { name: name, code: code });
+        
+        const newLanguage = await langService.createOne({ name: name, code: code });
         return newLanguage.id;
     }
 

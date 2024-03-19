@@ -3,10 +3,8 @@
         <template #header>
             <UIAnchorReturn v-if="!isAuxiliary" :href=urlList />
             <div class="text-end flex justify-between" :class="{ 'mt-5 mb-2': !isAuxiliary }">
-                <UIContainerTitle>
-                    {{ isAuxiliary ? 'Adicionar' : (isCreate ? 'Criar' : 'Editar') }} {{ uncapitalize(label) }}
-                </UIContainerTitle>
-                <template v-if="!isCreate && !isAuxiliary">
+                <UIContainerTitle> {{ formTitle }} </UIContainerTitle>
+                <template v-if="!isCreate && !isAuxiliary && canCreate">
                     <UIIcon name="ph:plus-circle" @click="goToCreateForm" title="Criar novo" class="w-8 h-8 cursor-pointer" />
                 </template>
             </div>
@@ -15,7 +13,7 @@
 
         <form @submit.prevent="submit">
             <div class="text-end" v-if="visibleFields > 5 && !isAuxiliary ">
-                <UIButton :type='"submit"'>Salvar</UIButton>
+                <UIButton :type='"submit"' size="lg">Salvar</UIButton>
             </div>
 
             <template v-for="field in fields" :key="field.id">
@@ -24,19 +22,11 @@
                 </template>
             </template>
 
-            <div v-if="model === 'AppUser'">
-                <FieldCheckbox id="changePassword" v-model="changePassword" label="Alterar senha" v-if="!isCreate" />
-                <template v-if="changePassword || isCreate">
-                    <FieldInput id="password" v-model="password" type="password" :label="isCreate ? 'Senha' : 'Nova senha'" :required="isCreate" />
-                </template>
-            </div>
-
             <div class="mt-5 text-end">
-                <UIButton :type='"submit"'>{{ (isAuxiliary ? 'Adicionar' : 'Salvar') }}</UIButton>
+                <UIButton :type='"submit"' size="lg">{{ buttonLabel }}</UIButton>
             </div>
 
         </form>
-
     </UICardContainer>
 </template>
 
@@ -47,26 +37,36 @@ const props = defineProps({
     formStore: {
         type: Object as PropType<FormStore>,
         required: true
-    },
+    }
 });
 const router = useRouter();
-const { model, label, genderNoun, labelSlug } = storeToRefs(props.formStore);
+const { model, label, genderNoun, labelSlug, canCreate } = storeToRefs(props.formStore);
 
-const changePassword = ref(false);
-const password = ref('');
 const urlList = ROUTES.list + labelSlug.value;
 const urlCreate = ROUTES.create + labelSlug.value;
 const isCreate = !props.formStore.getId();
 const isAuxiliary = props.formStore.getIsAuxiliary();
 
+const isAdd = computed(() => {
+    return isAuxiliary && isCreate;
+});
+
+const formTitle = computed(() => {
+    return (isAdd.value ? 'Adicionar' : (isCreate ? 'Criar' : 'Editar')) + ' ' + uncapitalize(label.value);
+});
+
+const buttonLabel = computed(() => {
+    return isAdd.value ? 'Adicionar' : 'Salvar';
+});
+
 async function submit() {
     // TODO: hardcoded
-    if (model.value === 'AppUser') {
-        if (changePassword.value || isCreate) {
-            props.formStore.setFieldData('restricted', { password: password.value });
+    if (model.value.toLowerCase() === 'user') {
+        if (isCreate) {
+            props.formStore.setFieldData('author', { name: props.formStore.getFieldData('name') });
         }
     }
-
+    
     const id = await props.formStore.save();
 
     if (id && !isAuxiliary) {

@@ -17,7 +17,8 @@
             resize
             color="gray"
             variant="outline"
-            class="w-full"
+            size="md"
+            class="w-full mt-1"
         />
     </div>
 </template>

@@ -23,7 +23,7 @@ defineProps({
     default: false
   },
   size: {
-    type: String as () => 'sm' | 'md' | 'lg',
+    type: String as () => 'sm' | 'md' | 'lg' | 'xl',
     default: 'md'
   },
   class: {

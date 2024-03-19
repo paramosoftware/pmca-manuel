@@ -48,7 +48,7 @@ const props = defineProps({
     }
 });
 
-const defaultValue = getFormFieldConfig('defaultValue', '', props);
+const defaultValue = getFormFieldConfig('defaultValue', false, props);
 const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
 const label = getFormFieldConfig('label', '', props);

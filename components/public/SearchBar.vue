@@ -1,5 +1,5 @@
 <template>
-  <form class="flex flex-row justify-end align-bottom" @submit.prevent="onSearch">
+  <form class="flex items-center" @submit.prevent="onSearch">
 
     <FieldAutocomplete 
       :id="id" 

@@ -15,9 +15,6 @@ QUERIES.set('Entry', {
         entries: {
             include: {
                 media: {
-                    include: {
-                        media: true
-                    },
                     orderBy: ['position']
                 },
             }
@@ -27,7 +24,7 @@ QUERIES.set('Entry', {
                 createdAt: 'desc'
             },
             include: {
-                user: {
+                author: {
                     select: ['name']
                 }
             }
@@ -35,17 +32,11 @@ QUERIES.set('Entry', {
         relatedEntries: {
             include: {
                 media: {
-                    include: {
-                        media: true
-                    },
                     orderBy: ['position']
                 },
             }
         },
         media: {
-            include: {
-                media: true
-            },
             orderBy: ['position']
         },
         children: true

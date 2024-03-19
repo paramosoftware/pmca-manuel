@@ -1,31 +1,33 @@
 import { Prisma, PrismaClient } from '@prisma/client'
-import { createOneOrMany } from '../../express/prisma/create';
 import { MODELS as modelsTranslations, FIELDS as fieldsTranslations } from "~/config/translations";
 import LANGUAGES from '~/config/languages';
-import { updateOne } from '~/server/express/prisma/update';
-import { readMany } from '~/server/express/prisma/read';
+import  getBoolean from '~/utils/getBoolean';
+import PrismaService from '../PrismaService';
 
 const prisma = new PrismaClient()
 const relatedResources = new Map<string, string>();
 const fieldRelations = new Map<string, { resource: string,  a: string, b: string | undefined }>();
-const resourcesConfig = new Map<string, Prisma.AppResourceCreateInput>();
+const resourcesConfig = new Map<string, Prisma.ResourceCreateInput>();
 const resourcesFieldsMap = new Map<string, Map<string, Prisma.DMMF.Field>>();
 
 async function main() {
 
-  await prisma.appUser.deleteMany({ where: { login: 'admin' } });
+  const userService = new PrismaService('user', false);
 
-  const createdUser = await createOneOrMany('appUser', {
+  await userService.deleteOne('admin');
+  
+  const createdUser = await userService.createOne({
     login: 'admin',
     email: 'admin@email.com',
     name: 'Admin',
-    restricted: {
-      password: 'admin',
-      isAdmin: true
+    password: 'admin',
+    isAdmin: false,
+    author: {
+      name: 'Administrador(a)',
     }
   });
 
-   await prisma.appResource.deleteMany({});
+  await prisma.resource.deleteMany({});
 
   // first get the resource config so it can be used to build the fields config
   const resources = Prisma.dmmf.datamodel.models.map(resource => {
@@ -44,20 +46,29 @@ async function main() {
       isHierarchical: resourceConfig.isHierarchical,
       genderNoun: resourceConfig.genderNoun,
       fields: resourceConfig.fields
-    } as Prisma.AppResourceCreateInput & { fields: any[] };
+    } as Prisma.ResourceCreateInput & { fields: any[] };
   });
 
 
-  for (const resource of resources) {
-    resource.isRelation = resources.some(r => resource.name.startsWith(r.name) && resource.name !== r.name);
+  const parentResourcesMap = new Map<string, string>();
 
-    // if config is changed, update it
-    if (resource.isRelation) {
-      resource.isPublic = false;
+  for (const resource of resources) {
+
+    const parentResource = resources.find(r => resource.name.startsWith(r.name) && resource.name !== r.name);
+
+    if (parentResource) {
+      resource.isRelation = true;
+      resource.isPublic = parentResource.isPublic;
+      resource.isAppModel = parentResource.isAppModel;
+
+      parentResourcesMap.set(resource.name, parentResource.name);
+
       const resourceConfig = resourcesConfig.get(resource.name);
+
       if (resourceConfig) {
         resourceConfig.isRelation = true;
-        resourceConfig.isPublic = false;
+        resourceConfig.isPublic = parentResource.isPublic;
+        resourceConfig.isAppModel = parentResource.isAppModel;
         resourcesConfig.set(resource.name, resourceConfig);
       }
     }
@@ -68,12 +79,27 @@ async function main() {
     resource.fields = buildFieldsConfig(resource.name, resource.fields, resourcesFieldsMap.get(resource.name) as Map<string, Prisma.DMMF.Field>);
   }
 
+  const resourceService = new PrismaService('resource', false);
+  const createdResources = await resourceService.createMany(resources);
 
-  const createdResources = await createOneOrMany('appResource', resources);
+
+  for (const [resourceName, parentResourceName] of parentResourcesMap) {
+    await prisma.resource.update({
+      where: { name: resourceName },
+      data: {
+        parent: {
+          connect: {
+            name: parentResourceName
+          }
+        }
+      }
+    });
+  }
+
 
   let relatedResourcesCount = 0;
   for (const [fieldResource, relatedResource] of relatedResources) {
-    const field = await prisma.appResourceField.findFirst({
+    const field = await prisma.resourceField.findFirst({
       where: {
         AND: [
           { name: fieldResource.split(':')[0] },
@@ -87,7 +113,7 @@ async function main() {
       continue;
     }
 
-    await prisma.appResourceField.update({
+    await prisma.resourceField.update({
       where: { id: field?.id },
       data: {
         relatedResource: {
@@ -104,7 +130,7 @@ async function main() {
   let fieldRelationsCount = 0;
   for (const [relationName, relation] of fieldRelations) {
 
-    const field = await prisma.appResourceField.findFirst({
+    const field = await prisma.resourceField.findFirst({
       where: {
         AND: [
           { name: relation.a },
@@ -118,7 +144,7 @@ async function main() {
       continue;
     }
 
-    const relatedField = await prisma.appResourceField.findFirst({
+    const relatedField = await prisma.resourceField.findFirst({
       where: {
         AND: [
           { name: relation.b },
@@ -132,7 +158,7 @@ async function main() {
       continue;
     }
 
-    await prisma.appResourceField.update({
+    await prisma.resourceField.update({
       where: { id: field.id },
       data: {
         hidden: true,
@@ -149,7 +175,7 @@ async function main() {
 
   for (const [name, code] of LANGUAGES) {
     const where = {
-      or: [
+      OR: [
         { name: name },
         { code: code },
         { code: name },
@@ -157,27 +183,94 @@ async function main() {
       ]
     }
 
-    const foundLanguage = await readMany('language', { where: where });
+    const languageService = new PrismaService('language', false);
+    const foundLanguage = await languageService.readMany({ where: where });
 
     if (foundLanguage && foundLanguage.total > 0) {
       if (foundLanguage.items[0].name !== name) {
-        await updateOne('language', foundLanguage.items[0].id, { name: name });
+        await languageService.updateOne(foundLanguage.items[0].id, { name: name });
       }
 
       if (foundLanguage.items[0].code !== code) {
-        await updateOne('language', foundLanguage.items[0].id, { code: code });
+        await languageService.updateOne(foundLanguage.items[0].id, { code: code });
       }
 
       continue;
     }
 
-    const newLanguage = await createOneOrMany('language', { name, code });
+    const newLanguage = await languageService.createOne({ name, code });
   }
+
+
+  await prisma.group.deleteMany({});
+  await createDefaultGroups(createdUser.id);
 
   console.log('Found ' + fieldRelations.size + ' relations and connected ' + fieldRelationsCount);
   console.log('Found ' + relatedResources.size + ' related resources and connected ' + relatedResourcesCount);
   console.log('Created ' + createdResources.length + ' resources');
   console.log('Created user', createdUser);
+
+}
+
+async function createDefaultGroups(userId: string) {
+  const resources = await prisma.resource.findMany({
+    where: {
+      isAppModel: false,
+      isRelation: false,
+    },
+  });
+
+  const userPermissions = ["Entry", "Reference"];
+  const editorPermissions = ["Author", "Language", "WebPage"].concat(
+    userPermissions
+  );
+
+  const adminGroup = {
+    name: "Administradores",
+    users: [{ id: userId }],
+    permissions: [] as any[],
+  };
+
+  const editorGroup = {
+    name: "Editores",
+    permissions: [] as any[],
+  };
+
+  const userGroup = {
+    name: "Cadastradores",
+    permissions: [] as any[],
+  };
+
+  for (const resource of resources) {
+    const permission = {
+      read: true,
+      create: true,
+      update: true,
+      delete: true,
+      import: false,
+      resourceId: resource.id,
+    };
+
+    if (editorPermissions.includes(resource.name)) {
+      editorGroup.permissions.push(permission);
+    }
+
+    if (userPermissions.includes(resource.name)) {
+      userGroup.permissions.push(permission);
+    }
+
+    const permissionCopy = JSON.parse(JSON.stringify(permission));
+    permissionCopy.import = true;
+    adminGroup.permissions.push(permissionCopy);
+  }
+
+  const groups = [adminGroup, editorGroup, userGroup]
+
+  const groupService = new PrismaService("group", false);
+  for (const group of groups) {
+    let groupCopy = JSON.parse(JSON.stringify(group));
+    await groupService.createOne(groupCopy);
+  }
 
 }
 
@@ -210,9 +303,9 @@ function buildResourceConfig(resource: Prisma.DMMF.Model) {
     const resourceConfig = {
       name: resource.name,
       label: modelsTranslations.get(resource.name)?.label || docConfig.label || resource.name,
-      labelPlural: modelsTranslations.get(resource.name)?.labelPlural || docConfig.labelPlural || resource.name,
-      isAppModel: docConfig.isAppModel == 'true' || resource.name.toLowerCase().startsWith('app'),
-      isPublic:   docConfig.isPublic == 'true' || !resource.name.toLowerCase().startsWith('app'),
+      labelPlural: docConfig.labelPlural || modelsTranslations.get(resource.name)?.labelPlural || resource.name,
+      isAppModel: docConfig.isAppModel == 'true' || false,
+      isPublic:   docConfig.isPublic == 'true' || false,
       isRelation: docConfig.isRelation == 'true' || false,
       isHierarchical: docConfig.isHierarchical == 'true' || fieldsMap.has('parentId'),
       genderNoun: modelsTranslations.get(resource.name)?.genderNoun || docConfig.genderNoun || 'n',
@@ -236,22 +329,23 @@ function buildFieldsConfig(resource: string, fields: Prisma.DMMF.Field[], fields
 
     const fieldConfig = {
       name: field.name,
-      label: fieldsTranslations.get(field.name) || docConfig.label || field.name,
+      label: docConfig.label || fieldsTranslations.get(field.name) || field.name,
+      max: docConfig.max || undefined,
       valueType: docConfig.valueType || convertPrismaTypeToFieldType(field.type, field.isList),
       uiField: docConfig.uiField || convertPrismaTypeToUiField(field, docConfig, fieldsMap).uiField,
       inputType: docConfig.inputType || convertPrismaTypeToUiField(field, docConfig, fieldsMap).inputType || 'text',
       isHierarchical: docConfig.isHierarchical === 'true' || field.name === 'parentId',
       isRich: docConfig.isRich === 'true' || false,
-      required: docConfig.required === 'true' || checkFieldRequired(field),
-      hidden: docConfig.hidden === 'true' || checkFieldVisibility(resource, field, fieldsMap),
-      disabled: docConfig.disabled === 'true' || checkFieldVisibility(resource, field, fieldsMap),
+      required: docConfig.required !== undefined ? getBoolean(docConfig.required) : checkFieldRequired(field),
+      hidden: docConfig.hidden !== undefined ? getBoolean(docConfig.hidden) : checkFieldVisibility(resource, field, fieldsMap),
+      disabled: docConfig.disabled !== undefined ? getBoolean(docConfig.disabled) : checkFieldVisibility(resource, field, fieldsMap),
       defaultValue: docConfig.defaultValue || undefined,
       defaultOptions: docConfig.defaultOptions || undefined,
       relatedResource: docConfig.relatedResource || getRelatedResource(resource, field, fieldsMap),
       oppositeField: undefined,
       position: docConfig.position || Array.from(fieldsMap.keys()).indexOf(field.name) + 1,
       includeExport: docConfig.includeExport === 'true' || false,
-    } as Prisma.AppResourceFieldCreateInput & { resource: undefined };
+    } as Prisma.ResourceFieldCreateInput & { resource: undefined };
 
     fieldsConfig.push(fieldConfig);
   }
@@ -327,7 +421,9 @@ function convertPrismaTypeToUiField(prismaField: Prisma.DMMF.Field, docConfig: R
     if (fieldsMap.has(relatedObjectName)) {
       const relatedField = fieldsMap.get(relatedObjectName);
       if (relatedField?.kind === 'object') {
+        // @ts-ignore
         prismaField.kind = 'object';
+        // @ts-ignore
         prismaField.type = relatedField.type;
       }
     }
@@ -400,7 +496,6 @@ function checkFieldVisibility(resource: string, field: Prisma.DMMF.Field, fields
   return field.isId || field.isUpdatedAt || field.isGenerated || postfixes.some(p => field.name.endsWith(p)) || fieldsMap.has(field.name + 'Id');
 
 }
-
 
 function checkFieldRequired(field: Prisma.DMMF.Field) {
   const postfixes = ['id', 'createdAt', 'updatedAt', 'Slug', 'Normalized'];

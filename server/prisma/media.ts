@@ -3,12 +3,12 @@ import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { prisma } from '../../prisma/prisma';
-import { UploadError } from '../error';
+import { prisma } from './prisma';
+import { UploadError } from '../express/error';
 import getDataFolderPath from '~/utils/getDataFolderPath';
 
 
-export async function uploadMedia(model: string, id: string, body: any, req: express.Request, res: express.Response, next: express.NextFunction) {
+export async function uploadMedia(model: string, id: string | number, body: any, req: express.Request, res: express.Response, next: express.NextFunction) {
 
     const mediaPath = await importUploadFile(req, res, next, getDataFolderPath('media')) as string;
 
@@ -17,98 +17,61 @@ export async function uploadMedia(model: string, id: string, body: any, req: exp
     }
 
     const fileName = path.basename(mediaPath);
+    id = parseInt(id as string);
     const mediaData = await saveMedia(id, fileName, req.file?.originalname ?? '');
 
     res.json(mediaData);
 }
 
-export async function deleteMedia(entryMedia: Array<EntryMedia>) {
-
-    const mediaIds: number[] = [];
-    const relationsIds: number[] = [];
+export async function deleteEntryMedia(entryMedia: Array<EntryMedia>) {
 
     entryMedia.forEach((media: EntryMedia) => {
 
-        if (!media.media) {
-            return;
-        }
+        const mediaPath = path.join(getDataFolderPath('media'), media.name);
 
-        const mediaPath = path.join(getDataFolderPath('media'), media.media.name);
-        
         if (fs.existsSync(mediaPath)) {
             fs.unlinkSync(mediaPath);
         }
 
-        mediaIds.push(media.mediaId);
-        relationsIds.push(media.id);
-    });
-
-    const transaction = await prisma.$transaction([
-        prisma.appMedia.deleteMany({
+        prisma.entryMedia.delete({
             where: {
-                id: {
-                    in: mediaIds
-                }
+                id: media.id
             }
-        })
-    ]);
-
-    return transaction;
-
+        });
+    });
 }
 
-export async function handleMedia(media: any[], entryId: number) {
+export async function handleMedia(oldMedia: Array<EntryMedia>, entryId: number) {
 
-    const oldMedia = await prisma.entryMedia.findMany({
+    const newMedia: Array<EntryMedia> = await prisma.entryMedia.findMany({
         where: {
-            entryId: parseInt(entryId)
-        },
-        include: {
-            media: true
+            entryId: entryId
         }
     });
 
-    const mediaToDelete = oldMedia.filter((oldMediaItem: any) => {
-        return !media.find((newMediaItem: EntryMedia) => {
-            return newMediaItem.id === oldMediaItem.id;
-        })
+    const mediaToDelete: Array<EntryMedia> = [];
+
+    oldMedia.forEach((media: EntryMedia) => {
+        if (!newMedia.find((newMedia: EntryMedia) => newMedia.id === media.id)) {
+            mediaToDelete.push(media);
+        }
     });
 
-    deleteMedia(mediaToDelete);
-
-    media.map(async (item: any) => {
-        // Workaround for Prisma bug: Timed out during query execution
-        await prisma.$executeRaw`UPDATE entryMedia SET position = ${item.position} WHERE id = ${item.id}`;
-    });
+    deleteEntryMedia(mediaToDelete);
 }
 
-export async function saveMedia(entryId: string | Number, fileName: string, originalFilename: string, position: number = 1){
+export async function saveMedia(entryId: number, fileName: string, originalFilename: string, position: number = 1) {
     try {
-        const media = await prisma.appMedia.create({
+        const media = await prisma.entryMedia.create({
             data: {
                 name: fileName,
                 originalFilename: originalFilename,
-                entryMedia: {
-                    create: {
-                        entry: {
-                            connect: {
-                                id: parseInt(entryId),
-                            }
-                        },
-                        position: position
-                    }
-                }
+                position: position,
+                entryId: entryId
             },
-            include: {
-                entryMedia: {
-                    include: {
-                        media: true
-                    }
-                }
-            }
         });
 
-        return media.entryMedia[0];
+        return media;
 
     } catch (error) {
         throw new UploadError('Error saving media to database');
@@ -158,7 +121,7 @@ export async function importUploadFile(req: express.Request, res: express.Respon
 
             } catch (error) {
 
-                const filePath = path.join(destinationFolder, req.file?.filename);
+                const filePath = path.join(destinationFolder, req.file?.filename!);
 
                 if (fs.existsSync(filePath)) {
                     fs.unlink(filePath, (err) => {

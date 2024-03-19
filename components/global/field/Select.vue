@@ -16,7 +16,7 @@
             option-attribute="name"
             @input="onInput"
             size="md"
-            class="w-full"
+            class="w-full mt-1"
             variant="outline"
             color="gray"
         >
@@ -110,6 +110,7 @@ if (relatedResource.value) {
     loading.value = pending.value;
 
     if (data.value) {
+        list.value = [];
         list.value = data.value;
     }
 
@@ -142,12 +143,13 @@ if (defaultValue.value && props.formStore) {
 
 
 if (!required.value) {
-    list.value.unshift({
-        name: '',
-        value: ''
-    });
+    if (!list.value.find((item) => item.value === '')) {
+        list.value.unshift({
+            name: '',
+            value: ''
+        });
+    }
 }
-
 const emit = defineEmits(['update:modelValue']);
 
 const onInput = (event: Event) => {
