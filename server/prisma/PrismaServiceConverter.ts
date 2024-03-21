@@ -494,7 +494,19 @@ class PrismaServiceConverter {
                   false
                 );
 
-                order[field] = order.orderBy;
+                if (order.orderBy) {
+
+                  const tempOrderBy = {} as OrderBy;
+
+                  order.orderBy.forEach((o: any) => {
+                    const keys = Object.keys(o);
+                    keys.forEach((key) => {
+                      tempOrderBy[key] = o[key];
+                    });
+                  });
+
+                  orderBy.push({ [field]: tempOrderBy });
+                }
               }
             }
           }
