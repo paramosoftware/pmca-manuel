@@ -10,6 +10,7 @@ import { ApiValidationError } from "../express/error";
 import { deleteEntryMedia, handleMedia } from "./media";
 import PrismaServiceConverter from "./PrismaServiceConverter";
 import PrismaServiceValidator from "./PrismaServiceValidator";
+import QUERIES from "~/config/queries";
 
 class PrismaService {
   public model: string;
@@ -23,7 +24,6 @@ class PrismaService {
   private userId: ID = "";
   private validator: PrismaServiceValidator;
   private converter: PrismaServiceConverter;
-
 
   /**
    * PrismaService constructor
@@ -231,6 +231,20 @@ class PrismaService {
         });
 
         for (const id of ids) {
+          if (this.model.toLowerCase() === "entry") {
+            const oldMedia = await prisma.entryMedia.findMany({
+              where: {
+                entryId: id.id,
+              },
+            });
+
+            const changes = await this.trackChanges(id.id, item.data);
+            if (changes.length > 0) {
+              query["changes"] = { create: changes };
+            }
+            mediaUpdates.set(id.id, oldMedia);
+          }
+
           updates.push(
             // @ts-ignore
             prisma[this.model].update({
@@ -240,16 +254,6 @@ class PrismaService {
               data: query,
             })
           );
-
-          if (this.model.toLowerCase() === "entry") {
-            const oldMedia = await prisma.entryMedia.findMany({
-              where: {
-                entryId: id.id,
-              },
-            });
-
-            mediaUpdates.set(id.id, oldMedia);
-          }
         }
       }
 
@@ -939,6 +943,152 @@ class PrismaService {
             model
         );
       }
+    }
+  }
+
+  private async trackChanges(id: any, newData: any) {
+    const fieldsToRemove = [
+      "createdAt",
+      "updatedAt",
+      "id",
+      "changes",
+      "media",
+      "children",
+    ];
+    const ignoreWithSuffix = ["Normalized", "Slug", "Id", "Count"];
+    const fieldsToTrack = [] as string[];
+
+    const oldData = (await prisma.entry.findUnique({
+      where: {
+        id: parseInt(id),
+      },
+      include: QUERIES.get("TrackChanges")?.include || {},
+    })) as any;
+
+    const fieldsKeys = [] as string[];
+
+    const newDataFields = Object.keys(newData);
+    const oldDataFields = Object.keys(oldData);
+
+    fieldsKeys.push(...newDataFields, ...oldDataFields);
+
+    fieldsKeys.forEach((field: string) => {
+      if (fieldsToRemove.includes(field)) {
+        return;
+      }
+
+      if (ignoreWithSuffix.some((suffix) => field.endsWith(suffix))) {
+        return;
+      }
+
+      if (!fieldsToTrack.includes(field)) {
+        fieldsToTrack.push(field);
+      }
+    });
+
+    const fields = await prisma.resourceField.findMany({
+      where: {
+        resource: {
+          name: this.model,
+        },
+      },
+    });
+
+    const fieldsMap = new Map<string, any>();
+
+    fields.forEach((field: any) => {
+      fieldsMap.set(field.name, field);
+    });
+
+    const author = await prisma.author.findFirst({
+      where: {
+        users: {
+          some: {
+            id: this.userId as any,
+          },
+        },
+      },
+    });
+
+    const changes = [] as {
+      author: { connect: { id: number } };
+      field: { connect: { id: number } };
+      changes: string;
+    }[];
+
+    fieldsToTrack.forEach((field: any) => {
+      if (typeof newData[field] === "string" || newData[field] === null) {
+        if (newData[field] !== oldData[field]) {
+          _addChange(
+            field,
+            JSON.stringify({
+              old: oldData[field],
+              new: newData[field],
+            })
+          );
+        }
+      }
+
+      if (typeof newData[field] === "object" && newData[field] !== null) {
+        if (Array.isArray(newData[field])) {
+          const newNames = newData[field].map((item: any) => item.name);
+          const oldNames = oldData[field].map((item: any) => item.name);
+
+          const added = newNames.filter(
+            (name: any) => !oldNames.includes(name)
+          );
+          const removed = oldNames.filter(
+            (name: any) => !newNames.includes(name)
+          );
+
+          const fieldChanges = {
+            added,
+            removed,
+          };
+
+          if (added.length > 0 || removed.length > 0) {
+            _addChange(field, JSON.stringify(fieldChanges));
+          }
+        } else if (newData[field].name !== undefined) {
+          if (newData[field].name !== oldData[field].name) {
+            _addChange(
+              field,
+              JSON.stringify({
+                old: oldData[field].name,
+                new: newData[field].name,
+              })
+            );
+          }
+        }
+      }
+    });
+
+    return changes;
+
+    function _addChange(field: string, change: string) {
+      const data = {
+        changes: change,
+      } as any;
+
+      const fieldData = fieldsMap.get(field);
+
+      if (fieldData) {
+        data["field"] = {
+          connect: {
+            id: fieldData.id,
+          },
+        };
+      }
+
+      if (author) {
+        data["author"] = {
+          connect: {
+            id: author.id,
+          },
+        };
+      }
+
+      changes.push(data);
     }
   }
 }

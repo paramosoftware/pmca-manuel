@@ -162,6 +162,8 @@ model ResourceField {
   resourceId Int
   resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
+  changes EntryChanges[] /// disabled:true|hidden:true
+
   nameNormalized        String?
   labelNormalized       String?
   placeholderNormalized String?
@@ -263,6 +265,9 @@ model EntryChanges {
   author   Author @relation(fields: [authorId], references: [id])
   entryId  Int
   entry    Entry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  fieldId Int
+  field   ResourceField? @relation(fields: [fieldId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

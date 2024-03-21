@@ -19,16 +19,6 @@ QUERIES.set('Entry', {
                 },
             }
         },
-        changes: {
-            orderBy: {
-                createdAt: 'desc'
-            },
-            include: {
-                author: {
-                    select: ['name']
-                }
-            }
-        },
         relatedEntries: {
             include: {
                 media: {
@@ -40,6 +30,18 @@ QUERIES.set('Entry', {
             orderBy: ['position']
         },
         children: true
+    },
+});
+
+
+QUERIES.set('TrackChanges', {
+    include: {
+        parent: true,
+        references: true,
+        translations: true,
+        variations: true,
+        entries: true,
+        relatedEntries: true,
     },
 });
 
