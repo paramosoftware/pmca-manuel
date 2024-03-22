@@ -46,6 +46,7 @@ datasource db {
 // - The name field is the main label of the object and when possible should be in the model schema.
 // - All text fields, that need to be searchable, should have a normalized version of the field, with the suffix "Normalized". Example: nameNormalized String?
 // - Slugs can be used to generate urls for the object and should be unique.
+// - All rich text fields should have a Rich version of the field, with the suffix "Rich". Example: descriptionRich String?
 
 // The following conventions for the generated form:
 // - The order of the fields in the model is the position in which they will be displayed in the form (position = index).
@@ -109,9 +110,9 @@ model Resource {
   isAppModel     Boolean? @default(false)
   isPublic       Boolean? @default(false)
 
-  parent Resource? @relation("ResourceToChildren", fields: [parentId], references: [id])
-  parentId       Int?
-  children       Resource[] @relation("ResourceToChildren")
+  parent   Resource?  @relation("ResourceToChildren", fields: [parentId], references: [id])
+  parentId Int?
+  children Resource[] @relation("ResourceToChildren")
 
   modelNormalized       String
   nameSlug              String  @unique
@@ -180,7 +181,7 @@ model User {
   email String @unique
   name  String
 
-  password  String  /// uiField:password
+  password  String /// uiField:password
   isBlocked Boolean?      @default(false)
   isAdmin   Boolean?      @default(false) /// disabled:true|hidden:true
   sessions  UserSession[] /// disabled:true|hidden:true
@@ -189,7 +190,7 @@ model User {
   author   Author? @relation(fields: [authorId], references: [id]) /// hidden:true|disabled:false
 
   groupId Int?
-  group Group? @relation(fields: [groupId], references: [id])
+  group   Group? @relation(fields: [groupId], references: [id])
 
   nameNormalized  String?
   loginNormalized String?
@@ -218,7 +219,7 @@ model Author {
 
   nameNormalized String?
 
-  users        User[]  /// max:1|label:Usuário relacionado|uiField:autocomplete|allowCreate:false
+  users        User[] /// max:1|label:Usuário relacionado|uiField:autocomplete|allowCreate:false
   entryChanges EntryChanges[] /// disabled:true|hidden:true
 
   createdAt DateTime @default(now())
@@ -266,8 +267,8 @@ model EntryChanges {
   entryId  Int
   entry    Entry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
-  fieldId Int
-  field   ResourceField? @relation(fields: [fieldId], references: [id])
+  fieldId Int?
+  field   ResourceField? @relation(fields: [fieldId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -340,6 +341,7 @@ model Reference {
   id   Int    @id @default(autoincrement())
   name String @unique /// uiField:rich
 
+  nameRich       String? /// hidden:true
   nameNormalized String?
 
   entries Entry[]
