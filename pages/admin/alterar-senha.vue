@@ -8,20 +8,19 @@
         </template>
 
         <form @submit.prevent="onSubmit">
-
-            <FieldInput 
-                id="password" 
-                label="Senha" 
-                type="password" 
-                v-model=password 
-                :required="true" 
+            <FieldInput
+                id="password"
+                label="Senha"
+                type="password"
+                v-model="password"
+                :required="true"
             />
 
-            <FieldInput 
-                id="passwordConfirmation" 
-                label="Confirmação de senha" 
+            <FieldInput
+                id="passwordConfirmation"
+                label="Confirmação de senha"
                 type="password"
-                v-model=passwordConfirmation
+                v-model="passwordConfirmation"
                 :required="true"
             />
 
@@ -30,11 +29,9 @@
             </div>
 
             <div class="mt-5 text-end">
-                <UIButton :type='"submit"'>Alterar</UIButton>
+                <UIButton :type="'submit'">Alterar</UIButton>
             </div>
-
         </form>
-
     </UICardContainer>
 </template>
 
@@ -58,15 +55,18 @@ async function onSubmit() {
         return;
     }
 
-    const { data, error } = await useFetchWithBaseUrl('/api/auth/change-password', {
-        method: 'POST',
-        body: {
-            password: password.value,
+    const { data, error } = await useFetchWithBaseUrl(
+        '/api/auth/change-password',
+        {
+            method: 'POST',
+            body: {
+                password: password.value
+            }
         }
-    });
+    );
 
     if (error.value) {
-        errorMessage.value = "Ocorreu um erro ao alterar a senha."
+        errorMessage.value = 'Ocorreu um erro ao alterar a senha.';
         return;
     }
 
@@ -84,10 +84,7 @@ async function onSubmit() {
     }
 }
 
-
-
-
 useHead({
-    title: 'Alterar senha | ' + useRuntimeConfig().public.appName,
+    title: 'Alterar senha | ' + useRuntimeConfig().public.appName
 });
 </script>

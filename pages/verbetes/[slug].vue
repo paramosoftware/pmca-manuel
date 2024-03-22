@@ -39,7 +39,7 @@
          </template>
          <template #tabPanel-3>
             <div class="flex flex-col">
-               <PublicEntryChanges :entry-changes="entry?.changes" />
+               <PublicEntryChanges />
             </div>
          </template>
       </UITab>

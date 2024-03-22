@@ -1,5 +1,3 @@
-import type { Where } from "~/server/express/prisma/interfaces";
-
 export default function useExportData() {
     const loading = ref(false);
     const toast = useToast();

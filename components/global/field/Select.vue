@@ -1,5 +1,5 @@
 <template>
-    <div class="mt-4" :class="{ 'hidden': hidden }">
+    <div class="mt-4" :class="{ hidden: hidden }">
         <UILabel :for="id">
             {{ label }}
         </UILabel>
@@ -9,7 +9,9 @@
             :model-value="modelValue"
             :disabled="disabled || loading || list.length === 0"
             :hidden="hidden"
-            :placeholder="list.length === 0 ? 'Sem opções cadastradas' : placeholder"
+            :placeholder="
+                list.length === 0 ? 'Sem opções cadastradas' : placeholder
+            "
             :required="required"
             :loading="loading"
             :options="list"
@@ -25,7 +27,6 @@
 </template>
 
 <script setup lang="ts">
-
 const props = defineProps({
     id: {
         type: String,
@@ -60,16 +61,17 @@ const props = defineProps({
         default: null
     },
     options: {
-        type: Array as PropType<{ name: string, value: string | number }[] | string[]>,
+        type: Array as PropType<
+            { name: string; value: string | number }[] | string[]
+        >,
         default: []
     },
     formStore: {
-        type: Object as PropType<FormStore>,
+        type: Object as PropType<FormStore>
     }
 });
 
-
-const list = ref<{id?: ID, name: string, value: string | number }[]>([]);
+const list = ref<{ id?: ID; name: string; value: string | number }[]>([]);
 
 const defaultValue = getFormFieldConfig('defaultValue', '', props);
 const disabled = getFormFieldConfig('disabled', false, props);
@@ -88,24 +90,26 @@ if (props.formStore) {
 const loading = ref(false);
 
 if (relatedResource.value) {
-
     loading.value = true;
 
-    const { data, pending, error } = await useFetchWithBaseUrl('/api/' + relatedResource.value.name, {
-        method: 'GET',
-        query: { pageSize: 100 },
-        transform: (data: PaginatedResponse) => {
-            if (!data) {
-                return [];
-            } else {
-                return data.items.map((item) => ({
-                    id: item.id,
-                    name: item.label ?? item.name,
-                    value: item.id
-                }))
+    const { data, pending, error } = await useFetchWithBaseUrl(
+        '/api/' + relatedResource.value.name,
+        {
+            method: 'GET',
+            query: { pageSize: 100 },
+            transform: (data: PaginatedResponse) => {
+                if (!data) {
+                    return [];
+                } else {
+                    return data.items.map((item) => ({
+                        id: item.id,
+                        name: item.label ?? item.name,
+                        value: item.id
+                    }));
+                }
             }
         }
-    });
+    );
 
     loading.value = pending.value;
 
@@ -117,9 +121,7 @@ if (relatedResource.value) {
     if (error.value) {
         console.error(error.value);
     }
-
 } else if (defaultOptions.value) {
-
     const values = defaultOptions.value.split(',');
 
     for (const option of values) {
@@ -128,19 +130,20 @@ if (relatedResource.value) {
             value: option.trim()
         });
     }
-
 } else if (options.value) {
     list.value = options.value;
 }
 
 if (defaultValue.value && props.formStore) {
     list.value.map((item) => {
-        if (item.name === defaultValue.value || item?.id === defaultValue.value) {
+        if (
+            item.name === defaultValue.value ||
+            item?.id === defaultValue.value
+        ) {
             props.formStore?.setFieldData(props.id, item);
         }
     });
 }
-
 
 if (!required.value) {
     if (!list.value.find((item) => item.value === '')) {
@@ -160,6 +163,5 @@ const onInput = (event: Event) => {
     }
 
     emit('update:modelValue', target.value);
-}
-
+};
 </script>

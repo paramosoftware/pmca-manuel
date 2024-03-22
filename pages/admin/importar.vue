@@ -6,69 +6,99 @@
         </template>
 
         <p class="mt-4">
-            É possível importar verbetes para o sistema nos formatos: <strong>JSON, CSV, XLXS, SKOS</strong> (extensão .xml) e <strong>ZIP</strong> (contendo um dos formatos anteriores).
+            É possível importar verbetes para o sistema nos formatos:
+            <strong>JSON, CSV, XLXS, SKOS</strong> (extensão .xml) e
+            <strong>ZIP</strong> (contendo um dos formatos anteriores).
         </p>
         <p class="mt-4">
-            Os dados devem estar no formato correto para que a importação seja realizada com sucesso. Abaixo é possível baixar um template para cada formato.
-            Arquivos exportados pelo sistema (pelo site ou outras instâncias), em qualquer formato, podem ser utilizados para importação sem necessidade de alterações.
-        </p>
-        
-        <p class="mt-4">
-            Para incluir imagens, é necessário que os arquivos estejam no formato <strong>ZIP</strong> e que o nome do arquivo seja o mesmo do campo <strong>id</strong> do verbete.
-            As imagens devem estar no formato <strong>JPG</strong> ou <strong>PNG</strong> e estar dentro de uma pasta com o nome <strong>media</strong>. 
-            Vários arquivos para o mesmo verbete são permitidos adicionando um número ao final do nome do arquivo com _,
-            por exemplo: <strong>id_1.jpg</strong>, <strong>id_2.jpg</strong>, <strong>id_3.jpg</strong>.
+            Os dados devem estar no formato correto para que a importação seja
+            realizada com sucesso. Abaixo é possível baixar um template para
+            cada formato. Arquivos exportados pelo sistema (pelo site ou outras
+            instâncias), em qualquer formato, podem ser utilizados para
+            importação sem necessidade de alterações.
         </p>
 
         <p class="mt-4">
-            Os <strong>ids</strong> dos verbetes devem ser únicos e podem ser numéricos ou textuais.
+            Para incluir imagens, é necessário que os arquivos estejam no
+            formato <strong>ZIP</strong> e que o nome do arquivo seja o mesmo do
+            campo <strong>id</strong> do verbete. As imagens devem estar no
+            formato <strong>JPG</strong> ou <strong>PNG</strong> e estar dentro
+            de uma pasta com o nome <strong>media</strong>. Vários arquivos para
+            o mesmo verbete são permitidos adicionando um número ao final do
+            nome do arquivo com _, por exemplo: <strong>id_1.jpg</strong>,
+            <strong>id_2.jpg</strong>, <strong>id_3.jpg</strong>.
         </p>
 
         <p class="mt-4">
-            <UIIcon name="ph:warning" class="h-10 w-10 text-pmca-warning mr-3" />
-            <strong>EM CONSTRUÇÃO: </strong> Por enquanto, a importação sobrescreve os dados existentes no sistema.
+            Os <strong>ids</strong> dos verbetes devem ser únicos e podem ser
+            numéricos ou textuais.
+        </p>
+
+        <p class="mt-4">
+            <UIIcon
+                name="ph:warning"
+                class="h-10 w-10 text-pmca-warning mr-3"
+            />
+            <strong>EM CONSTRUÇÃO: </strong> Por enquanto, a importação
+            sobrescreve os dados existentes no sistema.
         </p>
 
         <UDivider class="my-8" />
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" v-show="!importing && !completed">
+        <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-6"
+            v-show="!importing && !completed"
+        >
             <div class="px-10">
-                <b>Baixe um arquivo template e preencha com os dados que deseja importar.</b>
+                <b
+                    >Baixe um arquivo template e preencha com os dados que
+                    deseja importar.</b
+                >
 
                 <span v-for="template in templates" class="block mt-4">
-                    <UIIcon name="ph:download" class="h-6 w-6 text-pmca-primary mr-1" @click="onClick(template.ext)">
+                    <UIIcon
+                        name="ph:download"
+                        class="h-6 w-6 text-pmca-primary mr-1"
+                        @click="onClick(template.ext)"
+                    >
                     </UIIcon>
-                    {{ template.name }} 
+                    {{ template.name }}
                 </span>
-                    
             </div>
 
             <div class="px-10">
+                <!-- TODO: add check box to confirm overwrite -->
 
-                 <!-- TODO: add check box to confirm overwrite -->
-
-                <FieldDropzone url="/api/entry/import" 
-                    :max-files=1
-                    :max-filesize=10000000
+                <FieldDropzone
+                    url="/api/entry/import"
+                    :max-files="1"
+                    :max-filesize="10000000"
                     accepted-files="application/json, application/xml, application/zip, application/*, text/csv, text/xml, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    @start='importing=true' 
-                    @close='completed=true; importing=false'
-                    />
+                    @start="importing = true"
+                    @close="
+                        completed = true;
+                        importing = false;
+                    "
+                />
             </div>
         </div>
 
-
         <div class="mx-auto my-0 h-full mt-20" v-if="importing">
             <div class="flex flex-col justify-center items-center">
-                <UIIcon name="ph:spinner" class="h-16 w-16 animate-spin text-pmca-primary" />
+                <UIIcon
+                    name="ph:spinner"
+                    class="h-16 w-16 animate-spin text-pmca-primary"
+                />
                 <p class="mt-4">Importando...</p>
             </div>
-
         </div>
 
         <div class="mx-auto my-0 h-full mt-20" v-if="completed">
             <div class="flex flex-col justify-center items-center">
-                <UIIcon name="ph:check-circle" class="h-16 w-16 text-pmca-accent" />
+                <UIIcon
+                    name="ph:check-circle"
+                    class="h-16 w-16 text-pmca-accent"
+                />
             </div>
             <p>Importação concluída!</p>
         </div>
@@ -77,11 +107,11 @@
 
 <script setup lang="ts">
 definePageMeta({
-    middleware: ["auth", "resource"]
+    middleware: ['auth', 'resource']
 });
 
 useHead({
-    title: 'Importar | ' + useRuntimeConfig().public.appName,
+    title: 'Importar | ' + useRuntimeConfig().public.appName
 });
 
 const importing = ref(false);
@@ -100,5 +130,5 @@ const onClick = (ext: string) => {
     link.href = '/templates/import.' + ext;
     link.download = 'import.' + ext;
     link.dispatchEvent(new MouseEvent('click'));
-}
+};
 </script>

@@ -7,4 +7,3 @@ export async function useAuth() {
         return false;
     }
 }
-

@@ -1,9 +1,7 @@
-
 import type * as Prisma from '@prisma/client';
-export { };
+export {};
 
 declare global {
-
     export type Group = Prisma.Group & {
         users?: User[];
         resources?: Resource[];
@@ -50,7 +48,6 @@ declare global {
         children?: Entry[];
     };
 
-
     export type EntryChanges = Prisma.EntryChanges & {
         entry?: Entry;
         user?: User;
@@ -68,7 +65,6 @@ declare global {
         entry?: Entry;
     };
 
-
     export type Translation = Prisma.EntryTranslation & {
         entry?: Entry;
         language?: Language;
@@ -81,31 +77,59 @@ declare global {
     export type WebPage = Prisma.WebPage;
 
     export type FormField = Prisma.ResourceField & {
-        resource?: Resource | undefined,
-        relatedResource?: Resource | undefined,
-    }
+        resource?: Resource | undefined;
+        relatedResource?: Resource | undefined;
+    };
 
-    export type ValueType = 'string' | 'number' | 'boolean' | 'object' | 'array'
-    export type UIField = 'autocomplete' | 'auxiliaryForm' | 'checkbox' | 'dropzone' | 'finder' | 'input' | 'media' | 'rich' | 'select' | 'textarea'
-    export type InputType = 'text' | 'number' | 'email' | 'date' | 'color' | 'password' | 'search' | 'hidden' | 'checkbox' | 'radio'
-    export type GenderNoun = 'm' | 'f' | 'n'
-    
+    export type ValueType =
+        | 'string'
+        | 'number'
+        | 'boolean'
+        | 'object'
+        | 'array';
+
+    export type UIField =
+        | 'autocomplete'
+        | 'auxiliaryForm'
+        | 'checkbox'
+        | 'dropzone'
+        | 'finder'
+        | 'input'
+        | 'media'
+        | 'rich'
+        | 'select'
+        | 'textarea';
+
+    export type InputType =
+        | 'text'
+        | 'number'
+        | 'email'
+        | 'date'
+        | 'color'
+        | 'password'
+        | 'search'
+        | 'hidden'
+        | 'checkbox'
+        | 'radio';
+        
+    export type GenderNoun = 'm' | 'f' | 'n';
+
     export type FormStore = ReturnType<typeof useFormStore>;
     export type ResourceStore = ReturnType<typeof useResourceStore>;
     export type ListStore = ReturnType<typeof useListStore>;
 
     export type Item = {
-        id: ID; 
-        name: string; 
+        id: ID;
+        name: string;
         nameSlug?: string;
-        label?: string 
-        labelSlug?: string
+        label?: string;
+        labelSlug?: string;
     };
 
     export type HierarchicalItem = Item & {
         parentId: ID;
         parent?: HierarchicalItem;
-        children?: any[]
+        children?: any[];
     };
 
     export type PaginatedResponse = {
@@ -114,7 +138,7 @@ declare global {
         page: number;
         total: number;
         items: any[];
-    }
+    };
 
     export type ID = number | string | null;
 
@@ -126,8 +150,7 @@ declare global {
         expanded: boolean;
         children: TreeNode[];
         isLeaf?: boolean;
-    }
-
+    };
 
     export type DataTransferFormat = 'json' | 'xml' | 'csv' | 'xlsx';
 
@@ -139,10 +162,9 @@ declare global {
             delete: boolean;
             import: boolean;
         };
-    }
+    };
 
     export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
-
 
     type Operator = string | any;
 
@@ -150,8 +172,16 @@ declare global {
 
     type Nulls = 'first' | 'last';
 
-
-    export type WhereValueType = string | number | boolean | Date | string[] | number[] | Condition | Condition[] | undefined;
+    export type WhereValueType =
+        | string
+        | number
+        | boolean
+        | Date
+        | string[]
+        | number[]
+        | Condition
+        | Condition[]
+        | undefined;
 
     export interface Where {
         AND?: Condition | Condition[];
@@ -161,9 +191,11 @@ declare global {
     }
 
     export interface Condition {
-        [key: string]: {
-            [key: string]: string | Date | number | string[] | number[]
-        } | WhereValueType;
+        [key: string]:
+            | {
+                  [key: string]: string | Date | number | string[] | number[];
+              }
+            | WhereValueType;
     }
 
     export interface OrderByNested {
@@ -171,7 +203,7 @@ declare global {
         nulls?: Nulls;
         _count?: Direction;
     }
-    
+
     export interface OrderBy {
         [key: string]: OrderByNested | Direction | OrderBy;
     }

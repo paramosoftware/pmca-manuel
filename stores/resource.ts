@@ -1,5 +1,4 @@
 export const useResourceStore = defineStore('resource', () => {
-
     const name = ref('');
     const model = ref('');
     const label = ref('');
@@ -21,20 +20,25 @@ export const useResourceStore = defineStore('resource', () => {
                         oppositeField: true
                     },
                     orderBy: ['position']
-                },
-                
+                }
             }
-        }
+        };
     });
 
     async function fetch(resourceIdentifier: string) {
+        const urlResource = computed(
+            () => `/api/resource/${resourceIdentifier}`
+        );
 
-        const urlResource = computed(() => `/api/resource/${resourceIdentifier}`);
-
-        const { data, pending, error } = await useFetchWithBaseUrl(urlResource, {
-            params: query.value
-        }) as {
-            data: Ref<Resource>, pending: Ref<boolean>, error: Ref<Error | undefined>
+        const { data, pending, error } = (await useFetchWithBaseUrl(
+            urlResource,
+            {
+                params: query.value
+            }
+        )) as {
+            data: Ref<Resource>;
+            pending: Ref<boolean>;
+            error: Ref<Error | undefined>;
         };
 
         if (data.value) {
@@ -65,5 +69,5 @@ export const useResourceStore = defineStore('resource', () => {
         pending,
         error,
         fetch
-    }
+    };
 });

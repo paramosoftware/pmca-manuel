@@ -1,17 +1,16 @@
 <template>
-    <div class="mt-4" :class="{ 'hidden': hidden }">
-
+    <div class="mt-4" :class="{ hidden: hidden }">
         <UILabel :for="id">
             {{ label }}
         </UILabel>
 
-        <UTextarea 
-            :id="id" 
-            type="text" 
-            :required="required" 
+        <UTextarea
+            :id="id"
+            type="text"
+            :required="required"
             :disabled="disabled"
-            :placeholder="placeholder" 
-            :rows="rows" 
+            :placeholder="placeholder"
+            :rows="rows"
             :model-value="modelValue"
             @input="onInput"
             resize
@@ -22,7 +21,7 @@
         />
     </div>
 </template>
-    
+
 <script setup lang="ts">
 const props = defineProps({
     id: {
@@ -62,10 +61,9 @@ const props = defineProps({
         default: 5
     },
     formStore: {
-        type: Object as PropType<FormStore>,
-    },
-})
-
+        type: Object as PropType<FormStore>
+    }
+});
 
 const defaultValue = getFormFieldConfig('defaultValue', '', props);
 const disabled = getFormFieldConfig('disabled', false, props);
@@ -86,10 +84,8 @@ const onInput = (event: Event) => {
 
     if (props.formStore) {
         props.formStore.setFieldData(props.id, target.value);
-    } 
+    }
 
     emit('update:modelValue', target.value);
-}
-
-
+};
 </script>

@@ -1,40 +1,36 @@
 <template>
-    <div :class="{ 'hidden': hidden, 'mt-4': label }">
-
+    <div :class="{ hidden: hidden, 'mt-4': label }">
         <UILabel :for="id" v-if="label">
             {{ label }}
         </UILabel>
 
         <UInput
-            :id="id" 
-            :type="type" 
+            :id="id"
+            :type="type"
             :model-value="modelValue"
-            :required="required" 
+            :required="required"
             :disabled="disabled"
             :placeholder="placeholder"
             @input="onInput"
             @focus="iconColor = 'text-pmca-accent'"
             @blur="iconColor = 'text-gray-400'"
-            color="gray" 
+            color="gray"
             variant="outline"
             :size="size"
             class="mt-1"
             padding="sm"
         >
+            <template #trailing v-if="showIcon && !loading">
+                <UIIcon :name="icon" class="w-6 h-6" :class="iconColor" />
+            </template>
 
-        <template #trailing v-if="showIcon && !loading">
-            <UIIcon :name="icon" class="w-6 h-6" :class="iconColor" />
-        </template>
-
-        <template #trailing v-if="loading">
-            <UIIcon :name="'ph:spinner'" class="w-6 h-6 animate-spin" />
-        </template>
-
+            <template #trailing v-if="loading">
+                <UIIcon :name="'ph:spinner'" class="w-6 h-6 animate-spin" />
+            </template>
         </UInput>
-
     </div>
 </template>
-  
+
 <script setup lang="ts">
 const props = defineProps({
     id: {
@@ -86,9 +82,9 @@ const props = defineProps({
         default: 'md'
     },
     formStore: {
-        type: Object as PropType<FormStore>,
-    },
-})
+        type: Object as PropType<FormStore>
+    }
+});
 
 const iconColor = ref('text-gray-400');
 
@@ -113,12 +109,11 @@ const emit = defineEmits(['update:modelValue', 'input']);
 const onInput = (event: Event) => {
     const target = event.target as HTMLInputElement;
 
-
     if (props.formStore) {
         props.formStore.setFieldData(props.id, target.value);
-    } 
+    }
 
     emit('input', target.value);
     emit('update:modelValue', target.value);
-}
+};
 </script>

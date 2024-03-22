@@ -18,4 +18,4 @@ export default function parseNumber(value: any): any {
     }
 
     return parsed;
-}   
+}

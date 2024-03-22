@@ -1,5 +1,4 @@
-
-import parseNumber from "./parseNumber";
+import parseNumber from './parseNumber';
 
 export function buildTreeData(
     hierarchalItems: HierarchicalItem[],
@@ -9,16 +8,21 @@ export function buildTreeData(
     leavesKey?: string, // when the leaves are in a different key
     nodeIdExistent?: ID // TODO: temporary solution to for finder component to work when the defaultExpanded value does not exist in the tree
 ): TreeNode[] | [TreeNode, boolean] {
-
     const tempLabel = '___' + Math.random().toString(36).substring(7);
     const nodeMap = new Map<ID, TreeNode>();
-    const rootNode = createNode({ id: 'root', name: 'Root', parentId: null, children: [] });
+    const rootNode = createNode({
+        id: 'root',
+        name: 'Root',
+        parentId: null,
+        children: []
+    });
     let nodeIdExist = false;
 
-    if (!rootNode) { return []; }
+    if (!rootNode) {
+        return [];
+    }
 
     for (const item of hierarchalItems) {
-
         if (!nodeIdExist && nodeIdExistent) {
             nodeIdExist = parseNumber(nodeIdExistent) === parseNumber(item.id);
         }
@@ -26,39 +30,66 @@ export function buildTreeData(
         let currentNode = nodeMap.get(item.id);
 
         if (currentNode && currentNode.label === tempLabel) {
-            const replaceNode = createNode(item, nodeIdToExpand, nodeIdToRemove, leavesKey);
-            if (!replaceNode) { continue; }
+            const replaceNode = createNode(
+                item,
+                nodeIdToExpand,
+                nodeIdToRemove,
+                leavesKey
+            );
+            if (!replaceNode) {
+                continue;
+            }
             replaceNode.children = currentNode.children;
             nodeMap.set(item.id, replaceNode);
             currentNode = replaceNode;
         }
 
-        let tempNode = createNode(item, nodeIdToExpand, nodeIdToRemove, leavesKey);
-  
-        if (!tempNode) { continue; }
-  
+        let tempNode = createNode(
+            item,
+            nodeIdToExpand,
+            nodeIdToRemove,
+            leavesKey
+        );
+
+        if (!tempNode) {
+            continue;
+        }
+
         if (!currentNode) {
             currentNode = tempNode;
             nodeMap.set(item.id, currentNode);
         }
-  
-        if (!currentNode) { continue; }
-  
+
+        if (!currentNode) {
+            continue;
+        }
+
         if (item.parentId === null) {
             currentNode.parentId = rootNode.id;
             rootNode.children.push(currentNode);
         } else {
-  
             let parentNode = nodeMap.get(item.parentId);
-            let tempNode = createNode({ id: item.parentId, name: tempLabel, parentId: null, children: [] }, nodeIdToExpand, nodeIdToRemove, leavesKey);
-  
-            if (!tempNode) { continue; }
-            
+            let tempNode = createNode(
+                {
+                    id: item.parentId,
+                    name: tempLabel,
+                    parentId: null,
+                    children: []
+                },
+                nodeIdToExpand,
+                nodeIdToRemove,
+                leavesKey
+            );
+
+            if (!tempNode) {
+                continue;
+            }
+
             if (!parentNode) {
                 parentNode = tempNode;
                 nodeMap.set(item.parentId, parentNode);
             }
-  
+
             parentNode.children.push(currentNode);
         }
     }
@@ -70,45 +101,54 @@ export function buildTreeData(
     return [rootNode, nodeIdExist];
 }
 
-
 function createNode(
-  item: HierarchicalItem,
-  nodeIdToExpand?: ID,
-  nodeIdToRemove?: ID,
-  leavesKey?: string,
+    item: HierarchicalItem,
+    nodeIdToExpand?: ID,
+    nodeIdToRemove?: ID,
+    leavesKey?: string
 ): TreeNode | null {
+    if (
+        nodeIdToRemove &&
+        parseNumber(item.id) === parseNumber(nodeIdToRemove)
+    ) {
+        return null;
+    }
 
-  if (nodeIdToRemove && parseNumber(item.id) === parseNumber(nodeIdToRemove)) {
-      return null;
-  }
+    const node = {
+        id: parseNumber(item.id) || null,
+        label: item.label || item.name || 'Sem rótulo',
+        slug: item.labelSlug || item.nameSlug || null,
+        parentId: item.parentId || null,
+        expanded: item.id === nodeIdToExpand,
+        children: []
+    } as TreeNode;
 
-  const node = {
-      id: parseNumber(item.id) || null,
-      label: item.label || item.name || 'Sem rótulo',
-      slug: item.labelSlug || item.nameSlug || null,
-      parentId: item.parentId || null,
-      expanded: item.id === nodeIdToExpand,
-      children: [],
-  } as TreeNode;
+    // @ts-ignore
+    if (leavesKey && item[leavesKey]) {
+        // @ts-ignore
+        for (const leaf of item[leavesKey]) {
+            const leafNode = createNode(
+                leaf,
+                nodeIdToExpand,
+                nodeIdToRemove,
+                leavesKey
+            );
 
-  // @ts-ignore
-  if (leavesKey && item[leavesKey]) {
-      // @ts-ignore
-      for (const leaf of item[leavesKey]) {
+            if (
+                nodeIdToRemove &&
+                leafNode &&
+                parseNumber(leafNode.id) === parseNumber(nodeIdToRemove)
+            ) {
+                continue;
+            }
 
-          const leafNode = createNode(leaf, nodeIdToExpand, nodeIdToRemove, leavesKey);
+            node.children.push({
+                isLeaf: true,
+                ...leaf,
+                ...leafNode
+            });
+        }
+    }
 
-          if (nodeIdToRemove && leafNode && parseNumber(leafNode.id) === parseNumber(nodeIdToRemove)) {
-              continue;
-          }
-
-          node.children.push({
-              isLeaf: true,
-              ...leaf,
-              ...leafNode
-          });
-      }
-  }
-
-  return node;
+    return node;
 }
