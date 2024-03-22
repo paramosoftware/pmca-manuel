@@ -20,15 +20,15 @@ definePageMeta({
     layout: 'public'
 });
 
-const router = useRoute();
-const slug = ref(router.params.slug.toString());
+const route = useRoute();
+const slug = ref(route.params.slug.toString());
 
 const { data, pending, error } = await useFetchWithBaseUrl(
     '/api/public/webPage/' + slug.value
 );
 
-if (error.value || !data.value) {
-    // TODO: redirect to 404
+if (!data || error.value || !data.value) {
+    throw createError({});
 }
 
 const page = ref(data.value as WebPage);
