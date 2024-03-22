@@ -594,18 +594,14 @@ class PrismaServiceConverter {
      * @returns The merged permissions
      */
     public async mergeRelatedPermissions() {
-        if (
-            this.userId &&
-            cache.has(`mergeRelatedPermissions|${this.userId}`)
-        ) {
-            this.permissions = cache.get(
-                `mergeRelatedPermissions|${this.userId}`
-            )!;
-            
-            return this.permissions;
 
-        } else if (cache.has('mergeRelatedPermissions')) {
-            this.permissions = cache.get('mergeRelatedPermissions')!;
+        const cacheKey = this.userId
+            ? `mergeRelatedPermissions|${this.userId}`
+            : 'mergeRelatedPermissions';
+
+
+        if (cache.has(cacheKey)) {
+            this.permissions = cache.get(cacheKey)!;
             return this.permissions;
         }
 
@@ -688,15 +684,7 @@ class PrismaServiceConverter {
             }
         }
 
-        if (this.userId) {
-            cache.set(
-                `mergeRelatedPermissions|${this.userId}`,
-                this.permissions,
-                60 * 5
-            );
-        } else {
-            cache.set('mergeRelatedPermissions', this.permissions, 60 * 10);
-        }
+        cache.set(cacheKey, this.permissions, 60 * 5);
 
         return this.permissions;
     }
