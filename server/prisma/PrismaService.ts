@@ -377,6 +377,10 @@ class PrismaService {
         processRelations = true,
         parentModel: string = ''
     ) {
+        if (this.checkPermissions) {
+            this.permissions = await this.converter.mergeRelatedPermissions();
+        }
+
         const modelFields = Prisma.dmmf.datamodel.models.find(
             (m) => m.name.toLowerCase() === model.toLowerCase()
         )?.fields!;

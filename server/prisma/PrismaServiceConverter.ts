@@ -590,7 +590,8 @@ class PrismaServiceConverter {
     /**
      * Merge public permissions with the permissions provided in the constructor
      */
-    private async mergeRelatedPermissions() {
+    public async mergeRelatedPermissions() {
+
         const userPermissions = Object.keys(this.permissions);
 
         const publicResources = await prisma.resource.findMany({
@@ -669,6 +670,8 @@ class PrismaServiceConverter {
                 }
             }
         }
+
+        return this.permissions;
     }
 
     /**
