@@ -170,8 +170,10 @@ class PrismaService {
      */
     async updateOne(identifier: ID, request?: object) {
         try {
+            this.setId(identifier);
             this.request = request ?? {};
             this.validator.validate(this.request);
+
             const w = await this.converter.convertRequestToPrismaQuery(
                 this.request,
                 false,
@@ -207,10 +209,6 @@ class PrismaService {
 
             const updates: any[] = [];
             const mediaUpdates = new Map<number, EntryMedia[]>();
-
-            if (this.checkPermissions) {
-                this.permissions = await this.converter.mergeRelatedPermissions();
-            }
 
             for (const item of this.request) {
                 if (item.where === undefined) {
@@ -879,7 +877,7 @@ class PrismaService {
             }
         });
 
-        if (!obj) {
+        if (!obj || obj.id == this.id) {
             return normalizeString(name, true);
         } else {
             return await this.calculateSlug(
