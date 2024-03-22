@@ -91,19 +91,9 @@
             >
                 <div class="w-full h-full flex items-center justify-between">
                     <NuxtLink :to="editUrl + '/' + item.id" class="flex-grow">
-                        <!-- TODO: Refactor this: remove stripHtmlTags -->
-                        <h1
-                            v-if="item.label"
-                            v-html="
-                                stripHtmlTags(item.label, ['s', 'em', 'strong'])
-                            "
-                        ></h1>
-                        <h1
-                            v-else-if="item.name"
-                            v-html="
-                                stripHtmlTags(item.name, ['s', 'em', 'strong'])
-                            "
-                        ></h1>
+                        <h1 v-if="item.label || item.name">
+                            {{ item.label || item.name }}
+                        </h1>
                         <h1 v-else>Item sem rótulo ({{ item.id }})</h1>
                     </NuxtLink>
 

@@ -18,13 +18,7 @@
                         class="w-11/12 truncate mr-3"
                         :title="item.label ?? item.name"
                     >
-                        <div
-                            v-if="isHtml"
-                            v-html="item.label ?? item.name"
-                        ></div>
-                        <div v-else>
-                            {{ item.label ?? item.name }}
-                        </div>
+                        {{ item.label ?? item.name }}
                     </div>
 
                     <div class="flex items-center">
@@ -114,7 +108,6 @@ const label = getFormFieldConfig('label', '', props);
 const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowMultiple = getFormFieldConfig('allowMultiple', false, props);
-const isHtml = getFormFieldConfig('richText', false, props);
 let max = getFormFieldConfig('max', 100, props);
 const modelValue = computed(() => props.formStore?.getFieldData(props.id));
 if (!allowMultiple.value) {

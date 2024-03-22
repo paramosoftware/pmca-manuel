@@ -18,13 +18,7 @@
                         class="w-11/12 truncate mr-3"
                         :title="item.label ?? item.name"
                     >
-                        <div
-                            v-if="isHtml"
-                            v-html="item.label ?? item.name"
-                        ></div>
-                        <div v-else>
-                            {{ item.label ?? item.name }}
-                        </div>
+                        {{ item.label ?? item.name }}
                     </div>
 
                     <div class="flex items-center">
@@ -65,13 +59,7 @@
                         @click="selectItem(item)"
                         class="px-2 py-1 cursor-pointer rounded-md hover:bg-gray-100"
                     >
-                        <span
-                            v-if="isHtml"
-                            v-html="item.label ?? item.name"
-                        ></span>
-                        <span v-else>
-                            {{ item.label ?? item.name }}
-                        </span>
+                        {{ item.label ?? item.name }}
                     </li>
 
                     <li
@@ -88,7 +76,6 @@
                     >
                         <button type="button" @click="createItem(search)">
                             Cadastrar: {{ search }}
-
                             <UIIcon
                                 name="ph:plus-circle"
                                 class="text-pmca-accent w-6 h-6"
@@ -167,8 +154,6 @@ const props = defineProps({
     }
 });
 
-// TODO: handle html content correctly
-
 const defaultValue = getFormFieldConfig('defaultValue', [], props);
 const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
@@ -178,7 +163,6 @@ const placeholder = getFormFieldConfig('placeholder', '', props);
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowCreate = getFormFieldConfig('allowCreate', false, props);
 const allowMultiple = getFormFieldConfig('allowMultiple', false, props);
-const isHtml = getFormFieldConfig('richText', false, props);
 const oppositeField = getFormFieldConfig('oppositeField', null, props);
 
 let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);

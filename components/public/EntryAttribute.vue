@@ -15,7 +15,7 @@
                         <span v-if="!isOneLine && content.indexOf(item) !== content.length - 1"> | </span>
 
                         <p v-if="isOneLine">
-                            <div v-if="isHtml" v-html="item.name" class="mb-2"></div>
+                            <div v-if="isHtml" v-html="item.nameRich" class="mb-2"></div>
                         </p>
                     </span>
                 </span>
