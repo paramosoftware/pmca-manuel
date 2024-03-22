@@ -141,6 +141,10 @@ class PrismaService {
 
         const inserts: any[] = [];
 
+        if (this.checkPermissions) {
+            this.permissions = await this.converter.mergeRelatedPermissions();
+        }
+
         for (const item of this.request) {
             const query = await this.processCreateOrUpdateRequest(
                 this.model,
@@ -203,6 +207,10 @@ class PrismaService {
 
             const updates: any[] = [];
             const mediaUpdates = new Map<number, EntryMedia[]>();
+
+            if (this.checkPermissions) {
+                this.permissions = await this.converter.mergeRelatedPermissions();
+            }
 
             for (const item of this.request) {
                 if (item.where === undefined) {
@@ -377,10 +385,6 @@ class PrismaService {
         processRelations = true,
         parentModel: string = ''
     ) {
-        if (this.checkPermissions) {
-            this.permissions = await this.converter.mergeRelatedPermissions();
-        }
-
         const modelFields = Prisma.dmmf.datamodel.models.find(
             (m) => m.name.toLowerCase() === model.toLowerCase()
         )?.fields!;
@@ -952,6 +956,7 @@ class PrismaService {
 
     setUserId(userId: ID) {
         this.userId = userId;
+        this.converter.setUserId(userId);
     }
 
     setPermissions(permissions: Permission) {

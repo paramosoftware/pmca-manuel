@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
-import logger from '~/utils/logger';
+import cache from '~/utils/cache';
 import getBoolean from '~/utils/getBoolean';
+import logger from '~/utils/logger';
 import normalizeString from '~/utils/normalizeString';
 import parseNumber from '~/utils/parseNumber';
 import { ApiValidationError } from '../express/error';
@@ -13,6 +14,7 @@ class PrismaServiceConverter {
     private modelFields: readonly Prisma.DMMF.Field[];
     private fieldsMap: Map<string, Prisma.DMMF.Field>;
     private checkPermissions: boolean = true;
+    private userId: ID = '';
     public permissions: Permission = {};
 
     constructor(
@@ -588,9 +590,24 @@ class PrismaServiceConverter {
     }
 
     /**
-     * Merge public permissions with the permissions provided in the constructor
+     * Merge public permissions with the user's permissions. Add permissions for children resources.
+     * @returns The merged permissions
      */
     public async mergeRelatedPermissions() {
+        if (
+            this.userId &&
+            cache.has(`mergeRelatedPermissions|${this.userId}`)
+        ) {
+            this.permissions = cache.get(
+                `mergeRelatedPermissions|${this.userId}`
+            )!;
+            
+            return this.permissions;
+
+        } else if (cache.has('mergeRelatedPermissions')) {
+            this.permissions = cache.get('mergeRelatedPermissions')!;
+            return this.permissions;
+        }
 
         const userPermissions = Object.keys(this.permissions);
 
@@ -671,6 +688,16 @@ class PrismaServiceConverter {
             }
         }
 
+        if (this.userId) {
+            cache.set(
+                `mergeRelatedPermissions|${this.userId}`,
+                this.permissions,
+                60 * 5
+            );
+        } else {
+            cache.set('mergeRelatedPermissions', this.permissions, 60 * 10);
+        }
+
         return this.permissions;
     }
 
@@ -708,6 +735,10 @@ class PrismaServiceConverter {
 
     setPermissions(permissions: Permission) {
         this.permissions = permissions;
+    }
+
+    setUserId(userId: ID) {
+        this.userId = userId;
     }
 }
 
