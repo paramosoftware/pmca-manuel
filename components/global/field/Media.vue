@@ -24,7 +24,11 @@
         <div class="p-2 border border-gray-300" v-show="isOpenAccordion">
             <div class="mb-4 text-right">
                 <UIButton label="ADICIONAR ARQUIVOS" @click="isOpen = true" />
-                <UModal v-model="isOpen" :id="id + '-modal'">
+                <UModal
+                    v-model="isOpen"
+                    :id="id + '-modal'"
+                    :ui="{ padding: 'p-0', width: 'sm:max-w-5xl' }"
+                >
                     <UCard>
                         <template #header>
                             <UICloseButton @click="isOpen = false" />

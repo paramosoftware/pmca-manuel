@@ -1,14 +1,13 @@
 <template>
     <div>
+        <div class="mb-5 text-end">
+            <UIButton @click="uploadFiles" class="mx-auto"> Upload </UIButton>
+        </div>
         <vue-dropzone
             ref="myVueDropzone"
             id="dropzone"
             :options="dropzoneOptions"
         />
-
-        <div class="mt-5 text-end">
-            <UIButton @click="uploadFiles" class="mx-auto"> Upload </UIButton>
-        </div>
     </div>
 </template>
 
