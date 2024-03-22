@@ -419,8 +419,9 @@ class PrismaService {
         for (const [rawId, relatedField] of relations) {
             if (request[rawId] !== undefined) {
                 const validId = this.isIdValid(request[rawId]);
+                const field = fieldsMap.get(relatedField)!;
 
-                if (validId) {
+                if (validId && field.type !== parentModel)  {
                     prismaQuery[relatedField] = {
                         connect: {
                             id: this.processInt(request[rawId], rawId)
