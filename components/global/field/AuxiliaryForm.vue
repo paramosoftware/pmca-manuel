@@ -71,7 +71,11 @@
             <UModal
                 :id="relatedResource.name + '-modal-form'"
                 v-model="isModalOpen"
-                :ui="{ padding: 'p-0', width: 'sm:max-w-3xl' }"
+                :ui="{
+                    padding: 'p-0',
+                    width: 'sm:max-w-3xl',
+                    container: 'items-center'
+                }"
             >
                 <UICloseButton @click="isModalOpen = false" />
                 <Form

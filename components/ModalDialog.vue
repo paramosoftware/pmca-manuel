@@ -1,33 +1,42 @@
 <template>
-<UModal v-model="isOpen" @close="closeModal">
-    <UCard :ui="{ rounded: '' }">
-        <template #header>
-            <UICloseButton @click="closeModal" />
-            <UITitle>
-                {{ title }}
-            </UITitle>
-        </template>
-        
-        <UIIcon name="ph:warning" class="h-10 w-10 text-pmca-warning mr-3" />
-        {{ message  }}
+    <UModal
+        v-model="isOpen"
+        @close="closeModal"
+        :ui="{
+            padding: 'p-0',
+            width: 'sm:max-w-xl',
+            container: 'items-center'
+        }"
+    >
+        <UCard>
+            <template #header>
+                <UICloseButton @click="closeModal" />
+                <UITitle>
+                    {{ title }}
+                </UITitle>
+            </template>
 
-        <slot />
+            <UIIcon
+                name="ph:warning"
+                class="h-10 w-10 text-pmca-warning mr-3"
+            />
+            {{ message }}
 
-        <template #footer>
-            <div class="flex justify-end">
-                <UButton @click="closeModal" class="mr-2">
-                    {{ cancelButtonText }}
-                </UButton>
-                <UButton @click="onConfirm" variant="outline">
-                    {{ confirmButtonText }}
-                </UButton>
-            </div>
-        </template>
-    </UCard>
-</UModal>
+            <slot />
 
+            <template #footer>
+                <div class="flex justify-end">
+                    <UButton @click="closeModal" class="mr-2">
+                        {{ cancelButtonText }}
+                    </UButton>
+                    <UButton @click="onConfirm" variant="outline">
+                        {{ confirmButtonText }}
+                    </UButton>
+                </div>
+            </template>
+        </UCard>
+    </UModal>
 </template>
-
 
 <script setup lang="ts">
 const props = defineProps({
@@ -50,21 +59,24 @@ const props = defineProps({
     cancelButtonText: {
         type: String,
         default: 'Cancelar'
-    },
-})
+    }
+});
 
 const isOpen = ref(false);
 
-watch(() => props.modelValue, (newValue) => {
-    isOpen.value = newValue;
-})
+watch(
+    () => props.modelValue,
+    (newValue) => {
+        isOpen.value = newValue;
+    }
+);
 const emit = defineEmits(['confirm', 'close']);
 
 const closeModal = () => {
     emit('close');
-}
+};
 
 const onConfirm = () => {
     emit('confirm');
-}
+};
 </script>
