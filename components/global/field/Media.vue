@@ -23,11 +23,22 @@
 
         <div class="p-2 border border-gray-300" v-show="isOpenAccordion">
             <div class="mb-4 text-right">
-                <UIButton label="ADICIONAR ARQUIVOS" @click="isOpen = true" />
+                <UIButton @click="isOpen = true">
+                    <UIIcon
+                        name="ph:plus-circle"
+                        class="w-5 h-5"
+                        title="Criar"
+                    />
+                    Adicionar arquivos
+                </UIButton>
                 <UModal
                     v-model="isOpen"
                     :id="id + '-modal'"
-                    :ui="{ padding: 'p-0', width: 'sm:max-w-5xl' }"
+                    :ui="{
+                        padding: 'p-0',
+                        width: 'sm:max-w-5xl',
+                        container: 'items-center'
+                    }"
                 >
                     <UCard>
                         <template #header>
@@ -46,7 +57,7 @@
             </div>
 
             <draggable
-                class="grid grid-cols-6 gap-4"
+                class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
                 :list="media"
                 @end="updateMediaPosition"
                 :animation="200"
@@ -60,8 +71,17 @@
                         />
                         <div class="absolute top-0 right-0">
                             <UIButton
+                                @click="addSubtitle(element)"
+                                padding="p-1"
+                                square
+                                class="mr-1"
+                            >
+                                <UIIcon class="w-4 h-4" name="ph:subtitles" />
+                            </UIButton>
+                            <UIButton
                                 @click="deleteMedia(element)"
                                 padding="p-1"
+                                square
                             >
                                 <UIIcon
                                     class="w-4 h-4"
@@ -74,6 +94,29 @@
             </draggable>
         </div>
     </div>
+    <UModal
+        v-model="modalSubtitleIsOpen"
+        :id="id + 'subtitle-modal'"
+        :ui="{
+            padding: 'p-0',
+            width: 'sm:max-w-3xl',
+            container: 'items-center'
+        }"
+    >
+        <UCard>
+            <UICloseButton @click="closeSubtitleModal" />
+
+            <FieldTextarea
+                :id="id + '-subtitle'"
+                label="Legenda"
+                v-model="subtitle"
+            />
+
+            <div class="text-end">
+                <UIButton label="Salvar" @click="saveSubtitle" class="mt-4" />
+            </div>
+        </UCard>
+    </UModal>
 </template>
 
 <script setup lang="ts">
@@ -81,6 +124,9 @@ import draggable from 'vuedraggable';
 
 const isOpen = ref(false);
 const isOpenAccordion = ref(false);
+const modalSubtitleIsOpen = ref(false);
+const subtitleMediaId = ref(0);
+const subtitle = ref('');
 
 const props = defineProps({
     id: {
@@ -169,5 +215,38 @@ const updateMediaPosition = (event: any) => {
 
         emit('update:modelValue', media);
     }
+};
+
+const addSubtitle = (media: EntryMedia) => {
+    modalSubtitleIsOpen.value = true;
+    subtitle.value = media.subtitle || '';
+    subtitleMediaId.value = media.id;
+};
+
+const closeSubtitleModal = () => {
+    subtitle.value = '';
+    subtitleMediaId.value = 0;
+    modalSubtitleIsOpen.value = false;
+};
+
+const saveSubtitle = () => {
+    modalSubtitleIsOpen.value = false;
+    const media = modelValue.value;
+
+    media.map((item: EntryMedia) => {
+        if (item.id === subtitleMediaId.value) {
+            item.subtitle = subtitle.value;
+            // @ts-ignore
+            item._action_ = 'update';
+        }
+    });
+
+    if (props.formStore) {
+        props.formStore.setFieldData(props.id, media);
+    }
+
+    updateMediaPosition({ oldIndex: 0, newIndex: 1 });
+
+    closeSubtitleModal();
 };
 </script>
