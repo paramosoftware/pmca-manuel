@@ -27,7 +27,6 @@
                     <UIIcon
                         name="ph:plus-circle"
                         class="w-5 h-5"
-                        title="Criar"
                     />
                     Adicionar arquivos
                 </UIButton>
@@ -76,7 +75,11 @@
                                 square
                                 class="mr-1"
                             >
-                                <UIIcon class="w-4 h-4" name="ph:subtitles" />
+                                <UIIcon 
+                                    class="w-4 h-4" 
+                                    name="ph:subtitles" 
+                                    title="Editar legenda"
+                                />
                             </UIButton>
                             <UIButton
                                 @click="deleteMedia(element)"
@@ -86,6 +89,7 @@
                                 <UIIcon
                                     class="w-4 h-4"
                                     name="ph:trash-simple"
+                                    title="Excluir"
                                 />
                             </UIButton>
                         </div>
