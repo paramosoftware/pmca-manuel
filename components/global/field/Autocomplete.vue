@@ -51,7 +51,7 @@
             <span ref="autocompleteRef">
                 <ul
                     v-if="showPopper"
-                    class="w-full bg-white border border-x-gray-300 space-y-1 absolute z-10 mt-2 rounded-md shadow-sm"
+                    class="w-full bg-white border border-x-gray-300 space-y-1 absolute z-10 m-1 rounded-md shadow-xl"
                 >
                     <li
                         v-for="item in results"
@@ -72,16 +72,18 @@
 
                     <li
                         v-if="canCreate"
-                        class="rounded-md px-2 py-1 text-gray-600"
+                        class="p-2 text-gray-600 hover:bg-gray-100 cursor-pointer border-t border-gray-200 mt-2 rounded-none"
+                        @click="createItem(search)"
                     >
-                        <button type="button" @click="createItem(search)">
-                            Cadastrar: {{ search }}
+                        <div class="flex items-center">
                             <UIIcon
                                 name="ph:plus-circle"
                                 class="text-pmca-accent w-6 h-6"
                                 title="Criar"
                             />
-                        </button>
+                            <strong class="m-1">Criar: </strong>
+                            <i>{{ search }}</i>
+                        </div>
                     </li>
                 </ul>
             </span>
@@ -243,9 +245,7 @@ const canAddMore = computed(() => {
 });
 
 const canCreate = computed(() => {
-    return (
-        allowCreate.value && search.value !== '' && results.value.length === 0
-    );
+    return allowCreate.value && search.value !== '';
 });
 
 function selectItem(item: Item) {
