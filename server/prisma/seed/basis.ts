@@ -380,7 +380,7 @@ function buildFieldsConfig(
             isHierarchical:
                 docConfig.isHierarchical === 'true' ||
                 field.name === 'parentId',
-            isRich: docConfig.isRich === 'true' || false,
+            isRich: docConfig.isRich === 'true',
             required:
                 docConfig.required !== undefined
                     ? getBoolean(docConfig.required)
@@ -402,7 +402,10 @@ function buildFieldsConfig(
             position:
                 docConfig.position ||
                 Array.from(fieldsMap.keys()).indexOf(field.name) + 1,
-            includeExport: docConfig.includeExport === 'true' || false
+            includeExport: docConfig.includeExport === 'true',
+            allowCreate: docConfig.allowCreate !== 'false',
+            allowMultiple: docConfig.allowMultiple !== 'false',
+            placeholder: docConfig.placeholder || undefined
         } as Prisma.ResourceFieldCreateInput & { resource: undefined };
 
         fieldsConfig.push(fieldConfig);

@@ -241,8 +241,8 @@ model Entry {
   variations   EntryVariation[] /// includeExport:true
   translations EntryTranslation[] /// includeExport:true
 
-  entries        Entry[] @relation("EntryToEntry") /// includeExport:true
-  relatedEntries Entry[] @relation("EntryToEntry") /// includeExport:true
+  entries        Entry[] @relation("EntryToEntry") /// includeExport:true|allowCreate:false
+  relatedEntries Entry[] @relation("EntryToEntry") /// includeExport:true|allowCreate:false
 
   references Reference[] /// includeExport:true
   media      EntryMedia[]
@@ -339,7 +339,7 @@ model Language {
 /// isPublic:true
 model Reference {
   id   Int    @id @default(autoincrement())
-  name String @unique /// uiField:rich
+  name String @unique /// uiField:rich|isRich:true
 
   nameRich       String? /// hidden:true
   nameNormalized String?
