@@ -107,7 +107,7 @@ function formatRows(changes: any[]) {
     const row = {
       createdAt: new Date(change.createdAt).toLocaleString('pt-BR').substring(0, 17),
       author: change.author ? change.author.name : 'Anônimo',
-      field: change.field.label || change.field.name || "Campo excluído",
+      field: change.field?.label || change.field?.name || "Campo excluído",
       changes: formatChanges(JSON.parse(change.changes))
     }
 
