@@ -24,22 +24,26 @@ class PrismaService {
     private userId: ID = '';
     private validator: PrismaServiceValidator;
     private converter: PrismaServiceConverter;
+    private onlyPublished: boolean = false;
 
     /**
      * PrismaService constructor
      * @param model - The model name
      * @param checkPermissions - Whether to check permissions. Permissions can be set with setPermissions.
+     * @param onlyPublished - Return only published records
      */
-    constructor(model: string, checkPermissions = true) {
+    constructor(model: string, checkPermissions = true, onlyPublished = false) {
         this.model = model;
         this.checkPermissions = checkPermissions;
+        this.onlyPublished = onlyPublished;
         this.setModelFields();
         this.validator = new PrismaServiceValidator(model);
         this.converter = new PrismaServiceConverter(
             model,
             this.modelFields,
             this.fieldsMap,
-            this.checkPermissions
+            this.checkPermissions,
+            this.onlyPublished
         );
     }
 

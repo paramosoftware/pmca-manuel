@@ -174,5 +174,6 @@ FIELDS.set('isRelation', 'É uma tabela de relacionamento?');
 FIELDS.set('parent', 'Verbete superior');
 FIELDS.set('children', 'Verbetes inferiores');
 FIELDS.set('type', 'Tipo');
+FIELDS.set('published', 'Publicado');
 
 export { MODELS, FIELDS };

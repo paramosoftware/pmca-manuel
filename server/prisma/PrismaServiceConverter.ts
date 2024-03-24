@@ -16,17 +16,20 @@ class PrismaServiceConverter {
     private checkPermissions: boolean = true;
     private userId: ID = '';
     public permissions: Permission = {};
+    private onlyPublished: boolean = false;
 
     constructor(
         model: string,
         modelFields: readonly Prisma.DMMF.Field[],
         fieldsMap: Map<string, Prisma.DMMF.Field>,
-        checkPermissions: boolean = true
+        checkPermissions: boolean = true,
+        onlyPublished: boolean = false
     ) {
         this.model = model;
         this.modelFields = modelFields;
         this.fieldsMap = fieldsMap;
         this.checkPermissions = checkPermissions;
+        this.onlyPublished = onlyPublished;
     }
 
     /**
@@ -113,6 +116,19 @@ class PrismaServiceConverter {
                         [field.name + 'Normalized']: normalizeString(value)
                     });
                 }
+            }
+        }
+
+        if (this.onlyPublished && this.fieldsMap.get('published')) {
+            if (prismaQuery.where && prismaQuery.where.AND) {
+                prismaQuery.where.AND.push({ published: true });
+            } else if (prismaQuery.where) {
+                prismaQuery.where = {
+                    AND: [{ published: true }],
+                    ...prismaQuery.where
+                };
+            } else {
+                prismaQuery.where = { AND: [{ published: true }] };
             }
         }
 
@@ -211,11 +227,14 @@ class PrismaServiceConverter {
         fieldsMap: Map<string, Prisma.DMMF.Field>
     ) {
         let prismaQuery: any = {};
+        const logicalOperators = ['AND', 'OR', 'NOT'];
 
-        const keys = Object.keys(where);
+        let keys = Object.keys(where);
+
+        keys = Object.keys(where);
 
         keys.forEach((key) => {
-            if (key === 'AND' || key === 'OR' || key === 'NOT') {
+            if (logicalOperators.includes(key.toUpperCase())) {
                 const operator = key.toUpperCase();
 
                 prismaQuery[operator] = [];
@@ -391,32 +410,47 @@ class PrismaServiceConverter {
         model: string,
         fieldsMap: Map<string, Prisma.DMMF.Field>
     ) {
+        const prismaQuery: any = {};
+        const published = {
+            where: {
+                published: true
+            }
+        };
+
+        const _addInclude = (
+            field: Prisma.DMMF.Field,
+            onlyPublished = false
+        ) => {
+            const relatedModel = field.type;
+
+            const hasPublishedField = Prisma.dmmf.datamodel.models
+                .find((m) => m.name === relatedModel)
+                ?.fields?.some((f) => f.name === 'published');
+
+            if (hasPublishedField && onlyPublished) {
+                prismaQuery[field.name] = published;
+            } else if (this.checkFieldPermission(relatedModel, field.name)) {
+                prismaQuery[field.name] = true;
+            }
+        };
+
         if (typeof include === 'string') {
-            const prismaQuery: any = {};
             if (include === '*') {
                 fieldsMap.forEach((f) => {
-                    if (
-                        f.kind === 'object' &&
-                        this.checkFieldPermission(f.type, f.name)
-                    ) {
-                        prismaQuery[f.name] = true;
+                    if (f.kind === 'object') {
+                        _addInclude(f, this.onlyPublished);
                     }
                 });
                 return prismaQuery;
             }
         }
 
-        const prismaQuery: any = {};
-
         if (Array.isArray(include)) {
             include.forEach((field) => {
                 if (this.fieldExists(fieldsMap, field, model)) {
                     const modelField = fieldsMap.get(field);
-                    if (
-                        modelField?.kind === 'object' &&
-                        this.checkFieldPermission(modelField.type, field)
-                    ) {
-                        prismaQuery[field] = true;
+                    if (modelField?.kind === 'object') {
+                        _addInclude(modelField, this.onlyPublished);
                     } else {
                         logger.info(
                             'Field ' +
@@ -434,24 +468,30 @@ class PrismaServiceConverter {
                 const modelField = fieldsMap.get(field);
 
                 if (modelField) {
-                    if (
-                        typeof include[field] === 'boolean' &&
-                        this.checkFieldPermission(modelField.type, field)
-                    ) {
-                        prismaQuery[field] = true;
+                    if (typeof include[field] === 'boolean') {
+                        _addInclude(modelField, this.onlyPublished);
                     } else {
                         if (modelField?.kind === 'object') {
-                            if (
+                            _addInclude(modelField, this.onlyPublished);
+
+                            const temp = this.convertQuery(
+                                include[field] as Query,
+                                modelField?.type || '',
+                                false
+                            );
+
+                            if (prismaQuery[modelField.name]) {
+                                prismaQuery[modelField.name] = {
+                                    ...prismaQuery[modelField.name],
+                                    ...temp
+                                };
+                            } else if (
                                 this.checkFieldPermission(
                                     modelField.type,
                                     field
                                 )
                             ) {
-                                prismaQuery[field] = this.convertQuery(
-                                    include[field] as Query,
-                                    modelField?.type || '',
-                                    false
-                                );
+                                prismaQuery[modelField.name] = temp;
                             }
                         } else {
                             logger.info(
@@ -594,11 +634,9 @@ class PrismaServiceConverter {
      * @returns The merged permissions
      */
     public async mergeRelatedPermissions() {
-
         const cacheKey = this.userId
             ? `mergeRelatedPermissions|${this.userId}`
             : 'mergeRelatedPermissions';
-
 
         if (cache.has(cacheKey)) {
             this.permissions = cache.get(cacheKey)!;
