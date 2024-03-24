@@ -126,10 +126,6 @@ export const createFormStore = (name: string) => {
         }
 
         function getFieldData(field: string) {
-            if (!fieldsData.value[field]) {
-                return undefined;
-            }
-
             return fieldsData.value[field];
         }
 

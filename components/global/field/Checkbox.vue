@@ -55,7 +55,7 @@ let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
 
 if (props.formStore) {
     modelValue = computed(
-        () => props.formStore?.getFieldData(props.id) ?? defaultValue.value
+        () => props.formStore?.getFieldData(props.id) === undefined ? defaultValue.value : props.formStore?.getFieldData(props.id)
     );
     props.formStore.setFieldData(props.id, modelValue.value);
 }
