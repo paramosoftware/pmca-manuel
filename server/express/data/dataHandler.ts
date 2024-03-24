@@ -18,7 +18,7 @@ const dataHandler = async (
     res: express.Response,
     next: express.NextFunction
 ) => {
-    const { model, id, hasQuery, isUpload, isImport, isExport, isPublic } =
+    const { model, id, partialResource, hasQuery, isUpload, isImport, isExport, isPublic } =
         getParamsFromPath(req.path);
 
     // @ts-ignore
@@ -92,7 +92,7 @@ const dataHandler = async (
                         query
                     );
                 } else if (id) {
-                    response = prismaService.readOne(id, request);
+                    response = prismaService.readOne(id, request, partialResource);
                 } else {
                     response = prismaService.readMany(request);
                 }
@@ -106,7 +106,7 @@ const dataHandler = async (
                 break;
             case 'POST':
                 if (id && hasQuery) {
-                    response = prismaService.readOne(id, request);
+                    response = prismaService.readOne(id, request, partialResource);
                 } else if (hasQuery) {
                     response = prismaService.readMany(request);
                 } else if (isUpload) {
@@ -161,6 +161,7 @@ function getParamsFromPath(path: string): {
     model: string;
     id: string;
     hasQuery: boolean;
+    partialResource: string;
     isPublic: boolean;
     isUpload: boolean;
     isImport: boolean;
@@ -169,6 +170,7 @@ function getParamsFromPath(path: string): {
     const info = {
         model: '',
         id: '',
+        partialResource: '',
         hasQuery: false,
         isPublic: false,
         isUpload: false,
@@ -209,6 +211,7 @@ function getParamsFromPath(path: string): {
 
     if (parts.length > 0) {
         info.id = parts[0];
+        info.partialResource = parts[1] || '';
     }
 
     return info;

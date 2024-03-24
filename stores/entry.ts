@@ -177,7 +177,7 @@ export const useEntryStore = defineStore('entry', () => {
         sortBy = 'createdAt',
         sort = 'desc'
     ) {
-        const urlData = computed(() => `/api/public/${model}Changes`);
+        const urlData = computed(() => `/api/public/${model}/${entry.value?.id}/changes`);
 
         let orderBy;
 
@@ -195,9 +195,6 @@ export const useEntryStore = defineStore('entry', () => {
             params: {
                 page,
                 pageSize,
-                where: {
-                    entryId: entry.value?.id
-                },
                 orderBy,
                 include: {
                     author: {

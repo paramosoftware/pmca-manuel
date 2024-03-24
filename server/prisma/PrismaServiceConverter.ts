@@ -6,6 +6,7 @@ import normalizeString from '~/utils/normalizeString';
 import parseNumber from '~/utils/parseNumber';
 import { ApiValidationError } from '../express/error';
 import { prisma } from '../prisma/prisma';
+import uncapitalize from '~/utils/uncapitalize';
 
 class PrismaServiceConverter {
     private model: string;
@@ -35,8 +36,9 @@ class PrismaServiceConverter {
     /**
      * Converts the request to a Prisma query
      * @param body
-     * @param paginated
+     * @param  {boolean} [paginated=false] - Whether to process the request as a paginated request and add pagination to the query
      * @param identifierToAddUniqueFields - Identifier to add unique fields to the where clause with OR as: where: { OR: [{ id: 'article' }, { name: 'article' }, { nameSlug: 'article' }] }
+     * @param {string} [partialResource] - The field to be returned as response in case of a partial resource request
      * @returns A Prisma query or a paginated Prisma query
      * @throws ApiValidationError
      * @example body = { select: ['id', 'name'], where: { id: 1 }, include: { user: { select ['id', 'name'] } }, orderBy: { name: 'asc' }, pageSize: 20, page: 1 }
@@ -44,7 +46,8 @@ class PrismaServiceConverter {
     async convertRequestToPrismaQuery(
         request: Query,
         paginated: boolean = false,
-        identifierToAddUniqueFields?: ID | undefined
+        identifierToAddUniqueFields?: ID | undefined,
+        partialResource?: string
     ) {
         const query = {
             select: request.select || undefined,
@@ -57,7 +60,12 @@ class PrismaServiceConverter {
             await this.mergeRelatedPermissions();
         }
 
-        const prismaQuery = this.convertQuery(query, this.model);
+        const partialResourceWhere = this.convertToPartialResourceRequest(
+            partialResource,
+            identifierToAddUniqueFields
+        );
+
+        let prismaQuery = this.convertQuery(query, this.model);
 
         if (paginated) {
             request.pageSize = request.pageSize || this.pageSize;
@@ -80,30 +88,62 @@ class PrismaServiceConverter {
             }
         }
 
+        if (partialResource) {
+            prismaQuery = this.addClauseToWhereOperator(
+                prismaQuery,
+                partialResourceWhere,
+                'AND'
+            );
+        } else if (identifierToAddUniqueFields) {
+            const whereUniqueFields = this.getUniqueFieldsToAddInWhereClause(
+                identifierToAddUniqueFields
+            );
+
+            prismaQuery = this.addClauseToWhereOperator(
+                prismaQuery,
+                whereUniqueFields,
+                'OR'
+            );
+        }
+
+        if (this.onlyPublished && this.fieldsMap.get('published')) {
+            prismaQuery = this.addClauseToWhereOperator(
+                prismaQuery,
+                { published: true },
+                'AND'
+            );
+        }
+
+        return prismaQuery;
+    }
+
+    private getUniqueFieldsToAddInWhereClause(
+        identifierToAddUniqueFields: ID | undefined
+    ) {
+        const where = [] as any;
+
         if (identifierToAddUniqueFields) {
             const uniqueFields = this.modelFields.filter(
                 (f) => f.isUnique || f.isId
             );
-
-            prismaQuery.where = { OR: [] };
 
             for (const field of uniqueFields ?? []) {
                 const value = parseNumber(identifierToAddUniqueFields);
                 const valueType = typeof value;
 
                 if (field.type === 'Int' && valueType === 'number') {
-                    prismaQuery.where.OR.push({ [field.name]: value });
+                    where.push({ [field.name]: value });
                 }
 
                 if (field.type === 'String' && valueType === 'string') {
-                    prismaQuery.where.OR.push({ [field.name]: value });
+                    where.push({ [field.name]: value });
                 }
 
                 if (
                     this.fieldsMap.get(field.name + 'Slug') &&
                     valueType === 'string'
                 ) {
-                    prismaQuery.where.OR.push({
+                    where.push({
                         [field.name + 'Slug']: normalizeString(value, true)
                     });
                 }
@@ -112,23 +152,55 @@ class PrismaServiceConverter {
                     this.fieldsMap.get(field.name + 'Normalized') &&
                     valueType === 'string'
                 ) {
-                    prismaQuery.where.OR.push({
+                    where.push({
                         [field.name + 'Normalized']: normalizeString(value)
                     });
                 }
             }
         }
 
-        if (this.onlyPublished && this.fieldsMap.get('published')) {
-            if (prismaQuery.where && prismaQuery.where.AND) {
-                prismaQuery.where.AND.push({ published: true });
-            } else if (prismaQuery.where) {
-                prismaQuery.where = {
-                    AND: [{ published: true }],
-                    ...prismaQuery.where
-                };
+        return where;
+    }
+
+    private addClauseToWhereOperator(
+        prismaQuery: any,
+        clause: object | object[],
+        operator: 'AND' | 'OR' | 'NOT'
+    ) {
+        const logicalOperators = ['AND', 'OR', 'NOT'];
+
+        if (typeof clause === 'undefined' || Array.isArray(clause) && clause.length === 0) {
+            return prismaQuery;
+        }
+
+        const clauses = Array.isArray(clause) ? clause : [clause];
+
+        if (!prismaQuery.where) {
+            prismaQuery.where = {};
+            prismaQuery.where[operator] = clauses;
+        } else if (Array.isArray(prismaQuery.where[operator])) {
+            clauses.forEach((c) => {
+                prismaQuery.where[operator].push(c);
+            });
+        } else {
+            const keys = Object.keys(prismaQuery.where);
+            if (keys.some((key) => logicalOperators.includes(key))) {
+                prismaQuery.where[operator] = [];
             } else {
-                prismaQuery.where = { AND: [{ published: true }] };
+                const temp = { ...prismaQuery.where };
+                prismaQuery.where = {};
+                prismaQuery.where[operator] = [];
+                clauses.forEach((c) => {
+                    prismaQuery.where[operator].push(c);
+                });
+
+                if (!Array.isArray(prismaQuery.where['AND'])) {
+                    prismaQuery.where['AND'] = [];
+                }
+
+                for (const [key, value] of Object.entries(temp)) {
+                    prismaQuery.where['AND'].push({ [key]: value });
+                }
             }
         }
 
@@ -751,6 +823,72 @@ class PrismaServiceConverter {
         }
     }
 
+    /**
+     * Converts a full resource request to a partial resource request
+     * @param partialResource - The field to be returned as response in case of a partial resource request
+     * @param identifierToAddUniqueFields - Identifier to add unique fields to the where clause with OR as: where: { OR: [{ id: 'article' }, { name: 'article' }, { nameSlug: 'article' }] }
+     * @throws ApiValidationError
+     * @example If a resource Article has a relation field called references, the request can be converted to return only the references field as response, that can be paginated, ordered, etc.
+     *
+     */
+    private convertToPartialResourceRequest(
+        partialResource?: string,
+        identifierToAddUniqueFields?: ID | undefined
+    ) {
+        if (!partialResource) {
+            return;
+        }
+
+        const partialResourceWhere: any = {};
+
+        const whereUniqueFields = this.getUniqueFieldsToAddInWhereClause(
+            identifierToAddUniqueFields
+        );
+
+        const prismaField = this.fieldsMap.get(partialResource);
+
+        const fields = Prisma.dmmf.datamodel.models
+            .find((m) => m.name === prismaField?.type)
+            ?.fields;
+
+
+        const relationField = fields?.find((f) => f.kind === 'object' && f.relationName === prismaField?.relationName);
+
+        if (!prismaField || prismaField.kind.toLowerCase() !== 'object' || !relationField) {
+            throw new ApiValidationError(
+                `${partialResource} is not a relation field of ${this.model} model and cannot be returned as a partial resource`
+            );
+        }
+
+        const where = {} as any;
+
+        const isChildResource = relationField.relationFromFields && relationField.relationFromFields.length > 0;
+        
+        where.OR = whereUniqueFields;
+        
+        if (this.onlyPublished && this.fieldsMap.get('published')) {
+            where.AND = [{ published: true }];
+        }
+
+        if (partialResource === 'children') {
+            partialResourceWhere['parent'] = where;
+        } else if (!isChildResource) {
+            partialResourceWhere[relationField.name] = { some: where };
+        } else {
+            partialResourceWhere[relationField.name] = where;
+        }
+
+
+        this.model = prismaField.type;
+        this.setModelFields();
+
+        return partialResourceWhere;
+    }
+
+    getModel() {
+        return this.model;
+    }
+
     setPageSize(pageSize: number) {
         this.pageSize = pageSize;
     }
@@ -765,6 +903,17 @@ class PrismaServiceConverter {
 
     setUserId(userId: ID) {
         this.userId = userId;
+    }
+
+    private setModelFields() {
+        this.modelFields = [];
+        this.fieldsMap = new Map<string, Prisma.DMMF.Field>();
+        this.modelFields = Prisma.dmmf.datamodel.models.find(
+            (m) => m.name.toLowerCase() === this.model.toLowerCase()
+        )?.fields!;
+        this.modelFields?.forEach((f) => {
+            this.fieldsMap.set(f.name, f);
+        });
     }
 }
 

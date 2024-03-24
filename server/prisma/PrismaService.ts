@@ -51,6 +51,7 @@ class PrismaService {
      * Reads one record.
      * @param identifier - Can be any unique field of the model
      * @param request - The request object with select and include
+     * @param {string} [partialResource] - The field to be returned as response in case of a partial resource request
      * @returns The record or null
      * @throws ApiValidationError
      * @example
@@ -58,16 +59,23 @@ class PrismaService {
      */
     async readOne(
         identifier: ID,
-        request?: { select?: Select; include?: Include }
+        request?: { select?: Select; include?: Include },
+        partialResource?: string
     ) {
         try {
             this.request = request ?? {};
             this.validator.validate(this.request);
             const query = await this.converter.convertRequestToPrismaQuery(
                 this.request,
-                false,
-                identifier
+                partialResource !== undefined,
+                identifier,
+                partialResource
             );
+
+            if (partialResource) {
+                this.model = this.converter.getModel();
+                return await this.readManyWithCount(query);
+            }
 
             query.orderBy = undefined;
 
@@ -95,6 +103,16 @@ class PrismaService {
                 true
             );
 
+            return await this.readManyWithCount(query);
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
+    private async readManyWithCount(query: Query) {
+        try {
             const [total, data] = await prisma.$transaction([
                 // @ts-ignore
                 prisma[this.model].count({ where: query.where }),
@@ -425,7 +443,7 @@ class PrismaService {
                 const validId = this.isIdValid(request[rawId]);
                 const field = fieldsMap.get(relatedField)!;
 
-                if (validId && field.type !== parentModel)  {
+                if (validId && field.type !== parentModel) {
                     prismaQuery[relatedField] = {
                         connect: {
                             id: this.processInt(request[rawId], rawId)
