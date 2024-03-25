@@ -3,7 +3,7 @@
         <div class="max-w-md w-full lg:max-w-full lg:flex shadow-sm hover:shadow-md">
             <div class="w-full border border-gray-200 rounded-md flex flex-col justify-between">
 
-                <UIImg :src="thumbnail" :alt="entry.name" class="object-cover w-full rounded-sm" :class="height" />
+                <UIImg :src="thumbnail" :alt="entry.name" class="object-cover w-full rounded-sm" :class="height" quality="70" />
                 <div :class="titlePadding">
 
                     <div class="flex flex-row justify-between items-center">

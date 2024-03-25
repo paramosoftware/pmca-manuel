@@ -1,9 +1,17 @@
 <template>
     <div class="container bg-gray-100">
-        <Viewer :images="images" @inited=inited class="viewer">
+        <Viewer :images="images" @inited="inited" class="viewer">
             <Splide :options="options">
-                <SplideSlide v-for="image in images" :key="image" class="items-center flex">
-                    <UIImg :src="image" class="flex-none cursor-pointer object-cover w-full h-full mx-2" />
+                <SplideSlide
+                    v-for="image in images"
+                    :key="image"
+                    class="items-center flex"
+                >
+                    <UIImg
+                        :src="image"
+                        class="flex-none cursor-pointer object-cover w-full h-full mx-2"
+                        quality="90"
+                    />
                 </SplideSlide>
             </Splide>
         </Viewer>
@@ -11,9 +19,9 @@
 </template>
 
 <script setup lang="ts">
-import 'viewerjs/dist/viewer.css'
+import 'viewerjs/dist/viewer.css';
 import '@splidejs/vue-splide/css';
-import { component as Viewer } from "v-viewer"
+import { component as Viewer } from 'v-viewer';
 import { Splide, SplideSlide } from '@splidejs/vue-splide';
 
 const props = defineProps({
@@ -22,13 +30,13 @@ const props = defineProps({
         required: true,
         default: () => []
     }
-})
+});
 
-const viewer = ref(null)
+const viewer = ref(null);
 
 const inited = (viewerInstance: any) => {
-    viewer.value = viewerInstance
-}
+    viewer.value = viewerInstance;
+};
 
 const options = {
     type: 'slide',
@@ -55,8 +63,7 @@ const options = {
             perPage: 3,
             gap: '1rem',
             drag: props.images.length > 3
-        },
-    },
+        }
+    }
 };
-
 </script>
