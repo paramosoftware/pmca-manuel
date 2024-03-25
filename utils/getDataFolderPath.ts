@@ -7,9 +7,9 @@ export default function getDataFolderPath(folder: string) {
     }
 
     if (!fs.existsSync(path.join(process.env.DATA_DIR!, folder))) {
-        throw new Error(
-            `Folder ${folder} does not exist in ${process.env.DATA_DIR}`
-        );
+        fs.mkdirSync(path.join(process.env.DATA_DIR!, folder), {
+            recursive: true
+        });
     }
 
     return path.join(process.env.DATA_DIR!, folder);
