@@ -17,7 +17,11 @@ export namespace Prisma {
     export namespace DMMF {
         export type Field = _Prisma.DMMF.Field;
         export type dmmf = _Prisma.DMMF.Document;
+        export type Model = _Prisma.DMMF.Model;
     }
+
+    export type ResourceFieldCreateInput = _Prisma.ResourceFieldCreateInput;
+    export type ResourceCreateInput = _Prisma.ResourceCreateInput;
 }
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
