@@ -1,12 +1,10 @@
-import { Prisma } from '@prisma/client';
 import cache from '~/utils/cache';
 import getBoolean from '~/utils/getBoolean';
 import logger from '~/utils/logger';
 import normalizeString from '~/utils/normalizeString';
 import parseNumber from '~/utils/parseNumber';
 import { ApiValidationError } from '../express/error';
-import { prisma } from '../prisma/prisma';
-import uncapitalize from '~/utils/uncapitalize';
+import { prisma, Prisma } from '~/server/prisma/prisma';
 
 class PrismaServiceConverter {
     private model: string;

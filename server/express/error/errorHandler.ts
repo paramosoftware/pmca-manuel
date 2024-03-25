@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '~/server/prisma/prisma';
 import type { ErrorRequestHandler } from 'express';
 import multer from 'multer';
 import { CustomError } from '.';

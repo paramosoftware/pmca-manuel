@@ -1,11 +1,10 @@
-import { Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import getBoolean from '~/utils/getBoolean';
 import hashPassword from '~/utils/hashPassword';
 import normalizeString from '~/utils/normalizeString';
 import parseNumber from '~/utils/parseNumber';
 import sanitizeString from '~/utils/sanitizeString';
-import { prisma } from './prisma';
+import { prisma, Prisma } from '~/server/prisma/prisma';
 import { ApiValidationError } from '../express/error';
 import { deleteEntryMedia, handleMedia } from './media';
 import PrismaServiceConverter from './PrismaServiceConverter';
