@@ -15,7 +15,9 @@ const csrfHandler = (
         '/api/auth/logout'
     ];
 
-    if (req.method !== 'GET' && !exceptions.includes(req.path)) {
+    const methods = ['GET', 'HEAD', 'OPTIONS', 'TRACE']
+
+    if (!exceptions.includes(req.path) && !methods.includes(req.method)) {
         const csrf = req.headers['x-csrf-token'];
 
         const cookieName = getCookiePrefix() + 'jwt';
