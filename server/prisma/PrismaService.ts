@@ -1117,10 +1117,15 @@ class PrismaService {
                         (name: any) => !newNames.includes(name)
                     );
 
-                    const fieldChanges = {
-                        added,
-                        removed
-                    };
+                    const fieldChanges = { } as { added: string[]; removed: string[] };
+
+                    if (added.length > 0) {
+                        fieldChanges['added'] = added;
+                    }
+
+                    if (removed.length > 0) {
+                        fieldChanges['removed'] = removed;
+                    }
 
                     if (added.length > 0 || removed.length > 0) {
                         _addChange(field, JSON.stringify(fieldChanges));
