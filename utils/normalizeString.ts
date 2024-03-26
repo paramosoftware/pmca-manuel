@@ -12,6 +12,8 @@ export default function normalizeString(str: string, slug: boolean = false) {
 
     str = stripHtmlTags(str);
 
+    str = str.replace(/[^\w\s]/gi, '');
+
     if (slug) {
         str = str.replace(/\s/g, '-');
     }
