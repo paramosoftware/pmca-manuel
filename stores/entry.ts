@@ -234,6 +234,7 @@ export const useEntryStore = defineStore('entry', () => {
     }
 
     function sortByName() {
+        page.value = 1;
         sort.value === 'asc' ? (sort.value = 'desc') : (sort.value = 'asc');
     }
 
