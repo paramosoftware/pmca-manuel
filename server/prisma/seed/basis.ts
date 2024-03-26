@@ -405,7 +405,8 @@ function buildFieldsConfig(
             includeExport: docConfig.includeExport === 'true',
             allowCreate: docConfig.allowCreate !== 'false',
             allowMultiple: docConfig.allowMultiple !== 'false',
-            placeholder: docConfig.placeholder || undefined
+            placeholder: docConfig.placeholder || undefined,
+            published: resource === 'Entry'
         } as Prisma.ResourceFieldCreateInput & { resource: undefined };
 
         fieldsConfig.push(fieldConfig);
