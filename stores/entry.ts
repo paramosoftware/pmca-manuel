@@ -19,6 +19,7 @@ export const useEntryStore = defineStore('entry', () => {
     const entries = ref<Entry[]>([]);
     const entriesNetwork = ref<Entry[]>([]); // only used to build network for home
     const entriesTree = ref<TreeNode[]>([]);
+    const loadingStore = useLoadingStore();
 
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
@@ -90,6 +91,7 @@ export const useEntryStore = defineStore('entry', () => {
             () => `/api/public/${model}/${resourceIdentifier}`
         );
 
+        loadingStore.start();
         const { data, pending, error } = (await useFetchWithBaseUrl(urlData, {
             method: 'GET',
             params: { ...QUERIES.get(model) }
@@ -102,12 +104,14 @@ export const useEntryStore = defineStore('entry', () => {
         entry.value = data.value;
         pending.value = pending.value;
         error.value = error.value;
+        loadingStore.stop();
     }
 
     async function fetchList() {
         entryIdentifier.value = '';
         const urlData = computed(() => `/api/public/${model}`);
 
+        loadingStore.start();
         const { data, pending, error } = (await useFetchWithBaseUrl(urlData, {
             params: query.value
         })) as {
@@ -123,9 +127,12 @@ export const useEntryStore = defineStore('entry', () => {
         }
 
         pending.value = pending.value;
+        error.value = error.value;
+        loadingStore.stop();
     }
 
     async function fetchNetwork() {
+        loadingStore.start();
         const { data, pending, error } = (await useFetchWithBaseUrl(
             `/api/public/${model}`,
             {
@@ -140,6 +147,7 @@ export const useEntryStore = defineStore('entry', () => {
         };
 
         entriesNetwork.value = data.value.items || [];
+        loadingStore.stop();
     }
 
     async function fetchRandom() {
@@ -147,6 +155,9 @@ export const useEntryStore = defineStore('entry', () => {
     }
 
     async function fetchEntriesTree() {
+
+        loadingStore.start();
+
         const { data } = await useFetchWithBaseUrl(`/api/public/${model}`, {
             method: 'GET',
             params: {
@@ -169,6 +180,8 @@ export const useEntryStore = defineStore('entry', () => {
                 entry.value?.id
             ) as TreeNode[];
         }
+
+        loadingStore.stop();
     }
 
     async function fetchEntryChanges(
@@ -178,6 +191,8 @@ export const useEntryStore = defineStore('entry', () => {
         sort = 'desc'
     ) {
         const urlData = computed(() => `/api/public/${model}/${entry.value?.id}/changes`);
+
+        loadingStore.start();
 
         let orderBy;
 
@@ -214,6 +229,8 @@ export const useEntryStore = defineStore('entry', () => {
         entryChanges.value = data.value?.items || [];
         totalEntryChanges.value = data.value?.total || 0;
         entryChangesLoading.value = pending.value;
+
+        loadingStore.stop();
     }
 
     function sortByName() {

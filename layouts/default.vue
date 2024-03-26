@@ -10,4 +10,6 @@
 
         <UNotifications />
     </div>
+
+    <UILoading />
 </template>

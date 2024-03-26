@@ -8,4 +8,5 @@
 
         <Footer />
     </div>
+   <UILoading />
 </template>

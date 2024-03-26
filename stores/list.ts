@@ -15,6 +15,7 @@ export const useListStore = defineStore('list', () => {
     const totalPages = ref(0);
     const resourceStore = useResourceStore();
     const userStore = useUserStore();
+    const loadingStore = useLoadingStore();
     const canCreate = computed(
         () => userStore.permissions[resourceStore.model]?.create
     );
@@ -61,6 +62,7 @@ export const useListStore = defineStore('list', () => {
     );
 
     async function fetch(resourceIdentifier: string) {
+        loadingStore.start();
         await resourceStore.fetch(resourceIdentifier);
         await userStore.fetch();
 
@@ -84,6 +86,8 @@ export const useListStore = defineStore('list', () => {
         total.value = data.value?.total || 0;
         totalPages.value = data.value?.totalPages || 0;
         pending.value = pending.value;
+        error.value = error.value;
+        loadingStore.stop();
     }
 
     function sortByName() {
