@@ -83,13 +83,13 @@
             <p>Erro ao carregar {{ uncapitalize(labelPlural) }}.</p>
         </div>
 
-        <div v-if="items && items?.length > 0" class="mt-4">
-            <div
+        <ul v-if="items && items?.length > 0" class="mt-4" ref="list">
+            <li
                 v-for="item in items"
                 :key="item.id"
                 class="w-full border border-gray-200 bg-gray-100 p-1 pl-2 rounded-md shadow-md mt-4"
             >
-                <div class="w-full h-full flex items-center justify-between">
+                <span class="w-full h-full flex items-center justify-between">
                     <NuxtLink :to="editUrl + '/' + item.id" class="flex-grow">
                         <h1 v-if="item.label || item.name">
                             {{ item.label || item.name }}
@@ -97,7 +97,7 @@
                         <h1 v-else>Item sem rótulo ({{ item.id }})</h1>
                     </NuxtLink>
 
-                    <div class="flex items-center">
+                    <span class="flex items-center">
                         <NuxtLink
                             :to="editUrl + '/' + item.id"
                             v-if="canUpdate"
@@ -118,10 +118,10 @@
                                 @click="openModal(item)"
                             />
                         </UIButton>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </span>
+                </span>
+            </li>
+        </ul>
         <div v-else-if="total === 0 && search === '' && !pending" class="mt-4">
             <p>Nenhum item cadastrado.</p>
         </div>
@@ -156,6 +156,8 @@ import ROUTES from '~/config/routes';
 definePageMeta({
     middleware: ['auth', 'resource']
 });
+
+const [list] = useAutoAnimate({ duration: 400 });
 
 const path = useRoute().params.path as string;
 

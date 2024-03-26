@@ -41,7 +41,13 @@ export default defineNuxtConfig({
             'v-viewer'
         ]
     },
-    modules: ['nuxt-icon', '@nuxt/ui', '@pinia/nuxt', '@nuxt/image'],
+    modules: [
+        'nuxt-icon',
+        '@nuxt/ui',
+        '@pinia/nuxt',
+        '@nuxt/image',
+        '@formkit/auto-animate/nuxt'
+    ],
     serverHandlers: [
         {
             route: '/api/**',
