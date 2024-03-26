@@ -84,6 +84,9 @@ let modelValue = getFormFieldConfig('modelValue', defaultValue?.value, props);
 
 if (props.formStore) {
     modelValue = computed(() => props.formStore?.getFieldData(`${props.id}Rich`));
+    if (!modelValue.value && props.formStore?.getFieldData(props.id)) {
+        modelValue = computed(() => props.formStore?.getFieldData(props.id));
+    }
 }
 
 const emit = defineEmits(['update:modelValue']);
