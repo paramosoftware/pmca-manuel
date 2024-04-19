@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full text-lg break-words">
+  <div class="w-full h-full break-words">
     <ul>
       <li>
         <div v-for="node in treeRef" class="mb-2">
