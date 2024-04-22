@@ -5,9 +5,14 @@ export default function normalizeString(str: string, slug: boolean = false) {
         return str;
     }
 
-    str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    str = str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
 
     str = stripHtmlTags(str);
+
+    str = str.replace(/[^\w\s]/gi, '');
 
     if (slug) {
         str = str.replace(/\s/g, '-');

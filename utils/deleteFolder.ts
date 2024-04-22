@@ -13,4 +13,4 @@ export default function deleteFolder(directoryPath: string) {
         });
         fs.rmdirSync(directoryPath);
     }
-};
+}

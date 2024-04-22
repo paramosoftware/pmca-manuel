@@ -1,5 +1,11 @@
 export const useEntrySelection = () => {
-    if (!process.client) return { isSelected: () => false, toggle: () => false, getSelected: () => [], clearSelected: () => false };
+    if (!process.client)
+        return {
+            isSelected: () => false,
+            toggle: () => false,
+            getSelected: () => [],
+            clearSelected: () => false
+        };
 
     const getSelected = () => {
         try {
@@ -8,11 +14,11 @@ export const useEntrySelection = () => {
             clearSelected();
             return [];
         }
-    }
+    };
 
     const isSelected = (id: ID) => {
         return getSelected().includes(id);
-    }
+    };
 
     const toggle = (event: Event, id: ID) => {
         event?.stopPropagation();
@@ -27,17 +33,17 @@ export const useEntrySelection = () => {
             selectedEntries.push(id);
         }
 
-        localStorage.setItem('selectedEntries', JSON.stringify(selectedEntries));
+        localStorage.setItem(
+            'selectedEntries',
+            JSON.stringify(selectedEntries)
+        );
 
         return index === -1;
-    }
+    };
 
     const clearSelected = () => {
         localStorage.removeItem('selectedEntries');
-    }
+    };
 
-    return { isSelected, toggle, getSelected, clearSelected }
-}
-
-
-
+    return { isSelected, toggle, getSelected, clearSelected };
+};

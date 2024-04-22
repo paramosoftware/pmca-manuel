@@ -7,10 +7,20 @@ import { prisma } from './prisma';
 import { UploadError } from '../express/error';
 import getDataFolderPath from '~/utils/getDataFolderPath';
 
-
-export async function uploadMedia(model: string, id: string | number, body: any, req: express.Request, res: express.Response, next: express.NextFunction) {
-
-    const mediaPath = await importUploadFile(req, res, next, getDataFolderPath('media')) as string;
+export async function uploadMedia(
+    model: string,
+    id: string | number,
+    body: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) {
+    const mediaPath = (await importUploadFile(
+        req,
+        res,
+        next,
+        getDataFolderPath('media')
+    )) as string;
 
     if (!mediaPath || !fs.existsSync(mediaPath)) {
         return next(new UploadError('Error uploading file'));
@@ -18,15 +28,17 @@ export async function uploadMedia(model: string, id: string | number, body: any,
 
     const fileName = path.basename(mediaPath);
     id = parseInt(id as string);
-    const mediaData = await saveMedia(id, fileName, req.file?.originalname ?? '');
+    const mediaData = await saveMedia(
+        id,
+        fileName,
+        req.file?.originalname ?? ''
+    );
 
     res.json(mediaData);
 }
 
 export async function deleteEntryMedia(entryMedia: Array<EntryMedia>) {
-
     entryMedia.forEach((media: EntryMedia) => {
-
         const mediaPath = path.join(getDataFolderPath('media'), media.name);
 
         if (fs.existsSync(mediaPath)) {
@@ -41,8 +53,10 @@ export async function deleteEntryMedia(entryMedia: Array<EntryMedia>) {
     });
 }
 
-export async function handleMedia(oldMedia: Array<EntryMedia>, entryId: number) {
-
+export async function handleMedia(
+    oldMedia: Array<EntryMedia>,
+    entryId: number
+) {
     const newMedia: Array<EntryMedia> = await prisma.entryMedia.findMany({
         where: {
             entryId: entryId
@@ -52,7 +66,9 @@ export async function handleMedia(oldMedia: Array<EntryMedia>, entryId: number) 
     const mediaToDelete: Array<EntryMedia> = [];
 
     oldMedia.forEach((media: EntryMedia) => {
-        if (!newMedia.find((newMedia: EntryMedia) => newMedia.id === media.id)) {
+        if (
+            !newMedia.find((newMedia: EntryMedia) => newMedia.id === media.id)
+        ) {
             mediaToDelete.push(media);
         }
     });
@@ -60,7 +76,12 @@ export async function handleMedia(oldMedia: Array<EntryMedia>, entryId: number) 
     deleteEntryMedia(mediaToDelete);
 }
 
-export async function saveMedia(entryId: number, fileName: string, originalFilename: string, position: number = 1) {
+export async function saveMedia(
+    entryId: number,
+    fileName: string,
+    originalFilename: string,
+    position: number = 1
+) {
     try {
         const media = await prisma.entryMedia.create({
             data: {
@@ -68,20 +89,21 @@ export async function saveMedia(entryId: number, fileName: string, originalFilen
                 originalFilename: originalFilename,
                 position: position,
                 entryId: entryId
-            },
+            }
         });
 
         return media;
-
     } catch (error) {
         throw new UploadError('Error saving media to database');
     }
-
 }
 
-
-export async function importUploadFile(req: express.Request, res: express.Response, next: express.NextFunction, destinationFolder: string = '') {
-
+export async function importUploadFile(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+    destinationFolder: string = ''
+) {
     if (!destinationFolder) {
         destinationFolder = getDataFolderPath('temp');
     }
@@ -92,19 +114,17 @@ export async function importUploadFile(req: express.Request, res: express.Respon
 
     const storage = multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, destinationFolder)
+            cb(null, destinationFolder);
         },
         filename: function (req, file, cb) {
-            cb(null, uuidv4() + path.extname(file.originalname))
+            cb(null, uuidv4() + path.extname(file.originalname));
         }
-    })
+    });
 
     const upload = multer({
         storage: storage,
         limits: { fileSize: 1024 * 1024 * 100 }
-    }).single('file')
-
-
+    }).single('file');
 
     return new Promise((resolve, reject) => {
         upload(req, res, async (err: any) => {
@@ -118,10 +138,11 @@ export async function importUploadFile(req: express.Request, res: express.Respon
                 }
 
                 resolve(path.join(destinationFolder, req.file?.filename));
-
             } catch (error) {
-
-                const filePath = path.join(destinationFolder, req.file?.filename!);
+                const filePath = path.join(
+                    destinationFolder,
+                    req.file?.filename!
+                );
 
                 if (fs.existsSync(filePath)) {
                     fs.unlink(filePath, (err) => {
@@ -132,7 +153,6 @@ export async function importUploadFile(req: express.Request, res: express.Respon
                 }
 
                 next(reject(error));
-
             }
         });
     });

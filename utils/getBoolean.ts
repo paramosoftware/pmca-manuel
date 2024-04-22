@@ -1,6 +1,4 @@
-
 export default function getBoolean(value: any) {
-
     switch (typeof value) {
         case 'boolean':
             return value;

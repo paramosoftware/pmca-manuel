@@ -1,65 +1,89 @@
 <template>
-    <div class="mt-4" :class="{ 'hidden': hidden }">
+    <div class="mt-4" :class="{ hidden: hidden }">
         <div class="w-full relative">
-
             <UILabel :for="id">
-                {{ label }} 
+                {{ label }}
             </UILabel>
 
-            <div class="flex flex-wrap mb-2 md:grid md:grid-cols-2 gap-2" v-if="selectedItems.length > 0">
-                <div v-for="item in selectedItems" :key="item.id"
-                    class="flex justify-between items-center border border-gray-200 bg-gray-100 p-1 pl-2 rounded-md w-full shadow-md">
-
-                    <div class="w-11/12 truncate mr-3" :title="item.label ?? item.name">
-                        <div v-if="isHtml" v-html="item.label ?? item.name"></div>
-                        <div v-else>
-                            {{ item.label ?? item.name }}
-                        </div>
+            <div
+                class="flex flex-wrap mb-2 md:grid md:grid-cols-2 gap-2"
+                v-if="selectedItems.length > 0"
+            >
+                <div
+                    v-for="item in selectedItems"
+                    :key="item.id"
+                    class="flex justify-between items-center border border-gray-200 bg-gray-100 p-1 pl-2 rounded-md w-full shadow-md"
+                >
+                    <div
+                        class="w-11/12 truncate mr-3"
+                        :title="item.label ?? item.name"
+                    >
+                        {{ item.label ?? item.name }}
                     </div>
 
                     <div class="flex items-center">
                         <UIButton size="sm" @click="removeItem(item)" square>
-                            <UIIcon name="ph:trash-simple" class="w-5 h-5" title="Remover" />
+                            <UIIcon
+                                name="ph:trash-simple"
+                                class="w-5 h-5"
+                                title="Remover"
+                            />
                         </UIButton>
                     </div>
                 </div>
             </div>
 
-            <FieldInput 
+            <FieldInput
                 :id="id"
-                type="text" 
-                v-model="search" 
+                type="text"
+                v-model="search"
                 :disabled="!canAddMore || disabled"
-                :placeholder="!canAddMore ? 'Número máximo de itens adicionados' : placeholder"
-                :show-icon="showIcon" 
+                :placeholder="
+                    !canAddMore
+                        ? 'Número máximo de itens adicionados'
+                        : placeholder
+                "
+                :show-icon="showIcon"
                 :loading="searching"
                 :size="size"
             />
 
             <span ref="autocompleteRef">
-                <ul v-if="showPopper" class="w-full bg-white border border-x-gray-300 space-y-1 absolute z-10 mt-2 rounded-md shadow-sm">
-
-                    <li v-for="item in results" :key="item.name" @click="selectItem(item)"
-                        class="px-2 py-1 cursor-pointer rounded-md hover:bg-gray-100">
-
-                        <span v-if="isHtml" v-html="item.label ?? item.name"></span>
-                        <span v-else>
-                            {{ item.label ?? item.name }}
-                        </span>
-
+                <ul
+                    v-if="showPopper"
+                    class="w-full bg-white border border-x-gray-300 space-y-1 absolute z-10 m-1 rounded-md shadow-xl"
+                >
+                    <li
+                        v-for="item in results"
+                        :key="item.name"
+                        @click="selectItem(item)"
+                        class="px-2 py-1 cursor-pointer rounded-md hover:bg-gray-100"
+                    >
+                        {{ item.label ?? item.name }}
                     </li>
 
-                    <li v-if="results.length === 0" class="rounded-md px-2 py-1 text-gray-400" @click="search = ''">
+                    <li
+                        v-if="results.length === 0"
+                        class="rounded-md px-2 py-1 text-gray-400"
+                        @click="search = ''"
+                    >
                         Nenhum resultado encontrado.
                     </li>
 
-                    <li v-if="canCreate" class="rounded-md px-2 py-1 text-gray-600">
-                        <button type="button" @click="createItem(search)">
-                            Cadastrar: {{ search }}
-
-                            <UIIcon name="ph:plus-circle" class="text-pmca-accent w-6 h-6" title="Criar" />
-
-                        </button>
+                    <li
+                        v-if="canCreate"
+                        class="p-2 text-gray-600 hover:bg-gray-100 cursor-pointer border-t border-gray-200 mt-2 rounded-none"
+                        @click="createItem(search)"
+                    >
+                        <div class="flex items-center">
+                            <UIIcon
+                                name="ph:plus-circle"
+                                class="text-pmca-accent w-6 h-6"
+                                title="Criar"
+                            />
+                            <strong class="m-1">Criar: </strong>
+                            <i>{{ search }}</i>
+                        </div>
                     </li>
                 </ul>
             </span>
@@ -128,11 +152,9 @@ const props = defineProps({
         default: 'md'
     },
     formStore: {
-        type: Object as PropType<FormStore>,
+        type: Object as PropType<FormStore>
     }
-})
-
-// TODO: handle html content correctly
+});
 
 const defaultValue = getFormFieldConfig('defaultValue', [], props);
 const disabled = getFormFieldConfig('disabled', false, props);
@@ -143,7 +165,6 @@ const placeholder = getFormFieldConfig('placeholder', '', props);
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowCreate = getFormFieldConfig('allowCreate', false, props);
 const allowMultiple = getFormFieldConfig('allowMultiple', false, props);
-const isHtml = getFormFieldConfig('richText', false, props);
 const oppositeField = getFormFieldConfig('oppositeField', null, props);
 
 let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
@@ -151,7 +172,11 @@ let max = getFormFieldConfig('max', 100, props);
 let oppositeFieldData = ref<Item | Item[] | null>(null);
 
 if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
-    throw new Error('Related resource not defined for' + props.id + (label.value ? ' (' + label.value + ')' : ''));
+    throw new Error(
+        'Related resource not defined for' +
+            props.id +
+            (label.value ? ' (' + label.value + ')' : '')
+    );
 }
 
 if (props.formStore) {
@@ -159,15 +184,17 @@ if (props.formStore) {
 }
 
 if (oppositeField && oppositeField.value) {
-    oppositeFieldData = computed(() => props.formStore?.getFieldData(oppositeField.value.name));
+    oppositeFieldData = computed(() =>
+        props.formStore?.getFieldData(oppositeField.value.name)
+    );
 }
 
 const emit = defineEmits(['update:modelValue', 'select', 'input']);
 
 const autocompleteRef = ref<HTMLElement | null>(null);
 const search = ref('');
-const results = ref<{ id: number, name: string, label?: string }[]>([]);
-let timeoutId: NodeJS.Timeout = setTimeout(() => { }, 0);
+const results = ref<{ id: number; name: string; label?: string }[]>([]);
+let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 0);
 const searching = ref(false);
 const toast = useToast();
 const showPopper = ref(false);
@@ -218,12 +245,13 @@ const canAddMore = computed(() => {
 });
 
 const canCreate = computed(() => {
-    return allowCreate.value && search.value !== '' && results.value.length === 0;
+    return allowCreate.value && search.value !== '';
 });
 
 function selectItem(item: Item) {
-
-    const alreadySelected = selectedItems.value.find((i: Item) => i.id === item.id);
+    const alreadySelected = selectedItems.value.find(
+        (i: Item) => i.id === item.id
+    );
 
     if (alreadySelected) {
         search.value = '';
@@ -244,14 +272,20 @@ function selectItem(item: Item) {
         props.formStore.addFieldData(props.id, item);
     }
 
-    search.value = "";
+    search.value = '';
 }
 
 function removeItem(item: Item) {
-
     const newItems = selectedItems.value.filter((i: Item) => i.id !== item.id);
 
-    emit('update:modelValue', allowMultiple.value ? newItems : newItems.length > 0 ? newItems[0] : null);
+    emit(
+        'update:modelValue',
+        allowMultiple.value
+            ? newItems
+            : newItems.length > 0
+              ? newItems[0]
+              : null
+    );
 
     if (props.formStore) {
         if (oppositeFieldData.value) {
@@ -278,19 +312,20 @@ async function searchItems() {
 
     clearTimeout(timeoutId);
 
-     // TODO: search by label
+    // TODO: search by label
     const query = {
         where: {
-            OR: [{
-                name: {
-                    like: search.value
+            OR: [
+                {
+                    name: {
+                        like: search.value
+                    }
                 }
-            }],
+            ],
             AND: []
         },
         pageSize: 10
     } as any;
-
 
     if (QUERIES.get(relatedResource.value.name)?.where) {
         query.where.AND.push(QUERIES.get(relatedResource.value.name)?.where);
@@ -305,14 +340,20 @@ async function searchItems() {
     }
 
     timeoutId = setTimeout(async () => {
-        const { data, pending, error } = await useFetchWithBaseUrl('api/' + relatedResource.value.name, {
-            method: 'GET',
-            params: query
-        }) as { data: Ref<PaginatedResponse>, pending: Ref<boolean>, error: Ref<Error | undefined> };
+        const { data, pending, error } = (await useFetchWithBaseUrl(
+            'api/' + relatedResource.value.name,
+            {
+                method: 'GET',
+                params: query
+            }
+        )) as {
+            data: Ref<PaginatedResponse>;
+            pending: Ref<boolean>;
+            error: Ref<Error | undefined>;
+        };
 
         searching.value = pending.value;
         results.value = data.value.items;
-
     }, 300);
 }
 
@@ -321,12 +362,15 @@ async function createItem(value: string) {
         return;
     }
 
-    const { data, pending, error } = await useFetchWithBaseUrl('api/' + relatedResource.value.name, {
-        method: 'POST',
-        body: {
-            name: value.trim()
+    const { data, pending, error } = (await useFetchWithBaseUrl(
+        'api/' + relatedResource.value.name,
+        {
+            method: 'POST',
+            body: {
+                name: value.trim()
+            }
         }
-    }) as { data: Ref<Item>, pending: Ref<boolean>, error: Ref<Error> };
+    )) as { data: Ref<Item>; pending: Ref<boolean>; error: Ref<Error> };
 
     searching.value = pending.value;
 
@@ -336,9 +380,9 @@ async function createItem(value: string) {
         toast.add({
             title: 'Erro ao criar item',
             color: 'red',
-            icon: 'i-heroicons-x-circle',
+            icon: 'i-heroicons-x-circle'
         });
-    
+
         search.value = '';
         return;
     }

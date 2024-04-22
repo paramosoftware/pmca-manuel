@@ -1,7 +1,6 @@
 import QUERIES from '~/config/queries';
 
 export const useEntryStore = defineStore('entry', () => {
-
     const model = 'Entry';
     const entryIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
@@ -14,10 +13,13 @@ export const useEntryStore = defineStore('entry', () => {
     const fetchSelected = ref(false);
     const entry = ref<Entry>();
     const entryChanges = ref<EntryChanges>();
+    const totalEntryChanges = ref(0);
+    const entryChangesLoading = ref(false);
     const randomEntryIds = ref<number[]>([]);
     const entries = ref<Entry[]>([]);
     const entriesNetwork = ref<Entry[]>([]); // only used to build network for home
     const entriesTree = ref<TreeNode[]>([]);
+    const loadingStore = useLoadingStore();
 
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
@@ -63,12 +65,18 @@ export const useEntryStore = defineStore('entry', () => {
         return q;
     });
 
-    watch(() => query.value, async () => {
-       await fetchList();
-    }, { deep: true });
+    watch(
+        () => query.value,
+        async () => {
+            await fetchList();
+        },
+        { deep: true }
+    );
 
-
-    async function load(resourceIdentifier: ID = '', fetchSelectedEntries = false) {
+    async function load(
+        resourceIdentifier: ID = '',
+        fetchSelectedEntries = false
+    ) {
         if (resourceIdentifier) {
             entryIdentifier.value = resourceIdentifier;
             await fetchOne(resourceIdentifier);
@@ -79,26 +87,38 @@ export const useEntryStore = defineStore('entry', () => {
     }
 
     async function fetchOne(resourceIdentifier: ID) {
-        const urlData = computed(() => `/api/public/${model}/${resourceIdentifier}`);
+        const urlData = computed(
+            () => `/api/public/${model}/${resourceIdentifier}`
+        );
 
-        const { data, pending, error } = await useFetchWithBaseUrl(urlData, {
+        loadingStore.start();
+        const { data, pending, error } = (await useFetchWithBaseUrl(urlData, {
             method: 'GET',
             params: { ...QUERIES.get(model) }
-        }) as { data: Ref<Entry>, pending: Ref<boolean>, error: Ref<Error | undefined> };
+        })) as {
+            data: Ref<Entry>;
+            pending: Ref<boolean>;
+            error: Ref<Error | undefined>;
+        };
 
         entry.value = data.value;
         pending.value = pending.value;
         error.value = error.value;
+        loadingStore.stop();
     }
 
     async function fetchList() {
         entryIdentifier.value = '';
         const urlData = computed(() => `/api/public/${model}`);
 
-        const { data, pending, error } = await useFetchWithBaseUrl(urlData, {
+        loadingStore.start();
+        const { data, pending, error } = (await useFetchWithBaseUrl(urlData, {
             params: query.value
-        }) as { data: Ref<PaginatedResponse>, pending: Ref<boolean>, error: Ref<Error | undefined> };
-
+        })) as {
+            data: Ref<PaginatedResponse>;
+            pending: Ref<boolean>;
+            error: Ref<Error | undefined>;
+        };
 
         if (data.value) {
             entries.value = data.value.items || [];
@@ -107,17 +127,27 @@ export const useEntryStore = defineStore('entry', () => {
         }
 
         pending.value = pending.value;
+        error.value = error.value;
+        loadingStore.stop();
     }
 
     async function fetchNetwork() {
-
-        const { data, pending, error } = await useFetchWithBaseUrl(`/api/public/${model}`, {
-            params: {
-                ...QUERIES.get('network')
+        loadingStore.start();
+        const { data, pending, error } = (await useFetchWithBaseUrl(
+            `/api/public/${model}`,
+            {
+                params: {
+                    ...QUERIES.get('network')
+                }
             }
-        }) as { data: Ref<PaginatedResponse>, pending: Ref<boolean>, error: Ref<Error | undefined> };
+        )) as {
+            data: Ref<PaginatedResponse>;
+            pending: Ref<boolean>;
+            error: Ref<Error | undefined>;
+        };
 
         entriesNetwork.value = data.value.items || [];
+        loadingStore.stop();
     }
 
     async function fetchRandom() {
@@ -126,11 +156,13 @@ export const useEntryStore = defineStore('entry', () => {
 
     async function fetchEntriesTree() {
 
+        loadingStore.start();
+
         const { data } = await useFetchWithBaseUrl(`/api/public/${model}`, {
             method: 'GET',
             params: {
-              pageSize: -1,
-              select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId'])
+                pageSize: -1,
+                select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId'])
             },
             transform: (data: PaginatedResponse) => {
                 if (!data) {
@@ -139,29 +171,84 @@ export const useEntryStore = defineStore('entry', () => {
                     return data.items;
                 }
             }
-          });
-        
-          if (data.value) {
-            entriesTree.value = buildTreeData(data.value, false, entry.value?.id) as TreeNode[];
-          }
+        });
 
+        if (data.value) {
+            entriesTree.value = buildTreeData(
+                data.value,
+                false,
+                entry.value?.id
+            ) as TreeNode[];
+        }
+
+        loadingStore.stop();
+    }
+
+    async function fetchEntryChanges(
+        page = 1,
+        pageSize = 8,
+        sortBy = 'createdAt',
+        sort = 'desc'
+    ) {
+        const urlData = computed(() => `/api/public/${model}/${entry.value?.id}/changes`);
+
+        loadingStore.start();
+
+        let orderBy;
+
+        if (sortBy === 'author') {
+            orderBy = { author: { name: sort } };
+        } else if (sortBy === 'field') {
+            orderBy = { field: { label: sort } };
+        } else {
+            orderBy = { [sortBy]: sort };
+        }
+
+        entryChangesLoading.value = true;
+
+        const { data, pending, error } = (await useFetchWithBaseUrl(urlData, {
+            params: {
+                page,
+                pageSize,
+                orderBy,
+                include: {
+                    author: {
+                        select: ['name']
+                    },
+                    field: {
+                        select: ['name', 'label']
+                    }
+                }
+            }
+        })) as {
+            data: Ref<PaginatedResponse>;
+            pending: Ref<boolean>;
+            error: Ref<Error | undefined>;
+        };
+
+        entryChanges.value = data.value?.items || [];
+        totalEntryChanges.value = data.value?.total || 0;
+        entryChangesLoading.value = pending.value;
+
+        loadingStore.stop();
     }
 
     function sortByName() {
-        sort.value === 'asc' ? sort.value = 'desc' : sort.value = 'asc';
+        page.value = 1;
+        sort.value === 'asc' ? (sort.value = 'desc') : (sort.value = 'asc');
     }
 
     async function exportData(format: DataTransferFormat, addMedia = false) {
-        
         const exportData = useExportData();
 
         if (entryIdentifier.value) {
-            await exportData.download(format, addMedia, { id: entry.value?.id });
+            await exportData.download(format, addMedia, {
+                id: entry.value?.id
+            });
             return;
         }
 
         await exportData.download(format, addMedia, query.value.where);
-
     }
 
     function clear() {
@@ -191,6 +278,8 @@ export const useEntryStore = defineStore('entry', () => {
         sort,
         entry,
         entryChanges,
+        totalEntryChanges,
+        entryChangesLoading,
         randomEntryIds,
         entries,
         entriesNetwork,
@@ -200,10 +289,10 @@ export const useEntryStore = defineStore('entry', () => {
         load,
         fetchNetwork,
         fetchEntriesTree,
+        fetchEntryChanges,
         sortByName,
         exportData,
         clear,
         clearSelection
-    }
-
-})
+    };
+});

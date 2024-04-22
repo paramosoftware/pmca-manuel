@@ -3,7 +3,8 @@ export default function useEntryAccess(slug: string) {
 
     onMounted(() => {
         if (process.client) {
-            const entryAccessStorage = localStorage.getItem('entryAccess') || '[]';
+            const entryAccessStorage =
+                localStorage.getItem('entryAccess') || '[]';
             const entryAccess = JSON.parse(entryAccessStorage);
 
             const access = {
@@ -11,24 +12,26 @@ export default function useEntryAccess(slug: string) {
                 date: new Date().toISOString()
             };
 
-            const found = entryAccess.find((item: { slug: string, date: string }) => {
-                if (item.slug === slug) {
-                    const date = new Date(item.date);
-                    const now = new Date();
-                    const diff = Math.abs(now.getTime() - date.getTime());
-                    const minutes = Math.floor((diff / 1000) / 60);
+            const found = entryAccess.find(
+                (item: { slug: string; date: string }) => {
+                    if (item.slug === slug) {
+                        const date = new Date(item.date);
+                        const now = new Date();
+                        const diff = Math.abs(now.getTime() - date.getTime());
+                        const minutes = Math.floor(diff / 1000 / 60);
 
-                    item.date = new Date().toISOString();
+                        item.date = new Date().toISOString();
 
-                    if (minutes > 10) {
-                        countAccess.value = true;
+                        if (minutes > 10) {
+                            countAccess.value = true;
+                        }
+
+                        return true;
                     }
 
-                    return true;
+                    return false;
                 }
-
-                return false;
-            });
+            );
 
             if (!found) {
                 entryAccess.push(access);

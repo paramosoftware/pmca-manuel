@@ -1,7 +1,7 @@
-import getCookiePrefix from "../utils/getCookiePrefix";
+import getCookiePrefix from '../utils/getCookiePrefix';
 
 export const useFetchWithBaseUrl: typeof useFetch = (request, opts?) => {
-    const config = useRuntimeConfig()
+    const config = useRuntimeConfig();
 
     let headers = useRequestHeaders();
 
@@ -11,15 +11,15 @@ export const useFetchWithBaseUrl: typeof useFetch = (request, opts?) => {
         if (csrfToken.value) {
             headers = {
                 ...headers,
-                'X-CSRF-Token' : csrfToken.value
-            }
+                'X-CSRF-Token': csrfToken.value
+            };
         }
     }
 
-    return useFetch(request, { 
+    return useFetch(request, {
         headers: headers,
         baseURL: config.public.baseURL,
         credentials: 'include',
         ...opts
     });
-}
+};

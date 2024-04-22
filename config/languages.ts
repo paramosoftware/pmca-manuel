@@ -16,5 +16,4 @@ LANGUAGES.set('Turco', 'tr');
 LANGUAGES.set('Hebraico', 'he');
 LANGUAGES.set('Grego', 'el');
 
-
 export default LANGUAGES;

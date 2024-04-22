@@ -1,28 +1,45 @@
 <template>
-    <div class="mt-4" :class="{ 'hidden': hidden }">
+    <div class="mt-4" :class="{ hidden: hidden }">
         <div class="w-full relative">
-
             <UILabel :for="id">
-                {{ label }} 
+                {{ label }}
             </UILabel>
 
-            <div class="flex flex-wrap mb-2 md:grid md:grid-cols-2 gap-2" v-if="selectedItems.length > 0">
-                <div v-for="item in selectedItems" :key="item.id"
-                    class="flex justify-between items-center border border-gray-200 bg-gray-100 p-1 pl-2 rounded-md w-full shadow-md">
-
-                    <div class="w-11/12 truncate mr-3" :title="item.label ?? item.name">
-                        <div v-if="isHtml" v-html="item.label ?? item.name"></div>
-                        <div v-else>
-                            {{ item.label ?? item.name }}
-                        </div>
+            <div
+                class="flex flex-wrap mb-2 md:grid md:grid-cols-2 gap-2"
+                v-if="selectedItems.length > 0"
+            >
+                <div
+                    v-for="item in selectedItems"
+                    :key="item.id"
+                    class="flex justify-between items-center border border-gray-200 bg-gray-100 p-1 pl-2 rounded-md w-full shadow-md"
+                >
+                    <div
+                        class="w-11/12 truncate mr-3"
+                        :title="item.label ?? item.name"
+                    >
+                        {{ item.label ?? item.name }}
                     </div>
 
                     <div class="flex items-center">
-                        <UIButton size="sm" @click="editItem(item)" square class="mr-1">
-                            <UIIcon name="ph:pencil-simple" class="w-5 h-5" title="Editar" />
+                        <UIButton
+                            size="sm"
+                            @click="editItem(item)"
+                            square
+                            class="mr-1"
+                        >
+                            <UIIcon
+                                name="ph:pencil-simple"
+                                class="w-5 h-5"
+                                title="Editar"
+                            />
                         </UIButton>
                         <UIButton size="sm" @click="removeItem(item)" square>
-                            <UIIcon name="ph:trash-simple" class="w-5 h-5" title="Remover" />
+                            <UIIcon
+                                name="ph:trash-simple"
+                                class="w-5 h-5"
+                                title="Remover"
+                            />
                         </UIButton>
                     </div>
                 </div>
@@ -30,21 +47,41 @@
 
             <p></p>
 
-            <UButton size="md" color="primary" variant="solid" @click="isModalOpen = true" :disabled="!canAddMore || disabled" class="mt-1">
+            <UButton
+                size="md"
+                color="primary"
+                variant="solid"
+                @click="isModalOpen = true"
+                :disabled="!canAddMore || disabled"
+                class="mt-1"
+            >
                 <template #leading>
-                    <UIIcon name="ph:plus-circle" class="w-5 h-5" title="Criar" />
+                    <UIIcon
+                        name="ph:plus-circle"
+                        class="w-5 h-5"
+                        title="Criar"
+                    />
                 </template>
                 <template v-if="!canAddMore">
                     Máximo de itens adicionados
                 </template>
-                <template v-else class="text-lg">
-                    Adicionar
-                </template>
+                <template v-else class="text-lg"> Adicionar </template>
             </UButton>
 
-            <UModal :id="relatedResource.name + '-modal-form'" v-model="isModalOpen" :ui="{ padding: 'p-0', width: 'sm:max-w-3xl' }" >
+            <UModal
+                :id="relatedResource.name + '-modal-form'"
+                v-model="isModalOpen"
+                :ui="{
+                    padding: 'p-0',
+                    width: 'sm:max-w-3xl',
+                    container: 'items-center'
+                }"
+            >
                 <UICloseButton @click="isModalOpen = false" />
-                <Form :form-store="auxiliaryFormStore" :id="relatedResource.name + '-form'" />
+                <Form
+                    :form-store="auxiliaryFormStore"
+                    :id="relatedResource.name + '-form'"
+                />
             </UModal>
         </div>
     </div>
@@ -60,7 +97,7 @@ const props = defineProps({
         type: Object as PropType<FormStore>,
         required: true
     }
-})
+});
 
 if (!props.formStore) {
     throw new Error('Form store not defined');
@@ -75,7 +112,6 @@ const label = getFormFieldConfig('label', '', props);
 const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowMultiple = getFormFieldConfig('allowMultiple', false, props);
-const isHtml = getFormFieldConfig('richText', false, props);
 let max = getFormFieldConfig('max', 100, props);
 const modelValue = computed(() => props.formStore?.getFieldData(props.id));
 if (!allowMultiple.value) {
@@ -83,7 +119,11 @@ if (!allowMultiple.value) {
 }
 
 if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
-    throw new Error('Related resource not defined for ' + props.id + (label.value ? ' (' + label.value + ')' : ''));
+    throw new Error(
+        'Related resource not defined for ' +
+            props.id +
+            (label.value ? ' (' + label.value + ')' : '')
+    );
 }
 
 const useAuxiliaryForm = createFormStore(relatedResource.value.name);
@@ -95,29 +135,37 @@ const emit = defineEmits(['update:modelValue']);
 const isModalOpen = ref(false);
 const itemId = ref();
 
-watch(() => isModalOpen.value, async (value) => {
-    if (value) {
-        auxiliaryFormStore.setIsAuxiliary(true, props.formStore.model);
-        await auxiliaryFormStore.load(relatedResource.value.name, itemId.value);
-        auxiliaryFormStore.$onAction(({ name, after }) => {
-            after(() => {
-                if (name === 'save') {
-                    const item = auxiliaryFormStore.getFieldsData() as Item
-                    props.formStore.addFieldData(props.id, item)
-                    isModalOpen.value = false;
-                }
-            })
-        });
+watch(
+    () => isModalOpen.value,
+    async (value) => {
+        if (value) {
+            auxiliaryFormStore.setIsAuxiliary(true, props.formStore.model);
+            await auxiliaryFormStore.load(
+                relatedResource.value.name,
+                itemId.value
+            );
+            auxiliaryFormStore.$onAction(({ name, after }) => {
+                after(() => {
+                    if (name === 'save') {
+                        const item = auxiliaryFormStore.getFieldsData() as Item;
+                        props.formStore.addFieldData(props.id, item);
+                        isModalOpen.value = false;
+                    }
+                });
+            });
+        }
+        itemId.value = null;
     }
-    itemId.value = null;
-});
+);
 
 const selectedItems = computed(() => {
     if (!modelValue.value) {
         return [];
     }
 
-    return Array.isArray(modelValue.value) ? modelValue.value : [modelValue.value];
+    return Array.isArray(modelValue.value)
+        ? modelValue.value
+        : [modelValue.value];
 });
 
 const canAddMore = computed(() => {
@@ -134,5 +182,4 @@ async function editItem(item: Item) {
     itemId.value = item.id;
     isModalOpen.value = true;
 }
-
 </script>

@@ -1,54 +1,91 @@
 <template>
-   <article>
-      <div class="sm:flex sm:justify-between sm:items-center">
-         <UIPageTitle class="flex items-center">
-            {{ entry?.name }}
-            <client-only>
-               <UIIcon class="text-pmca-accent cursor-pointer ml-2"
-                  :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'"
-                  @click="entrySelected = toggle($event, id)" :title="entrySelected ? 'Remover' : 'Adicionar'" />
-            </client-only>
-         </UIPageTitle>
-         <PublicEntryActions :entryId="entry!.id" :title="entry!.name" />
-      </div>
+    <article>
+        <div class="sm:flex sm:justify-between sm:items-center">
+            <UIPageTitle class="flex items-center">
+                {{ entry?.name }}
+                <client-only>
+                    <UIIcon
+                        class="text-pmca-accent cursor-pointer ml-2"
+                        :name="
+                            entrySelected
+                                ? 'ph:bookmark-simple-fill'
+                                : 'ph:bookmark-simple'
+                        "
+                        @click="entrySelected = toggle($event, id)"
+                        :title="entrySelected ? 'Remover' : 'Adicionar'"
+                    />
+                </client-only>
+            </UIPageTitle>
+            <PublicEntryActions :entryId="entry!.id" :title="entry!.name" />
+        </div>
 
-      <UITab :tabs="['Verbete', 'Hierárquica', 'Histórico de alterações']" @change="onTabChange">
-         <template #tabPanel-1>
-            <div class="flex flex-col">
+        <UITab
+            :tabs="['Verbete', 'Hierárquica', 'Histórico de alterações']"
+            @change="onTabChange"
+        >
+            <template #tabPanel-1>
+                <div class="flex flex-col">
+                    <PublicEntryMedia
+                        :images="images"
+                        v-if="images.length > 0"
+                    />
 
-               <PublicEntryMedia :images=images v-if="images.length > 0" />
+                    <PublicEntryAttribute
+                        title="Traduções"
+                        :content="translations"
+                    />
 
-               <PublicEntryAttribute title="Traduções" :content="translations" />
+                    <PublicEntryAttribute
+                        title="Variações"
+                        :content="entry?.variations"
+                    />
 
-               <PublicEntryAttribute title="Variações" :content="entry?.variations" />
+                    <PublicEntryAttribute
+                        title="Definição"
+                        :content="entry?.definition"
+                        :is-html="true"
+                    />
 
-               <PublicEntryAttribute title="Definição" :content="entry?.definition" :is-html=true />
+                    <PublicEntryAttribute
+                        title="Notas"
+                        :content="entry?.notes"
+                        :is-html="true"
+                    />
 
-               <PublicEntryAttribute title="Notas" :content="entry?.notes" :is-html=true />
+                    <PublicEntryAttribute
+                        title="Referências"
+                        :content="entry?.references"
+                        :is-html="true"
+                        :is-one-line="true"
+                    />
 
-               <PublicEntryAttribute title="Referências" :content="entry?.references" :is-html=true :is-one-line="true" />
-
-               <PublicEntryRelatedEntries title="Verbetes relacionados" :entries="entry?.relatedEntries"
-                  :opposite-side="entry?.entries" />
-            </div>
-         </template>
-         <template #tabPanel-2>
-            <div class="flex flex-col">
-               <UITreeView :tree="entriesTree" class="p-3 overflow-y-auto text-pmca-primary" />
-            </div>
-         </template>
-         <template #tabPanel-3>
-            <div class="flex flex-col">
-               <PublicEntryChanges :entry-changes="entry?.changes" />
-            </div>
-         </template>
-      </UITab>
-   </article>
+                    <PublicEntryRelatedEntries
+                        title="Verbetes relacionados"
+                        :entries="entry?.relatedEntries"
+                        :opposite-side="entry?.entries"
+                    />
+                </div>
+            </template>
+            <template #tabPanel-2>
+                <div class="flex flex-col">
+                    <UITreeView
+                        :tree="entriesTree"
+                        class="p-3 overflow-y-auto text-pmca-primary"
+                    />
+                </div>
+            </template>
+            <template #tabPanel-3>
+                <div class="flex flex-col">
+                    <PublicEntryChanges />
+                </div>
+            </template>
+        </UITab>
+    </article>
 </template>
- 
+
 <script setup lang="ts">
 definePageMeta({
-   layout: 'public',
+    layout: 'public'
 });
 
 // TODO: Track access to entries
@@ -64,58 +101,78 @@ await entryStore.load(slug.value);
 const { entry, pending, sort, error, entriesTree } = storeToRefs(entryStore);
 
 if (!error.value && !entry.value) {
-   // TODO: 404
+    throw createError({
+        data: {
+            title: 'Verbete não encontrado'
+        }
+    });
 }
 
 const id = ref(entry.value?.id ?? 0);
 const title = ref(entry.value?.name);
-const description = ref(entry.value?.definition ? entry.value.definition.replace(/<[^>]*>?/gm, '').substring(0, 150) : '');
+const description = ref(
+    entry.value?.definition
+        ? entry.value.definition.replace(/<[^>]*>?/gm, '').substring(0, 150)
+        : ''
+);
 const entrySelected = ref(isSelected(id.value));
 
 const images = ref<string[]>([]);
-const translations = ref<{ name: string, link: string }[]>([]);
-
+const translations = ref<{ name: string; link: string }[]>([]);
 
 if (entry.value?.media) {
-   entry.value.media.forEach((media: EntryMedia) => {
-      images.value.push(media.name)
-   })
+    entry.value.media.forEach((media: EntryMedia) => {
+        images.value.push(media.name);
+    });
 }
 
 if (entry.value?.translations) {
-   entry.value?.translations.forEach((translation: Translation) => {
-      translations.value.push({
-         name: translation.name + ' (' + (translation.language?.code ?? translation.language?.name) + ')',
-         link: ''
-      })
-   })
+    entry.value?.translations.forEach((translation: Translation) => {
+        translations.value.push({
+            name:
+                translation.name +
+                ' (' +
+                (translation.language?.code ?? translation.language?.name) +
+                ')',
+            link: ''
+        });
+    });
 }
 
 const url = ref('');
 
 if (images.value.length > 0) {
-   if (process.client) {
-      url.value = window.location.protocol + '//' + window.location.host + '/media/' + images.value[0];
-   }
+    if (process.client) {
+        url.value =
+            window.location.protocol +
+            '//' +
+            window.location.host +
+            '/media/' +
+            images.value[0];
+    }
 }
 
 const onTabChange = async (value: number) => {
-   if (value === 2 && entriesTree.value.length === 0) {
-      await entryStore.fetchEntriesTree();
-   }
-}
+    if (value === 2 && entriesTree.value.length === 0) {
+        await entryStore.fetchEntriesTree();
+    }
+};
 
 onBeforeMount(() => {
-   entrySelected.value = isSelected(id.value);
+    entrySelected.value = isSelected(id.value);
 });
 
 useHead({
-   title: title.value + ' | ' + config.public.appName,
-   meta: [
-      { hid: 'description', name: 'description', content: description.value },
-      { hid: 'og:title', property: 'og:title', content: title.value },
-      { hid: 'og:description', property: 'og:description', content: description.value },
-      { hid: 'og:image', property: 'og:image', content: url.value }
-   ]
+    title: title.value + ' | ' + config.public.appName,
+    meta: [
+        { hid: 'description', name: 'description', content: description.value },
+        { hid: 'og:title', property: 'og:title', content: title.value },
+        {
+            hid: 'og:description',
+            property: 'og:description',
+            content: description.value
+        },
+        { hid: 'og:image', property: 'og:image', content: url.value }
+    ]
 });
 </script>

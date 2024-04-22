@@ -1,5 +1,5 @@
 import getDataFolderPath from '~/utils/getDataFolderPath';
-import pino from "pino";
+import pino from 'pino';
 
 // TODO: redact sensitive data from logs
 // TODO: delete old logs
@@ -15,22 +15,22 @@ const options = {
 };
 
 const targets = [
-  {
-    target: "pino/file",
-    options: {
-      destination: logPath,
-    },
-  }
+    {
+        target: 'pino/file',
+        options: {
+            destination: logPath
+        }
+    }
 ] as any[];
 
 if (pretty) {
-  targets.push({
-    level: level,
-    target: "pino-pretty",
-    options: {
-      colorize: true,
-    },
-  });
+    targets.push({
+        level: level,
+        target: 'pino-pretty',
+        options: {
+            colorize: true
+        }
+    });
 }
 
 const transport = pino.transport({

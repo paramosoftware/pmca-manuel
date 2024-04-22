@@ -1,7 +1,7 @@
-
-
-const MODELS = new Map<string, { label: string; labelPlural: string; genderNoun: GenderNoun; }>();
-
+const MODELS = new Map<
+    string,
+    { label: string; labelPlural: string; genderNoun: GenderNoun }
+>();
 
 MODELS.set('Group', {
     label: 'Grupo',
@@ -75,10 +75,9 @@ MODELS.set('WebPage', {
 });
 MODELS.set('Author', {
     label: 'Autor',
-    labelPlural : 'Autores',
+    labelPlural: 'Autores',
     genderNoun: 'm'
 });
-
 
 const FIELDS = new Map<string, string>();
 FIELDS.set('id', 'id');
@@ -127,7 +126,10 @@ FIELDS.set('relatedResource', 'Recurso relacionado');
 FIELDS.set('relatedResourceId', 'Recurso relacionado');
 FIELDS.set('allowCreate', 'Permitir criar?');
 FIELDS.set('allowMultiple', 'Permitir múltiplos?');
-FIELDS.set('max', 'Tamanho máximo (em caracteres para string e em itens para array)');
+FIELDS.set(
+    'max',
+    'Tamanho máximo (em caracteres para string e em itens para array)'
+);
 FIELDS.set('query', 'Query para autocomplete e finder');
 FIELDS.set('uiField', 'Tipo do campo de interface');
 FIELDS.set('inputType', 'Tipo do input');
@@ -159,12 +161,19 @@ FIELDS.set('content', 'Conteúdo');
 FIELDS.set('menuName', 'Nome no menu');
 FIELDS.set('entryId', 'Verbete');
 FIELDS.set('position', 'Posição');
-FIELDS.set('oppositeField', 'Campo oposto (para relacionamentos bidirecionais)');
-FIELDS.set('oppositeFieldId', 'Campo oposto (para relacionamentos bidirecionais)');
+FIELDS.set(
+    'oppositeField',
+    'Campo oposto (para relacionamentos bidirecionais)'
+);
+FIELDS.set(
+    'oppositeFieldId',
+    'Campo oposto (para relacionamentos bidirecionais)'
+);
 FIELDS.set('relatedOppositeFields', 'Campos opostos relacionados');
 FIELDS.set('isRelation', 'É uma tabela de relacionamento?');
 FIELDS.set('parent', 'Verbete superior');
 FIELDS.set('children', 'Verbetes inferiores');
 FIELDS.set('type', 'Tipo');
+FIELDS.set('published', 'Publicado');
 
-export { MODELS, FIELDS }
+export { MODELS, FIELDS };

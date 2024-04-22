@@ -1,6 +1,7 @@
 <template>
-    <div class="flex flex-col h-screen justify-between text-pmca-primary text-lg">
-
+    <div
+        class="flex flex-col h-screen justify-between text-pmca-primary text-lg"
+    >
         <PublicNavbar />
 
         <main class="mb-auto">
@@ -14,6 +15,6 @@
         <Footer />
 
         <UNotifications />
-
     </div>
+   <UILoading />
 </template>

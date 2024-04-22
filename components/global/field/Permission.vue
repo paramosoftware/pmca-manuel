@@ -1,81 +1,84 @@
 <template>
+  <div class="mt-4">
+    <UILabel> Permissões </UILabel>
+  </div>
 
-
-<div class="mt-4">
-    <UILabel>
-        Permissões
-    </UILabel>
-</div>
-
-<table class="w-full">
+  <table class="w-full">
     <thead class="bg-gray-200 border border-b">
-        <tr class="bg-gray-100 border border-b">
-            <th>Recurso</th>
-            <th class="text-left">Ler</th>
-            <th class="text-left">Criar</th>
-            <th class="text-left">Editar</th>
-            <th class="text-left">Excluir</th>
-            <th class="text-left">Importar</th>
-        </tr>
+      <tr class="bg-gray-100 border border-b">
+        <th>Recurso</th>
+        <th class="text-left">Ler</th>
+        <th class="text-left">Criar</th>
+        <th class="text-left">Editar</th>
+        <th class="text-left">Excluir</th>
+        <th class="text-left">Importar</th>
+      </tr>
     </thead>
     <tbody>
-        <tr v-for="permission in formPermissions" :key="permission.resourceId">
-            <td class="text-center border-b">{{ permission.label }}</td>
-            <td class="text-center border-b" v-for="p in permissions">
-                <FieldCheckbox v-model="permission[p]" :id="permission.resourceId + '-' + p" />
-            </td>
-        </tr>
+      <tr v-for="permission in formPermissions" :key="permission.resourceId">
+        <td class="text-center border-b">{{ permission.label }}</td>
+        <td class="text-center border-b" v-for="p in permissions">
+          <FieldCheckbox
+            v-model="permission[p]"
+            :id="permission.resourceId + '-' + p"
+          />
+        </td>
+      </tr>
     </tbody>
-</table>
-
+  </table>
 </template>
 
 <script setup lang="ts">
 const props = defineProps({
-    formStore: {
-        type: Object as PropType<FormStore>,
-        required: true
-    }
-});
-
+  formStore: {
+    type: Object as PropType<FormStore>,
+    required: true
+  }
+})
 
 const { data, pending, error } = await useFetchWithBaseUrl('/api/resource', {
-    method: 'GET',
-    params: {
-        where: {
-            isAppModel: false,
-            isRelation: false
-        }
+  method: 'GET',
+  params: {
+    where: {
+      isAppModel: false,
+      isRelation: false
     }
-});
+  }
+})
 
-const currentPermissions = props.formStore.getFieldData('permissions') as any[] ?? [];
+const currentPermissions =
+  (props.formStore.getFieldData('permissions') as any[]) ?? []
 
-const permissions = ['read', 'create', 'update', 'delete', 'import'];
+const permissions = ['read', 'create', 'update', 'delete', 'import']
 
-const resources = data.value.items as Resource[] ?? [];
+const resources = (data.value.items as Resource[]) ?? []
 
-const formPermissions = reactive([] as any[]);
+const formPermissions = reactive([] as any[])
 
 for (const resource of resources) {
-    const found = currentPermissions.find((p: any) => p.resourceId === resource.id);
+  const found = currentPermissions.find(
+    (p: any) => p.resourceId === resource.id
+  )
 
-    const permission = {
-        id: found?.id,
-        resourceId: resource.id,
-        label: resource.labelPlural,
-        read: found?.read ?? false,
-        create: found?.create ?? false,
-        update: found?.update ?? false,
-        delete: found?.delete ?? false,
-        import: found?.import ?? false,
-        _action_: 'update'
-    };
-    formPermissions.push(permission);
+  const permission = {
+    id: found?.id,
+    resourceId: resource.id,
+    label: resource.labelPlural,
+    read: found?.read ?? false,
+    create: found?.create ?? false,
+    update: found?.update ?? false,
+    delete: found?.delete ?? false,
+    import: found?.import ?? false,
+    _action_: 'update'
+  }
+  formPermissions.push(permission)
 }
 
-watch(formPermissions, (newVal) => {
-    props.formStore.setFieldData('permissions', newVal);
-}, { deep: true });
-
+watch(
+  formPermissions,
+  (newVal) => {
+    props.formStore.setFieldData('permissions', newVal)
+  },
+  { deep: true }
+)
 </script>

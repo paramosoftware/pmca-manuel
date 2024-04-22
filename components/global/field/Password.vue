@@ -1,10 +1,20 @@
 <template>
-    <FieldCheckbox id="changePassword" v-model="changePassword" label="Alterar senha" v-if="!isCreate" />
+    <FieldCheckbox
+        id="changePassword"
+        v-model="changePassword"
+        label="Alterar senha"
+        v-if="!isCreate"
+    />
     <template v-if="changePassword || isCreate">
-        <FieldInput id="password" v-model="password" type="password" :label="isCreate ? 'Senha' : 'Nova senha'" :required="isCreate || changePassword" />
+        <FieldInput
+            id="password"
+            v-model="password"
+            type="password"
+            :label="isCreate ? 'Senha' : 'Nova senha'"
+            :required="isCreate || changePassword"
+        />
     </template>
 </template>
-
 
 <script setup lang="ts">
 const props = defineProps({
@@ -30,5 +40,4 @@ watch(changePassword, (newVal) => {
         props.formStore.unsetFieldData('password');
     }
 });
-
 </script>

@@ -1,7 +1,6 @@
 import QUERIES from '~/config/queries';
 export const createFormStore = (name: string) => {
     return defineStore(name, () => {
-
         const id = ref<ID>(0);
         const name = ref('');
         const model = ref('');
@@ -15,13 +14,13 @@ export const createFormStore = (name: string) => {
         const parentModel = ref('');
         const resourceStore = useResourceStore();
         const userStore = useUserStore();
-        const canCreate = computed(() => userStore.permissions[resourceStore.model]?.create);
+        const canCreate = computed(
+            () => userStore.permissions[resourceStore.model]?.create
+        );
         const pending = ref(false);
         const error = ref('');
 
-
         async function load(resourceIdentifier: string, itemId?: ID) {
-
             if (!resourceIdentifier) {
                 throw new Error('Resource not set');
             }
@@ -49,7 +48,7 @@ export const createFormStore = (name: string) => {
             if (!resourceStore.model) {
                 throw new Error('Resource not found');
             }
-            
+
             name.value = resourceStore.name;
             model.value = resourceStore.model;
             label.value = resourceStore.label || '';
@@ -61,15 +60,24 @@ export const createFormStore = (name: string) => {
         }
 
         async function loadFieldsData() {
-
             if (!resourceStore.model) {
                 throw new Error('Resource not found');
             }
 
-            const { data, pending, error } = await useFetchWithBaseUrl(`/api/${resourceStore.model}/${id.value}`, {
-                method: 'GET',
-                params: { include: QUERIES.get(resourceStore.model)?.include  ?? '*' }
-            }) as { data: Ref<Record<string, any>>, pending: Ref<boolean>, error: Ref<any> };
+            const { data, pending, error } = (await useFetchWithBaseUrl(
+                `/api/${resourceStore.model}/${id.value}`,
+                {
+                    method: 'GET',
+                    params: {
+                        include:
+                            QUERIES.get(resourceStore.model)?.include ?? '*'
+                    }
+                }
+            )) as {
+                data: Ref<Record<string, any>>;
+                pending: Ref<boolean>;
+                error: Ref<any>;
+            };
 
             pending.value = pending.value;
 
@@ -85,15 +93,17 @@ export const createFormStore = (name: string) => {
         }
 
         function setFieldsConfig() {
-
             if (!resourceStore.fields) {
                 throw new Error('Resource fields not found');
             }
 
-            const config = resourceStore.fields.reduce((acc: Record<string, FormField>, field: FormField) => {
-                acc[field.name] = field;
-                return acc;
-            }, {});
+            const config = resourceStore.fields.reduce(
+                (acc: Record<string, FormField>, field: FormField) => {
+                    acc[field.name] = field;
+                    return acc;
+                },
+                {}
+            );
 
             fieldsConfig.value = config;
         }
@@ -116,29 +126,29 @@ export const createFormStore = (name: string) => {
         }
 
         function getFieldData(field: string) {
-            if (!fieldsData.value[field]) {
-                return undefined;
-            }
-
             return fieldsData.value[field];
         }
 
         function setFieldsData(data: Record<string, any>) {
-            const fields = Object.keys(data).reduce((acc: Record<string, any>, key: string) => {
-                if (data[key] !== null && data[key] !== undefined) {
-                    acc[key] = data[key];
-                }
-                return acc;
-            }, {});
+            const fields = Object.keys(data).reduce(
+                (acc: Record<string, any>, key: string) => {
+                    if (data[key] !== null && data[key] !== undefined) {
+                        acc[key] = data[key];
+                    }
+                    return acc;
+                },
+                {}
+            );
 
             fieldsData.value = fields;
         }
 
         function setFieldData(field: string, value: any) {
-
             const fieldConfig = getFieldConfig(field);
 
-            if (!fieldConfig) { return; }
+            if (!fieldConfig) {
+                return;
+            }
 
             if (fieldConfig.valueType === 'string') {
                 if (value.name) {
@@ -154,7 +164,6 @@ export const createFormStore = (name: string) => {
             delete fieldsData.value[field];
         }
 
-
         function getIsAuxiliary() {
             return isAuxiliary.value;
         }
@@ -165,10 +174,11 @@ export const createFormStore = (name: string) => {
         }
 
         function resetFieldData(field: string) {
-
             const fieldConfig = getFieldConfig(field);
 
-            if (!fieldConfig) { return; }
+            if (!fieldConfig) {
+                return;
+            }
 
             if (fieldConfig.valueType === 'object') {
                 fieldsData.value[field] = null;
@@ -191,7 +201,9 @@ export const createFormStore = (name: string) => {
         function addFieldData(field: string, value: Item) {
             const fieldConfig = getFieldConfig(field);
 
-            if (!fieldConfig) { return; }
+            if (!fieldConfig) {
+                return;
+            }
 
             if (fieldConfig.valueType === 'object') {
                 fieldsData.value[field] = value;
@@ -207,7 +219,6 @@ export const createFormStore = (name: string) => {
         }
 
         function addDataArrayField(field: string, value: Item) {
-
             if (!fieldsData.value[field]) {
                 fieldsData.value[field] = [];
             }
@@ -216,19 +227,21 @@ export const createFormStore = (name: string) => {
                 fieldsData.value[field] = [fieldsData.value[field]];
             }
 
-            if (fieldsData.value[field].find((v: Item) => {
+            if (
+                fieldsData.value[field].find((v: Item) => {
+                    if (!value || !v) {
+                        return false;
+                    }
 
-                if (!value || !v) { return false; }
+                    if (value.id) {
+                        return v.id === value.id;
+                    } else if (value.name) {
+                        return v.name === value.name;
+                    }
 
-                if (value.id) {
-                    return v.id === value.id;
-                } else if (value.name) {
-                    return v.name === value.name;
-                }
-
-                return false;
-
-            })) {
+                    return false;
+                })
+            ) {
                 return;
             }
 
@@ -236,10 +249,11 @@ export const createFormStore = (name: string) => {
         }
 
         function removeFieldData(field: string, value: Item) {
-
             const fieldConfig = getFieldConfig(field);
 
-            if (!fieldConfig) { return; }
+            if (!fieldConfig) {
+                return;
+            }
 
             if (fieldConfig.valueType === 'object') {
                 fieldsData.value[field] = null;
@@ -255,7 +269,6 @@ export const createFormStore = (name: string) => {
         }
 
         function removeDataArrayField(field: string, value: Item) {
-
             if (!fieldsData.value[field]) {
                 return;
             }
@@ -264,56 +277,60 @@ export const createFormStore = (name: string) => {
                 return;
             }
 
-            fieldsData.value[field] = fieldsData.value[field].filter((v: Item) => {
+            fieldsData.value[field] = fieldsData.value[field].filter(
+                (v: Item) => {
+                    if (!value || !v) {
+                        return false;
+                    }
 
-                if (!value || !v) { return false; }
+                    if (value.id) {
+                        return v.id !== value.id;
+                    } else if (value.name) {
+                        return v.name !== value.name;
+                    }
 
-                if (value.id) {
-                    return v.id !== value.id;
-                } else if (value.name) {
-                    return v.name !== value.name;
+                    return false;
                 }
-
-                return false;
-            });
+            );
         }
 
         async function save() {
             if (!model) {
                 throw new Error('Resource not found');
             }
-        
+
             // TODO: The auxiliary should only be saved with the parent?
             if (getIsAuxiliary() && !id.value) {
                 return;
             }
-        
-            const url = !id.value ? `/api/${resourceStore.model}` : `/api/${resourceStore.model}/${id.value}`;
-            const method = !id.value ? 'POST' : 'PUT';
-        
-            const { data, error } = await useFetchWithBaseUrl(url, {
-                method: method,
-                body: JSON.stringify(treatDataBeforeSave()),
-            }) as { data: Ref<Item>, error: Ref<any> };
 
+            const url = !id.value
+                ? `/api/${resourceStore.model}`
+                : `/api/${resourceStore.model}/${id.value}`;
+            const method = !id.value ? 'POST' : 'PUT';
+
+            const { data, error } = (await useFetchWithBaseUrl(url, {
+                method: method,
+                body: JSON.stringify(treatDataBeforeSave())
+            })) as { data: Ref<Item>; error: Ref<any> };
 
             if (!getIsAuxiliary()) {
                 const toast = useToast();
-            
+
                 if (error.value) {
                     console.error(error.value.data ?? error.value);
                     toast.add({
                         title: 'Erro ao salvar dados.',
                         color: 'red',
-                        icon: 'i-heroicons-x-circle',
+                        icon: 'i-heroicons-x-circle'
                     });
                     return false;
-                } 
+                }
 
                 if (data.value) {
                     toast.add({
-                        title: 'Dados salvos com sucesso.',
-                    })
+                        title: 'Dados salvos com sucesso.'
+                    });
                     return data.value.id;
                 }
             }
@@ -324,11 +341,12 @@ export const createFormStore = (name: string) => {
             const treatedData = {} as Record<string, any>;
 
             for (const field of Object.keys(data)) {
-
                 const fieldConfig = getFieldConfig(field);
 
-                if (!fieldConfig || fieldConfig.disabled) { continue; }
-            
+                if (!fieldConfig || fieldConfig.disabled) {
+                    continue;
+                }
+
                 if (fieldConfig.valueType === 'boolean') {
                     treatedData[field] = getBoolean(data[field]);
                     continue;
@@ -365,6 +383,6 @@ export const createFormStore = (name: string) => {
             addFieldData,
             removeFieldData,
             unsetFieldData
-        }
+        };
     });
-}
+};

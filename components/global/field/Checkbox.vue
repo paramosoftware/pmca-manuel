@@ -1,8 +1,8 @@
 <template>
     <div class="flex flex-row items-center my-3" v-show="!hidden">
-        <UCheckbox 
-            :id="id" 
-            :model-value="modelValue" 
+        <UCheckbox
+            :id="id"
+            :model-value="modelValue"
             :disabled="disabled"
             @change="onInput"
             class="cursor-pointer"
@@ -10,14 +10,13 @@
             input-class="cursor-pointer"
         >
             <template #label>
-                {{ label  }}
+                {{ label }}
             </template>
         </UCheckbox>
     </div>
 </template>
 
 <script setup lang="ts">
-
 const props = defineProps({
     id: {
         type: String,
@@ -44,7 +43,7 @@ const props = defineProps({
         default: ''
     },
     formStore: {
-        type: Object as PropType<FormStore>,
+        type: Object as PropType<FormStore>
     }
 });
 
@@ -55,14 +54,15 @@ const label = getFormFieldConfig('label', '', props);
 let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
 
 if (props.formStore) {
-    modelValue = computed(() => props.formStore?.getFieldData(props.id) ?? defaultValue.value);
+    modelValue = computed(
+        () => props.formStore?.getFieldData(props.id) === undefined ? defaultValue.value : props.formStore?.getFieldData(props.id)
+    );
     props.formStore.setFieldData(props.id, modelValue.value);
 }
 
 const emit = defineEmits(['update:modelValue']);
 
 const onInput = (event: Event) => {
-
     const value = (event.target as HTMLInputElement).checked;
 
     if (props.formStore) {
@@ -70,6 +70,5 @@ const onInput = (event: Event) => {
     }
 
     emit('update:modelValue', value);
-}
-
+};
 </script>

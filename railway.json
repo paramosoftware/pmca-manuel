@@ -1,0 +1,23 @@
+{
+    "$schema": "https://railway.app/railway.schema.json",
+    "build": {
+        "builder": "NIXPACKS",
+        "buildCommand": "pnpm build && pnpm prisma generate && pnpm prisma db push && pnpm prisma db seed",
+        "nixpacksPlan": {
+            "phases": {
+                "install": {
+                    "cmds": [
+                        "pnpm install --no-frozen-lockfile"
+                    ]
+                }
+            }
+        }
+    },
+    "deploy": {
+        "numReplicas": 1,
+        "startCommand": "node .output/server/index.mjs",
+        "sleepApplication": false,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+    }
+}

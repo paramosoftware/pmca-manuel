@@ -46,6 +46,7 @@ datasource db {
 // - The name field is the main label of the object and when possible should be in the model schema.
 // - All text fields, that need to be searchable, should have a normalized version of the field, with the suffix "Normalized". Example: nameNormalized String?
 // - Slugs can be used to generate urls for the object and should be unique.
+// - All rich text fields should have a Rich version of the field, with the suffix "Rich". Example: descriptionRich String?
 
 // The following conventions for the generated form:
 // - The order of the fields in the model is the position in which they will be displayed in the form (position = index).
@@ -57,6 +58,23 @@ datasource db {
 
 // Comments syntax for models: key:value|key:value|... The keys are any of the fields of the Resource model.
 // Comments syntax for fields: key:value|key:value|... The keys are any of the fields of the ResourceField model.  
+
+// Workaround for Prisma behavior:
+// - The following query, which filters the related model, only works when the relation is optional (specifically, language and languageId in EntryTranslation model). 
+// When the relation is required, the where clause is not generated in the types
+//         include: {
+//            translations: {
+//                include: {
+//                    language: {
+//                        where: {
+//                            published: true
+//                        }
+//                    }
+//                }
+//            },
+//        },
+// So if the relation is required, it should be changed to optional in the Prisma schema, but the field should be required in the form with required:true.
+
 
 model Group {
   id          Int     @id @default(autoincrement())
@@ -109,9 +127,11 @@ model Resource {
   isAppModel     Boolean? @default(false)
   isPublic       Boolean? @default(false)
 
-  parent Resource? @relation("ResourceToChildren", fields: [parentId], references: [id])
-  parentId       Int?
-  children       Resource[] @relation("ResourceToChildren")
+  parent   Resource?  @relation("ResourceToChildren", fields: [parentId], references: [id])
+  parentId Int?
+  children Resource[] @relation("ResourceToChildren")
+
+  published Boolean @default(false)
 
   modelNormalized       String
   nameSlug              String  @unique
@@ -162,6 +182,10 @@ model ResourceField {
   resourceId Int
   resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
+  published Boolean @default(false)
+
+  entryChanges EntryChanges[] /// disabled:true|hidden:true
+
   nameNormalized        String?
   labelNormalized       String?
   placeholderNormalized String?
@@ -178,7 +202,7 @@ model User {
   email String @unique
   name  String
 
-  password  String  /// uiField:password
+  password  String /// uiField:password
   isBlocked Boolean?      @default(false)
   isAdmin   Boolean?      @default(false) /// disabled:true|hidden:true
   sessions  UserSession[] /// disabled:true|hidden:true
@@ -187,7 +211,7 @@ model User {
   author   Author? @relation(fields: [authorId], references: [id]) /// hidden:true|disabled:false
 
   groupId Int?
-  group Group? @relation(fields: [groupId], references: [id])
+  group   Group? @relation(fields: [groupId], references: [id])
 
   nameNormalized  String?
   loginNormalized String?
@@ -216,8 +240,10 @@ model Author {
 
   nameNormalized String?
 
-  users        User[]  /// max:1|label:Usuário relacionado|uiField:autocomplete|allowCreate:false
+  users        User[] /// max:1|label:Usuário relacionado|uiField:autocomplete|allowCreate:false
   entryChanges EntryChanges[] /// disabled:true|hidden:true
+
+  published Boolean @default(true) /// defaultValue:true
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -238,11 +264,13 @@ model Entry {
   variations   EntryVariation[] /// includeExport:true
   translations EntryTranslation[] /// includeExport:true
 
-  entries        Entry[] @relation("EntryToEntry") /// includeExport:true
-  relatedEntries Entry[] @relation("EntryToEntry") /// includeExport:true
+  entries        Entry[] @relation("EntryToEntry") /// includeExport:true|allowCreate:false
+  relatedEntries Entry[] @relation("EntryToEntry") /// includeExport:true|allowCreate:false
 
   references Reference[] /// includeExport:true
   media      EntryMedia[]
+
+  published Boolean @default(true) /// defaultValue:true
 
   accessCount Int            @default(0) /// disabled:true|hidden:true
   changes     EntryChanges[] /// disabled:true|hidden:true
@@ -259,10 +287,13 @@ model EntryChanges {
   id      Int    @id @default(autoincrement())
   changes String
 
-  authorId Int
-  author   Author @relation(fields: [authorId], references: [id])
+  authorId Int?
+  author   Author? @relation(fields: [authorId], references: [id], onDelete: SetNull)
   entryId  Int
-  entry    Entry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entry    Entry   @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  fieldId Int?
+  field   ResourceField? @relation(fields: [fieldId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -277,7 +308,7 @@ model EntryMedia {
   path             String?
   subtitle         String?
   type             String?
-  isPublic         Boolean? @default(false)
+  published        Boolean @default(true) /// defaultValue:true
 
   subtitleNormalized String?
 
@@ -305,10 +336,10 @@ model EntryTranslation {
   id   Int    @id @default(autoincrement())
   name String
 
-  languageId Int
-  language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  languageId Int? /// required:true
+  language   Language? @relation(fields: [languageId], references: [id], onDelete: Cascade) /// required:true
   entryId    Int
-  entry      Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entry      Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   nameNormalized String?
 
@@ -324,6 +355,8 @@ model Language {
 
   translations EntryTranslation[] /// disabled:true|hidden:true
 
+  published Boolean @default(true) /// defaultValue:true
+
   nameNormalized String?
 
   createdAt DateTime @default(now())
@@ -333,11 +366,14 @@ model Language {
 /// isPublic:true
 model Reference {
   id   Int    @id @default(autoincrement())
-  name String @unique /// uiField:rich
+  name String @unique /// uiField:rich|isRich:true
 
+  nameRich       String? /// hidden:true
   nameNormalized String?
 
   entries Entry[]
+
+  published Boolean? @default(true) /// defaultValue:true
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -350,6 +386,8 @@ model WebPage {
   nameSlug String @unique
   content  String
   menuName String
+
+  published Boolean @default(true) /// defaultValue:true
 
   nameNormalized    String?
   contentNormalized String?
