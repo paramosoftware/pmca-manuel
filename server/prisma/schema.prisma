@@ -1,3 +1,6 @@
+// For more information on the convetions adopted in this project,
+// please refer to the documentation: docs/prisma-schema.md
+
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native"]
@@ -7,74 +10,6 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
-
-// This schema is main source of truth for the app. 
-// It is used to generate the Prisma schema and seed the configuration of forms and fields.
-// As such, it is extended with Prisma reconigzed comments (starting with ///) to provide additional information for the seed script.
-// These configuration can be changed in the admin interface.
-
-// Any @unique field can be used as id for the model (normally called identifier throughout the app to avoid confusion with the id field).
-
-// Non-hierarchal assosiative relations (like friends), that should appear in both sides of the relation, are configured as follows:
-// friends: Friend[] @relation("FriendToFriend")
-// oppositeFriends: Friend[] @relation("FriendToFriend")
-// The relation name in the same model allows the app to know that the relation is assosiative 
-// and should be displayed in both sides of the relation in the form, keeping the opposite field in hidden mode.
-
-// In hierarchal models (like tags), the following fields are required:
-// - parentId: Int? (the id of the parent category)
-// - children: Tag[] @relation("TagToChildren") (the children categories)
-// - parent: Tag? @relation("TagToChildren", fields: [parentId], references: [id]) (the parent tag)
-// This allows the app to know that the model is hierarchal.
-
-// The following fields are always generated and don't need to be sent in the form:
-// - id: Int @id @default(autoincrement())
-// - createdAt: DateTime? @default(now())
-// - updatedAt: DateTime? @updatedAt
-// - [prefix]Normalized: String? (normalized version of the field)
-// - [prefix]Slug: String? (slug version of the field)
-
-// The following conventions are used for Resource models:
-// - The name of the model is the name of the resource.
-// - Models starting with another resource name are considered relations (isRelation = true). Example: [Resource]Field is a relation of [Resource]. 
-// - Relations inherit the following configuration of the parent model: isPublic and isAppModel
-
-// The following conventions are used for models:
-// - In one-to-one or one-to-many relations, in the one side of the relation, the scalar field should be the same as the relation field but with the suffix "Id".
-// By default, the relation name given by Prisma is used: Model + 'To' + RelatedModel and should not be changed. Example: UserToGroup.
-//     Example: user User @relation(fields: [userId], references: [id]) and userId Int.
-// - The name field is the main label of the object and when possible should be in the model schema.
-// - All text fields, that need to be searchable, should have a normalized version of the field, with the suffix "Normalized". Example: nameNormalized String?
-// - Slugs can be used to generate urls for the object and should be unique.
-// - All rich text fields should have a Rich version of the field, with the suffix "Rich". Example: descriptionRich String?
-
-// The following conventions for the generated form:
-// - The order of the fields in the model is the position in which they will be displayed in the form (position = index).
-// - Generated fields (listed above) are not displayed in the form (disabled = true and hidden = true).
-// - Fields with a name ending in "Id" are displayed as a select field and their counterpart is hidden.
-// - Lists are displayed as an autocomplete field.
-// - Description, definition and notes fields are displayed as textareas.
-// - Relation fields which model is a relation of the current model are displayed as a auxiliary form field. Example: variations EntryVariation[] - 
-
-// Comments syntax for models: key:value|key:value|... The keys are any of the fields of the Resource model.
-// Comments syntax for fields: key:value|key:value|... The keys are any of the fields of the ResourceField model.  
-
-// Workaround for Prisma behavior:
-// - The following query, which filters the related model, only works when the relation is optional (specifically, language and languageId in EntryTranslation model). 
-// When the relation is required, the where clause is not generated in the types
-//         include: {
-//            translations: {
-//                include: {
-//                    language: {
-//                        where: {
-//                            published: true
-//                        }
-//                    }
-//                }
-//            },
-//        },
-// So if the relation is required, it should be changed to optional in the Prisma schema, but the field should be required in the form with required:true.
-
 
 model Group {
   id          Int     @id @default(autoincrement())
