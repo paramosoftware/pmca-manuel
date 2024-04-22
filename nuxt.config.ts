@@ -37,7 +37,6 @@ export default defineNuxtConfig({
         transpile: [
             'jsonwebtoken',
             'vue2-dropzone-vue3',
-            'vis-network',
             'v-viewer'
         ]
     },
