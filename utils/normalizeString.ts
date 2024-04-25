@@ -5,6 +5,8 @@ export default function normalizeString(str: string, slug: boolean = false) {
         return str;
     }
 
+    str = str.trim();
+
     str = str
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')

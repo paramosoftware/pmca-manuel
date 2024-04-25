@@ -99,6 +99,7 @@ watch(content, (value) => {
         let text = quillEditor.value.getText();
         text = text.replace(/\n/g, ' ');
         text.trim();
+        value = value.trim();
 
         if (value == '<p><br></p>' || text === '') {
             value = '';
