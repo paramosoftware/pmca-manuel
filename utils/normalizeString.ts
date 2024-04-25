@@ -12,7 +12,7 @@ export default function normalizeString(str: string, slug: boolean = false) {
 
     str = stripHtmlTags(str);
 
-    str = str.replace(/[^\w\s]/gi, '');
+    str = str.replace(/[^\p{L}\p{N}\s]/gu, '');
 
     if (slug) {
         str = str.replace(/\s/g, '-');
