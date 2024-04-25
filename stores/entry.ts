@@ -45,6 +45,24 @@ export const useEntryStore = defineStore('entry', () => {
                         notes: {
                             like: search.value
                         }
+                    },
+                    {
+                        translations: {
+                            some: {
+                                name: {
+                                    like: search.value
+                                }
+                            }
+                        }
+                    },
+                    {
+                        variations: {
+                            some: {
+                                name: {
+                                    like: search.value
+                                }
+                            }
+                        }
                     }
                 ],
                 AND: []
