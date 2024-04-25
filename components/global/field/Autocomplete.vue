@@ -63,7 +63,7 @@
                     </li>
 
                     <li
-                        v-if="results.length === 0 && !searching"
+                        v-if="results.length === 0 && !searching && showNoResults"
                         class="px-2 py-2 text-gray-400"
                         @click="search = ''"
                     >
@@ -150,6 +150,10 @@ const props = defineProps({
     isPublic: {
         type: Boolean,
         default: false
+    },
+    showNoResults: {
+        type: Boolean,
+        default: true
     },
     size: {
         type: String as PropType<'sm' | 'md' | 'lg' | 'xl'>,

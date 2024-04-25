@@ -10,6 +10,7 @@
       :show-icon="showIcon"
       :show-selected="showSelected"
       :is-public="isPublic"
+      :show-no-results="showNoResults"
       class="w-full"
       @select="onSelect"
       @input="onInput"
@@ -38,6 +39,7 @@ const selected = ref([]);
 const relatedResource = ref({ name: 'Entry' });
 const showIcon = ref(false);
 const showSelected = ref(false);
+const showNoResults = ref(false);
 
 const onInput = (value: string) => {
   currentInput.value = value;
