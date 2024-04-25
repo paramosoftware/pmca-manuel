@@ -238,7 +238,10 @@ class PrismaServiceValidator {
             'in',
             'notin',
             'equals',
-            'isnull'
+            'isnull',
+            'some',
+            'every',
+            'none'
         ];
     }
 }

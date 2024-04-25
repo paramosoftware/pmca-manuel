@@ -465,6 +465,15 @@ class PrismaServiceConverter {
             case 'isnull':
                 prismaQuery[field].equals = value ? null : { not: null };
                 break;
+            case 'some':
+            case 'every':
+            case 'none':
+                prismaQuery[field][operator] = this.convertQuery(
+                    { where: value as Where },
+                    fieldsMap.get(field)?.type || '',
+                    false
+                ).where;
+                break;
             default:
                 prismaQuery[field].equals = isNormalized
                     ? normalizeString(value as string)
