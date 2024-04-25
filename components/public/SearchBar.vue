@@ -9,6 +9,7 @@
       :allow-create="allowCreate"
       :show-icon="showIcon"
       :show-selected="showSelected"
+      :is-public="isPublic"
       class="w-full"
       @select="onSelect"
       @input="onInput"
@@ -32,6 +33,7 @@ const currentInput = ref('');
 const id = 'search-bar';
 const placeholder = 'Pesquisar';
 const allowCreate = false;
+const isPublic = true;
 const selected = ref([]);
 const relatedResource = ref({ name: 'Entry' });
 const showIcon = ref(false);

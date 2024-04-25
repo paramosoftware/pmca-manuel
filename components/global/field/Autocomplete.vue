@@ -147,6 +147,10 @@ const props = defineProps({
         type: Boolean,
         default: true
     },
+    isPublic: {
+        type: Boolean,
+        default: false
+    },
     size: {
         type: String as PropType<'sm' | 'md' | 'lg' | 'xl'>,
         default: 'md'
@@ -341,7 +345,7 @@ async function searchItems() {
 
     timeoutId = setTimeout(async () => {
         const { data, pending, error } = (await useFetchWithBaseUrl(
-            'api/' + relatedResource.value.name,
+            'api/' + (props.isPublic ? 'public/' : '') + relatedResource.value.name,
             {
                 method: 'GET',
                 params: query
