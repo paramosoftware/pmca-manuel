@@ -24,7 +24,7 @@
             @change="onTabChange"
         >
             <template #tabPanel-1>
-                <div class="flex flex-col">
+                <div class="flex flex-col min-h-48">
                     <PublicEntryMedia
                         :images="images"
                         v-if="images.length > 0"
