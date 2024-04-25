@@ -26,8 +26,18 @@ export async function logout(
 
     await deleteSession(decodedToken.sessionId);
 
-    res.clearCookie(getCookiePrefix() + 'jwt');
-    res.clearCookie(getCookiePrefix() + 'csrf');
+    res.clearCookie(getCookiePrefix() + 'jwt', {
+        secure: isHTTPS(),
+        sameSite: 'lax',
+        httpOnly: true
+    });
+    
+    res.clearCookie(getCookiePrefix() + 'csrf', {
+        secure: isHTTPS(),
+        sameSite: 'strict',
+        httpOnly: false
+    });
+
     res.json({ message: 'Logout successful' });
 }
 
