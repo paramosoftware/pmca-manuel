@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import capitalize from '~/utils/capitalize';
 import getBoolean from '~/utils/getBoolean';
 import hashPassword from '~/utils/hashPassword';
 import normalizeString from '~/utils/normalizeString';
@@ -24,25 +25,34 @@ class PrismaService {
     private validator: PrismaServiceValidator;
     private converter: PrismaServiceConverter;
     private onlyPublished: boolean = false;
+    private removePrivateFields: boolean = false;
 
     /**
      * PrismaService constructor
      * @param model - The model name
      * @param checkPermissions - Whether to check permissions. Permissions can be set with setPermissions.
      * @param onlyPublished - Return only published records
+     * @param removePrivateFields - Remove private fields from the response and clauses
      */
-    constructor(model: string, checkPermissions = true, onlyPublished = false) {
-        this.model = model;
+    constructor(
+        model: string,
+        checkPermissions = true,
+        onlyPublished = false,
+        removePrivateFields = false
+    ) {
+        this.model = this.setModel(model);
         this.checkPermissions = checkPermissions;
         this.onlyPublished = onlyPublished;
+        this.removePrivateFields = removePrivateFields;
         this.setModelFields();
-        this.validator = new PrismaServiceValidator(model);
+        this.validator = new PrismaServiceValidator(this.model);
         this.converter = new PrismaServiceConverter(
-            model,
+            this.model,
             this.modelFields,
             this.fieldsMap,
             this.checkPermissions,
-            this.onlyPublished
+            this.onlyPublished,
+            this.removePrivateFields
         );
     }
 
@@ -963,7 +973,8 @@ class PrismaService {
     }
 
     setModel(model: string) {
-        this.model = model;
+        this.model = capitalize(model);
+        return this.model;
     }
 
     setId(id: ID) {
@@ -1117,7 +1128,10 @@ class PrismaService {
                         (name: any) => !newNames.includes(name)
                     );
 
-                    const fieldChanges = { } as { added: string[]; removed: string[] };
+                    const fieldChanges = {} as {
+                        added: string[];
+                        removed: string[];
+                    };
 
                     if (added.length > 0) {
                         fieldChanges['added'] = added;

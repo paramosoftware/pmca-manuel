@@ -118,6 +118,7 @@ model ResourceField {
   resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   published Boolean @default(false)
+  isPrivate Boolean @default(false)
 
   entryChanges EntryChanges[] /// disabled:true|hidden:true
 

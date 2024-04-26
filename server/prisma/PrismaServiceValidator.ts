@@ -51,7 +51,25 @@ class PrismaServiceValidator {
      * @example select = ['id', 'name']
      */
     private validateSelect(select: string[]) {
-        return select.length > 0;
+        if (!Array.isArray(select)) {
+            throw new ApiValidationError(
+                'The select property must be an array of strings'
+            );
+        }
+
+        if (select.length === 0) {
+            throw new ApiValidationError(
+                'The select property must have at least one value'
+            );
+        }
+
+        for (const field of select) {
+            if (typeof field !== 'string') {
+                throw new ApiValidationError(
+                    'The select property must be an array of strings'
+                );
+            }
+        }
     }
 
     /**
@@ -108,7 +126,7 @@ class PrismaServiceValidator {
     private validateWhereOperator(key: string, where: Where) {
         if (Array.isArray(where[key])) {
             // @ts-ignore
-            where[key].forEach((condition) => {
+            where[key].forEach((condition: Condition) => {
                 const field = Object.keys(condition)[0];
 
                 this.validateCondition(condition[field] as Condition);
