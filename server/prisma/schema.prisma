@@ -133,27 +133,28 @@ model ResourceField {
 }
 
 model User {
-  id    String @id @default(uuid())
-  login String @unique // TODO: create validation for login
-  email String @unique
+  id    String @id @default(uuid()) /// isPrivate:true
+  login String @unique /// isPrivate:true
+  email String @unique /// isPrivate:true
   name  String
 
-  password  String /// uiField:password
-  isBlocked Boolean?      @default(false)
-  isAdmin   Boolean?      @default(false) /// disabled:true|hidden:true
-  sessions  UserSession[] /// disabled:true|hidden:true
+  password  String /// uiField:password|isPrivate:true
+  isBlocked Boolean?      @default(false) /// isPrivate:true
+  isAdmin   Boolean?      @default(false) /// disabled:true|hidden:true|isPrivate:true
+  sessions  UserSession[] /// disabled:true|hidden:true|isPrivate:true
 
-  authorId Int? /// hidden:true
-  author   Author? @relation(fields: [authorId], references: [id]) /// hidden:true|disabled:false
+  entryChanges EntryChanges[] /// disabled:true|hidden:true|isPrivate:true
 
-  groupId Int?
-  group   Group? @relation(fields: [groupId], references: [id])
+  groupId Int? 
+  group   Group? @relation(fields: [groupId], references: [id]) /// isPrivate:true
 
   nameNormalized  String?
   loginNormalized String?
 
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
+  published Boolean @default(true) /// defaultValue:true|isPrivate:true
+
+  createdAt DateTime? @default(now()) /// isPrivate:true
+  updatedAt DateTime? @updatedAt /// isPrivate:true
 }
 
 model UserSession {
@@ -168,21 +169,6 @@ model UserSession {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, refreshToken])
-}
-
-model Author {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-
-  nameNormalized String?
-
-  users        User[] /// max:1|label:Usuário relacionado|uiField:autocomplete|allowCreate:false
-  entryChanges EntryChanges[] /// disabled:true|hidden:true
-
-  published Boolean @default(true) /// defaultValue:true
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 /// isPublic:true
@@ -223,8 +209,9 @@ model EntryChanges {
   id      Int    @id @default(autoincrement())
   changes String
 
-  authorId Int?
-  author   Author? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  userId String? /// isPrivate:true
+  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   entryId  Int
   entry    Entry   @relation(fields: [entryId], references: [id], onDelete: Cascade)
 

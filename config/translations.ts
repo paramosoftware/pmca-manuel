@@ -73,11 +73,6 @@ MODELS.set('WebPage', {
     labelPlural: 'Páginas web',
     genderNoun: 'f'
 });
-MODELS.set('Author', {
-    label: 'Autor',
-    labelPlural: 'Autores',
-    genderNoun: 'm'
-});
 
 const FIELDS = new Map<string, string>();
 FIELDS.set('id', 'id');

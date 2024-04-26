@@ -25,14 +25,9 @@ declare global {
     export type User = Prisma.User & {
         groups?: Group[];
         sessions?: UserSession[];
-        author?: Author;
     };
 
     export type UserSession = Prisma.UserSession & {
-        user?: User;
-    };
-
-    export type Author = Prisma.Author & {
         user?: User;
     };
 

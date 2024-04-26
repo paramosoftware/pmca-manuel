@@ -1083,18 +1083,8 @@ class PrismaService {
             fieldsMap.set(field.name, field);
         });
 
-        const author = await prisma.author.findFirst({
-            where: {
-                users: {
-                    some: {
-                        id: this.userId as any
-                    }
-                }
-            }
-        });
-
         const changes = [] as {
-            author: { connect: { id: number } };
+            user: { connect: { id: number } };
             field: { connect: { id: number } };
             changes: string;
         }[];
@@ -1107,7 +1097,8 @@ class PrismaService {
                         JSON.stringify({
                             old: oldData[field],
                             new: newData[field]
-                        })
+                        }),
+                        this.userId
                     );
                 }
             }
@@ -1142,7 +1133,7 @@ class PrismaService {
                     }
 
                     if (added.length > 0 || removed.length > 0) {
-                        _addChange(field, JSON.stringify(fieldChanges));
+                        _addChange(field, JSON.stringify(fieldChanges), this.userId);
                     }
                 } else if (newData[field].name !== undefined) {
                     if (newData[field].name !== oldData[field].name) {
@@ -1151,7 +1142,8 @@ class PrismaService {
                             JSON.stringify({
                                 old: oldData[field].name,
                                 new: newData[field].name
-                            })
+                            }),
+                            this.userId
                         );
                     }
                 }
@@ -1160,7 +1152,7 @@ class PrismaService {
 
         return changes;
 
-        function _addChange(field: string, change: string) {
+        function _addChange(field: string, change: string, userId: ID) {
             const data = {
                 changes: change
             } as any;
@@ -1175,10 +1167,10 @@ class PrismaService {
                 };
             }
 
-            if (author) {
-                data['author'] = {
+            if (userId) {
+                data['user'] = {
                     connect: {
-                        id: author.id
+                        id: userId
                     }
                 };
             }

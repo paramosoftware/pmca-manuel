@@ -214,8 +214,8 @@ export const useEntryStore = defineStore('entry', () => {
 
         let orderBy;
 
-        if (sortBy === 'author') {
-            orderBy = { author: { name: sort } };
+        if (sortBy === 'user') {
+            orderBy = { user: { name: sort } };
         } else if (sortBy === 'field') {
             orderBy = { field: { label: sort } };
         } else {
@@ -230,7 +230,7 @@ export const useEntryStore = defineStore('entry', () => {
                 pageSize,
                 orderBy,
                 include: {
-                    author: {
+                    user: {
                         select: ['name']
                     },
                     field: {
@@ -244,7 +244,7 @@ export const useEntryStore = defineStore('entry', () => {
             error: Ref<Error | undefined>;
         };
 
-        entryChanges.value = data.value?.items || [];
+        entryChanges.value = (data.value?.items || []) as unknown as EntryChanges;
         totalEntryChanges.value = data.value?.total || 0;
         entryChangesLoading.value = pending.value;
 
