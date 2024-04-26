@@ -406,7 +406,8 @@ function buildFieldsConfig(
             allowCreate: docConfig.allowCreate !== 'false',
             allowMultiple: docConfig.allowMultiple !== 'false',
             placeholder: docConfig.placeholder || undefined,
-            published: resource === 'Entry'
+            published: resource === 'Entry',
+            isPrivate: docConfig.isPrivate === 'true'
         } as Prisma.ResourceFieldCreateInput & { resource: undefined };
 
         fieldsConfig.push(fieldConfig);
