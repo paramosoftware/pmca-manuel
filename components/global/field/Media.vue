@@ -24,10 +24,7 @@
         <div class="p-2 border border-gray-300" v-show="isOpenAccordion">
             <div class="mb-4 text-right">
                 <UIButton @click="isOpen = true">
-                    <UIIcon
-                        name="ph:plus-circle"
-                        class="w-5 h-5"
-                    />
+                    <UIIcon name="ph:plus-circle" class="w-5 h-5" />
                     Adicionar arquivos
                 </UIButton>
                 <UModal
@@ -55,47 +52,56 @@
                 </UModal>
             </div>
 
-            <draggable
-                class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-                :list="media"
-                @end="updateMediaPosition"
-                :animation="200"
-                item-key="id"
+            <Viewer
+                :images="media"
+                @inited="inited"
+                class="viewer"
+                @show="changeQuality"
             >
-                <template #item="{ element }">
-                    <div class="relative">
-                        <UIImg
-                            class="w-full h-32 object-cover rounded"
-                            :src="element.name"
-                        />
-                        <div class="absolute top-0 right-0">
-                            <UIButton
-                                @click="addSubtitle(element)"
-                                padding="p-1"
-                                square
-                                class="mr-1"
-                            >
-                                <UIIcon 
-                                    class="w-4 h-4" 
-                                    name="ph:subtitles" 
-                                    title="Editar legenda"
-                                />
-                            </UIButton>
-                            <UIButton
-                                @click="deleteMedia(element)"
-                                padding="p-1"
-                                square
-                            >
-                                <UIIcon
-                                    class="w-4 h-4"
-                                    name="ph:trash-simple"
-                                    title="Excluir"
-                                />
-                            </UIButton>
+                <draggable
+                    class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+                    :list="media"
+                    @end="updateMediaPosition"
+                    :animation="200"
+                    item-key="id"
+                >
+                    <template #item="{ element }">
+                        <div class="relative">
+                            <UIImg
+                                class="w-full h-32 object-cover rounded cursor-pointer"
+                                :src="element.name"
+                                :alt="element.subtitle"
+                                :quality="quality"
+                            />
+                            <div class="absolute top-0 right-0">
+                                <UIButton
+                                    @click="addSubtitle(element)"
+                                    padding="p-1"
+                                    square
+                                    class="mr-1"
+                                >
+                                    <UIIcon
+                                        class="w-4 h-4"
+                                        name="ph:subtitles"
+                                        title="Editar legenda"
+                                    />
+                                </UIButton>
+                                <UIButton
+                                    @click="deleteMedia(element)"
+                                    padding="p-1"
+                                    square
+                                >
+                                    <UIIcon
+                                        class="w-4 h-4"
+                                        name="ph:trash-simple"
+                                        title="Excluir"
+                                    />
+                                </UIButton>
+                            </div>
                         </div>
-                    </div>
-                </template>
-            </draggable>
+                    </template>
+                </draggable>
+            </Viewer>
         </div>
     </div>
     <UModal
@@ -125,6 +131,20 @@
 
 <script setup lang="ts">
 import draggable from 'vuedraggable';
+import 'viewerjs/dist/viewer.css';
+import { component as Viewer } from 'v-viewer';
+
+const viewer = ref(null);
+
+const inited = (viewerInstance: any) => {
+    viewer.value = viewerInstance;
+};
+
+const quality = ref(60);
+
+function changeQuality() {
+    quality.value = 100;
+}
 
 const isOpen = ref(false);
 const isOpenAccordion = ref(false);
