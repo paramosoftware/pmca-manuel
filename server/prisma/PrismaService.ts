@@ -1036,7 +1036,8 @@ class PrismaService {
             'id',
             'changes',
             'media',
-            'children'
+            'children',
+            'privateNotes'
         ];
         const ignoreWithSuffix = ['Normalized', 'Slug', 'Id', 'Count'];
         const fieldsToTrack = [] as string[];

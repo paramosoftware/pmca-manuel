@@ -170,5 +170,6 @@ FIELDS.set('parent', 'Verbete superior');
 FIELDS.set('children', 'Verbetes inferiores');
 FIELDS.set('type', 'Tipo');
 FIELDS.set('published', 'Publicado');
+FIELDS.set('privateNotes', 'Notas internas');
 
 export { MODELS, FIELDS };

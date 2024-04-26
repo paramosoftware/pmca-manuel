@@ -178,6 +178,7 @@ model Entry {
   nameSlug   String  @unique
   definition String? /// includeExport:true
   notes      String? /// includeExport:true
+  privateNotes String? /// isPrivate:true|uiField:textarea
 
   parentId Int?
   children Entry[] @relation("EntryToChildren")
@@ -200,6 +201,7 @@ model Entry {
   definitionNormalized String?
   nameNormalized       String?
   notesNormalized      String?
+  privateNotesNormalized String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
