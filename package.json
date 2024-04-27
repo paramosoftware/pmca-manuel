@@ -13,8 +13,51 @@
     "postinstall": "nuxt prepare",
     "scaffold": "pnpm install && pnpm prisma generate && pnpm prisma db push && pnpm prisma db seed",
     "web:prod": "pnpm build && pnpm prisma generate && pnpm prisma migrate deploy && pnpm prisma db seed",
-    "electron:dev": "nuxt build && NODE_ENV=development DEBUG=electron-builder node build.js",
-    "electron:prod": "pnpm scaffold && pnpm build && node build.js"
+    "electron:linux": "pnpm scaffold && pnpm build && electron-builder --linux",
+    "electron:win": "pnpm scaffold && pnpm build && electron-builder --win",
+    "electron:mac": "pnpm scaffold && pnpm build && electron-builder --mac"
+  },
+  "build": {
+    "appId": "pmca.glossario",
+    "productName": "Glossário PMCA",
+    "files": [
+      "electron/**/*",
+      "!node_modules/**/*"
+    ],
+    "extraResources": [
+      ".output/**/*",
+      "data/**/*",
+      ".env.example"
+    ],
+    "directories": {
+      "output": "builds/${version}"
+    },
+    "artifactName": "${name}-${version}.${ext}",
+    "linux": {
+      "category": "Education",
+      "desktop": {
+        "StartupNotify": "false",
+        "Encoding": "UTF-8"
+      },
+      "icon": "public/icons/icon.icns",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/favicon.ico"
+    },
+    "mac": {
+      "icon": "public/icons/icon.icns",
+      "target": "dmg"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": true
+    }
   },
   "devDependencies": {
     "@nuxt/ui": "^2.15.2",
