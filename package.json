@@ -19,7 +19,7 @@
   },
   "build": {
     "appId": "pmca.glossario",
-    "productName": "Glossário PMCA",
+    "productName": "Glossario de conservacao-restauro (PMCA)",
     "files": [
       "electron/**/*",
       "!node_modules/**/*"
