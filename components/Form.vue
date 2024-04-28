@@ -78,15 +78,6 @@ const buttonLabel = computed(() => {
 });
 
 async function submit() {
-    // TODO: hardcoded
-    if (model.value.toLowerCase() === 'user') {
-        if (isCreate) {
-            props.formStore.setFieldData('author', {
-                name: props.formStore.getFieldData('name')
-            });
-        }
-    }
-
     const id = await props.formStore.save();
 
     if (id && !isAuxiliary) {

@@ -51,20 +51,20 @@
             <span ref="autocompleteRef">
                 <ul
                     v-if="showPopper"
-                    class="w-full bg-white border border-x-gray-300 space-y-1 absolute z-10 m-1 rounded-md shadow-xl"
+                    class="w-full bg-white absolute z-10 mt-1 rounded-md shadow-xl max-h-60 overflow-y-auto"
                 >
                     <li
                         v-for="item in results"
                         :key="item.name"
                         @click="selectItem(item)"
-                        class="px-2 py-1 cursor-pointer rounded-md hover:bg-gray-100"
+                        class="p-2 cursor-pointer hover:bg-gray-100 border-b border-gray-200 hover:text-pmca-green-400"
                     >
                         {{ item.label ?? item.name }}
                     </li>
 
                     <li
-                        v-if="results.length === 0"
-                        class="rounded-md px-2 py-1 text-gray-400"
+                        v-if="results.length === 0 && !searching && showNoResults"
+                        class="px-2 py-2 text-gray-400"
                         @click="search = ''"
                     >
                         Nenhum resultado encontrado.
@@ -144,6 +144,14 @@ const props = defineProps({
         default: true
     },
     showSelected: {
+        type: Boolean,
+        default: true
+    },
+    isPublic: {
+        type: Boolean,
+        default: false
+    },
+    showNoResults: {
         type: Boolean,
         default: true
     },
@@ -341,7 +349,7 @@ async function searchItems() {
 
     timeoutId = setTimeout(async () => {
         const { data, pending, error } = (await useFetchWithBaseUrl(
-            'api/' + relatedResource.value.name,
+            'api/' + (props.isPublic ? 'public/' : '') + relatedResource.value.name,
             {
                 method: 'GET',
                 params: query

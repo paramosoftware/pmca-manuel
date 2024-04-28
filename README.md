@@ -7,7 +7,7 @@ This is a glossary of conservation-restoration terms for books and paper documen
 ## Requirements
 
 - [Node.js](https://nodejs.org/en/download/) version 20.10.0 (current tested version)
-- [PNPM](https://pnpm.io/) version 8.14 (current tested version)
+- [PNPM](https://pnpm.io/) version 9.0.4 (current tested version)
 
 
 ## Installation

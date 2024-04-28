@@ -63,7 +63,15 @@ if (props.formStore) {
 const emit = defineEmits(['update:modelValue']);
 
 const onInput = (event: Event) => {
-    const value = (event.target as HTMLInputElement).checked;
+
+    let value;
+
+    if (event.target) {
+        const target = event.target as HTMLInputElement;
+        value = target.checked;
+    } else {
+        value = event;
+    }
 
     if (props.formStore) {
         props.formStore.setFieldData(props.id, value);

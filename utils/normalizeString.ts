@@ -5,6 +5,8 @@ export default function normalizeString(str: string, slug: boolean = false) {
         return str;
     }
 
+    str = str.trim();
+
     str = str
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
@@ -12,7 +14,7 @@ export default function normalizeString(str: string, slug: boolean = false) {
 
     str = stripHtmlTags(str);
 
-    str = str.replace(/[^\w\s]/gi, '');
+    str = str.replace(/[^\p{L}\p{N}\s]/gu, '');
 
     if (slug) {
         str = str.replace(/\s/g, '-');

@@ -53,7 +53,7 @@ const columns = [
     class: 'w-1/12'
   },
   {
-    key: 'author',
+    key: 'user',
     label: 'Usuário',
     sortable: true,
     class: 'w-1/12'
@@ -84,9 +84,11 @@ const { entryChanges, totalEntryChanges, entryChangesLoading } = storeToRefs(ent
 
 await entryStore.fetchEntryChanges(page.value, pageSize, sort.value.column, sort.value.direction);
 
-let currentChanges = computed(() => formatRows(entryChanges.value)) as any;
+// @ts-ignore
+let currentChanges = computed(() => formatRows(entryChanges.value));
 
 watch(() => entryChanges.value, async () => {
+  // @ts-ignore
   currentChanges = computed(() => formatRows(entryChanges.value));
 })
 
@@ -99,14 +101,14 @@ watch(() => sort.value, async () => {
   await entryStore.fetchEntryChanges(page.value, pageSize, sort.value.column, sort.value.direction);
 });
 
-function formatRows(changes: any[]) {
+function formatRows(changes: { createdAt: string, user: { name: string }, field: { label: string, name: string }, changes: string }[]) {
   const rows = [];
 
   for (const change of changes) {
 
     const row = {
       createdAt: new Date(change.createdAt).toLocaleString('pt-BR').substring(0, 17),
-      author: change.author ? change.author.name : 'Anônimo',
+      user: change.user ? change.user.name : 'Não identificado',
       field: change.field?.label || change.field?.name || "Campo excluído",
       changes: formatChanges(JSON.parse(change.changes))
     }
@@ -117,7 +119,7 @@ function formatRows(changes: any[]) {
   return rows;
 }
 
-function formatChanges(change: any) {
+function formatChanges(change: { old: string, new: string, added: string[], removed: string[] }) {
 
   const formattedChanges = [];
 
@@ -141,10 +143,12 @@ function formatChanges(change: any) {
 
   for (const [key, value] of Object.entries(change)) {
     if (key === 'added') {
+      // @ts-ignore
       formattedChanges.push('<span class="text-green-700">Adicionado: </span>' + value.join(', '));
     }
 
     if (key === 'removed') {
+      // @ts-ignore
       formattedChanges.push('<span class="text-red-700">Removido: </span>' + value.join(', '));
     }
 

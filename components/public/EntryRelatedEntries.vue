@@ -1,5 +1,5 @@
 <template>
-    <Splide :has-track="false" :options="options">
+    <Splide :has-track="false" :options="options" v-if="entries.length > 0">
         <UITitle id="carousel-heading" class="my-5">
             Verbetes relacionados
         </UITitle>
@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+// @ts-ignore
 import { Splide, SplideSlide, SplideTrack } from '@splidejs/vue-splide';
 import '@splidejs/vue-splide/css';
 
@@ -41,8 +42,6 @@ const props = defineProps({
 const entries = computed(() => {
      return props.entries.concat(props.oppositeSide)
 })
-
-
 
 const options = ref({
     perPage: 6,

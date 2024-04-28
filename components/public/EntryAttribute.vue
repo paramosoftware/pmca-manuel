@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col mt-4">
+    <div class="flex flex-col mt-4" v-if="!isEmpty">
         
         <UITitle>{{ title }}</UITitle>
         
@@ -29,13 +29,13 @@
 </template>
   
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
     title: {
         type: String,
         required: true
     },
     content: {
-        type: undefined,
+        type: [String, Array, Object],
     },
     isHtml: {
         type: Boolean,
@@ -50,4 +50,15 @@ defineProps({
         default: false
     }
 })
+
+const isEmpty = computed(() => {
+    if (!props.content) {
+        return true
+    }
+
+    if (Array.isArray(props.content) && props.content.length === 0) {
+        return true
+    }
+});
+
 </script>

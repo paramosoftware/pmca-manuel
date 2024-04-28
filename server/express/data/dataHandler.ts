@@ -63,7 +63,7 @@ const dataHandler = async (
         }
     }
 
-    const prismaService = new PrismaService(model, true, isPublic);
+    const prismaService = new PrismaService(model, true, isPublic, isPublic);
     prismaService.setMethod(method);
     prismaService.setUserId(userId);
     prismaService.setPermissions(permissions);

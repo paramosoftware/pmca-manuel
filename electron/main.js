@@ -75,6 +75,19 @@ app.whenReady().then(async () => {
     });
 });
 
+
+app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        const win = createWindow();
+        win.loadURL(process.env.NUXT_PUBLIC_BASE_URL);
+
+        win.once('ready-to-show', () => {
+            win.maximize();
+        });
+    }
+});
+
+
 app.on('second-instance', () => {
     const openedWindow = BrowserWindow.getAllWindows()[0];
 

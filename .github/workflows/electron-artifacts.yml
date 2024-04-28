@@ -1,0 +1,56 @@
+name: Generate Electron artifacts
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+
+jobs:
+  publish-electron-artifacts:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            code: linux
+          - os: windows-latest
+            code: win
+          - os: macos-latest
+            code: mac
+  
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 'latest'
+      
+      - name: Build electron
+        run: pnpm electron:${{ matrix.code }}
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: electron-artifacts
+          path: |
+            builds/*/*.*
+            !builds/*/*.yaml
+            !builds/*/*.yml
