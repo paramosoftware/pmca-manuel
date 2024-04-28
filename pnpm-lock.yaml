@@ -78,8 +78,8 @@ importers:
         specifier: ^5.1.2
         version: 5.1.2
       pino:
-        specifier: ^8.21.0
-        version: 8.21.0
+        specifier: ^9.0.0
+        version: 9.0.0
       sanitize-html:
         specifier: ^2.13.0
         version: 2.13.0
@@ -136,8 +136,8 @@ importers:
         specifier: ^9.0.8
         version: 9.0.8
       electron:
-        specifier: ^29.3.1
-        version: 29.3.1
+        specifier: ^30.0.1
+        version: 30.0.1
       electron-builder:
         specifier: latest
         version: 24.13.3(electron-builder-squirrel-windows@24.13.3(dmg-builder@24.13.3))
@@ -148,8 +148,8 @@ importers:
         specifier: ^0.6.10
         version: 0.6.10(nuxt@3.11.2(@parcel/watcher@2.4.1)(@types/node@20.12.7)(@unocss/reset@0.59.4)(encoding@0.1.13)(floating-vue@5.2.2(@nuxt/kit@3.11.2(rollup@4.17.0))(vue@3.4.25(typescript@5.4.5)))(fuse.js@6.6.2)(ioredis@5.4.1)(rollup@4.17.0)(sortablejs@1.14.0)(terser@5.30.4)(typescript@5.4.5)(unocss@0.59.4(postcss@8.4.38)(rollup@4.17.0)(vite@5.2.10(@types/node@20.12.7)(terser@5.30.4)))(vite@5.2.10(@types/node@20.12.7)(terser@5.30.4)))(rollup@4.17.0)(vite@5.2.10(@types/node@20.12.7)(terser@5.30.4))(vue@3.4.25(typescript@5.4.5))
       pino-pretty:
-        specifier: ^10.3.1
-        version: 10.3.1
+        specifier: ^11.0.0
+        version: 11.0.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -2881,8 +2881,8 @@ packages:
   electron-to-chromium@1.4.750:
     resolution: {integrity: sha512-9ItEpeu15hW5m8jKdriL+BQrgwDTXEL9pn4SkillWFu73ZNNNQ2BKKLS+ZHv2vC9UkNhosAeyfxOf/5OSeTCPA==}
 
-  electron@29.3.1:
-    resolution: {integrity: sha512-auge1/6RVqgUd6TgIq88wKdUCJi2cjESi3jy7d+6X4JzvBGprKBqMJ8JSSFpu/Px1YJrFUKAxfy6SC+TQf1uLw==}
+  electron@30.0.1:
+    resolution: {integrity: sha512-iwxkI/n2wBd29NH7TH0ZY8aWGzCoKpzJz+D10u7aGSJi1TV6d4MSM3rWyKvT/UkAHkTKOEgYfUyCa2vWQm8L0g==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
@@ -4376,15 +4376,15 @@ packages:
   pino-abstract-transport@1.2.0:
     resolution: {integrity: sha512-Guhh8EZfPCfH+PMXAb6rKOjGQEoy0xlAIn+irODG5kgfYV+BQ0rGYYWTIel3P5mmyXqkYkPmdIkywsn6QKUR1Q==}
 
-  pino-pretty@10.3.1:
-    resolution: {integrity: sha512-az8JbIYeN/1iLj2t0jR9DV48/LQ3RC6hZPpapKPkb84Q+yTidMCpgWxIT3N0flnBDilyBQ1luWNpOeJptjdp/g==}
+  pino-pretty@11.0.0:
+    resolution: {integrity: sha512-YFJZqw59mHIY72wBnBs7XhLGG6qpJMa4pEQTRgEPEbjIYbng2LXEZZF1DoyDg9CfejEy8uZCyzpcBXXG0oOCwQ==}
     hasBin: true
 
   pino-std-serializers@6.2.2:
     resolution: {integrity: sha512-cHjPPsE+vhj/tnhCy/wiMh3M3z3h/j15zHQX+S9GkTBgqJuTuJzYJ4gUyACLhDaJ7kk9ba9iRDmbH2tJU03OiA==}
 
-  pino@8.21.0:
-    resolution: {integrity: sha512-ip4qdzjkAyDDZklUaZkcRFb2iA118H9SgRh8yzTkSQK8HilsOJF7rSY8HoW5+I0M46AZgX/pxbprf2vvzQCE0Q==}
+  pino@9.0.0:
+    resolution: {integrity: sha512-uI1ThkzTShNSwvsUM6b4ND8ANzWURk9zTELMztFkmnCQeR/4wkomJ+echHee5GMWGovoSfjwdeu80DsFIt7mbA==}
     hasBin: true
 
   pirates@4.0.6:
@@ -9040,7 +9040,7 @@ snapshots:
 
   electron-to-chromium@1.4.750: {}
 
-  electron@29.3.1:
+  electron@30.0.1:
     dependencies:
       '@electron/get': 2.0.3
       '@types/node': 20.12.7
@@ -10895,7 +10895,7 @@ snapshots:
       readable-stream: 4.5.2
       split2: 4.2.0
 
-  pino-pretty@10.3.1:
+  pino-pretty@11.0.0:
     dependencies:
       colorette: 2.0.20
       dateformat: 4.6.3
@@ -10914,7 +10914,7 @@ snapshots:
 
   pino-std-serializers@6.2.2: {}
 
-  pino@8.21.0:
+  pino@9.0.0:
     dependencies:
       atomic-sleep: 1.0.0
       fast-redact: 3.5.0
