@@ -12,13 +12,12 @@ export default function normalizeString(str: string, slug: boolean = false) {
         .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase();
 
-    str = stripHtmlTags(str);
-
-    str = str.replace(/[^\p{L}\p{N}\s]/gu, '');
-
     if (slug) {
+        str = str.replace(/[^\p{L}\p{N}\s-]/gu, '');
         str = str.replace(/\s/g, '-');
     }
+
+    str = stripHtmlTags(str);
 
     return str;
 }
