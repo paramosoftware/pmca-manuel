@@ -8,33 +8,27 @@ const date = new Date().toISOString().split('T')[0];
 const logPath = getDataFolderPath('logs') + `/log-${date}.log`;
 
 const level = process.env.LOG_LEVEL || 'trace';
-const pretty = process.env.NODE_ENV === 'development';
 
 const options = {
     level: level
 };
 
-const targets = [
-    {
-        target: 'pino/file',
-        options: {
-            destination: logPath
-        }
-    }
-] as any[];
-
-if (pretty) {
-    targets.push({
-        level: level,
-        target: 'pino-pretty',
-        options: {
-            colorize: true
-        }
-    });
-}
-
 const transport = pino.transport({
-    targets: targets
+    targets: [
+        {
+            target: 'pino/file',
+            options: {
+                destination: logPath
+            }
+        },
+        {
+            level: level,
+            target: 'pino-pretty',
+            options: {
+                colorize: true
+            }
+        }
+    ]
 });
 
 const logger = pino(options, transport);
