@@ -15,7 +15,7 @@
                 class="h-5 w-5"
             />
             <UIIcon v-else name="ph:dot-outline" class="h-5 w-5" />
-            <UILink :href="'/verbetes/' + node.slug" class="p-2">
+            <UILink :href="'/termos/' + node.slug" class="p-2">
                 {{ node.label }}
             </UILink>
         </div>

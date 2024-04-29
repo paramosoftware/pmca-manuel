@@ -27,8 +27,18 @@ if (!entries.value || entries.value.length === 0) {
 }
 
 const nodeMapSize = new Map();
-const nodes = [] as { id: number; label: string; slug: string; value: number }[];
-const links = [] as { source: number; target: number; value: number; distance: number }[];
+const nodes = [] as {
+    id: number;
+    label: string;
+    slug: string;
+    value: number;
+}[];
+const links = [] as {
+    source: number;
+    target: number;
+    value: number;
+    distance: number;
+}[];
 
 const nodeSize = 8;
 const nodeGap = 2;
@@ -42,19 +52,31 @@ entries.value.forEach((entry) => {
     });
 
     entry.entries?.forEach((child) => {
-        nodeMapSize.set(entry.id, (nodeMapSize.get(entry.id) || nodeSize) + nodeGap);
-        nodeMapSize.set(child.id, (nodeMapSize.get(child.id) || nodeSize) + nodeGap);
+        nodeMapSize.set(
+            entry.id,
+            (nodeMapSize.get(entry.id) || nodeSize) + nodeGap
+        );
+        nodeMapSize.set(
+            child.id,
+            (nodeMapSize.get(child.id) || nodeSize) + nodeGap
+        );
         links.push({
             source: entry.id,
             target: child.id,
             value: 1,
-            distance: 75 + (Math.random() * 50)
+            distance: 75 + Math.random() * 50
         });
     });
 
     entry.relatedEntries?.forEach((related) => {
-        nodeMapSize.set(entry.id, (nodeMapSize.get(entry.id) || nodeSize) + nodeGap);
-        nodeMapSize.set(related.id, (nodeMapSize.get(related.id) || nodeSize) + nodeGap);
+        nodeMapSize.set(
+            entry.id,
+            (nodeMapSize.get(entry.id) || nodeSize) + nodeGap
+        );
+        nodeMapSize.set(
+            related.id,
+            (nodeMapSize.get(related.id) || nodeSize) + nodeGap
+        );
     });
 });
 
@@ -95,7 +117,8 @@ onMounted(() => {
         .forceSimulation(nodes)
         .force(
             'link',
-            d3.forceLink(links)
+            d3
+                .forceLink(links)
                 // @ts-ignore
                 .id((d) => d.id)
                 .distance((d) => d.distance)
@@ -144,17 +167,21 @@ onMounted(() => {
 
     node.on('mouseover', function (event, d) {
         d3.select(this).attr('fill', green);
-        d3.select('#label-' + d.id).attr('font-weight', 'bold').attr('fill', green);
-
+        d3.select('#label-' + d.id)
+            .attr('font-weight', 'bold')
+            .attr('fill', green);
     });
     node.on('mouseout', function (event, d) {
         d3.select(this).attr('fill', blue);
-        d3.select('#label-' + d.id).attr('font-weight', 'normal').attr('fill', 'gray');
+        d3.select('#label-' + d.id)
+            .attr('font-weight', 'normal')
+            .attr('fill', 'gray');
     });
 
     node.call(
         // @ts-ignore
-        d3.drag()
+        d3
+            .drag()
             .on('start', dragstarted)
             .on('drag', dragged)
             .on('end', dragended)
@@ -205,7 +232,7 @@ onMounted(() => {
     }
 
     function click(event: any, d: any) {
-        window.location.href = `/verbetes/${d.slug}`;
+        window.location.href = `/termos/${d.slug}`;
     }
 
     onUnmounted(() => {

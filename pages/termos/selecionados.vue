@@ -1,5 +1,9 @@
 <template>
-    <PublicEntriesGrid :title="title" />
+    <PublicEntriesGrid
+        :title="title"
+        :user-selection="true"
+        :has-tree="false"
+    />
 </template>
 
 <script setup lang="ts">
@@ -8,8 +12,8 @@ definePageMeta({
 });
 
 const config = useRuntimeConfig();
-const title = ref('Verbetes');
-const description = ref('Lista de verbetes');
+const title = ref('Termos selecionados');
+const description = ref('Lista de termos selecionados');
 
 useHead({
     title: title.value + ' | ' + config.public.appName,

@@ -112,7 +112,7 @@
         </div>
 
         <div class="text-xl" v-if="search === '' && total === 0 && !pending">
-            Nenhum verbete
+            Nenhum termo
             {{ props.userSelection ? 'selecionado' : 'encontrado' }}.
         </div>
 
@@ -136,7 +136,7 @@
 const props = defineProps({
     title: {
         type: String,
-        default: 'Verbetes'
+        default: 'Termos'
     },
     userSelection: {
         type: Boolean,
@@ -206,7 +206,7 @@ watch(userSelection, async () => {
 });
 
 const placeholder = computed(() => {
-    return props.userSelection ? 'Filtrar verbetes' : 'Pesquisar verbetes';
+    return props.userSelection ? 'Filtrar termos' : 'Pesquisar termos';
 });
 
 onUnmounted(() => {

@@ -1,14 +1,18 @@
 <template>
     <Splide :has-track="false" :options="options" v-if="entries.length > 0">
         <UITitle id="carousel-heading" class="my-5">
-            Verbetes relacionados
+            {{ title }}
         </UITitle>
         <SplideTrack>
             <SplideSlide v-for="entry in entries" :key="entry.id">
-                <PublicEntryCard :entry="entry" height="h-36 sm:h-24" titleSize="text-lg" title-padding="p-2"/>
+                <PublicEntryCard
+                    :entry="entry"
+                    height="h-36 sm:h-24"
+                    titleSize="text-lg"
+                    title-padding="p-2"
+                />
             </SplideSlide>
         </SplideTrack>
-
 
         <span class="splide__arrows w-36 h-36">
             <button class="splide__arrow splide__arrow--prev">
@@ -27,6 +31,10 @@ import { Splide, SplideSlide, SplideTrack } from '@splidejs/vue-splide';
 import '@splidejs/vue-splide/css';
 
 const props = defineProps({
+    title: {
+        type: String,
+        required: true
+    },
     entries: {
         type: Array as PropType<Entry[]>,
         required: true,
@@ -36,12 +44,11 @@ const props = defineProps({
         type: Array as PropType<Entry[]>,
         default: []
     }
-})
-
+});
 
 const entries = computed(() => {
-     return props.entries.concat(props.oppositeSide)
-})
+    return props.entries.concat(props.oppositeSide);
+});
 
 const options = ref({
     perPage: 6,
@@ -59,20 +66,18 @@ const options = ref({
         },
         768: {
             perPage: 2,
-            gap: '1rem',
+            gap: '1rem'
         },
         1024: {
             perPage: 3,
-            gap: '1rem',
+            gap: '1rem'
         },
         1280: {
             perPage: 4,
-            gap: '1rem',
+            gap: '1rem'
         }
     }
-})
-
-
+});
 </script>
 
 <style>

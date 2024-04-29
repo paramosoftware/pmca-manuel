@@ -6,7 +6,7 @@
         </template>
 
         <p class="mt-4">
-            É possível importar verbetes para o sistema nos formatos:
+            É possível importar termos para o sistema nos formatos:
             <strong>JSON, CSV, XLXS, SKOS</strong> (extensão .xml) e
             <strong>ZIP</strong> (contendo um dos formatos anteriores).
         </p>
@@ -21,16 +21,16 @@
         <p class="mt-4">
             Para incluir imagens, é necessário que os arquivos estejam no
             formato <strong>ZIP</strong> e que o nome do arquivo seja o mesmo do
-            campo <strong>id</strong> do verbete. As imagens devem estar no
+            campo <strong>id</strong> do termo. As imagens devem estar no
             formato <strong>JPG</strong> ou <strong>PNG</strong> e estar dentro
             de uma pasta com o nome <strong>media</strong>. Vários arquivos para
-            o mesmo verbete são permitidos adicionando um número ao final do
-            nome do arquivo com _, por exemplo: <strong>id_1.jpg</strong>,
+            o mesmo termo são permitidos adicionando um número ao final do nome
+            do arquivo com _, por exemplo: <strong>id_1.jpg</strong>,
             <strong>id_2.jpg</strong>, <strong>id_3.jpg</strong>.
         </p>
 
         <p class="mt-4">
-            Os <strong>ids</strong> dos verbetes devem ser únicos e podem ser
+            Os <strong>ids</strong> dos termos devem ser únicos e podem ser
             numéricos ou textuais.
         </p>
 

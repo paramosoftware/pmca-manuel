@@ -174,21 +174,22 @@ model UserSession {
 /// isPublic:true
 model Entry {
   id         Int     @id @default(autoincrement()) /// includeExport:true
-  name       String /// includeExport:true
-  nameSlug   String  @unique
-  definition String? /// includeExport:true
-  notes      String? /// includeExport:true
-  privateNotes String? /// isPrivate:true|uiField:textarea
+  name       String /// includeExport:true|label:Termo
 
   parentId Int?
   children Entry[] @relation("EntryToChildren")
   parent   Entry?  @relation("EntryToChildren", fields: [parentId], references: [id]) /// includeExport:true
 
-  variations   EntryVariation[] /// includeExport:true
-  translations EntryTranslation[] /// includeExport:true
+  nameSlug   String  @unique
+  definition String? /// includeExport:true
+  notes      String? /// includeExport:true
+  privateNotes String? /// isPrivate:true|uiField:textarea
 
   entries        Entry[] @relation("EntryToEntry") /// includeExport:true|allowCreate:false
   relatedEntries Entry[] @relation("EntryToEntry") /// includeExport:true|allowCreate:false
+
+  variations   EntryVariation[] /// includeExport:true
+  translations EntryTranslation[] /// includeExport:true
 
   references Reference[] /// includeExport:true
   media      EntryMedia[]

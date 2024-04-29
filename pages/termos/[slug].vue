@@ -20,7 +20,7 @@
         </div>
 
         <UITab
-            :tabs="['Verbete', 'Hierárquica', 'Histórico de alterações']"
+            :tabs="['Termo', 'Classificação', 'Histórico de alterações']"
             @change="onTabChange"
         >
             <template #tabPanel-1>
@@ -28,16 +28,6 @@
                     <PublicEntryMedia
                         :images="images"
                         v-if="images.length > 0"
-                    />
-
-                    <PublicEntryAttribute
-                        title="Traduções"
-                        :content="translations"
-                    />
-
-                    <PublicEntryAttribute
-                        title="Variações"
-                        :content="entry?.variations"
                     />
 
                     <PublicEntryAttribute
@@ -53,14 +43,24 @@
                     />
 
                     <PublicEntryAttribute
-                        title="Referências"
+                        title="Formas variantes"
+                        :content="entry?.variations"
+                    />
+
+                    <PublicEntryAttribute
+                        title="Termos equivalentes em outros idiomas"
+                        :content="translations"
+                    />
+
+                    <PublicEntryAttribute
+                        title="Fontes"
                         :content="entry?.references"
                         :is-html="true"
                         :is-one-line="true"
                     />
 
                     <PublicEntryRelatedEntries
-                        title="Verbetes relacionados"
+                        title="Ver também"
                         :entries="entry?.relatedEntries"
                         :opposite-side="entry?.entries"
                     />
@@ -89,6 +89,7 @@ definePageMeta({
 });
 
 // TODO: Track access to entries
+// TODO: Get field labels from API
 
 const router = useRouter();
 const config = useRuntimeConfig();
@@ -103,7 +104,7 @@ const { entry, pending, sort, error, entriesTree } = storeToRefs(entryStore);
 if (!error.value && !entry.value) {
     throw createError({
         data: {
-            title: 'Verbete não encontrado'
+            title: 'Termo não encontrado'
         }
     });
 }

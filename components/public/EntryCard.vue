@@ -1,32 +1,48 @@
 <template>
     <NuxtLink :to="link">
-        <div class="max-w-md w-full lg:max-w-full lg:flex shadow-sm hover:shadow-md">
-            <div class="w-full border border-gray-200 rounded-md flex flex-col justify-between">
-
-                <UIImg :src="thumbnail" :alt="entry.name" class="object-cover w-full rounded-sm" :class="height" quality="70" />
+        <div
+            class="max-w-md w-full lg:max-w-full lg:flex shadow-sm hover:shadow-md"
+        >
+            <div
+                class="w-full border border-gray-200 rounded-md flex flex-col justify-between"
+            >
+                <UIImg
+                    :src="thumbnail"
+                    :alt="entry.name"
+                    class="object-cover w-full rounded-sm"
+                    :class="height"
+                    quality="70"
+                />
                 <div :class="titlePadding">
-
                     <div class="flex flex-row justify-between items-center">
                         <UITitle>
-                            <span class="text-semibold break-words" :class="titleSize">
+                            <span
+                                class="text-semibold break-words"
+                                :class="titleSize"
+                            >
                                 {{ entry.name }}
                             </span>
-                        </UITitle>  
+                        </UITitle>
                         <div class="flex flex-row items-center">
                             <client-only>
-                                <UIIcon 
-                                    class="text-pmca-accent text-2xl cursor-pointer" 
-                                    :name="entrySelected ? 'ph:bookmark-simple-fill' : 'ph:bookmark-simple'" 
-                                    @click="entrySelected = toggle($event, entry.id)" 
+                                <UIIcon
+                                    class="text-pmca-accent text-2xl cursor-pointer"
+                                    :name="
+                                        entrySelected
+                                            ? 'ph:bookmark-simple-fill'
+                                            : 'ph:bookmark-simple'
+                                    "
+                                    @click="
+                                        entrySelected = toggle($event, entry.id)
+                                    "
                                 />
 
                                 <template #fallback>
-                                    <UIIcon 
-                                        class="text-pmca-accent text-2xl cursor-pointer" 
+                                    <UIIcon
+                                        class="text-pmca-accent text-2xl cursor-pointer"
                                         name="ph:bookmark-simple"
                                     />
                                 </template>
-
                             </client-only>
                         </div>
                     </div>
@@ -35,7 +51,7 @@
         </div>
     </NuxtLink>
 </template>
-    
+
 <script setup lang="ts">
 const props = defineProps({
     entry: {
@@ -54,30 +70,26 @@ const props = defineProps({
         type: String,
         default: 'p-4'
     }
-})
+});
 
 const { isSelected, toggle } = useEntrySelection();
 const entrySelected = ref(isSelected(props.entry.id));
 
 const link = computed(() => {
-    return "/verbetes/" + props.entry.nameSlug
-})
+    return '/termos/' + props.entry.nameSlug;
+});
 
 const thumbnail = computed(() => {
     if (props.entry.media?.length === 0) {
-        return ''
+        return '';
     }
 
     if (props.entry.media[0]) {
-        return props.entry.media[0].name
+        return props.entry.media[0].name;
     }
-})
-
+});
 
 onBeforeMount(() => {
-    entrySelected.value = isSelected(props.entry.id)
-})
+    entrySelected.value = isSelected(props.entry.id);
+});
 </script>
-    
-    
-    
