@@ -8,7 +8,7 @@
             >
                 <UIImg
                     :src="thumbnail"
-                    :alt="entry.name"
+                    :alt="concept.name"
                     class="object-cover w-full rounded-sm"
                     :class="height"
                     quality="70"
@@ -20,7 +20,7 @@
                                 class="text-semibold break-words"
                                 :class="titleSize"
                             >
-                                {{ entry.name }}
+                                {{ concept.name }}
                             </span>
                         </UITitle>
                         <div class="flex flex-row items-center">
@@ -28,12 +28,15 @@
                                 <UIIcon
                                     class="text-pmca-accent text-2xl cursor-pointer"
                                     :name="
-                                        entrySelected
+                                        conceptSelected
                                             ? 'ph:bookmark-simple-fill'
                                             : 'ph:bookmark-simple'
                                     "
                                     @click="
-                                        entrySelected = toggle($event, entry.id)
+                                        conceptSelected = toggle(
+                                            $event,
+                                            concept.id
+                                        )
                                     "
                                 />
 
@@ -54,7 +57,7 @@
 
 <script setup lang="ts">
 const props = defineProps({
-    entry: {
+    concept: {
         type: Object,
         required: true
     },
@@ -72,24 +75,24 @@ const props = defineProps({
     }
 });
 
-const { isSelected, toggle } = useEntrySelection();
-const entrySelected = ref(isSelected(props.entry.id));
+const { isSelected, toggle } = useConceptSelection();
+const conceptSelected = ref(isSelected(props.concept.id));
 
 const link = computed(() => {
-    return '/termos/' + props.entry.nameSlug;
+    return '/termos/' + props.concept.nameSlug;
 });
 
 const thumbnail = computed(() => {
-    if (props.entry.media?.length === 0) {
+    if (props.concept.media?.length === 0) {
         return '';
     }
 
-    if (props.entry.media[0]) {
-        return props.entry.media[0].name;
+    if (props.concept.media[0]) {
+        return props.concept.media[0].name;
     }
 });
 
 onBeforeMount(() => {
-    entrySelected.value = isSelected(props.entry.id);
+    conceptSelected.value = isSelected(props.concept.id);
 });
 </script>

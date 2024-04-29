@@ -70,7 +70,7 @@
                 <!-- TODO: add check box to confirm overwrite -->
 
                 <FieldDropzone
-                    url="/api/entry/import"
+                    url="/api/concept/import"
                     :max-files="1"
                     :max-filesize="10000000"
                     accepted-files="application/json, application/xml, application/zip, application/*, text/csv, text/xml, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

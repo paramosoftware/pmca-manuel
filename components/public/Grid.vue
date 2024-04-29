@@ -26,7 +26,7 @@
                     name="ph:broom"
                     class="ml-3"
                     title="Desmarcar todos"
-                    @click="entryStore.clearSelection()"
+                    @click="conceptStore.clearSelection()"
                 />
                 <PublicExportDropdown class="ml-3" />
             </span>
@@ -38,9 +38,9 @@
         class="justify-start items-start border-t border-gray-200 mt-3"
     >
         <UITreeView
-            :tree="entriesTree"
+            :tree="conceptsTree"
             class="mt-6"
-            v-if="entriesTree.length > 0"
+            v-if="conceptsTree.length > 0"
         />
         <div class="text-xl mt-3" v-else-if="!pending">
             Nenhuma categoria encontrada.
@@ -86,7 +86,7 @@
                             : 'ph:sort-descending'
                     "
                     title="Ordenar por nome"
-                    @click="entryStore.sortByName()"
+                    @click="conceptStore.sortByName()"
                     v-if="total > 1"
                 />
                 <UPagination
@@ -105,8 +105,8 @@
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
                 ref="grid"
             >
-                <div v-for="entry in entries" :key="entry.id">
-                    <PublicEntryCard :entry="entry" />
+                <div v-for="concept in concepts" :key="concept.id">
+                    <PublicCard :concept="concept" />
                 </div>
             </div>
         </div>
@@ -166,12 +166,12 @@ if (!props.hasTree) {
     mode.value = 'alfa';
 }
 
-const entryStore = useEntryStore();
-await entryStore.load('', props.userSelection);
-await entryStore.fetchEntriesTree();
+const conceptStore = useConceptStore();
+await conceptStore.load('', props.userSelection);
+await conceptStore.fetchConceptsTree();
 
 const {
-    entries,
+    concepts,
     page,
     pageSize,
     total,
@@ -179,8 +179,8 @@ const {
     pending,
     sort,
     error,
-    entriesTree
-} = storeToRefs(entryStore);
+    conceptsTree
+} = storeToRefs(conceptStore);
 
 search.value = query.value?.search?.toString() || '';
 
@@ -202,7 +202,7 @@ const userSelection = computed(() => {
 });
 
 watch(userSelection, async () => {
-    await entryStore.load('', true);
+    await conceptStore.load('', true);
 });
 
 const placeholder = computed(() => {

@@ -1,12 +1,12 @@
 <template>
-    <Splide :has-track="false" :options="options" v-if="entries.length > 0">
+    <Splide :has-track="false" :options="options" v-if="concepts.length > 0">
         <UITitle id="carousel-heading" class="my-5">
             {{ title }}
         </UITitle>
         <SplideTrack>
-            <SplideSlide v-for="entry in entries" :key="entry.id">
-                <PublicEntryCard
-                    :entry="entry"
+            <SplideSlide v-for="concept in concepts" :key="concept.id">
+                <PublicCard
+                    :concept="concept"
                     height="h-36 sm:h-24"
                     titleSize="text-lg"
                     title-padding="p-2"
@@ -35,19 +35,19 @@ const props = defineProps({
         type: String,
         required: true
     },
-    entries: {
-        type: Array as PropType<Entry[]>,
+    concepts: {
+        type: Array as PropType<Concept[]>,
         required: true,
         default: []
     },
     oppositeSide: {
-        type: Array as PropType<Entry[]>,
+        type: Array as PropType<Concept[]>,
         default: []
     }
 });
 
-const entries = computed(() => {
-    return props.entries.concat(props.oppositeSide);
+const concepts = computed(() => {
+    return props.concepts.concat(props.oppositeSide);
 });
 
 const options = ref({
@@ -62,7 +62,7 @@ const options = ref({
             gap: '1rem',
             arrows: false,
             pagination: true,
-            drag: props.entries.length > 1
+            drag: props.concepts.length > 1
         },
         768: {
             perPage: 2,

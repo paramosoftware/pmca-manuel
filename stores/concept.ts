@@ -1,8 +1,8 @@
 import QUERIES from '~/config/queries';
 
-export const useEntryStore = defineStore('entry', () => {
-    const model = 'Entry';
-    const entryIdentifier = ref<ID>(''); // nameSlug or Id
+export const useConceptStore = defineStore('concept', () => {
+    const model = 'Concept';
+    const conceptIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
     const pageSize = ref(12);
     const pageSizes = ref([12, 24, 36]);
@@ -11,14 +11,14 @@ export const useEntryStore = defineStore('entry', () => {
     const search = ref('');
     const sort = ref('asc');
     const fetchSelected = ref(false);
-    const entry = ref<Entry>();
-    const entryChanges = ref<EntryChanges>();
-    const totalEntryChanges = ref(0);
-    const entryChangesLoading = ref(false);
-    const randomEntryIds = ref<number[]>([]);
-    const entries = ref<Entry[]>([]);
-    const entriesNetwork = ref<Entry[]>([]); // only used to build network for home
-    const entriesTree = ref<TreeNode[]>([]);
+    const concept = ref<Concept>();
+    const conceptChanges = ref<ConceptChanges>();
+    const totalConceptChanges = ref(0);
+    const conceptChangesLoading = ref(false);
+    const randomConceptIds = ref<number[]>([]);
+    const concepts = ref<Concept[]>([]);
+    const conceptsNetwork = ref<Concept[]>([]); // only used to build network for home
+    const conceptsTree = ref<TreeNode[]>([]);
     const loadingStore = useLoadingStore();
 
     const pending = ref(false);
@@ -75,7 +75,7 @@ export const useEntryStore = defineStore('entry', () => {
         if (fetchSelected.value) {
             q.where.AND.push({
                 id: {
-                    in: useEntrySelection().getSelected()
+                    in: useConceptSelection().getSelected()
                 }
             });
         }
@@ -93,14 +93,14 @@ export const useEntryStore = defineStore('entry', () => {
 
     async function load(
         resourceIdentifier: ID = '',
-        fetchSelectedEntries = false
+        fetchSelectedConcepts = false
     ) {
         if (resourceIdentifier) {
-            entryIdentifier.value = resourceIdentifier;
+            conceptIdentifier.value = resourceIdentifier;
             await fetchOne(resourceIdentifier);
             return;
         }
-        fetchSelected.value = fetchSelectedEntries;
+        fetchSelected.value = fetchSelectedConcepts;
         await fetchList();
     }
 
@@ -114,19 +114,19 @@ export const useEntryStore = defineStore('entry', () => {
             method: 'GET',
             params: { ...QUERIES.get(model) }
         })) as {
-            data: Ref<Entry>;
+            data: Ref<Concept>;
             pending: Ref<boolean>;
             error: Ref<Error | undefined>;
         };
 
-        entry.value = data.value;
+        concept.value = data.value;
         pending.value = pending.value;
         error.value = error.value;
         loadingStore.stop();
     }
 
     async function fetchList() {
-        entryIdentifier.value = '';
+        conceptIdentifier.value = '';
         const urlData = computed(() => `/api/public/${model}`);
 
         loadingStore.start();
@@ -139,7 +139,7 @@ export const useEntryStore = defineStore('entry', () => {
         };
 
         if (data.value) {
-            entries.value = data.value.items || [];
+            concepts.value = data.value.items || [];
             total.value = data.value?.total || 0;
             totalPages.value = data.value?.totalPages || 0;
         }
@@ -164,7 +164,7 @@ export const useEntryStore = defineStore('entry', () => {
             error: Ref<Error | undefined>;
         };
 
-        entriesNetwork.value = data.value.items || [];
+        conceptsNetwork.value = data.value.items || [];
         loadingStore.stop();
     }
 
@@ -172,8 +172,7 @@ export const useEntryStore = defineStore('entry', () => {
         // TODO: implement
     }
 
-    async function fetchEntriesTree() {
-
+    async function fetchConceptsTree() {
         loadingStore.start();
 
         const { data } = await useFetchWithBaseUrl(`/api/public/${model}`, {
@@ -192,23 +191,25 @@ export const useEntryStore = defineStore('entry', () => {
         });
 
         if (data.value) {
-            entriesTree.value = buildTreeData(
+            conceptsTree.value = buildTreeData(
                 data.value,
                 false,
-                entry.value?.id
+                concept.value?.id
             ) as TreeNode[];
         }
 
         loadingStore.stop();
     }
 
-    async function fetchEntryChanges(
+    async function fetchConceptChanges(
         page = 1,
         pageSize = 8,
         sortBy = 'createdAt',
         sort = 'desc'
     ) {
-        const urlData = computed(() => `/api/public/${model}/${entry.value?.id}/changes`);
+        const urlData = computed(
+            () => `/api/public/${model}/${concept.value?.id}/changes`
+        );
 
         loadingStore.start();
 
@@ -222,7 +223,7 @@ export const useEntryStore = defineStore('entry', () => {
             orderBy = { [sortBy]: sort };
         }
 
-        entryChangesLoading.value = true;
+        conceptChangesLoading.value = true;
 
         const { data, pending, error } = (await useFetchWithBaseUrl(urlData, {
             params: {
@@ -244,9 +245,10 @@ export const useEntryStore = defineStore('entry', () => {
             error: Ref<Error | undefined>;
         };
 
-        entryChanges.value = (data.value?.items || []) as unknown as EntryChanges;
-        totalEntryChanges.value = data.value?.total || 0;
-        entryChangesLoading.value = pending.value;
+        conceptChanges.value = (data.value?.items ||
+            []) as unknown as ConceptChanges;
+        totalConceptChanges.value = data.value?.total || 0;
+        conceptChangesLoading.value = pending.value;
 
         loadingStore.stop();
     }
@@ -259,9 +261,9 @@ export const useEntryStore = defineStore('entry', () => {
     async function exportData(format: DataTransferFormat, addMedia = false) {
         const exportData = useExportData();
 
-        if (entryIdentifier.value) {
+        if (conceptIdentifier.value) {
             await exportData.download(format, addMedia, {
-                id: entry.value?.id
+                id: concept.value?.id
             });
             return;
         }
@@ -270,9 +272,9 @@ export const useEntryStore = defineStore('entry', () => {
     }
 
     function clear() {
-        entry.value = undefined;
-        entryChanges.value = undefined;
-        entries.value = [];
+        concept.value = undefined;
+        conceptChanges.value = undefined;
+        concepts.value = [];
         total.value = 0;
         totalPages.value = 0;
         pending.value = false;
@@ -281,12 +283,12 @@ export const useEntryStore = defineStore('entry', () => {
     }
 
     async function clearSelection() {
-        useEntrySelection().clearSelected();
+        useConceptSelection().clearSelected();
         window.location.reload();
     }
 
     return {
-        entryIdentifier,
+        conceptIdentifier,
         page,
         pageSize,
         pageSizes,
@@ -294,20 +296,20 @@ export const useEntryStore = defineStore('entry', () => {
         totalPages,
         search,
         sort,
-        entry,
-        entryChanges,
-        totalEntryChanges,
-        entryChangesLoading,
-        randomEntryIds,
-        entries,
-        entriesNetwork,
-        entriesTree,
+        concept,
+        conceptChanges,
+        totalConceptChanges,
+        conceptChangesLoading,
+        randomConceptIds,
+        concepts,
+        conceptsNetwork,
+        conceptsTree,
         pending,
         error,
         load,
         fetchNetwork,
-        fetchEntriesTree,
-        fetchEntryChanges,
+        fetchConceptsTree,
+        fetchConceptChanges,
         sortByName,
         exportData,
         clear,

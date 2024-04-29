@@ -37,15 +37,15 @@ export async function uploadMedia(
     res.json(mediaData);
 }
 
-export async function deleteEntryMedia(entryMedia: Array<EntryMedia>) {
-    entryMedia.forEach((media: EntryMedia) => {
+export async function deleteConceptMedia(conceptMedia: Array<ConceptMedia>) {
+    conceptMedia.forEach((media: ConceptMedia) => {
         const mediaPath = path.join(getDataFolderPath('media'), media.name);
 
         if (fs.existsSync(mediaPath)) {
             fs.unlinkSync(mediaPath);
         }
 
-        prisma.entryMedia.delete({
+        prisma.conceptMedia.delete({
             where: {
                 id: media.id
             }
@@ -54,41 +54,41 @@ export async function deleteEntryMedia(entryMedia: Array<EntryMedia>) {
 }
 
 export async function handleMedia(
-    oldMedia: Array<EntryMedia>,
-    entryId: number
+    oldMedia: Array<ConceptMedia>,
+    conceptId: number
 ) {
-    const newMedia: Array<EntryMedia> = await prisma.entryMedia.findMany({
+    const newMedia: Array<ConceptMedia> = await prisma.conceptMedia.findMany({
         where: {
-            entryId: entryId
+            conceptId: conceptId
         }
     });
 
-    const mediaToDelete: Array<EntryMedia> = [];
+    const mediaToDelete: Array<ConceptMedia> = [];
 
-    oldMedia.forEach((media: EntryMedia) => {
+    oldMedia.forEach((media: ConceptMedia) => {
         if (
-            !newMedia.find((newMedia: EntryMedia) => newMedia.id === media.id)
+            !newMedia.find((newMedia: ConceptMedia) => newMedia.id === media.id)
         ) {
             mediaToDelete.push(media);
         }
     });
 
-    deleteEntryMedia(mediaToDelete);
+    deleteConceptMedia(mediaToDelete);
 }
 
 export async function saveMedia(
-    entryId: number,
+    conceptId: number,
     fileName: string,
     originalFilename: string,
     position: number = 1
 ) {
     try {
-        const media = await prisma.entryMedia.create({
+        const media = await prisma.conceptMedia.create({
             data: {
                 name: fileName,
                 originalFilename: originalFilename,
                 position: position,
-                entryId: entryId
+                conceptId: conceptId
             }
         });
 

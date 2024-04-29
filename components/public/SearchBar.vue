@@ -33,7 +33,7 @@ const placeholder = 'Pesquisar';
 const allowCreate = false;
 const isPublic = true;
 const selected = ref([]);
-const relatedResource = ref({ name: 'Entry' });
+const relatedResource = ref({ name: 'Concept' });
 const showIcon = ref(false);
 const showSelected = ref(false);
 const showNoResults = ref(false);
@@ -42,10 +42,10 @@ const onInput = (value: string) => {
     currentInput.value = value;
 };
 
-const onSelect = (entry: Entry) => {
+const onSelect = (concept: Concept) => {
     selected.value = [];
-    if (entry) {
-        router.push(`/termos/${entry.nameSlug}`);
+    if (concept) {
+        router.push(`/termos/${concept.nameSlug}`);
     }
 };
 

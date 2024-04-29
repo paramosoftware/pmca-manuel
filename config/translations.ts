@@ -33,27 +33,27 @@ MODELS.set('UserSession', {
     labelPlural: 'Sessões dos usuários',
     genderNoun: 'f'
 });
-MODELS.set('Entry', {
+MODELS.set('Concept', {
     label: 'Termo',
     labelPlural: 'Termos',
     genderNoun: 'm'
 });
-MODELS.set('EntryChanges', {
+MODELS.set('ConceptChanges', {
     label: 'Histórico de alterações',
     labelPlural: 'Históricos de alterações',
     genderNoun: 'f'
 });
-MODELS.set('EntryMedia', {
+MODELS.set('ConceptMedia', {
     label: 'Imagens do termo',
     labelPlural: 'Imagens dos termos',
     genderNoun: 'f'
 });
-MODELS.set('EntryVariation', {
+MODELS.set('ConceptVariation', {
     label: 'Forma variante do termo',
     labelPlural: 'Formas variantes dos termos',
     genderNoun: 'f'
 });
-MODELS.set('EntryTranslation', {
+MODELS.set('ConceptTranslation', {
     label: 'Termo equivalente em outro idioma',
     labelPlural: 'Termos equivalentes em outros idiomas',
     genderNoun: 'f'
@@ -99,7 +99,7 @@ FIELDS.set('path', 'Caminho no servidor');
 FIELDS.set('subtitle', 'Legendas');
 FIELDS.set('valueType', 'Tipo de valor do campo');
 FIELDS.set('isPublic', 'É público');
-FIELDS.set('entryMedia', 'Imagens');
+FIELDS.set('conceptMedia', 'Imagens');
 FIELDS.set('label', 'Rótulo');
 FIELDS.set('labelPlural', 'Rótulo no plural');
 FIELDS.set('definition', 'Definição');
@@ -144,17 +144,17 @@ FIELDS.set('changes', 'Histórico de alterações');
 FIELDS.set('translations', 'Termos equivalentes em outros idiomas');
 FIELDS.set('variations', 'Formas variantes');
 FIELDS.set('references', 'Fontes');
-FIELDS.set('entryChanges', 'Histórico de alterações');
+FIELDS.set('conceptChanges', 'Histórico de alterações');
 FIELDS.set('media', 'Imagens');
-FIELDS.set('entries', 'Ver também');
-FIELDS.set('relatedEntries', 'Ver também');
-FIELDS.set('entry', 'Termo');
+FIELDS.set('concepts', 'Ver também');
+FIELDS.set('relatedConcepts', 'Ver também');
+FIELDS.set('concept', 'Termo');
 FIELDS.set('language', 'Idioma');
 FIELDS.set('languageId', 'Idioma');
 FIELDS.set('code', 'Código do idioma');
 FIELDS.set('content', 'Conteúdo');
 FIELDS.set('menuName', 'Nome no menu');
-FIELDS.set('entryId', 'Termo');
+FIELDS.set('conceptId', 'Termo');
 FIELDS.set('position', 'Posição');
 FIELDS.set(
     'oppositeField',

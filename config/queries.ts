@@ -11,7 +11,7 @@ const QUERIES = new Map<
     }
 >();
 
-QUERIES.set('Entry', {
+QUERIES.set('Concept', {
     include: {
         parent: true,
         references: true,
@@ -21,14 +21,14 @@ QUERIES.set('Entry', {
             }
         },
         variations: true,
-        entries: {
+        concepts: {
             include: {
                 media: {
                     orderBy: ['position']
                 }
             }
         },
-        relatedEntries: {
+        relatedConcepts: {
             include: {
                 media: {
                     orderBy: ['position']
@@ -48,15 +48,15 @@ QUERIES.set('TrackChanges', {
         references: true,
         translations: true,
         variations: true,
-        entries: true,
-        relatedEntries: true
+        concepts: true,
+        relatedConcepts: true
     }
 });
 
 QUERIES.set('network', {
     pageSize: -1,
     select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
-    include: JSON.stringify(['relatedEntries', 'entries'])
+    include: JSON.stringify(['relatedConcepts', 'concepts'])
 });
 
 export default QUERIES;

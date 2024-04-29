@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-const entryStore = useEntryStore();
+const conceptStore = useConceptStore();
 const addMedia = ref(false);
 
 const exportOptions = [
@@ -33,7 +33,7 @@ const exportOptions = [
         {
             label: 'JSON',
             click: async () => {
-                await entryStore.exportData('json', addMedia.value);
+                await conceptStore.exportData('json', addMedia.value);
             }
         }
     ],
@@ -41,7 +41,7 @@ const exportOptions = [
         {
             label: 'CSV',
             click: async () => {
-                await entryStore.exportData('csv', addMedia.value);
+                await conceptStore.exportData('csv', addMedia.value);
             }
         }
     ],
@@ -49,7 +49,7 @@ const exportOptions = [
         {
             label: 'XLSX (Excel)',
             click: async () => {
-                await entryStore.exportData('xlsx', addMedia.value);
+                await conceptStore.exportData('xlsx', addMedia.value);
             }
         }
     ],
@@ -57,7 +57,7 @@ const exportOptions = [
         {
             label: 'SKOS (Simple Knowledge Organization System)',
             click: async () => {
-                await entryStore.exportData('xml', addMedia.value);
+                await conceptStore.exportData('xml', addMedia.value);
             }
         }
     ]

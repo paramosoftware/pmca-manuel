@@ -1,5 +1,5 @@
 <template>
-    <PublicEntriesGrid :title="title" />
+    <PublicGrid :title="title" />
 </template>
 
 <script setup lang="ts">

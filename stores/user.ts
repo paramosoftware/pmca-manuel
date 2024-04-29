@@ -4,7 +4,7 @@ export const useUserStore = defineStore('user', () => {
     const isAdmin = ref(false);
     const permissions = ref<Permission>({});
     const resources = ref<Resource[]>([]);
-    const canImport = computed(() => permissions.value['Entry']?.import);
+    const canImport = computed(() => permissions.value['Concept']?.import);
     const accessToken = ref('');
     const csrfToken = ref('');
 

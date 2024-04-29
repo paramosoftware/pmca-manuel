@@ -1,5 +1,5 @@
 <template>
-    <div class="container mx-auto" v-if="entries && entries.length > 0">
+    <div class="container mx-auto" v-if="concepts && concepts.length > 0">
         <Splide :has-track="false" :options="options" class="p-5 sm:px-14">
             <UITitle id="carousel-heading" class="my-5">
                 <span class="text-semibold text-3xl">
@@ -8,11 +8,11 @@
             </UITitle>
             <SplideTrack>
                 <SplideSlide
-                    v-for="entry in entries"
-                    :key="entry.id"
+                    v-for="concept in concepts"
+                    :key="concept.id"
                     class="mx-auto items-center justify-center"
                 >
-                    <PublicEntryCard :entry="entry" />
+                    <PublicCard :concept="concept" />
                 </SplideSlide>
             </SplideTrack>
 
@@ -32,9 +32,9 @@
 import { Splide, SplideSlide, SplideTrack } from '@splidejs/vue-splide';
 import '@splidejs/vue-splide/css';
 
-const entryStore = useEntryStore();
-await entryStore.load();
-const { entries } = storeToRefs(entryStore);
+const conceptStore = useConceptStore();
+await conceptStore.load();
+const { concepts } = storeToRefs(conceptStore);
 
 const options = {
     type: 'slide',

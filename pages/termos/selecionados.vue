@@ -1,5 +1,5 @@
 <template>
-    <PublicEntriesGrid
+    <PublicGrid
         :title="title"
         :user-selection="true"
         :has-tree="false"

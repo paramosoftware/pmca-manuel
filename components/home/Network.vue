@@ -19,11 +19,11 @@ import * as d3 from 'd3';
 const blue = '#6699ff';
 const green = '#a9cc44';
 
-const entryStore = useEntryStore();
-const { entriesNetwork: entries } = storeToRefs(entryStore);
+const conceptStore = useConceptStore();
+const { conceptsNetwork: concepts } = storeToRefs(conceptStore);
 
-if (!entries.value || entries.value.length === 0) {
-    await entryStore.fetchNetwork();
+if (!concepts.value || concepts.value.length === 0) {
+    await conceptStore.fetchNetwork();
 }
 
 const nodeMapSize = new Map();
@@ -43,35 +43,35 @@ const links = [] as {
 const nodeSize = 8;
 const nodeGap = 2;
 
-entries.value.forEach((entry) => {
+concepts.value.forEach((concept) => {
     nodes.push({
-        id: entry.id,
-        label: entry.name,
-        slug: entry.nameSlug,
+        id: concept.id,
+        label: concept.name,
+        slug: concept.nameSlug,
         value: nodeSize
     });
 
-    entry.entries?.forEach((child) => {
+    concept.concepts?.forEach((child) => {
         nodeMapSize.set(
-            entry.id,
-            (nodeMapSize.get(entry.id) || nodeSize) + nodeGap
+            concept.id,
+            (nodeMapSize.get(concept.id) || nodeSize) + nodeGap
         );
         nodeMapSize.set(
             child.id,
             (nodeMapSize.get(child.id) || nodeSize) + nodeGap
         );
         links.push({
-            source: entry.id,
+            source: concept.id,
             target: child.id,
             value: 1,
             distance: 75 + Math.random() * 50
         });
     });
 
-    entry.relatedEntries?.forEach((related) => {
+    concept.relatedConcepts?.forEach((related) => {
         nodeMapSize.set(
-            entry.id,
-            (nodeMapSize.get(entry.id) || nodeSize) + nodeGap
+            concept.id,
+            (nodeMapSize.get(concept.id) || nodeSize) + nodeGap
         );
         nodeMapSize.set(
             related.id,

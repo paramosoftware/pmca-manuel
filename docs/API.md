@@ -32,8 +32,8 @@ The API has the following data endpoints:
     POST /api/:model - Create one or many
     POST /api/:model/query - Get one or many with query
     POST /api/:model/:id/[:field]/query - Get one with query or Get one field with query
-    POST /api/:model/:id/upload - Upload media (only available for Entry model)
-    POST /api/:model/import - Import all (only available for Entry model)
+    POST /api/:model/:id/upload - Upload media (only available for Concept model)
+    POST /api/:model/import - Import all (only available for Concept model)
 
     DELETE /api/:model/:id - Delete one
     DELETE /api/:model/query - Delete one or many with query
@@ -53,12 +53,12 @@ To use the non-public endpoints, it is necessary to authenticate using the `POST
 
 ### Endpoint paths
 
--   `:model`: The name of the model. Example: `entry` or `Entry`.
+-   `:model`: The name of the model. Example: `concept` or `Concept`.
 -   `:id`: The identifier of the record, which is any unique field of the model (@unique in the schema). Example, `1` or `slug`.
 -   `[:field]`: The any related field of the record. Example: `parent` or `translations`.
 -   `query`: the query object to filter records sent in the request body. Details in the next section.
--   `upload`: the media file to upload. Only available for the `Entry` model.
--   `import`: data to import. Only available for the `Entry` model.
+-   `upload`: the media file to upload. Only available for the `Concept` model.
+-   `import`: data to import. Only available for the `Concept` model.
 -   `export`: the query object to filter records sent in the query string. It has a `format` attribute to specify the format of the export file.
 
 ## Query object
@@ -72,9 +72,9 @@ An array of fields to include in the response. Default response include all attr
 Example:
 
 ```json
-  {
+{
     "select": ["title", "createdAt"]
-  }
+}
 ```
 
 ### where
@@ -104,7 +104,7 @@ Examples:
   {
     "where": { "name": { "like": "John" } }
   }
-  
+
   {
     "where": { "id": 1 }
   }
@@ -150,7 +150,7 @@ Examples:
   }
 
   {
-    "entries": {
+    "concepts": {
         "include": {
             "media": {
                 "orderBy": ["position"]
@@ -174,7 +174,7 @@ The request body can contain the following properties:
 
 ```json
 {
-    "title": "New entry",
+    "title": "New concept",
     "author": {
         "name": "John Doe"
     }
@@ -193,14 +193,14 @@ The available actions are:
 -   `update`: Update an existing related record.
 -   `connect`: Connect an existing related record.
 
-When creating or updating a record, related records can be included in the request body. The API will automatically create or update the related records based on the request body. 
-For example, when creating a new `Entry` record, a `Reference` record can be include in the request body. The API will automatically create the `Reference` record and associate it with the new `Entry` record. If the `id` field is included in the `Reference` record, the API will connect the `Reference` record to the `Entry` record using the `id` field. The same behavior applies when updating a record.
+When creating or updating a record, related records can be included in the request body. The API will automatically create or update the related records based on the request body.
+For example, when creating a new `Concept` record, a `Reference` record can be include in the request body. The API will automatically create the `Reference` record and associate it with the new `Concept` record. If the `id` field is included in the `Reference` record, the API will connect the `Reference` record to the `Concept` record using the `id` field. The same behavior applies when updating a record.
 
-To update a related record, the `_action_` attribute needs to be sent in the request body to specify the action to be performed. For example, a `Reference` record can be updated by creating a new `Entry` record if the `_action_` attribute is present in the request body with the value `update`. In the example below, the `Reference` record will be updated with the new title:
+To update a related record, the `_action_` attribute needs to be sent in the request body to specify the action to be performed. For example, a `Reference` record can be updated by creating a new `Concept` record if the `_action_` attribute is present in the request body with the value `update`. In the example below, the `Reference` record will be updated with the new title:
 
 ```json
 {
-    "title": "New entry",
+    "title": "New concept",
     "reference": {
         "id": 1,
         "title": "New reference",
@@ -211,8 +211,7 @@ To update a related record, the `_action_` attribute needs to be sent in the req
 
 ### Limitations
 
-Related records are limited to one level of nesting. For example, a `Reference` record can be updated or created when creating or updating an `Entry` record, but it is not possible to create a related `Reference` record when creating or updating a related `Entry` record. To create or update related records beyond one level of nesting, only the `connect` action is supported, the target related record must be created or updated separately.
-
+Related records are limited to one level of nesting. For example, a `Reference` record can be updated or created when creating or updating an `Concept` record, but it is not possible to create a related `Reference` record when creating or updating a related `Concept` record. To create or update related records beyond one level of nesting, only the `connect` action is supported, the target related record must be created or updated separately.
 
 ### Batch update and delete
 
