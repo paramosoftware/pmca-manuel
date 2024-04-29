@@ -26,7 +26,7 @@ async function main() {
         email: 'admin@email.com',
         name: 'Administrador(a)',
         password: 'admin',
-        isAdmin: false,
+        isAdmin: false
     });
 
     await prisma.resource.deleteMany({});
@@ -232,10 +232,8 @@ async function createDefaultGroups(userId: string) {
         }
     });
 
-    const userPermissions = ['Entry', 'Reference'];
-    const editorPermissions = ['Language', 'WebPage'].concat(
-        userPermissions
-    );
+    const userPermissions = ['Concept', 'Reference'];
+    const editorPermissions = ['Language', 'WebPage'].concat(userPermissions);
 
     const adminGroup = {
         name: 'Administradores',
@@ -403,7 +401,7 @@ function buildFieldsConfig(
             allowCreate: docConfig.allowCreate !== 'false',
             allowMultiple: docConfig.allowMultiple !== 'false',
             placeholder: docConfig.placeholder || undefined,
-            published: resource === 'Entry',
+            published: resource === 'Concept',
             isPrivate: docConfig.isPrivate === 'true'
         } as Prisma.ResourceFieldCreateInput & { resource: undefined };
 

@@ -120,8 +120,10 @@ class PrismaServiceConverter {
             );
         }
 
-
-        if (prismaQuery.select && Object.keys(prismaQuery.select).length === 0) {
+        if (
+            prismaQuery.select &&
+            Object.keys(prismaQuery.select).length === 0
+        ) {
             throw new ApiValidationError(
                 `After processing, no fields could be selected, the original select clause was ${JSON.stringify(query.select)}`
             );
@@ -901,7 +903,6 @@ class PrismaServiceConverter {
         const privateFields = this.privateFieldsPerModel[model] || [];
         return privateFields.includes(field);
     }
-
 
     /**
      * Get private fields per model

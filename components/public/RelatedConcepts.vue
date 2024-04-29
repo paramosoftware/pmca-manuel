@@ -1,14 +1,18 @@
 <template>
-    <Splide :has-track="false" :options="options" v-if="entries.length > 0">
+    <Splide :has-track="false" :options="options" v-if="concepts.length > 0">
         <UITitle id="carousel-heading" class="my-5">
-            Verbetes relacionados
+            {{ title }}
         </UITitle>
         <SplideTrack>
-            <SplideSlide v-for="entry in entries" :key="entry.id">
-                <PublicEntryCard :entry="entry" height="h-36 sm:h-24" titleSize="text-lg" title-padding="p-2"/>
+            <SplideSlide v-for="concept in concepts" :key="concept.id">
+                <PublicCard
+                    :concept="concept"
+                    height="h-36 sm:h-24"
+                    titleSize="text-lg"
+                    title-padding="p-2"
+                />
             </SplideSlide>
         </SplideTrack>
-
 
         <span class="splide__arrows w-36 h-36">
             <button class="splide__arrow splide__arrow--prev">
@@ -27,21 +31,24 @@ import { Splide, SplideSlide, SplideTrack } from '@splidejs/vue-splide';
 import '@splidejs/vue-splide/css';
 
 const props = defineProps({
-    entries: {
-        type: Array as PropType<Entry[]>,
+    title: {
+        type: String,
+        required: true
+    },
+    concepts: {
+        type: Array as PropType<Concept[]>,
         required: true,
         default: []
     },
     oppositeSide: {
-        type: Array as PropType<Entry[]>,
+        type: Array as PropType<Concept[]>,
         default: []
     }
-})
+});
 
-
-const entries = computed(() => {
-     return props.entries.concat(props.oppositeSide)
-})
+const concepts = computed(() => {
+    return props.concepts.concat(props.oppositeSide);
+});
 
 const options = ref({
     perPage: 6,
@@ -55,24 +62,22 @@ const options = ref({
             gap: '1rem',
             arrows: false,
             pagination: true,
-            drag: props.entries.length > 1
+            drag: props.concepts.length > 1
         },
         768: {
             perPage: 2,
-            gap: '1rem',
+            gap: '1rem'
         },
         1024: {
             perPage: 3,
-            gap: '1rem',
+            gap: '1rem'
         },
         1280: {
             perPage: 4,
-            gap: '1rem',
+            gap: '1rem'
         }
     }
-})
-
-
+});
 </script>
 
 <style>

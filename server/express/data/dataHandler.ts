@@ -11,15 +11,23 @@ import { importData } from '../../prisma/import';
 import { importUploadFile, uploadMedia } from '../../prisma/media';
 import { ApiValidationError, ForbiddenError } from '../error';
 import { prisma } from '../../prisma/prisma';
-import { refreshAccessToken } from '../auth/helpers';
+import { refreshAccessToken, getAccessToken } from '../auth/helpers';
 
 const dataHandler = async (
     req: express.Request,
     res: express.Response,
     next: express.NextFunction
 ) => {
-    const { model, id, partialResource, hasQuery, isUpload, isImport, isExport, isPublic } =
-        getParamsFromPath(req.path);
+    const {
+        model,
+        id,
+        partialResource,
+        hasQuery,
+        isUpload,
+        isImport,
+        isExport,
+        isPublic
+    } = getParamsFromPath(req.path);
 
     // @ts-ignore
     if (!model || !prisma[model]) {
@@ -38,7 +46,7 @@ const dataHandler = async (
 
     const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
 
-    const accessToken = req.cookies[getCookiePrefix() + 'jwt'];
+    const accessToken = getAccessToken(req);
 
     let userId = '';
     let permissions: Permission = {};
@@ -92,7 +100,11 @@ const dataHandler = async (
                         query
                     );
                 } else if (id) {
-                    response = prismaService.readOne(id, request, partialResource);
+                    response = prismaService.readOne(
+                        id,
+                        request,
+                        partialResource
+                    );
                 } else {
                     response = prismaService.readMany(request);
                 }
@@ -106,7 +118,11 @@ const dataHandler = async (
                 break;
             case 'POST':
                 if (id && hasQuery) {
-                    response = prismaService.readOne(id, request, partialResource);
+                    response = prismaService.readOne(
+                        id,
+                        request,
+                        partialResource
+                    );
                 } else if (hasQuery) {
                     response = prismaService.readMany(request);
                 } else if (isUpload) {

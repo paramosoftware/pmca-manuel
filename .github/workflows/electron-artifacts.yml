@@ -10,14 +10,7 @@ jobs:
   publish-electron-artifacts:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        include:
-          - os: ubuntu-latest
-            code: linux
-          - os: windows-latest
-            code: win
-          - os: macos-latest
-            code: mac
+        os: [ubuntu-latest, windows-latest, macos-12]
   
     runs-on: ${{ matrix.os }}
     steps:
@@ -36,15 +29,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.10.0'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 'latest'
+          version: '8.15.6'
       
       - name: Build electron
-        run: pnpm electron:${{ matrix.code }}
+        run: pnpm electron:build
       
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
@@ -54,3 +47,5 @@ jobs:
             builds/*/*.*
             !builds/*/*.yaml
             !builds/*/*.yml
+            !.icon-set
+            !*.blockmap

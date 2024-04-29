@@ -18,7 +18,7 @@ export const importData = (function () {
     // TODO: Convert to class
     // TODO: Memory optimization: reading the whole file at once is not optimal
     // TODO: Error handling
-    // TODO: Allow updating existing entries based on identifier
+    // TODO: Allow updating existing concepts based on identifier
     // TODO: Log report (to client and server)
     // TODO: Progress bar
     // TODO: Transaction (rollback if something goes wrong)
@@ -35,7 +35,7 @@ export const importData = (function () {
     const languages = new Map<string, number>();
     const parent = new Map<string, string>();
     const related = new Map<string, string[]>();
-    const createdEntries = new Map<string | number, number>();
+    const createdConcepts = new Map<string | number, number>();
 
     let importModel: string;
     const labelMap = new Map<string, string>();
@@ -80,7 +80,7 @@ export const importData = (function () {
                 break;
         }
 
-        await processRelations(createdEntries, related, parent);
+        await processRelations(createdConcepts, related, parent);
 
         if (overwrite) {
             const prismaService = new PrismaService(model, false);
@@ -152,33 +152,33 @@ export const importData = (function () {
                 continue;
             }
 
-            const entry = {} as any;
+            const concept = {} as any;
 
-            entry.translations = [];
-            entry.variations = [];
-            entry.references = [];
+            concept.translations = [];
+            concept.variations = [];
+            concept.references = [];
 
             const keys = Object.keys(item);
 
             for (const key of keys) {
                 switch (key) {
                     case camelCaseMap.get('name'):
-                        entry.name = item[key];
+                        concept.name = item[key];
                         break;
 
                     case camelCaseMap.get('definition'):
-                        entry.definition = item[key];
+                        concept.definition = item[key];
                         break;
 
                     case camelCaseMap.get('notes'):
-                        entry.notes = item[key];
+                        concept.notes = item[key];
                         break;
 
                     case camelCaseMap.get('parent'):
                         parent.set(oldId, item[key]);
                         break;
 
-                    case camelCaseMap.get('relatedEntries'):
+                    case camelCaseMap.get('relatedConcepts'):
                         related.set(oldId, item[key]);
                         break;
 
@@ -192,14 +192,16 @@ export const importData = (function () {
                                 translationAndLanguage.name &&
                                 translationAndLanguage.languageId
                             ) {
-                                entry.translations.push(translationAndLanguage);
+                                concept.translations.push(
+                                    translationAndLanguage
+                                );
                             }
                         }
                         break;
 
                     case camelCaseMap.get('references'):
                         // @ts-ignore
-                        entry.references = item[key]
+                        concept.references = item[key]
                             .filter((reference) => reference != '')
                             .map((reference) => {
                                 return {
@@ -210,7 +212,7 @@ export const importData = (function () {
 
                     case camelCaseMap.get('variations'):
                         // @ts-ignore
-                        entry.variations = item[key]
+                        concept.variations = item[key]
                             .filter((variation) => variation != '')
                             .map((variation) => {
                                 return {
@@ -221,9 +223,9 @@ export const importData = (function () {
                 }
             }
 
-            const entryService = new PrismaService('Entry', false);
-            const newEntry = await entryService.createOne(entry);
-            createdEntries.set(oldId, newEntry.id);
+            const conceptService = new PrismaService('Concept', false);
+            const newConcept = await conceptService.createOne(concept);
+            createdConcepts.set(oldId, newConcept.id);
         }
     }
 
@@ -239,13 +241,13 @@ export const importData = (function () {
         const worksheet = workbook.getWorksheet(1);
 
         if (!worksheet) {
-            return createdEntries;
+            return createdConcepts;
         }
 
         const rows = worksheet.getRows(1, worksheet.rowCount);
 
         if (!rows) {
-            return createdEntries;
+            return createdConcepts;
         }
 
         const headerRow = rows[0].values as string[];
@@ -269,11 +271,11 @@ export const importData = (function () {
                 continue;
             }
 
-            const entry = {} as any;
+            const concept = {} as any;
 
-            entry.translations = [];
-            entry.variations = [];
-            entry.references = [];
+            concept.translations = [];
+            concept.variations = [];
+            concept.references = [];
 
             for (const header of headerRow) {
                 const headerIndex = headerRow.indexOf(header);
@@ -290,29 +292,31 @@ export const importData = (function () {
 
                 switch (header) {
                     case labelMap.get('name'):
-                        entry.name = value;
+                        concept.name = value;
                         break;
                     case labelMap.get('definition'):
-                        entry.definition = value;
+                        concept.definition = value;
                         break;
                     case labelMap.get('notes'):
-                        entry.notes = value;
+                        concept.notes = value;
                         break;
                     case labelMap.get('parent'):
                         parent.set(oldId, value);
                         break;
-                    case labelMap.get('relatedEntries'):
+                    case labelMap.get('relatedConcepts'):
                         related.set(
                             oldId,
                             value
                                 .split(';')
-                                .filter((relatedEntry) => relatedEntry != '')
+                                .filter(
+                                    (relatedConcept) => relatedConcept != ''
+                                )
                         );
                         break;
                     case labelMap.get('references'):
                         value.split(';').forEach((reference) => {
                             if (reference) {
-                                entry.references.push({
+                                concept.references.push({
                                     name: reference
                                 });
                             }
@@ -321,7 +325,7 @@ export const importData = (function () {
                     case labelMap.get('variations'):
                         value.split(';').forEach((variation) => {
                             if (variation) {
-                                entry.variations.push({
+                                concept.variations.push({
                                     name: variation
                                 });
                             }
@@ -337,15 +341,17 @@ export const importData = (function () {
                                 translationAndLanguage.name &&
                                 translationAndLanguage.languageId
                             ) {
-                                entry.translations.push(translationAndLanguage);
+                                concept.translations.push(
+                                    translationAndLanguage
+                                );
                             }
                         }
                         break;
                 }
             }
 
-            const newEntry = await prismaService.createOne(entry);
-            createdEntries.set(oldId, newEntry.id);
+            const newConcept = await prismaService.createOne(concept);
+            createdConcepts.set(oldId, newConcept.id);
         }
     }
 
@@ -366,15 +372,15 @@ export const importData = (function () {
                     continue;
                 }
 
-                const entry = {} as Entry;
-                const entryAttributes = item['skos:Concept'];
+                const concept = {} as Concept;
+                const conceptAttributes = item['skos:Concept'];
 
-                entry.translations = [];
-                entry.variations = [];
-                entry.references = [];
-                entry.name = '';
+                concept.translations = [];
+                concept.variations = [];
+                concept.references = [];
+                concept.name = '';
 
-                for (const attribute of entryAttributes) {
+                for (const attribute of conceptAttributes) {
                     if (attribute['skos:prefLabel']) {
                         const prefLabel = attribute['skos:prefLabel'][0];
                         const translation =
@@ -389,27 +395,27 @@ export const importData = (function () {
                                 languages.set(translation, languageId);
                             }
 
-                            if (entry.name === '') {
-                                entry.name = prefLabel['#text'];
+                            if (concept.name === '') {
+                                concept.name = prefLabel['#text'];
                             } else {
-                                entry.translations.push({
+                                concept.translations.push({
                                     name: prefLabel['#text'],
                                     // @ts-ignore
                                     languageId: languages.get(translation)
                                 });
                             }
                         } else {
-                            entry.name = prefLabel['#text'];
+                            concept.name = prefLabel['#text'];
                         }
                     }
 
                     if (attribute['skos:definition']) {
-                        entry.definition =
+                        concept.definition =
                             attribute['skos:definition'][0]['#text'];
                     }
 
                     if (attribute['skos:scopeNote']) {
-                        entry.notes = attribute['skos:scopeNote'][0]['#text'];
+                        concept.notes = attribute['skos:scopeNote'][0]['#text'];
                     }
 
                     if (
@@ -423,69 +429,69 @@ export const importData = (function () {
                         attribute['skos:related'] &&
                         attribute[':@']?.['@_rdf:resource']
                     ) {
-                        const relatedEntries = related.get(oldId) ?? [];
-                        relatedEntries.push(attribute[':@']['@_rdf:resource']);
-                        related.set(oldId, relatedEntries);
+                        const relatedConcepts = related.get(oldId) ?? [];
+                        relatedConcepts.push(attribute[':@']['@_rdf:resource']);
+                        related.set(oldId, relatedConcepts);
                     }
 
                     if (attribute['skos:referenceNote']) {
                         // @ts-ignore
-                        entry.references.push({
+                        concept.references.push({
                             name: attribute['skos:referenceNote'][0]['#text']
                         });
                     }
 
                     if (attribute['skos:altLabel']) {
                         // @ts-ignore
-                        entry.variations.push({
+                        concept.variations.push({
                             name: attribute['skos:altLabel'][0]['#text']
                         });
                     }
                 }
 
-                const newEntry = await prismaService.createOne(entry);
-                createdEntries.set(oldId, newEntry.id);
+                const newConcept = await prismaService.createOne(concept);
+                createdConcepts.set(oldId, newConcept.id);
             }
         }
     }
 
     async function processRelations(
-        createdEntries: Map<string | number, number>,
+        createdConcepts: Map<string | number, number>,
         related: Map<string, string[]>,
         parent: Map<string, string>
     ) {
-        for (const [oldId, relatedEntries] of related) {
+        for (const [oldId, relatedConcepts] of related) {
             // delete relations in other direction in related map to avoid duplicate relations
-            for (let relatedEntry of relatedEntries) {
-                relatedEntry = normalizeString(relatedEntry, true);
-                const relatedEntryRelations = (
-                    related.get(relatedEntry) ?? []
-                ).map((relatedEntry) => {
-                    return normalizeString(relatedEntry, true);
+            for (let relatedConcept of relatedConcepts) {
+                relatedConcept = normalizeString(relatedConcept, true);
+                const relatedConceptRelations = (
+                    related.get(relatedConcept) ?? []
+                ).map((relatedConcept) => {
+                    return normalizeString(relatedConcept, true);
                 });
-                const index = relatedEntryRelations.indexOf(oldId);
+                const index = relatedConceptRelations.indexOf(oldId);
                 if (index > -1) {
-                    relatedEntryRelations.splice(index, 1);
-                    related.set(relatedEntry, relatedEntryRelations);
+                    relatedConceptRelations.splice(index, 1);
+                    related.set(relatedConcept, relatedConceptRelations);
                 }
             }
 
-            await prisma.entry.update({
+            await prisma.concept.update({
                 where: {
-                    id: createdEntries.get(oldId)
+                    id: createdConcepts.get(oldId)
                 },
                 data: {
-                    relatedEntries: {
-                        connect: relatedEntries
-                            .filter((relatedEntry) => {
-                                return createdEntries.get(
-                                    normalizeString(relatedEntry, true)
+                    relatedConcepts: {
+                        connect: relatedConcepts
+                            .filter((relatedConcept) => {
+                                return createdConcepts.get(
+                                    normalizeString(relatedConcept, true)
                                 );
                             })
-                            .map((relatedEntry) => {
+                            .map((relatedConcept) => {
                                 return {
-                                    id: createdEntries.get(
-                                        normalizeString(relatedEntry, true)
+                                    id: createdConcepts.get(
+                                        normalizeString(relatedConcept, true)
                                     )
                                 };
                             })
@@ -494,24 +500,24 @@ export const importData = (function () {
             });
         }
 
-        for (let [entryId, parentResourceId] of parent) {
+        for (let [conceptId, parentResourceId] of parent) {
             parentResourceId = normalizeString(parentResourceId, true);
 
             if (
-                !createdEntries.get(entryId) ||
-                !createdEntries.get(parentResourceId)
+                !createdConcepts.get(conceptId) ||
+                !createdConcepts.get(parentResourceId)
             ) {
                 continue;
             }
 
-            await prisma.entry.update({
+            await prisma.concept.update({
                 where: {
-                    id: createdEntries.get(entryId)
+                    id: createdConcepts.get(conceptId)
                 },
                 data: {
                     parent: {
                         connect: {
-                            id: createdEntries.get(parentResourceId)
+                            id: createdConcepts.get(parentResourceId)
                         }
                     }
                 }
@@ -611,12 +617,12 @@ export const importData = (function () {
 
             oldId = normalizeString(oldId, true);
 
-            const entryId =
-                createdEntries.get(oldId) ?? createdEntries.get('#' + oldId);
+            const conceptId =
+                createdConcepts.get(oldId) ?? createdConcepts.get('#' + oldId);
 
-            if (entryId) {
+            if (conceptId) {
                 await saveMedia(
-                    entryId,
+                    conceptId,
                     newFileName,
                     mediaFile,
                     parseNumber(position)

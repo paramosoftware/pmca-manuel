@@ -71,7 +71,7 @@ export const exportData = (function () {
                 await exportToJson(filePath);
                 break;
             case 'xml':
-                if (model === 'Entry') {
+                if (model === 'Concept') {
                     await exportToSkos(filePath);
                 }
                 break;
@@ -384,29 +384,29 @@ export const exportData = (function () {
     }
 
     function buildSkosConcept(
-        entry: Entry,
+        concept: Concept,
         resourceURI: string,
         conceptSchemeId: string
     ) {
-        const concept = {} as any;
+        const newConcept = {} as any;
 
-        concept['skos:Concept'] = [];
+        newConcept['skos:Concept'] = [];
 
-        concept[':@'] = {
-            '@_rdf:about': resourceURI + entry.nameSlug
+        newConcept[':@'] = {
+            '@_rdf:about': resourceURI + concept.nameSlug
         };
 
-        concept['skos:Concept'].push({
+        newConcept['skos:Concept'].push({
             'skos:inScheme': [],
             ':@': {
                 '@_rdf:resource': resourceURI + conceptSchemeId
             }
         });
 
-        concept['skos:Concept'].push({
+        newConcept['skos:Concept'].push({
             'skos:prefLabel': [
                 {
-                    '#text': entry.name
+                    '#text': concept.name
                 }
             ],
             ':@': {
@@ -414,9 +414,9 @@ export const exportData = (function () {
             }
         });
 
-        if (entry.translations && entry.translations.length > 0) {
-            for (const translation of entry.translations) {
-                concept['skos:Concept'].push({
+        if (concept.translations && concept.translations.length > 0) {
+            for (const translation of concept.translations) {
+                newConcept['skos:Concept'].push({
                     'skos:prefLabel': [
                         {
                             '#text': translation.name
@@ -431,9 +431,9 @@ export const exportData = (function () {
             }
         }
 
-        if (entry.variations && entry.variations.length > 0) {
-            for (const variation of entry.variations) {
-                concept['skos:Concept'].push({
+        if (concept.variations && concept.variations.length > 0) {
+            for (const variation of concept.variations) {
+                newConcept['skos:Concept'].push({
                     'skos:altLabel': [
                         {
                             '#text': variation.name
@@ -446,31 +446,31 @@ export const exportData = (function () {
             }
         }
 
-        if (entry.createdAt) {
-            concept['skos:Concept'].push({
+        if (concept.createdAt) {
+            newConcept['skos:Concept'].push({
                 'dc:created': [
                     {
-                        '#text': entry.createdAt.toISOString()
+                        '#text': concept.createdAt.toISOString()
                     }
                 ]
             });
         }
 
-        if (entry.updatedAt) {
-            concept['skos:Concept'].push({
+        if (concept.updatedAt) {
+            newConcept['skos:Concept'].push({
                 'dc:modified': [
                     {
-                        '#text': entry.updatedAt.toISOString()
+                        '#text': concept.updatedAt.toISOString()
                     }
                 ]
             });
         }
 
-        if (entry.definition) {
-            concept['skos:Concept'].push({
+        if (concept.definition) {
+            newConcept['skos:Concept'].push({
                 'skos:definition': [
                     {
-                        '#text': entry.definition
+                        '#text': concept.definition
                     }
                 ],
                 ':@': {
@@ -479,11 +479,11 @@ export const exportData = (function () {
             });
         }
 
-        if (entry.notes) {
-            concept['skos:Concept'].push({
+        if (concept.notes) {
+            newConcept['skos:Concept'].push({
                 'skos:scopeNote': [
                     {
-                        '#text': entry.notes
+                        '#text': concept.notes
                     }
                 ],
                 ':@': {
@@ -492,9 +492,9 @@ export const exportData = (function () {
             });
         }
 
-        if (entry.references && entry.references.length > 0) {
-            for (const reference of entry.references) {
-                concept['skos:Concept'].push({
+        if (concept.references && concept.references.length > 0) {
+            for (const reference of concept.references) {
+                newConcept['skos:Concept'].push({
                     'skos:referenceNote': [
                         {
                             '#text': reference.name
@@ -507,9 +507,9 @@ export const exportData = (function () {
             }
         }
 
-        if (entry.relatedEntries && entry.relatedEntries.length > 0) {
-            for (const relatedEntry of entry.relatedEntries) {
-                concept['skos:Concept'].push({
+        if (concept.relatedConcepts && concept.relatedConcepts.length > 0) {
+            for (const relatedEntry of concept.relatedConcepts) {
+                newConcept['skos:Concept'].push({
                     'skos:related': '',
                     ':@': {
                         '@_rdf:resource': resourceURI + relatedEntry.nameSlug
@@ -518,9 +518,9 @@ export const exportData = (function () {
             }
         }
 
-        if (entry.entries && entry.entries.length > 0) {
-            for (const relatedEntry of entry.entries) {
-                concept['skos:Concept'].push({
+        if (concept.entries && concept.entries.length > 0) {
+            for (const relatedEntry of concept.entries) {
+                newConcept['skos:Concept'].push({
                     'skos:related': '',
                     ':@': {
                         '@_rdf:resource': resourceURI + relatedEntry.nameSlug
@@ -529,15 +529,15 @@ export const exportData = (function () {
             }
         }
 
-        if (entry.parent) {
-            concept['skos:Concept'].push({
+        if (concept.parent) {
+            newConcept['skos:Concept'].push({
                 'skos:broader': '',
                 ':@': {
-                    '@_rdf:resource': resourceURI + entry.parent.nameSlug
+                    '@_rdf:resource': resourceURI + concept.parent.nameSlug
                 }
             });
         } else {
-            concept['skos:Concept'].push({
+            newConcept['skos:Concept'].push({
                 'skos:topConceptOf': '',
                 ':@': {
                     '@_rdf:resource': resourceURI + conceptSchemeId
@@ -545,9 +545,9 @@ export const exportData = (function () {
             });
         }
 
-        if (entry.children && entry.children.length > 0) {
-            for (const child of entry.children) {
-                concept['skos:Concept'].push({
+        if (concept.children && concept.children.length > 0) {
+            for (const child of concept.children) {
+                newConcept['skos:Concept'].push({
                     'skos:narrower': '',
                     ':@': {
                         '@_rdf:resource': resourceURI + child.nameSlug
@@ -556,7 +556,7 @@ export const exportData = (function () {
             }
         }
 
-        return [concept];
+        return [newConcept];
     }
 
     async function buildSkosConceptScheme(
@@ -615,7 +615,7 @@ export const exportData = (function () {
         return [conceptScheme];
     }
 
-    function buildExportItem(item: Entry) {
+    function buildExportItem(item: Concept) {
         const newItem = {} as any;
 
         newItem.id = item.nameSlug;
@@ -638,17 +638,18 @@ export const exportData = (function () {
                         : '')
             ) ?? [];
 
-        const entries =
-            item.entries?.map((entry: Entry) => entry.nameSlug) ?? [];
-        const relatedEntries =
-            item.relatedEntries?.map((entry: Entry) => entry.nameSlug) ?? [];
+        const concepts =
+            item.concepts?.map((concept: Concept) => concept.nameSlug) ?? [];
+        const relatedConcepts =
+            item.relatedConcepts?.map((concept: Concept) => concept.nameSlug) ??
+            [];
 
-        newItem.entries = entries?.concat(relatedEntries) ?? [];
+        newItem.concepts = concepts?.concat(relatedConcepts) ?? [];
 
         return newItem;
     }
 
-    function addMediaToMap(media: EntryMedia[], nameSlug: string) {
+    function addMediaToMap(media: ConceptMedia[], nameSlug: string) {
         if (!media) {
             return;
         }

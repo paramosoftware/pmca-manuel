@@ -20,7 +20,7 @@ const csrfHandler = (
     if (!exceptions.includes(req.path) && !methods.includes(req.method)) {
         const csrf = req.headers['x-csrf-token'];
 
-        const cookieName = getCookiePrefix() + 'jwt';
+        const cookieName = getCookiePrefix() + 'access';
 
         const token = req.cookies[cookieName];
 

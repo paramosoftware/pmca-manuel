@@ -1,25 +1,30 @@
 import express from 'express';
 import decodeJwt from '~/utils/decodeJwt';
-import getCookiePrefix from '~/utils/getCookiePrefix';
+import getCookieOptions from '~/utils/getCookieOptions';
 import { UnauthorizedError, ServerError } from '../error';
 import {
-    setAccessTokenCookie,
-    setCsrfCookie,
     login,
     logout,
     refreshAccessToken,
-    setUserPassword
+    setUserPassword,
+    getAccessToken
 } from './helpers';
 
 const router = express.Router();
+const ACCESS_COOKIE_NAME = 'access';
+const CSRF_COOKIE_NAME = 'csrf';
 
 router.post('/login', async (req, res, next) => {
     const { email, password } = req.body;
 
     try {
         const { accessToken, csrf } = await login(email, password);
-        setAccessTokenCookie(res, accessToken);
-        setCsrfCookie(res, csrf);
+        const accessCookie = getCookieOptions(ACCESS_COOKIE_NAME);
+        const csrfCookie = getCookieOptions(CSRF_COOKIE_NAME);
+
+        res.cookie(accessCookie.name, accessToken, accessCookie.options);
+        res.cookie(csrfCookie.name, csrf, csrfCookie.options);
+
         res.json({ message: 'Login successful' });
     } catch (error) {
         next(error);
@@ -27,20 +32,18 @@ router.post('/login', async (req, res, next) => {
 });
 
 router.get('/refresh', async (req, res, next) => {
-    const currentAccessToken = req.cookies[getCookiePrefix() + 'jwt'] || '';
-
+    const currentAccessToken = getAccessToken(req);
     try {
-        await refreshAccessToken(currentAccessToken, res);
-        res.json({ message: 'refreshed' });
+        const tokens = await refreshAccessToken(currentAccessToken, res);
+        res.json(tokens);
     } catch (error) {
-        await logout(currentAccessToken, res, next);
+        res.status(401).json({ message: 'Unauthorized' });
     }
 });
 
 router.post('/logout', async (req, res, next) => {
     try {
-        const currentAccessToken = req.cookies[getCookiePrefix() + 'jwt'] || '';
-
+        const currentAccessToken = getAccessToken(req);
         await logout(currentAccessToken, res, next);
     } catch (error) {
         next(error);
@@ -51,7 +54,7 @@ router.post('/change-password', async (req, res, next) => {
     const { password } = req.body;
 
     try {
-        const accessToken = req.cookies[getCookiePrefix() + 'jwt'] || '';
+        const accessToken = getAccessToken(req);
 
         const decodedToken = decodeJwt(
             accessToken,
@@ -73,8 +76,7 @@ router.post('/change-password', async (req, res, next) => {
 });
 
 router.get('/user', async (req, res, next) => {
-    const accessToken = req.cookies[getCookiePrefix() + 'jwt'] || '';
-
+    const accessToken = getAccessToken(req);
     try {
         const decodedToken = decodeJwt(
             accessToken,
@@ -97,7 +99,7 @@ router.get('/user', async (req, res, next) => {
             name: decodedToken.name
         });
     } catch (error) {
-        await logout(accessToken, res, next);
+        next(error);
     }
 });
 

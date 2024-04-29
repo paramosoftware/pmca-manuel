@@ -7,7 +7,7 @@ import parseNumber from '~/utils/parseNumber';
 import sanitizeString from '~/utils/sanitizeString';
 import { prisma, Prisma } from '~/server/prisma/prisma';
 import { ApiValidationError } from '../express/error';
-import { deleteEntryMedia, handleMedia } from './media';
+import { deleteConceptMedia, handleMedia } from './media';
 import PrismaServiceConverter from './PrismaServiceConverter';
 import PrismaServiceValidator from './PrismaServiceValidator';
 import QUERIES from '~/config/queries';
@@ -113,12 +113,10 @@ class PrismaService {
             );
 
             return await this.readManyWithCount(query);
-
         } catch (error) {
             throw error;
         }
     }
-
 
     private async readManyWithCount(query: Query) {
         try {
@@ -239,7 +237,7 @@ class PrismaService {
             }
 
             const updates: any[] = [];
-            const mediaUpdates = new Map<number, EntryMedia[]>();
+            const mediaUpdates = new Map<number, ConceptMedia[]>();
 
             for (const item of this.request) {
                 if (item.where === undefined) {
@@ -277,10 +275,10 @@ class PrismaService {
                 });
 
                 for (const id of ids) {
-                    if (this.model.toLowerCase() === 'entry') {
-                        const oldMedia = await prisma.entryMedia.findMany({
+                    if (this.model.toLowerCase() === 'concept') {
+                        const oldMedia = await prisma.conceptMedia.findMany({
                             where: {
-                                entryId: id.id
+                                conceptId: id.id
                             }
                         });
 
@@ -363,30 +361,30 @@ class PrismaService {
 
             query = { where: query.where };
 
-            const entryMedia: string | any[] = [];
+            const conceptMedia: string | any[] = [];
 
-            if (this.model.toLowerCase() === 'entry') {
-                const entries = await prisma.entry.findMany(query);
-                const ids = entries.map((entry) => entry.id);
+            if (this.model.toLowerCase() === 'concept') {
+                const concepts = await prisma.concept.findMany(query);
+                const ids = concepts.map((concept) => concept.id);
 
-                let entryMediaTemp = await prisma.entryMedia.findMany({
+                let conceptMediaTemp = await prisma.conceptMedia.findMany({
                     where: {
-                        entryId: {
+                        conceptId: {
                             in: ids
                         }
                     }
                 });
 
-                entryMediaTemp.forEach((entry) => {
-                    entryMedia.push(entry);
+                conceptMediaTemp.forEach((concept) => {
+                    conceptMedia.push(concept);
                 });
             }
 
             // @ts-ignore
             const data = await prisma[this.model].deleteMany(query);
 
-            if (entryMedia.length > 0) {
-                deleteEntryMedia(entryMedia);
+            if (conceptMedia.length > 0) {
+                deleteConceptMedia(conceptMedia);
             }
 
             return data;
@@ -1042,7 +1040,7 @@ class PrismaService {
         const ignoreWithSuffix = ['Normalized', 'Slug', 'Id', 'Count'];
         const fieldsToTrack = [] as string[];
 
-        const oldData = (await prisma.entry.findUnique({
+        const oldData = (await prisma.concept.findUnique({
             where: {
                 id: parseInt(id)
             },
@@ -1134,7 +1132,11 @@ class PrismaService {
                     }
 
                     if (added.length > 0 || removed.length > 0) {
-                        _addChange(field, JSON.stringify(fieldChanges), this.userId);
+                        _addChange(
+                            field,
+                            JSON.stringify(fieldChanges),
+                            this.userId
+                        );
                     }
                 } else if (newData[field].name !== undefined) {
                     if (newData[field].name !== oldData[field].name) {

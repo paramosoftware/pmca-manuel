@@ -120,7 +120,7 @@ model ResourceField {
   published Boolean @default(false)
   isPrivate Boolean @default(false)
 
-  entryChanges EntryChanges[] /// disabled:true|hidden:true
+  conceptChanges ConceptChanges[] /// disabled:true|hidden:true
 
   nameNormalized        String?
   labelNormalized       String?
@@ -143,9 +143,9 @@ model User {
   isAdmin   Boolean?      @default(false) /// disabled:true|hidden:true|isPrivate:true
   sessions  UserSession[] /// disabled:true|hidden:true|isPrivate:true
 
-  entryChanges EntryChanges[] /// disabled:true|hidden:true|isPrivate:true
+  conceptChanges ConceptChanges[] /// disabled:true|hidden:true|isPrivate:true
 
-  groupId Int? 
+  groupId Int?
   group   Group? @relation(fields: [groupId], references: [id]) /// isPrivate:true
 
   nameNormalized  String?
@@ -172,50 +172,51 @@ model UserSession {
 }
 
 /// isPublic:true
-model Entry {
-  id         Int     @id @default(autoincrement()) /// includeExport:true
-  name       String /// includeExport:true
-  nameSlug   String  @unique
-  definition String? /// includeExport:true
-  notes      String? /// includeExport:true
-  privateNotes String? /// isPrivate:true|uiField:textarea
+model Concept {
+  id   Int    @id @default(autoincrement()) /// includeExport:true
+  name String /// includeExport:true|label:Termo
 
   parentId Int?
-  children Entry[] @relation("EntryToChildren")
-  parent   Entry?  @relation("EntryToChildren", fields: [parentId], references: [id]) /// includeExport:true
+  children Concept[] @relation("ConceptToChildren")
+  parent   Concept?  @relation("ConceptToChildren", fields: [parentId], references: [id]) /// includeExport:true
 
-  variations   EntryVariation[] /// includeExport:true
-  translations EntryTranslation[] /// includeExport:true
+  nameSlug     String  @unique
+  definition   String? /// includeExport:true
+  notes        String? /// includeExport:true
+  privateNotes String? /// isPrivate:true|uiField:textarea
 
-  entries        Entry[] @relation("EntryToEntry") /// includeExport:true|allowCreate:false
-  relatedEntries Entry[] @relation("EntryToEntry") /// includeExport:true|allowCreate:false
+  concepts        Concept[] @relation("ConceptToConcept") /// includeExport:true|allowCreate:false
+  relatedConcepts Concept[] @relation("ConceptToConcept") /// includeExport:true|allowCreate:false
+
+  variations   ConceptVariation[] /// includeExport:true
+  translations ConceptTranslation[] /// includeExport:true
 
   references Reference[] /// includeExport:true
-  media      EntryMedia[]
+  media      ConceptMedia[]
 
   published Boolean @default(true) /// defaultValue:true
 
-  accessCount Int            @default(0) /// disabled:true|hidden:true
-  changes     EntryChanges[] /// disabled:true|hidden:true
+  accessCount Int              @default(0) /// disabled:true|hidden:true
+  changes     ConceptChanges[] /// disabled:true|hidden:true
 
-  definitionNormalized String?
-  nameNormalized       String?
-  notesNormalized      String?
+  definitionNormalized   String?
+  nameNormalized         String?
+  notesNormalized        String?
   privateNotesNormalized String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model EntryChanges {
+model ConceptChanges {
   id      Int    @id @default(autoincrement())
   changes String
 
   userId String? /// isPrivate:true
-  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  entryId  Int
-  entry    Entry   @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  conceptId Int
+  concept   Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
 
   fieldId Int?
   field   ResourceField? @relation(fields: [fieldId], references: [id], onDelete: SetNull)
@@ -224,7 +225,7 @@ model EntryChanges {
   updatedAt DateTime @updatedAt
 }
 
-model EntryMedia {
+model ConceptMedia {
   id       Int    @id @default(autoincrement())
   name     String @unique
   position Int    @default(0)
@@ -237,34 +238,34 @@ model EntryMedia {
 
   subtitleNormalized String?
 
-  entryId Int
-  entry   Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  conceptId Int
+  concept   Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model EntryVariation {
+model ConceptVariation {
   id   Int    @id @default(autoincrement())
   name String
 
   nameNormalized String?
 
-  entryId Int
-  entry   Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  conceptId Int
+  concept   Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model EntryTranslation {
+model ConceptTranslation {
   id   Int    @id @default(autoincrement())
   name String
 
   languageId Int? /// required:true
   language   Language? @relation(fields: [languageId], references: [id], onDelete: Cascade) /// required:true
-  entryId    Int
-  entry      Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  conceptId  Int
+  concept    Concept   @relation(fields: [conceptId], references: [id], onDelete: Cascade)
 
   nameNormalized String?
 
@@ -278,7 +279,7 @@ model Language {
   name String  @unique
   code String? @unique
 
-  translations EntryTranslation[] /// disabled:true|hidden:true
+  translations ConceptTranslation[] /// disabled:true|hidden:true
 
   published Boolean @default(true) /// defaultValue:true
 
@@ -296,7 +297,7 @@ model Reference {
   nameRich       String? /// hidden:true
   nameNormalized String?
 
-  entries Entry[]
+  concepts Concept[]
 
   published Boolean? @default(true) /// defaultValue:true
 

@@ -3,11 +3,13 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import decodeJwt from '~/utils/decodeJwt';
-import getCookiePrefix from '~/utils/getCookiePrefix';
+import getCookieOptions from '~/utils/getCookieOptions';
 import hashPassword from '~/utils/hashPassword';
-import isHTTPS from '~/utils/isHTTPS';
 import { prisma } from '../../prisma/prisma';
 import { UnauthorizedError, ForbiddenError } from '../error';
+
+const ACCESS_COOKIE_NAME = 'access';
+const CSRF_COOKIE_NAME = 'csrf';
 
 export async function logout(
     accessToken: string,
@@ -26,19 +28,13 @@ export async function logout(
 
     await deleteSession(decodedToken.sessionId);
 
-    res.clearCookie(getCookiePrefix() + 'jwt', {
-        secure: isHTTPS(),
-        sameSite: 'lax',
-        httpOnly: true
-    });
-    
-    res.clearCookie(getCookiePrefix() + 'csrf', {
-        secure: isHTTPS(),
-        sameSite: 'strict',
-        httpOnly: false
-    });
+    const accessCookie = getCookieOptions(ACCESS_COOKIE_NAME, true);
+    const csrfCookie = getCookieOptions(CSRF_COOKIE_NAME, true);
 
-    res.json({ message: 'Logout successful' });
+    res.clearCookie(accessCookie.name, accessCookie.options);
+    res.clearCookie(csrfCookie.name, csrfCookie.options);
+
+    res.json({ message: 'logout' });
 }
 
 export async function login(login: string, password: string) {
@@ -73,8 +69,9 @@ export async function login(login: string, password: string) {
             permissions,
             name: user.name
         },
-        'access'
+        ACCESS_COOKIE_NAME
     );
+
     return { accessToken, csrf };
 }
 
@@ -129,11 +126,14 @@ export async function refreshAccessToken(
             permissions,
             name: user.name
         },
-        'access'
+        ACCESS_COOKIE_NAME
     );
 
-    setAccessTokenCookie(res, newAccessToken);
-    setCsrfCookie(res, csrf);
+    const accessCookie = getCookieOptions(ACCESS_COOKIE_NAME);
+    const csrfCookie = getCookieOptions(CSRF_COOKIE_NAME);
+
+    res.cookie(accessCookie.name, newAccessToken, accessCookie.options);
+    res.cookie(csrfCookie.name, csrf, csrfCookie.options);
 
     return { accessToken: newAccessToken, csrf };
 }
@@ -215,42 +215,17 @@ export function generateToken(
     payload: string | object,
     type: 'access' | 'refresh'
 ) {
-    if (type === 'access') {
+    if (type === ACCESS_COOKIE_NAME) {
         return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET!, {
             expiresIn: '10m'
         });
     } else if (type === 'refresh') {
         return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET!, {
-            expiresIn: '1d'
+            expiresIn: '7d'
         });
     }
 
     throw new Error('Invalid token type');
-}
-
-export function setAccessTokenCookie(
-    res: express.Response,
-    accessToken: string
-) {
-    const cookieName = getCookiePrefix() + 'jwt';
-
-    res.cookie(cookieName, accessToken, {
-        secure: isHTTPS(),
-        sameSite: 'lax',
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24
-    });
-}
-
-export function setCsrfCookie(res: express.Response, csrf: string) {
-    const cookieName = getCookiePrefix() + 'csrf';
-
-    res.cookie(cookieName, csrf, {
-        secure: isHTTPS(),
-        sameSite: 'strict',
-        httpOnly: false,
-        maxAge: 1000 * 60 * 60 * 24
-    });
 }
 
 async function getPermissions(user: User) {
@@ -313,4 +288,16 @@ async function getPermissions(user: User) {
     }
 
     return permissions;
+}
+
+export function getAccessToken(req: express.Request) {
+    let accessToken = req.headers.authorization || '';
+
+    if (accessToken) {
+        accessToken = accessToken.replace('Bearer ', '');
+    } else {
+        accessToken = req.cookies[ACCESS_COOKIE_NAME] || '';
+    }
+
+    return accessToken;
 }

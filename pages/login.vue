@@ -3,9 +3,9 @@
         class="flex flex-col justify-center items-center h-screen mx-3 text-pmca-primary"
     >
         <div
-            class="container max-w-screen-md mx-auto p-5 border border-neutral rounded-sm m-5"
+            class="container max-w-screen-md mx-auto p-16 border border-neutral rounded-md m-5"
         >
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-5">
                 <div class="col-span-2 md:col-span-1 mt-3 md:mt-0">
                     <div class="mb-10">
                         <UIAnchorReturn href="/" />
@@ -21,14 +21,14 @@
 
                 <div class="col-span-2 md:col-span-1 mt-5 md:mt-0">
                     <div>
-                        <h1 class="text-4xl">Login</h1>
+                        <h1 class="text-3xl">Login</h1>
                     </div>
                     <form @submit.prevent="submit" class="mt-5 mx-auto">
                         <FieldInput
-                            label="E-mail"
+                            label="Login ou e-mail"
                             v-model="email"
                             type="text"
-                            placeholder="Digite seu e-mail"
+                            placeholder="Digite seu login ou e-mail"
                             id="email"
                         />
                         <FieldInput

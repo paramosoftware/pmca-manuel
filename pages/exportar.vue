@@ -3,7 +3,7 @@
         <UIPageTitle>Exportar</UIPageTitle>
 
         <p class="mt-4">
-            Todos os verbetes disponíveis no site serão exportados no formato
+            Todos os termos disponíveis no site serão exportados no formato
             selecionado. O arquivo gerado pode ser utilizado diretamente na
             funcionalidade de importação da versão de desktop da aplicação
             (disponível <UILink href="#">aqui</UILink>) ou em outros sistemas
@@ -14,18 +14,18 @@
 
         <p class="mt-4">
             Caso a opção <strong>Incluir imagens</strong> esteja marcada, as
-            imagens utilizadas nos verbetes serão exportadas em uma pasta
-            chamada <i>media</i>, com o nome do verbete como prefixo, em um
-            arquivo zipado.
+            imagens utilizadas nos termos serão exportadas em uma pasta chamada
+            <i>media</i>, com o nome do termo como prefixo, em um arquivo
+            zipado.
         </p>
 
         <p class="mt-4">
-            Para exportar somente uma parte dos verbetes, selecione os verbetes
+            Para exportar somente uma parte dos termos, selecione os termos
             desejados (utilize o ícone
             <UIIcon
                 name="ph:bookmark-simple"
                 class="text-pmca-accent w-6 h-6"
-            />), acesse a página de verbetes selecionados (utilize o ícone
+            />), acesse a página de termos selecionados (utilize o ícone
             <UIIcon
                 class="text-pmca-accent w-6 h-6"
                 name="ph:bookmarks-simple-fill"
