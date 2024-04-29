@@ -111,10 +111,7 @@ menus.push({
 });
 
 const logout = async () => {
-  const { data, error } = await useFetchWithBaseUrl('/api/auth/logout', {
-    method: 'POST',
-  });
-
+  await userStore.logout();
   navigateTo('/')
 };
 </script>

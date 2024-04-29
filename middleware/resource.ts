@@ -18,8 +18,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         action = 'read';
     }
 
-    await userStore.fetch();
-
     const { resources, permissions } = storeToRefs(userStore);
 
     let hasPermission = false;
