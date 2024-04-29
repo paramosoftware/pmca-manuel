@@ -34,7 +34,7 @@ if (pretty) {
     });
 } else {
     targets.push({
-        target: 'pino-file'
+        target: 'pino/file',
     });
 }
 
