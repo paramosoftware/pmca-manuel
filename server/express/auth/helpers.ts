@@ -293,10 +293,12 @@ async function getPermissions(user: User) {
 export function getAccessToken(req: express.Request) {
     let accessToken = req.headers.authorization || '';
 
+    const accessCookieName = getCookieOptions(ACCESS_COOKIE_NAME).name;
+
     if (accessToken) {
         accessToken = accessToken.replace('Bearer ', '');
     } else {
-        accessToken = req.cookies[ACCESS_COOKIE_NAME] || '';
+        accessToken = req.cookies[accessCookieName] || '';
     }
 
     return accessToken;
