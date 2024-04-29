@@ -27,6 +27,13 @@
                     title="Termos selecionados"
                 />
             </NuxtLink>
+            <NuxtLink to="/admin" v-if="isElectronApp">
+                <UIIcon
+                    class="text-pmca-accent text-2xl cursor-pointer ml-2"
+                    name="ph:sign-in"
+                    title="Acesso interno"
+                />
+            </NuxtLink>
         </div>
     </div>
 </template>
@@ -36,6 +43,7 @@ const props = defineProps({
     showMenu: Boolean
 });
 
+const isElectronApp = isElectron();
 const showMenu = computed(() => props.showMenu);
 const webPages = ref(<WebPage[]>[]);
 

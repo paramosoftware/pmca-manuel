@@ -25,6 +25,14 @@
                         <UIIcon
                             class="text-pmca-accent w-9 h-9 cursor-pointer mr-2"
                             name="ph:bookmarks-simple-fill"
+                            title="Termos selecionados"
+                        />
+                    </NuxtLink>
+                    <NuxtLink to="/admin" v-if="isElectronApp">
+                        <UIIcon
+                            class="text-pmca-accent text-2xl cursor-pointer ml-2"
+                            name="ph:sign-in"
+                            title="Acesso interno"
                         />
                     </NuxtLink>
                     <button
@@ -54,6 +62,7 @@
 
 <script setup lang="ts">
 const showMenu = ref(false);
+const isElectronApp = isElectron();
 
 const config = useRuntimeConfig();
 const title = ref(config.public.appName);

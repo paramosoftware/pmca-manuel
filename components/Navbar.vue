@@ -62,6 +62,7 @@
 import ROUTES from '~/config/routes';
 const config = useRuntimeConfig();
 const title = ref(config.public.appName);
+const isElectronApp = isElectron();
 
 const userStore = useUserStore();
 await userStore.fetch();
@@ -99,7 +100,7 @@ menus.push({
     icon: 'ph:arrow-square-out',
     title: 'Acesso público',
     onClick: () => {
-        window.open('/', '_blank');
+        accessPublic();
     }
 });
 
@@ -132,4 +133,14 @@ const logout = async () => {
     await userStore.logout();
     navigateTo('/');
 };
+
+const accessPublic = () => {
+  if (isElectronApp) {
+    navigateTo('/');
+  } else {
+    window.open('/', '_blank');
+  }
+};
+
+
 </script>
