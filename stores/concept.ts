@@ -260,15 +260,14 @@ export const useConceptStore = defineStore('concept', () => {
 
     async function exportData(format: DataTransferFormat, addMedia = false) {
         const exportData = useExportData();
+        
+        const date = new Date().toISOString().replace(/:/g, '-');
+        const ext = addMedia? 'zip' : format;
+        const fileName = `export-${date}.${ext}`;
+        const where = conceptIdentifier.value ? { id: concept.value?.id } : query.value.where;
+        const url = `/api/concept/export?format=${format}&addMedia=${addMedia}&where=${JSON.stringify(where)}`;
 
-        if (conceptIdentifier.value) {
-            await exportData.download(format, addMedia, {
-                id: concept.value?.id
-            });
-            return;
-        }
-
-        await exportData.download(format, addMedia, query.value.where);
+        await exportData.download(url, fileName);
     }
 
     function clear() {
