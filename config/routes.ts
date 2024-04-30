@@ -5,7 +5,8 @@ const ROUTES = {
     create: RESTRICTED_PATH + '/criar/',
     edit: RESTRICTED_PATH + '/editar/',
     list: RESTRICTED_PATH + '/listar/',
-    import: RESTRICTED_PATH + '/importar'
+    import: RESTRICTED_PATH + '/importar',
+    backup: RESTRICTED_PATH + '/backup'
 };
 
 export default ROUTES;

@@ -4,15 +4,6 @@
         <div class="max-w-screen-2xl mx-auto">
             <div class="grid md:grid-cols-2 p-4">
                 <div class="flex flex-col">
-                    <div class="pb-2">
-                        <NuxtLink to="/login" v-if="showLoginButton">
-                            <UIButton class="col-auto">
-                                <UIIcon name="ph:sign-in" class="w-6 h-6" />
-                                <span class="text-lg">Acesso interno</span>
-                            </UIButton>
-                        </NuxtLink>
-                    </div>
-                    
                     <h1 class="text-lg">
                         {{title}}
                         <span class="block" v-if="blockTitle">
@@ -49,15 +40,8 @@
 </template>
 
 <script setup lang="ts">
-import ROUTES from '~/config/routes';
 const router = useRouter();
-
-const showLoginButton = ref(false);
 const path = router.currentRoute.value.path;
-
-if (isElectron() && !path.includes(ROUTES.restricted)) {
-    showLoginButton.value = true;
-}
 
 const config = useRuntimeConfig();
 const title = ref(config.public.appName);

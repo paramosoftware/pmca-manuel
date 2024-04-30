@@ -1,0 +1,53 @@
+name: Generate Electron artifacts
+# TODO: Get versions from package.json
+# TODO: Add windows-2022 when fixed: bin\pnpm.cjs: %1 is not a valid Win32 application.
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+
+jobs:
+  publish-electron-artifacts:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-12]
+  
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.10.0'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: '8.15.6'
+      
+      - name: Build electron
+        run: pnpm electron:build
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: electron-artifacts
+          path: |
+            builds/*/*.*
+            !builds/*/*.yaml
+            !builds/*/*.yml
+            !.icon-set
+            !*.blockmap

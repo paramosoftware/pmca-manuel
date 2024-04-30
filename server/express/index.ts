@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import cors from 'cors';
 import auth from './auth';
+import admin from './admin';
 import dataHandler from './data/dataHandler';
 import errorHandler from './error/errorHandler';
 import getDataFolderPath from '~/utils/getDataFolderPath';
@@ -31,6 +32,7 @@ function useApiRoute(app: any, route: string, handler: any) {
 }
 
 useApiRoute(app, '/auth', auth);
+useApiRoute(app, '/admin', admin);
 
 app.get('/api/test', (req, res) => {
     res.json({ message: 'API is working' });

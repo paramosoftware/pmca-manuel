@@ -11,7 +11,8 @@ const level = process.env.LOG_LEVEL || 'trace';
 const pretty = process.env.NODE_ENV === 'development';
 
 const options = {
-    level: level
+    level: level,
+    timestamp: pino.stdTimeFunctions.isoTime,
 };
 
 const targets = [
@@ -30,6 +31,10 @@ if (pretty) {
         options: {
             colorize: true
         }
+    });
+} else {
+    targets.push({
+        target: 'pino/file',
     });
 }
 

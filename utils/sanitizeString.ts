@@ -5,6 +5,8 @@ export default function sanitizeString(str: string) {
         return str;
     }
 
+    str = str.trim();
+
     str = sanitizeHtml(str);
 
     return str;

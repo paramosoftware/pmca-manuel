@@ -1,18 +1,18 @@
-export default function useEntryAccess(slug: string) {
+export default function useConceptAccess(slug: string) {
     const countAccess = ref(false);
 
     onMounted(() => {
         if (process.client) {
-            const entryAccessStorage =
-                localStorage.getItem('entryAccess') || '[]';
-            const entryAccess = JSON.parse(entryAccessStorage);
+            const conceptAccessStorage =
+                localStorage.getItem('conceptAccess') || '[]';
+            const conceptAccess = JSON.parse(conceptAccessStorage);
 
             const access = {
                 slug: slug,
                 date: new Date().toISOString()
             };
 
-            const found = entryAccess.find(
+            const found = conceptAccess.find(
                 (item: { slug: string; date: string }) => {
                     if (item.slug === slug) {
                         const date = new Date(item.date);
@@ -34,15 +34,18 @@ export default function useEntryAccess(slug: string) {
             );
 
             if (!found) {
-                entryAccess.push(access);
+                conceptAccess.push(access);
                 countAccess.value = true;
             }
 
-            if (entryAccess.length > 10) {
-                entryAccess.shift();
+            if (conceptAccess.length > 10) {
+                conceptAccess.shift();
             }
 
-            localStorage.setItem('entryAccess', JSON.stringify(entryAccess));
+            localStorage.setItem(
+                'conceptAccess',
+                JSON.stringify(conceptAccess)
+            );
         }
     });
 

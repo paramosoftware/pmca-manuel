@@ -16,19 +16,23 @@ class PrismaServiceConverter {
     private userId: ID = '';
     public permissions: Permission = {};
     private onlyPublished: boolean = false;
+    private removePrivateFields: boolean = false;
+    private privateFieldsPerModel: { [key: string]: string[] } = {};
 
     constructor(
         model: string,
         modelFields: readonly Prisma.DMMF.Field[],
         fieldsMap: Map<string, Prisma.DMMF.Field>,
         checkPermissions: boolean = true,
-        onlyPublished: boolean = false
+        onlyPublished: boolean = false,
+        removePrivateFields = false
     ) {
         this.model = model;
         this.modelFields = modelFields;
         this.fieldsMap = fieldsMap;
         this.checkPermissions = checkPermissions;
         this.onlyPublished = onlyPublished;
+        this.removePrivateFields = removePrivateFields;
     }
 
     /**
@@ -58,12 +62,16 @@ class PrismaServiceConverter {
             await this.mergeRelatedPermissions();
         }
 
+        if (this.removePrivateFields) {
+            this.privateFieldsPerModel = await this.getPrivateFieldsPerModel();
+        }
+
         const partialResourceWhere = this.convertToPartialResourceRequest(
             partialResource,
             identifierToAddUniqueFields
         );
 
-        let prismaQuery = this.convertQuery(query, this.model);
+        let prismaQuery = this.convertQuery(query, this.model, true, true);
 
         if (paginated) {
             request.pageSize = request.pageSize || this.pageSize;
@@ -109,6 +117,15 @@ class PrismaServiceConverter {
                 prismaQuery,
                 { published: true },
                 'AND'
+            );
+        }
+
+        if (
+            prismaQuery.select &&
+            Object.keys(prismaQuery.select).length === 0
+        ) {
+            throw new ApiValidationError(
+                `After processing, no fields could be selected, the original select clause was ${JSON.stringify(query.select)}`
             );
         }
 
@@ -167,7 +184,10 @@ class PrismaServiceConverter {
     ) {
         const logicalOperators = ['AND', 'OR', 'NOT'];
 
-        if (typeof clause === 'undefined' || Array.isArray(clause) && clause.length === 0) {
+        if (
+            typeof clause === 'undefined' ||
+            (Array.isArray(clause) && clause.length === 0)
+        ) {
             return prismaQuery;
         }
 
@@ -210,10 +230,16 @@ class PrismaServiceConverter {
      * @param query - The query to convert
      * @param model - The model to convert the query to
      * @param addOrderBy - Whether to add an orderBy clause if none is provided
+     * @param addSelect - Whether to add a select clause if none is provided
      * @returns The converted query
      * @throws ApiValidationError
      */
-    convertQuery(query: Query, model: string, addOrderBy: boolean = true) {
+    private convertQuery(
+        query: Query,
+        model: string,
+        addOrderBy: boolean = true,
+        addSelect: boolean = false
+    ) {
         const modelFields = Prisma.dmmf.datamodel.models.find(
             (m) => m.name.toLowerCase() === model.toLowerCase()
         )?.fields;
@@ -225,26 +251,8 @@ class PrismaServiceConverter {
 
         const prismaQuery: any = {};
 
-        if (query.select) {
-            prismaQuery.select = {};
-
-            if (!Array.isArray(query.select)) {
-                throw new ApiValidationError(
-                    'The select property must be an array of strings'
-                );
-            }
-
-            query.select.forEach((field) => {
-                this.fieldExists(fieldsMap, field, model);
-
-                if (fieldsMap.get(field)?.kind === 'object') {
-                    logger.info(
-                        'Field ' + field + ' is a relation in model: ' + model
-                    );
-                } else {
-                    prismaQuery.select[field] = true;
-                }
-            });
+        if (query.select || addSelect) {
+            prismaQuery.select = this.convertSelect(query, model, fieldsMap);
         }
 
         if (query.where) {
@@ -256,20 +264,11 @@ class PrismaServiceConverter {
         }
 
         if (query.include) {
-            const include = this.convertInclude(
+            prismaQuery.include = this.convertInclude(
                 query.include,
                 model,
                 fieldsMap
             );
-
-            if (query.select) {
-                prismaQuery.select = {
-                    ...prismaQuery.select,
-                    ...include
-                };
-            } else {
-                prismaQuery.include = include;
-            }
         }
 
         if (query.orderBy === undefined && addOrderBy) {
@@ -288,7 +287,48 @@ class PrismaServiceConverter {
             );
         }
 
+        if (prismaQuery.select && prismaQuery.include) {
+            prismaQuery.select = {
+                ...prismaQuery.select,
+                ...prismaQuery.include
+            };
+
+            delete prismaQuery.include;
+        }
+
         return prismaQuery;
+    }
+
+    private convertSelect(
+        query: Query,
+        model: string,
+        fieldsMap: Map<string, Prisma.DMMF.Field>
+    ) {
+        const prismaSelect: any = {};
+
+        const privateAttributes = this.privateFieldsPerModel[model] || [];
+
+        if (query.select) {
+            query.select.forEach((field) => {
+                if (
+                    fieldsMap.get(field) &&
+                    !privateAttributes.includes(field)
+                ) {
+                    prismaSelect[field] = true;
+                }
+            });
+        } else {
+            fieldsMap.forEach((field, key) => {
+                if (
+                    field.kind !== 'object' &&
+                    !privateAttributes.includes(key)
+                ) {
+                    prismaSelect[key] = true;
+                }
+            });
+        }
+
+        return prismaSelect;
     }
 
     private convertWhere(
@@ -311,7 +351,7 @@ class PrismaServiceConverter {
 
                 if (Array.isArray(where[key])) {
                     // @ts-ignore
-                    where[key].forEach((condition) => {
+                    where[key].forEach((condition: Condition) => {
                         const field = Object.keys(condition)[0];
                         prismaQuery[operator].push(
                             this.convertCondition(
@@ -465,6 +505,15 @@ class PrismaServiceConverter {
             case 'isnull':
                 prismaQuery[field].equals = value ? null : { not: null };
                 break;
+            case 'some':
+            case 'every':
+            case 'none':
+                prismaQuery[field][operator] = this.convertQuery(
+                    { where: value as Where },
+                    fieldsMap.get(field)?.type || '',
+                    false
+                ).where;
+                break;
             default:
                 prismaQuery[field].equals = isNormalized
                     ? normalizeString(value as string)
@@ -497,10 +546,22 @@ class PrismaServiceConverter {
                 .find((m) => m.name === relatedModel)
                 ?.fields?.some((f) => f.name === 'published');
 
+            const select = this.convertQuery(
+                {},
+                relatedModel,
+                false,
+                true
+            ).select;
+
             if (hasPublishedField && onlyPublished) {
-                prismaQuery[field.name] = published;
+                prismaQuery[field.name] = {
+                    ...published,
+                    select
+                };
             } else if (this.checkFieldPermission(relatedModel, field.name)) {
-                prismaQuery[field.name] = true;
+                prismaQuery[field.name] = {
+                    select
+                };
             }
         };
 
@@ -547,7 +608,8 @@ class PrismaServiceConverter {
                             const temp = this.convertQuery(
                                 include[field] as Query,
                                 modelField?.type || '',
-                                false
+                                false,
+                                true
                             );
 
                             if (prismaQuery[modelField.name]) {
@@ -598,7 +660,10 @@ class PrismaServiceConverter {
                 field = field + 'Normalized';
             }
 
-            if (this.fieldExists(fieldsMap, field, model)) {
+            if (
+                this.fieldExists(fieldsMap, field, model) &&
+                !this.isFieldPrivate(model, field)
+            ) {
                 const modelField = fieldsMap.get(field);
                 if (modelField?.kind !== 'object') {
                     const allowedKeys = ['sort', 'nulls'];
@@ -704,6 +769,8 @@ class PrismaServiceConverter {
      * @returns The merged permissions
      */
     public async mergeRelatedPermissions() {
+        // TODO: Check if there is a better way to manage inheritance of permissions between resources and their children, the new privateFieldsPerModel attribute might help
+
         const cacheKey = this.userId
             ? `mergeRelatedPermissions|${this.userId}`
             : 'mergeRelatedPermissions';
@@ -805,7 +872,12 @@ class PrismaServiceConverter {
      */
     private checkFieldPermission(model: string, field: string) {
         if (this.checkPermissions) {
-            if (this.permissions[model]?.read) {
+            const privateFields = this.privateFieldsPerModel[model] || [];
+            const isPrivate = privateFields.includes(field);
+
+            const canRead = this.permissions[model]?.read;
+
+            if (canRead && !isPrivate) {
                 return true;
             } else {
                 logger.warn(
@@ -819,6 +891,68 @@ class PrismaServiceConverter {
         } else {
             return true;
         }
+    }
+
+    /**
+     * Check if the field is private
+     * @param model
+     * @param field name
+     * @returns Whether the field is private
+     */
+    private isFieldPrivate(model: string, field: string) {
+        const privateFields = this.privateFieldsPerModel[model] || [];
+        return privateFields.includes(field);
+    }
+
+    /**
+     * Get private fields per model
+     * @returns The private fields per model
+     */
+    private async getPrivateFieldsPerModel(): Promise<{
+        [key: string]: string[];
+    }> {
+        const cacheKey = 'privateFieldsPerModel';
+
+        if (cache.has(cacheKey)) {
+            return cache.get(cacheKey)!;
+        }
+
+        const privateFields = await prisma.resourceField.findMany({
+            select: {
+                name: true,
+                resource: {
+                    select: {
+                        name: true
+                    }
+                }
+            },
+            where: {
+                isPrivate: true
+            }
+        });
+
+        const privateFieldsPerModel = {} as { [key: string]: string[] };
+
+        privateFields.forEach((attribute) => {
+            const resource = attribute.resource.name;
+            const field = attribute.name;
+
+            if (!privateFieldsPerModel[resource]) {
+                privateFieldsPerModel[resource] = [];
+            }
+
+            privateFieldsPerModel[resource].push(field);
+
+            const generatedFields = ['Normalized', 'Slug', 'Rich', 'Id'];
+
+            generatedFields.forEach((generatedField) => {
+                privateFieldsPerModel[resource].push(field + generatedField);
+            });
+        });
+
+        cache.set(cacheKey, privateFieldsPerModel, 60 * 5);
+
+        return privateFieldsPerModel;
     }
 
     /**
@@ -845,14 +979,21 @@ class PrismaServiceConverter {
 
         const prismaField = this.fieldsMap.get(partialResource);
 
-        const fields = Prisma.dmmf.datamodel.models
-            .find((m) => m.name === prismaField?.type)
-            ?.fields;
+        const fields = Prisma.dmmf.datamodel.models.find(
+            (m) => m.name === prismaField?.type
+        )?.fields;
 
+        const relationField = fields?.find(
+            (f) =>
+                f.kind === 'object' &&
+                f.relationName === prismaField?.relationName
+        );
 
-        const relationField = fields?.find((f) => f.kind === 'object' && f.relationName === prismaField?.relationName);
-
-        if (!prismaField || prismaField.kind.toLowerCase() !== 'object' || !relationField) {
+        if (
+            !prismaField ||
+            prismaField.kind.toLowerCase() !== 'object' ||
+            !relationField
+        ) {
             throw new ApiValidationError(
                 `${partialResource} is not a relation field of ${this.model} model and cannot be returned as a partial resource`
             );
@@ -860,10 +1001,12 @@ class PrismaServiceConverter {
 
         const where = {} as any;
 
-        const isChildResource = relationField.relationFromFields && relationField.relationFromFields.length > 0;
-        
+        const isChildResource =
+            relationField.relationFromFields &&
+            relationField.relationFromFields.length > 0;
+
         where.OR = whereUniqueFields;
-        
+
         if (this.onlyPublished && this.fieldsMap.get('published')) {
             where.AND = [{ published: true }];
         }
@@ -875,7 +1018,6 @@ class PrismaServiceConverter {
         } else {
             partialResourceWhere[relationField.name] = where;
         }
-
 
         this.model = prismaField.type;
         this.setModelFields();

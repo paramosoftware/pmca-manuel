@@ -14,13 +14,13 @@
                         <PublicSearchBar />
                     </div>
                     <div class="flex justify-evenly mt-6">
-                        <NuxtLink to="/verbetes?modo=hier">
+                        <NuxtLink to="/termos?modo=hier">
                             <UIButton>
-                                <span class="text-xl">Arranjo hierárquico</span>
+                                <span class="text-xl">Classificação</span>
                             </UIButton>
                         </NuxtLink>
 
-                        <NuxtLink to="/verbetes?modo=alfa">
+                        <NuxtLink to="/termos?modo=alfa">
                             <UIButton>
                                 <span class="text-xl">Lista alfabética</span>
                             </UIButton>

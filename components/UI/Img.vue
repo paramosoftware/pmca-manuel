@@ -43,7 +43,7 @@ const props = defineProps({
         default: '100%'
     },
     quality: {
-        type: String,
+        type: [String, Number],
         default: '80'
     },
     lazy: {

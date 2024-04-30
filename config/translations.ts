@@ -4,8 +4,8 @@ const MODELS = new Map<
 >();
 
 MODELS.set('Group', {
-    label: 'Grupo',
-    labelPlural: 'Grupos',
+    label: 'Grupo de permissões',
+    labelPlural: 'Grupos de permissões',
     genderNoun: 'm'
 });
 MODELS.set('GroupPermission', {
@@ -33,29 +33,29 @@ MODELS.set('UserSession', {
     labelPlural: 'Sessões dos usuários',
     genderNoun: 'f'
 });
-MODELS.set('Entry', {
-    label: 'Verbete',
-    labelPlural: 'Verbetes',
+MODELS.set('Concept', {
+    label: 'Termo',
+    labelPlural: 'Termos',
     genderNoun: 'm'
 });
-MODELS.set('EntryChanges', {
-    label: 'Alteração do verbete',
-    labelPlural: 'Alterações dos verbetes',
+MODELS.set('ConceptChanges', {
+    label: 'Histórico de alterações',
+    labelPlural: 'Históricos de alterações',
     genderNoun: 'f'
 });
-MODELS.set('EntryMedia', {
-    label: 'Mídia do verbete',
-    labelPlural: 'Mídias dos verbetes',
+MODELS.set('ConceptMedia', {
+    label: 'Imagens do termo',
+    labelPlural: 'Imagens dos termos',
     genderNoun: 'f'
 });
-MODELS.set('EntryVariation', {
-    label: 'Variação do verbete',
-    labelPlural: 'Variações dos verbetes',
+MODELS.set('ConceptVariation', {
+    label: 'Forma variante do termo',
+    labelPlural: 'Formas variantes dos termos',
     genderNoun: 'f'
 });
-MODELS.set('EntryTranslation', {
-    label: 'Tradução do verbete',
-    labelPlural: 'Traduções dos verbetes',
+MODELS.set('ConceptTranslation', {
+    label: 'Termo equivalente em outro idioma',
+    labelPlural: 'Termos equivalentes em outros idiomas',
     genderNoun: 'f'
 });
 MODELS.set('Language', {
@@ -64,19 +64,14 @@ MODELS.set('Language', {
     genderNoun: 'm'
 });
 MODELS.set('Reference', {
-    label: 'Referência',
-    labelPlural: 'Referências',
+    label: 'Fonte',
+    labelPlural: 'Fontes',
     genderNoun: 'f'
 });
 MODELS.set('WebPage', {
     label: 'Página web',
     labelPlural: 'Páginas web',
     genderNoun: 'f'
-});
-MODELS.set('Author', {
-    label: 'Autor',
-    labelPlural: 'Autores',
-    genderNoun: 'm'
 });
 
 const FIELDS = new Map<string, string>();
@@ -88,7 +83,7 @@ FIELDS.set('permissions', 'Permissões');
 FIELDS.set('users', 'Usuários');
 FIELDS.set('createdAt', 'Criado em');
 FIELDS.set('updatedAt', 'Atualizado em');
-FIELDS.set('groupId', 'Grupo');
+FIELDS.set('groupId', 'Grupo de permissões');
 FIELDS.set('resourceId', 'Recurso do sistema');
 FIELDS.set('read', 'Ler');
 FIELDS.set('create', 'Criar');
@@ -104,7 +99,7 @@ FIELDS.set('path', 'Caminho no servidor');
 FIELDS.set('subtitle', 'Legendas');
 FIELDS.set('valueType', 'Tipo de valor do campo');
 FIELDS.set('isPublic', 'É público');
-FIELDS.set('entryMedia', 'Mídias do verbete');
+FIELDS.set('conceptMedia', 'Imagens');
 FIELDS.set('label', 'Rótulo');
 FIELDS.set('labelPlural', 'Rótulo no plural');
 FIELDS.set('definition', 'Definição');
@@ -144,22 +139,22 @@ FIELDS.set('sessions', 'Sessões');
 FIELDS.set('refreshToken', 'Token de atualização');
 FIELDS.set('accessCount', 'Contagem de acessos');
 FIELDS.set('notes', 'Notas');
-FIELDS.set('parentId', 'Verbete superior');
-FIELDS.set('changes', 'Alterações');
-FIELDS.set('translations', 'Traduções');
-FIELDS.set('variations', 'Variações');
-FIELDS.set('references', 'Referências');
-FIELDS.set('entryChanges', 'Alterações');
-FIELDS.set('media', 'Mídias');
-FIELDS.set('entries', 'Verbetes relacionados');
-FIELDS.set('relatedEntries', 'Verbetes relacionados');
-FIELDS.set('entry', 'Verbete');
+FIELDS.set('parentId', 'Classificação');
+FIELDS.set('changes', 'Histórico de alterações');
+FIELDS.set('translations', 'Termos equivalentes em outros idiomas');
+FIELDS.set('variations', 'Formas variantes');
+FIELDS.set('references', 'Fontes');
+FIELDS.set('conceptChanges', 'Histórico de alterações');
+FIELDS.set('media', 'Imagens');
+FIELDS.set('concepts', 'Ver também');
+FIELDS.set('relatedConcepts', 'Ver também');
+FIELDS.set('concept', 'Termo');
 FIELDS.set('language', 'Idioma');
 FIELDS.set('languageId', 'Idioma');
 FIELDS.set('code', 'Código do idioma');
 FIELDS.set('content', 'Conteúdo');
 FIELDS.set('menuName', 'Nome no menu');
-FIELDS.set('entryId', 'Verbete');
+FIELDS.set('conceptId', 'Termo');
 FIELDS.set('position', 'Posição');
 FIELDS.set(
     'oppositeField',
@@ -171,9 +166,10 @@ FIELDS.set(
 );
 FIELDS.set('relatedOppositeFields', 'Campos opostos relacionados');
 FIELDS.set('isRelation', 'É uma tabela de relacionamento?');
-FIELDS.set('parent', 'Verbete superior');
-FIELDS.set('children', 'Verbetes inferiores');
+FIELDS.set('parent', 'Termo superior');
+FIELDS.set('children', 'Termos inferiores');
 FIELDS.set('type', 'Tipo');
 FIELDS.set('published', 'Publicado');
+FIELDS.set('privateNotes', 'Notas internas');
 
 export { MODELS, FIELDS };

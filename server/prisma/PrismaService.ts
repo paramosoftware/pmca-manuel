@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import capitalize from '~/utils/capitalize';
 import getBoolean from '~/utils/getBoolean';
 import hashPassword from '~/utils/hashPassword';
 import normalizeString from '~/utils/normalizeString';
@@ -6,7 +7,7 @@ import parseNumber from '~/utils/parseNumber';
 import sanitizeString from '~/utils/sanitizeString';
 import { prisma, Prisma } from '~/server/prisma/prisma';
 import { ApiValidationError } from '../express/error';
-import { deleteEntryMedia, handleMedia } from './media';
+import { deleteConceptMedia, handleMedia } from './media';
 import PrismaServiceConverter from './PrismaServiceConverter';
 import PrismaServiceValidator from './PrismaServiceValidator';
 import QUERIES from '~/config/queries';
@@ -24,25 +25,34 @@ class PrismaService {
     private validator: PrismaServiceValidator;
     private converter: PrismaServiceConverter;
     private onlyPublished: boolean = false;
+    private removePrivateFields: boolean = false;
 
     /**
      * PrismaService constructor
      * @param model - The model name
      * @param checkPermissions - Whether to check permissions. Permissions can be set with setPermissions.
      * @param onlyPublished - Return only published records
+     * @param removePrivateFields - Remove private fields from the response and clauses
      */
-    constructor(model: string, checkPermissions = true, onlyPublished = false) {
-        this.model = model;
+    constructor(
+        model: string,
+        checkPermissions = true,
+        onlyPublished = false,
+        removePrivateFields = false
+    ) {
+        this.model = this.setModel(model);
         this.checkPermissions = checkPermissions;
         this.onlyPublished = onlyPublished;
+        this.removePrivateFields = removePrivateFields;
         this.setModelFields();
-        this.validator = new PrismaServiceValidator(model);
+        this.validator = new PrismaServiceValidator(this.model);
         this.converter = new PrismaServiceConverter(
-            model,
+            this.model,
             this.modelFields,
             this.fieldsMap,
             this.checkPermissions,
-            this.onlyPublished
+            this.onlyPublished,
+            this.removePrivateFields
         );
     }
 
@@ -103,12 +113,10 @@ class PrismaService {
             );
 
             return await this.readManyWithCount(query);
-
         } catch (error) {
             throw error;
         }
     }
-
 
     private async readManyWithCount(query: Query) {
         try {
@@ -229,7 +237,7 @@ class PrismaService {
             }
 
             const updates: any[] = [];
-            const mediaUpdates = new Map<number, EntryMedia[]>();
+            const mediaUpdates = new Map<number, ConceptMedia[]>();
 
             for (const item of this.request) {
                 if (item.where === undefined) {
@@ -267,10 +275,10 @@ class PrismaService {
                 });
 
                 for (const id of ids) {
-                    if (this.model.toLowerCase() === 'entry') {
-                        const oldMedia = await prisma.entryMedia.findMany({
+                    if (this.model.toLowerCase() === 'concept') {
+                        const oldMedia = await prisma.conceptMedia.findMany({
                             where: {
-                                entryId: id.id
+                                conceptId: id.id
                             }
                         });
 
@@ -353,30 +361,30 @@ class PrismaService {
 
             query = { where: query.where };
 
-            const entryMedia: string | any[] = [];
+            const conceptMedia: string | any[] = [];
 
-            if (this.model.toLowerCase() === 'entry') {
-                const entries = await prisma.entry.findMany(query);
-                const ids = entries.map((entry) => entry.id);
+            if (this.model.toLowerCase() === 'concept') {
+                const concepts = await prisma.concept.findMany(query);
+                const ids = concepts.map((concept) => concept.id);
 
-                let entryMediaTemp = await prisma.entryMedia.findMany({
+                let conceptMediaTemp = await prisma.conceptMedia.findMany({
                     where: {
-                        entryId: {
+                        conceptId: {
                             in: ids
                         }
                     }
                 });
 
-                entryMediaTemp.forEach((entry) => {
-                    entryMedia.push(entry);
+                conceptMediaTemp.forEach((concept) => {
+                    conceptMedia.push(concept);
                 });
             }
 
             // @ts-ignore
             const data = await prisma[this.model].deleteMany(query);
 
-            if (entryMedia.length > 0) {
-                deleteEntryMedia(entryMedia);
+            if (conceptMedia.length > 0) {
+                deleteConceptMedia(conceptMedia);
             }
 
             return data;
@@ -963,7 +971,8 @@ class PrismaService {
     }
 
     setModel(model: string) {
-        this.model = model;
+        this.model = capitalize(model);
+        return this.model;
     }
 
     setId(id: ID) {
@@ -1025,12 +1034,13 @@ class PrismaService {
             'id',
             'changes',
             'media',
-            'children'
+            'children',
+            'privateNotes'
         ];
         const ignoreWithSuffix = ['Normalized', 'Slug', 'Id', 'Count'];
         const fieldsToTrack = [] as string[];
 
-        const oldData = (await prisma.entry.findUnique({
+        const oldData = (await prisma.concept.findUnique({
             where: {
                 id: parseInt(id)
             },
@@ -1072,18 +1082,8 @@ class PrismaService {
             fieldsMap.set(field.name, field);
         });
 
-        const author = await prisma.author.findFirst({
-            where: {
-                users: {
-                    some: {
-                        id: this.userId as any
-                    }
-                }
-            }
-        });
-
         const changes = [] as {
-            author: { connect: { id: number } };
+            user: { connect: { id: number } };
             field: { connect: { id: number } };
             changes: string;
         }[];
@@ -1096,7 +1096,8 @@ class PrismaService {
                         JSON.stringify({
                             old: oldData[field],
                             new: newData[field]
-                        })
+                        }),
+                        this.userId
                     );
                 }
             }
@@ -1117,7 +1118,10 @@ class PrismaService {
                         (name: any) => !newNames.includes(name)
                     );
 
-                    const fieldChanges = { } as { added: string[]; removed: string[] };
+                    const fieldChanges = {} as {
+                        added: string[];
+                        removed: string[];
+                    };
 
                     if (added.length > 0) {
                         fieldChanges['added'] = added;
@@ -1128,7 +1132,11 @@ class PrismaService {
                     }
 
                     if (added.length > 0 || removed.length > 0) {
-                        _addChange(field, JSON.stringify(fieldChanges));
+                        _addChange(
+                            field,
+                            JSON.stringify(fieldChanges),
+                            this.userId
+                        );
                     }
                 } else if (newData[field].name !== undefined) {
                     if (newData[field].name !== oldData[field].name) {
@@ -1137,7 +1145,8 @@ class PrismaService {
                             JSON.stringify({
                                 old: oldData[field].name,
                                 new: newData[field].name
-                            })
+                            }),
+                            this.userId
                         );
                     }
                 }
@@ -1146,7 +1155,7 @@ class PrismaService {
 
         return changes;
 
-        function _addChange(field: string, change: string) {
+        function _addChange(field: string, change: string, userId: ID) {
             const data = {
                 changes: change
             } as any;
@@ -1161,10 +1170,10 @@ class PrismaService {
                 };
             }
 
-            if (author) {
-                data['author'] = {
+            if (userId) {
+                data['user'] = {
                     connect: {
-                        id: author.id
+                        id: userId
                     }
                 };
             }

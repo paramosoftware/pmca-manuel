@@ -13,12 +13,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         action = 'update';
     } else if (to.path.includes('importar')) {
         action = 'import';
-        resource = 'Entry';
+        resource = 'Concept';
     } else if (to.path.includes('listar')) {
         action = 'read';
     }
-
-    await userStore.fetch();
 
     const { resources, permissions } = storeToRefs(userStore);
 

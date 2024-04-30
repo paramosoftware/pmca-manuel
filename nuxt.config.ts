@@ -34,11 +34,7 @@ export default defineNuxtConfig({
         }
     },
     build: {
-        transpile: [
-            'jsonwebtoken',
-            'vue2-dropzone-vue3',
-            'v-viewer'
-        ]
+        transpile: ['jsonwebtoken', 'vue2-dropzone-vue3', 'v-viewer']
     },
     modules: [
         'nuxt-icon',
@@ -69,5 +65,14 @@ export default defineNuxtConfig({
     },
     image: {
         domains: [process.env.NUXT_PUBLIC_BASE_URL!]
+    },
+    nitro: {
+        routeRules: {
+            '/_ipx/**': {
+                headers: {
+                    'Cache-Control': 'public, max-age=604800'
+                }
+            }
+        }
     }
 });

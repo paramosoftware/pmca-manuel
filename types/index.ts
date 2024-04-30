@@ -25,53 +25,48 @@ declare global {
     export type User = Prisma.User & {
         groups?: Group[];
         sessions?: UserSession[];
-        author?: Author;
     };
 
     export type UserSession = Prisma.UserSession & {
         user?: User;
     };
 
-    export type Author = Prisma.Author & {
-        user?: User;
-    };
-
-    export type Entry = Prisma.Entry & {
-        parent?: Entry;
+    export type Concept = Prisma.Concept & {
+        parent?: Concept;
         translations?: Translation[];
         variations?: Variation[];
         references?: Reference[];
-        changes?: EntryChanges[];
-        media?: EntryMedia[];
-        relatedEntries?: Entry[];
-        entries?: Entry[];
-        children?: Entry[];
+        changes?: ConceptChanges[];
+        media?: ConceptMedia[];
+        relatedConcepts?: Concept[];
+        concepts?: Concept[];
+        children?: Concept[];
     };
 
-    export type EntryChanges = Prisma.EntryChanges & {
-        entry?: Entry;
+    export type ConceptChanges = Prisma.ConceptChanges & {
+        concept?: Concept;
         user?: User;
     };
 
-    export type EntryMedia = Prisma.EntryMedia & {
-        entry?: Entry;
+    export type ConceptMedia = Prisma.ConceptMedia & {
+        concept?: Concept;
     };
 
     export type Language = Prisma.Language & {
         translations?: Translation[];
     };
 
-    export type Variation = Prisma.EntryVariation & {
-        entry?: Entry;
+    export type Variation = Prisma.ConceptVariation & {
+        concept?: Concept;
     };
 
-    export type Translation = Prisma.EntryTranslation & {
-        entry?: Entry;
+    export type Translation = Prisma.ConceptTranslation & {
+        concept?: Concept;
         language?: Language;
     };
 
     export type Reference = Prisma.Reference & {
-        entries?: Entry[];
+        concepts?: Concept[];
     };
 
     export type WebPage = Prisma.WebPage;
@@ -111,7 +106,7 @@ declare global {
         | 'hidden'
         | 'checkbox'
         | 'radio';
-        
+
     export type GenderNoun = 'm' | 'f' | 'n';
 
     export type FormStore = ReturnType<typeof useFormStore>;
@@ -223,5 +218,12 @@ declare global {
         orderBy?: OrderBy;
         take?: number;
         skip?: number;
+    }
+
+    export interface UserToken {
+        isAdmin: boolean;
+        userId: string;
+        permissions: Permission;
+        name: string;
     }
 }

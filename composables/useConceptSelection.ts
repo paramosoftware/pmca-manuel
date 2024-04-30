@@ -1,4 +1,4 @@
-export const useEntrySelection = () => {
+export const useConceptSelection = () => {
     if (!process.client)
         return {
             isSelected: () => false,
@@ -9,7 +9,7 @@ export const useEntrySelection = () => {
 
     const getSelected = () => {
         try {
-            return JSON.parse(localStorage.getItem('selectedEntries') ?? '[]');
+            return JSON.parse(localStorage.getItem('selectedConcepts') ?? '[]');
         } catch (error) {
             clearSelected();
             return [];
@@ -24,25 +24,25 @@ export const useEntrySelection = () => {
         event?.stopPropagation();
         event?.preventDefault();
 
-        let selectedEntries = getSelected();
-        const index = selectedEntries.indexOf(id);
+        let selectedConcepts = getSelected();
+        const index = selectedConcepts.indexOf(id);
 
         if (index !== -1) {
-            selectedEntries.splice(index, 1);
+            selectedConcepts.splice(index, 1);
         } else {
-            selectedEntries.push(id);
+            selectedConcepts.push(id);
         }
 
         localStorage.setItem(
-            'selectedEntries',
-            JSON.stringify(selectedEntries)
+            'selectedConcepts',
+            JSON.stringify(selectedConcepts)
         );
 
         return index === -1;
     };
 
     const clearSelected = () => {
-        localStorage.removeItem('selectedEntries');
+        localStorage.removeItem('selectedConcepts');
     };
 
     return { isSelected, toggle, getSelected, clearSelected };

@@ -1,20 +1,70 @@
 {
   "name": "pmca-glossario",
-  "version": "0.5.5",
+  "version": "0.6.0",
   "author": "Páramo Software <contato@paramosoftware.com.br>",
   "description": "Glossário de conservação-restauro de livros e documentos em papel do Projeto Manuel Correia de Andrade (PMCA)",
   "private": true,
   "main": "electron/main.js",
+  "engines": {
+    "node": "20.x"
+  },
+  "packageManager": "pnpm@8.15.6",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "scaffold": "pnpm install && pnpm prisma generate && pnpm prisma db push && pnpm prisma db seed",
+    "generate-env": "node scripts/generate-env.js",
+    "scaffold": "pnpm install && pnpm generate-env && prisma generate && pnpm prisma db push --accept-data-loss && pnpm prisma db seed",
+    "scaffold:soft": "pnpm install && prisma generate && pnpm prisma db push && pnpm prisma db seed",
     "web:prod": "pnpm build && pnpm prisma generate && pnpm prisma migrate deploy && pnpm prisma db seed",
-    "electron:dev": "nuxt build && NODE_ENV=development DEBUG=electron-builder node build.js",
-    "electron:prod": "pnpm scaffold && pnpm build && node build.js"
+    "electron:build": "pnpm scaffold && pnpm build && electron-builder",  
+    "electron:linux": "pnpm scaffold && pnpm build && electron-builder --linux",
+    "electron:win": "pnpm scaffold && pnpm build && electron-builder --win",
+    "electron:mac": "pnpm scaffold && pnpm build && electron-builder --mac"
+  },
+  "build": {
+    "appId": "pmca.glossario",
+    "productName": "Glossario de conservacao-restauro (PMCA)",
+    "files": [
+      "electron/**/*",
+      "!node_modules/**/*"
+    ],
+    "extraResources": [
+      ".output/**/*",
+      "data/**/*",
+      ".env.example"
+    ],
+    "directories": {
+      "output": "builds/${version}"
+    },
+    "artifactName": "${name}-${version}.${ext}",
+    "linux": {
+      "category": "Education",
+      "desktop": {
+        "StartupNotify": "false",
+        "Encoding": "UTF-8"
+      },
+      "icon": "public/icons/icon.icns",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/favicon.ico"
+    },
+    "mac": {
+      "icon": "public/icons/icon.icns",
+      "target": "dmg"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": true
+    }
   },
   "devDependencies": {
     "@nuxt/ui": "^2.15.2",
@@ -23,28 +73,28 @@
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
     "@types/d3": "^7.4.3",
-    "@types/diff": "^5.0.9",
+    "@types/diff": "^5.2.0",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.12.7",
     "@types/sanitize-html": "^2.11.0",
     "@types/uuid": "^9.0.8",
-    "electron": "^29.3.1",
+    "electron": "^30.0.1",
     "electron-builder": "latest",
     "nuxt": "^3.11.2",
     "nuxt-icon": "^0.6.10",
-    "pino-pretty": "^10.3.1",
+    "pino-pretty": "^11.0.0",
     "prettier": "3.2.5",
-    "prisma": "^5.12.1",
-    "tsx": "^4.7.2"
+    "prisma": "^5.13.0",
+    "tsx": "^4.7.3"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
     "@jledentu/vue-finder": "^4.1.1",
-    "@nuxt/image": "^1.5.0",
+    "@nuxt/image": "^1.6.0",
     "@pinia/nuxt": "^0.5.1",
-    "@prisma/client": "^5.12.1",
+    "@prisma/client": "^5.13.0",
     "@splidejs/vue-splide": "^0.6.12",
     "@vueup/vue-quill": "latest",
     "adm-zip": "^0.5.12",
@@ -62,12 +112,17 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "1.4.5-lts.1",
     "node-cache": "^5.1.2",
-    "pino": "^8.20.0",
+    "pino": "^9.0.0",
     "sanitize-html": "^2.13.0",
     "uuid": "^9.0.1",
     "v-viewer": "^3.0.13",
     "vue2-dropzone-vue3": "^1.1.0",
     "vuedraggable": "next"
+  },
+  "pnpm": {
+      "overrides": {
+        "sharp": "0.33.3"
+      }
   },
   "prisma": {
     "schema": "server/prisma/schema.prisma",
