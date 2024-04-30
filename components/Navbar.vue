@@ -104,6 +104,18 @@ menus.push({
     }
 });
 
+
+if (userStore.isAdmin) {
+    menus.push({
+        icon: 'ph:database',
+        title: 'Backup',
+        onClick: () => {
+            navigateTo(ROUTES.backup);
+        }
+    });
+}
+
+
 menus.push({
     icon: 'ph:user-circle',
     title: 'Opções do usuário',

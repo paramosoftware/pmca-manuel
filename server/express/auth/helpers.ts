@@ -274,7 +274,8 @@ async function getPermissions(user: User) {
         }
     }
 
-    if (user.isAdmin) {
+    // TODO: Check if this is needed
+    if (user.isAdmin && false) {
         const resources = await prisma.resource.findMany();
         for (const resource of resources) {
             permissions[resource.name] = {
