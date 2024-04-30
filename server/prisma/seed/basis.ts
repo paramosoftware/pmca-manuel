@@ -26,7 +26,7 @@ async function main() {
         email: 'admin@email.com',
         name: 'Administrador(a)',
         password: 'admin',
-        isAdmin: false
+        isAdmin: true
     });
 
     await prisma.resource.deleteMany({});

@@ -219,4 +219,11 @@ declare global {
         take?: number;
         skip?: number;
     }
+
+    export interface UserToken {
+        isAdmin: boolean;
+        userId: string;
+        permissions: Permission;
+        name: string;
+    }
 }

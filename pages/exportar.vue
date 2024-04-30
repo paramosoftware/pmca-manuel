@@ -77,7 +77,12 @@ const addMedia = ref(false);
 const disableExport = computed(() => exportData.loading.value);
 
 async function onExport() {
-    await exportData.download(format.value, addMedia.value);
+    const url = `/api/concept/export?format=${format.value}&addMedia=${addMedia.value}`;
+    const date = new Date().toISOString().replace(/:/g, '-');
+    const ext = addMedia.value ? 'zip' : format.value;
+    const fileName = `export-${date}.${ext}`;
+
+    await exportData.download(url, fileName);
 }
 
 const options = ref([
