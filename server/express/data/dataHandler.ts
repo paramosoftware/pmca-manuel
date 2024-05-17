@@ -4,7 +4,6 @@ import type { ParsedQs } from 'qs';
 import logger from '~/utils/logger';
 import capitalize from '~/utils/capitalize';
 import decodeJwt from '~/utils/decodeJwt';
-import getCookiePrefix from '~/utils/getCookiePrefix';
 import PrismaService from '../../prisma/PrismaService';
 import { exportData } from '../../prisma/export';
 import { importData } from '../../prisma/import';
@@ -43,7 +42,6 @@ const dataHandler = async (
         : body.format
           ? body.format
           : undefined;
-
     const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
 
     const accessToken = getAccessToken(req);
@@ -133,7 +131,9 @@ const dataHandler = async (
                         res,
                         next
                     )) as string;
-                    await importData.importFrom(model, importFilePath);
+                    // mode is accessible only after multipart form data is parsed by multer
+                    const mode = req.body.mode ? req.body.mode : 'merge';
+                    await importData.importFrom(model, importFilePath, mode);
                     response = { message: 'Imported successfully' };
                 } else {
                     response = prismaService.createOne(request);

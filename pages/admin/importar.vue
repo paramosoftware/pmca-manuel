@@ -34,13 +34,22 @@
             numéricos ou textuais.
         </p>
 
-        <p class="mt-4">
-            <UIIcon
-                name="ph:warning"
-                class="h-10 w-10 text-pmca-warning mr-3"
-            />
-            <strong>EM CONSTRUÇÃO: </strong> Por enquanto, a importação
-            sobrescreve os dados existentes no sistema.
+        <h4 class="mt-4 font-bold">Opções de importação:</h4>
+
+        <ul class="list-disc list-inside mt-4">
+            <li class="mb-2">
+                <strong>Mesclar</strong>: Adiciona novos termos e atualiza os
+                existentes (baseado no nome do termo).
+            </li>
+            <li>
+                <strong>Sobrescrever</strong>: Apaga todos os termos do sistema e
+                importa os novos termos.
+            </li>
+        </ul>
+
+        <p class="mt-6">
+            <UIIcon name="ph:warning" class="h-8 w-8 text-pmca-primary mr-1" />
+            <strong>Atenção:</strong> A importação de termos é uma operação irreversível.
         </p>
 
         <UDivider class="my-8" />
@@ -67,8 +76,6 @@
             </div>
 
             <div class="px-10">
-                <!-- TODO: add check box to confirm overwrite -->
-
                 <FieldDropzone
                     url="/api/concept/import"
                     :max-files="1"
@@ -79,7 +86,12 @@
                         completed = true;
                         importing = false;
                     "
-                />
+                    :params="{ mode: mode }"
+                >
+
+                    <URadioGroup v-model="mode" :options="options" class="mb-3" />
+
+                </FieldDropzone>
             </div>
         </div>
 
@@ -114,6 +126,18 @@ useHead({
     title: 'Importar | ' + useRuntimeConfig().public.appName
 });
 
+const options = [
+    {
+        value: 'merge',
+        label: 'Mesclar (adicionar e atualizar dados existentes)'
+    },
+    {
+        value: 'overwrite',
+        label: 'Sobrescrever (apagar todos os dados e importar novos)'
+    }
+];
+
+const mode = ref('merge');
 const importing = ref(false);
 const completed = ref(false);
 
