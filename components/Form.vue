@@ -56,6 +56,44 @@ const { model, label, genderNoun, labelSlug, canCreate } = storeToRefs(
     props.formStore
 );
 
+let originalFormFieldsJson: String;
+let currentFormFieldsJson: String;
+
+const getcurrentFormFieldsJson = () => {
+    return JSON.stringify(props.formStore.getFieldsData());
+};
+
+onBeforeMount(() => {
+    originalFormFieldsJson = getcurrentFormFieldsJson();
+});
+
+onMounted(() => {
+    window.addEventListener(`beforeunload`, (event) => {
+        currentFormFieldsJson = getcurrentFormFieldsJson();
+
+        if (currentFormFieldsJson != originalFormFieldsJson) {
+            event.preventDefault();
+        }
+    });
+});
+
+onBeforeRouteLeave((to, from, next) => {
+    currentFormFieldsJson = getcurrentFormFieldsJson();
+
+    if (currentFormFieldsJson != originalFormFieldsJson) {
+        const answer = window.confirm(
+            'Você tem alterações não salvas. Realmente deseja sair?'
+        );
+        if (answer) {
+            next();
+        } else {
+            next(false);
+        }
+    } else {
+        next();
+    }
+});
+
 const urlList = ROUTES.list + labelSlug.value;
 const urlCreate = ROUTES.create + labelSlug.value;
 const isCreate = !props.formStore.getId();
