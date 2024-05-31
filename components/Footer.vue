@@ -1,7 +1,7 @@
 <template>
     <footer class="text-white bg-pmca-primary-light shadow-md">
 
-        <div class="max-w-screen-2xl mx-auto">
+        <div class="mx-auto">
             <div class="grid md:grid-cols-2 p-4">
                 <div class="flex flex-col">
                     <h1 class="text-lg">
