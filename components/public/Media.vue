@@ -1,7 +1,7 @@
 <template>
     <div class="container bg-gray-100">
         <Viewer :images="images" @inited="inited" class="viewer">
-            <Splide :options="options">
+            <Splide :options="mainOptions" ref="main">
                 <SplideSlide
                     v-for="image in images"
                     :key="image"
@@ -9,12 +9,25 @@
                 >
                     <UIImg
                         :src="image"
-                        class="flex-none cursor-pointer object-cover w-full h-full mx-2"
+                        class="flex-none cursor-zoom-in object-cover w-full h-full mx-2"
                         quality="90"
                     />
                 </SplideSlide>
             </Splide>
         </Viewer>
+        <Splide :options="thumbOptions" ref="thumbs" class="py-2">
+            <SplideSlide
+                v-for="image in images"
+                :key="image"
+                class="items-center flex"
+            >
+                <UIImg
+                    :src="image"
+                    class="flex-none cursor-pointer object-cover w-full h-full mx-2"
+                    quality="90"
+                />
+            </SplideSlide>
+        </Splide>
     </div>
 </template>
 
@@ -22,9 +35,10 @@
 import 'viewerjs/dist/viewer.css';
 import '@splidejs/vue-splide/css';
 import { component as Viewer } from 'v-viewer';
+// @ts-ignore
 import { Splide, SplideSlide } from '@splidejs/vue-splide';
 
-const props = defineProps({
+defineProps({
     images: {
         type: Array as PropType<string[]>,
         required: true,
@@ -33,37 +47,45 @@ const props = defineProps({
 });
 
 const viewer = ref(null);
+const main = ref<InstanceType<typeof Splide>>();
+const thumbs = ref<InstanceType<typeof Splide>>();
 
 const inited = (viewerInstance: any) => {
     viewer.value = viewerInstance;
 };
 
-const options = {
+const mainOptions = {
     type: 'slide',
-    perPage: 4,
+    perPage: 1,
     perMove: 1,
     gap: '1rem',
     pagination: false,
-    height: '20rem',
-    drag: props.images.length > 5,
+    focus: 'center',
     breakpoints: {
         640: {
-            perPage: 1,
-            gap: '1rem',
-            arrows: false,
-            pagination: true,
-            drag: props.images.length > 1
-        },
-        768: {
-            perPage: 2,
-            gap: '1rem',
-            drag: props.images.length > 2
-        },
-        1024: {
-            perPage: 3,
-            gap: '1rem',
-            drag: props.images.length > 3
+            height: '15rem'
         }
-    }
+    },
 };
+
+const thumbOptions = {
+    type: 'slide',
+    rewind: true,
+    perPage: 5,
+    gap: '1rem',
+    pagination: false,
+    fixedHeight: 70,
+    cover: true,
+    focus: 'center',
+    isNavigation: true,
+    updateOnMove: true
+};
+
+onMounted(() => {
+    const thumbsSplide = thumbs.value?.splide;
+
+    if (thumbsSplide) {
+        main.value?.sync(thumbsSplide);
+    }
+});
 </script>

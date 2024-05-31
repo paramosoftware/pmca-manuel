@@ -55,3 +55,9 @@ watch(activeTab, (value) => {
 
 // TODO: Add hash to URL to keep tab state on refresh (e.g. /concept/1#tab-2)
 </script>
+
+<style scoped>
+::-webkit-scrollbar {
+    height: 3px;
+}
+</style>

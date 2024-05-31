@@ -1,82 +1,73 @@
 <template>
     <article>
-        <div class="sm:flex sm:justify-between sm:items-center">
-            <UIPageTitle class="flex items-center">
-                {{ concept?.name }}
-                <client-only>
-                    <UIIcon
-                        class="text-pmca-accent cursor-pointer ml-2"
-                        :name="
-                            conceptSelected
-                                ? 'ph:bookmark-simple-fill'
-                                : 'ph:bookmark-simple'
-                        "
-                        @click="conceptSelected = toggle($event, id)"
-                        :title="conceptSelected ? 'Remover' : 'Adicionar'"
-                    />
-                </client-only>
-            </UIPageTitle>
-            <PublicActionsBar :conceptId="concept!.id" :title="concept!.name" />
+        <PublicFullCardTitle :id="id" :name="concept!.name" class="mb-4" />
+        <div class="flex flex-row">
+            <div class="pr-2 w-full md:w-5/12"  v-if="images.length > 0">
+                <PublicMedia :images="images" />
+            </div>
+            <div class="pl-2 w-full md:grow">
+                <UITab
+                    :tabs="[
+                        'Termo',
+                        'Classificação',
+                        'Histórico de alterações'
+                    ]"
+                    @change="onTabChange"
+                >
+                    <template #tabPanel-1>
+                        <div class="flex flex-col min-h-48">
+                            <PublicFieldAttribute
+                                title="Definição"
+                                :content="concept?.definition"
+                                :is-html="true"
+                            />
+
+                            <PublicFieldAttribute
+                                title="Notas"
+                                :content="concept?.notes"
+                                :is-html="true"
+                            />
+
+                            <PublicFieldAttribute
+                                title="Formas variantes"
+                                :content="concept?.variations"
+                            />
+
+                            <PublicFieldAttribute
+                                title="Termos equivalentes em outros idiomas"
+                                :content="translations"
+                            />
+
+                            <PublicFieldAttribute
+                                title="Fontes"
+                                :content="concept?.references"
+                                :is-html="true"
+                                :is-one-line="true"
+                            />
+
+                            <PublicRelatedConcepts
+                                title="Ver também"
+                                :concepts="concept?.relatedConcepts"
+                                :opposite-side="concept?.concepts"
+                            />
+                        </div>
+                    </template>
+                    <template #tabPanel-2>
+                        <div class="flex flex-col">
+                            <UITreeView
+                                :tree="conceptsTree"
+                                class="p-3 overflow-y-auto text-pmca-primary"
+                            />
+                        </div>
+                    </template>
+                    <template #tabPanel-3>
+                        <div class="flex flex-col">
+                            <PublicHistoryChange />
+                        </div>
+                    </template>
+                </UITab>
+            </div>
         </div>
-
-        <UITab
-            :tabs="['Termo', 'Classificação', 'Histórico de alterações']"
-            @change="onTabChange"
-        >
-            <template #tabPanel-1>
-                <div class="flex flex-col min-h-48">
-                    <PublicMedia :images="images" v-if="images.length > 0" />
-
-                    <PublicFieldAttribute
-                        title="Definição"
-                        :content="concept?.definition"
-                        :is-html="true"
-                    />
-
-                    <PublicFieldAttribute
-                        title="Notas"
-                        :content="concept?.notes"
-                        :is-html="true"
-                    />
-
-                    <PublicFieldAttribute
-                        title="Formas variantes"
-                        :content="concept?.variations"
-                    />
-
-                    <PublicFieldAttribute
-                        title="Termos equivalentes em outros idiomas"
-                        :content="translations"
-                    />
-
-                    <PublicFieldAttribute
-                        title="Fontes"
-                        :content="concept?.references"
-                        :is-html="true"
-                        :is-one-line="true"
-                    />
-
-                    <PublicRelatedConcepts
-                        title="Ver também"
-                        :concepts="concept?.relatedConcepts"
-                        :opposite-side="concept?.concepts"
-                    />
-                </div>
-            </template>
-            <template #tabPanel-2>
-                <div class="flex flex-col">
-                    <UITreeView
-                        :tree="conceptsTree"
-                        class="p-3 overflow-y-auto text-pmca-primary"
-                    />
-                </div>
-            </template>
-            <template #tabPanel-3>
-                <div class="flex flex-col">
-                    <PublicHistoryChange />
-                </div>
-            </template>
-        </UITab>
     </article>
 </template>
 
@@ -92,12 +83,10 @@ const router = useRouter();
 const config = useRuntimeConfig();
 const slug = ref(router.currentRoute.value.params.slug.toString());
 
-const { isSelected, toggle } = useConceptSelection();
 const conceptStore = useConceptStore();
 await conceptStore.load(slug.value);
 
-const { concept, pending, sort, error, conceptsTree } =
-    storeToRefs(conceptStore);
+const { concept, pending, sort, error, conceptsTree } = storeToRefs(conceptStore);
 
 if (!error.value && !concept.value) {
     throw createError({
@@ -114,7 +103,6 @@ const description = ref(
         ? concept.value.definition.replace(/<[^>]*>?/gm, '').substring(0, 150)
         : ''
 );
-const conceptSelected = ref(isSelected(id.value));
 
 const images = ref<string[]>([]);
 const translations = ref<{ name: string; link: string }[]>([]);
@@ -156,10 +144,6 @@ const onTabChange = async (value: number) => {
         await conceptStore.fetchConceptsTree();
     }
 };
-
-onBeforeMount(() => {
-    conceptSelected.value = isSelected(id.value);
-});
 
 useHead({
     title: title.value + ' | ' + config.public.appName,
