@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col mt-4" v-if="!isEmpty">
+    <div class="flex flex-col mb-4" v-if="!isEmpty">
         
         <UITitle>{{ title }}</UITitle>
         

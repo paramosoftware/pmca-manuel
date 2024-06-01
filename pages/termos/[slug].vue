@@ -1,74 +1,66 @@
 <template>
-    <article>
-        <PublicFullCardTitle :id="id" :name="concept!.name" class="mb-4" />
-        <div class="flex flex-row">
-            <div class="pr-2 w-full md:w-5/12"  v-if="images.length > 0">
-                <PublicMedia :images="images" />
+    <PublicNavigation>
+        <article>
+            <PublicFullCardTitle :id="id" :name="concept!.name" class="mb-4" />
+            <div class="flex flex-row">
+                <div class="pr-2 w-full">
+                    <UITab :tabs="['Termo', 'Histórico de alterações']">
+                        <template #tabPanel-1>
+                            <div class="flex flex-col lg:flex-row gap-5">
+                                <div class="flex flex-col min-h-48 w-full lg:w-8/12">
+                                    <PublicFieldAttribute
+                                        title="Definição"
+                                        :content="concept?.definition"
+                                        :is-html="true"
+                                    />
+
+                                    <PublicFieldAttribute
+                                        title="Notas"
+                                        :content="concept?.notes"
+                                        :is-html="true"
+                                    />
+
+                                    <PublicFieldAttribute
+                                        title="Formas variantes"
+                                        :content="concept?.variations"
+                                    />
+
+                                    <PublicFieldAttribute
+                                        title="Termos equivalentes em outros idiomas"
+                                        :content="translations"
+                                    />
+
+                                    <PublicFieldAttribute
+                                        title="Fontes"
+                                        :content="concept?.references"
+                                        :is-html="true"
+                                        :is-one-line="true"
+                                    />
+
+                                    <PublicRelatedConcepts
+                                        title="Ver também"
+                                        :concepts="concept?.relatedConcepts"
+                                        :opposite-side="concept?.concepts"
+                                    />
+                                </div>
+                                <div
+                                    class="w-full lg:w-4/12 order-first lg:order-last py-auto bg-gray-100 rounded-md"
+                                    v-if="images.length > 0"
+                                >
+                                    <PublicMedia :images="images" />
+                                </div>
+                            </div>
+                        </template>
+                        <template #tabPanel-2>
+                            <div class="flex flex-col">
+                                <PublicHistoryChange />
+                            </div>
+                        </template>
+                    </UITab>
+                </div>
             </div>
-            <div class="pl-2 w-full md:grow">
-                <UITab
-                    :tabs="[
-                        'Termo',
-                        'Classificação',
-                        'Histórico de alterações'
-                    ]"
-                    @change="onTabChange"
-                >
-                    <template #tabPanel-1>
-                        <div class="flex flex-col min-h-48">
-                            <PublicFieldAttribute
-                                title="Definição"
-                                :content="concept?.definition"
-                                :is-html="true"
-                            />
-
-                            <PublicFieldAttribute
-                                title="Notas"
-                                :content="concept?.notes"
-                                :is-html="true"
-                            />
-
-                            <PublicFieldAttribute
-                                title="Formas variantes"
-                                :content="concept?.variations"
-                            />
-
-                            <PublicFieldAttribute
-                                title="Termos equivalentes em outros idiomas"
-                                :content="translations"
-                            />
-
-                            <PublicFieldAttribute
-                                title="Fontes"
-                                :content="concept?.references"
-                                :is-html="true"
-                                :is-one-line="true"
-                            />
-
-                            <PublicRelatedConcepts
-                                title="Ver também"
-                                :concepts="concept?.relatedConcepts"
-                                :opposite-side="concept?.concepts"
-                            />
-                        </div>
-                    </template>
-                    <template #tabPanel-2>
-                        <div class="flex flex-col">
-                            <UITreeView
-                                :tree="conceptsTree"
-                                class="p-3 overflow-y-auto text-pmca-primary"
-                            />
-                        </div>
-                    </template>
-                    <template #tabPanel-3>
-                        <div class="flex flex-col">
-                            <PublicHistoryChange />
-                        </div>
-                    </template>
-                </UITab>
-            </div>
-        </div>
-    </article>
+        </article>
+    </PublicNavigation>
 </template>
 
 <script setup lang="ts">
@@ -86,7 +78,8 @@ const slug = ref(router.currentRoute.value.params.slug.toString());
 const conceptStore = useConceptStore();
 await conceptStore.load(slug.value);
 
-const { concept, pending, sort, error, conceptsTree } = storeToRefs(conceptStore);
+const { concept, pending, sort, error, conceptsTree } =
+    storeToRefs(conceptStore);
 
 if (!error.value && !concept.value) {
     throw createError({
@@ -138,12 +131,6 @@ if (images.value.length > 0) {
             images.value[0];
     }
 }
-
-const onTabChange = async (value: number) => {
-    if (value === 2 && conceptsTree.value.length === 0) {
-        await conceptStore.fetchConceptsTree();
-    }
-};
 
 useHead({
     title: title.value + ' | ' + config.public.appName,

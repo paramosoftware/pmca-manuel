@@ -31,7 +31,7 @@
         <div
             :key="index"
             v-if="index + 1 === activeTab"
-            class="flex-grow border border-gray-200 p-4 rounded-b-md shadow-md"
+            class="flex-grow border-t border-gray-200 p-4"
         >
             <slot :name="`tabPanel-${index + 1}`" />
         </div>
