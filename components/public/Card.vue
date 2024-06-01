@@ -26,7 +26,7 @@
                         <div class="flex flex-row items-center">
                             <client-only>
                                 <UIIcon
-                                    class="text-pmca-accent text-2xl cursor-pointer"
+                                    :class="'text-pmca-accent cursor-pointer ' + iconSize"
                                     :name="
                                         conceptSelected
                                             ? 'ph:bookmark-simple-fill'
@@ -42,7 +42,7 @@
 
                                 <template #fallback>
                                     <UIIcon
-                                        class="text-pmca-accent text-2xl cursor-pointer"
+                                        :class="'text-pmca-accent cursor-pointer ' + iconSize"
                                         name="ph:bookmark-simple"
                                     />
                                 </template>
@@ -67,12 +67,16 @@ const props = defineProps({
     },
     titleSize: {
         type: String,
-        default: 'text-2xl'
+        default: 'text-xl'
     },
     titlePadding: {
         type: String,
         default: 'p-4'
-    }
+    }, 
+    iconSize: {
+        type: String,
+        default: 'text-xl'
+    }   
 });
 
 const { isSelected, toggle } = useConceptSelection();
