@@ -14,14 +14,12 @@
                     quality="70"
                 />
                 <div :class="titlePadding">
-                    <div class="flex flex-row justify-between items-center">
-                        <UITitle>
-                            <span
-                                class="text-semibold break-words"
-                                :class="titleSize"
-                            >
-                                {{ concept.name }}
-                            </span>
+                    <div class="flex flex-row justify-between items-center w-full">
+                        <UITitle
+                            :css-class="'truncate text-semibold ' + titleSize"
+                            :title="concept.name"
+                        >
+                            {{ concept.name }}
                         </UITitle>
                         <div class="flex flex-row items-center">
                             <client-only>
