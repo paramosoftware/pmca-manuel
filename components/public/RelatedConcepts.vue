@@ -1,14 +1,15 @@
 <template>
     <Splide :has-track="false" :options="options" v-if="concepts.length > 0">
-        <UITitle id="carousel-heading" class="my-5">
+        <UITitle id="carousel-heading" class="mb-5">
             {{ title }}
         </UITitle>
         <SplideTrack>
             <SplideSlide v-for="concept in concepts" :key="concept.id">
                 <PublicCard
                     :concept="concept"
-                    height="h-36 sm:h-24"
-                    titleSize="text-lg"
+                    height="h-20"
+                    titleSize="text-sm"
+                    icon-size="w-6 h-6"
                     title-padding="p-2"
                 />
             </SplideSlide>
@@ -51,30 +52,18 @@ const concepts = computed(() => {
 });
 
 const options = ref({
-    perPage: 6,
+    perPage: 4,
     perMove: 1,
     gap: '1rem',
-    pagination: false,
-    drag: false,
+    drag: concepts.value.length > 4,
     breakpoints: {
-        640: {
-            perPage: 1,
-            gap: '1rem',
-            arrows: false,
-            pagination: true,
-            drag: props.concepts.length > 1
-        },
         768: {
             perPage: 2,
-            gap: '1rem'
+            drag: concepts.value.length > 2
         },
-        1024: {
+        1400: {
             perPage: 3,
-            gap: '1rem'
-        },
-        1280: {
-            perPage: 4,
-            gap: '1rem'
+            drag: concepts.value.length > 3
         }
     }
 });
@@ -97,7 +86,7 @@ const options = ref({
 }
 
 .splide__pagination {
-    bottom: -0.15rem;
+    bottom: -20px;
 }
 
 .splide__pagination__page.is-active {
