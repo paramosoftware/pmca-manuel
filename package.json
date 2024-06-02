@@ -91,6 +91,9 @@
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
+    "@iconify-json/heroicons": "^1.1.21",
+    "@iconify-json/ph": "^1.1.13",
+    "@iconify-json/simple-icons": "^1.1.103",
     "@jledentu/vue-finder": "^4.1.1",
     "@nuxt/image": "^1.7.0",
     "@pinia/nuxt": "^0.5.1",

@@ -14,6 +14,15 @@ importers:
       '@formkit/auto-animate':
         specifier: ^0.8.2
         version: 0.8.2
+      '@iconify-json/heroicons':
+        specifier: ^1.1.21
+        version: 1.1.21
+      '@iconify-json/ph':
+        specifier: ^1.1.13
+        version: 1.1.13
+      '@iconify-json/simple-icons':
+        specifier: ^1.1.103
+        version: 1.1.103
       '@jledentu/vue-finder':
         specifier: ^4.1.1
         version: 4.1.1(vue@3.4.27(typescript@5.4.5))
@@ -591,6 +600,12 @@ packages:
 
   '@iconify-json/heroicons@1.1.21':
     resolution: {integrity: sha512-A+3L4KN+TjH3V8fQ2N2dkOOnLLxMgMBzO8RDT0P9YL+YzvLMIbe/lkDLSB8NB8x0DKWmkvTimoo1l4DKMwi7Zg==}
+
+  '@iconify-json/ph@1.1.13':
+    resolution: {integrity: sha512-xtM4JJ63HCKj09WRqrBswXiHrpliBlqboWSZH8odcmqYXbvIFceU9/Til4V+MQr6+MoUC+KB72cxhky2+A6r/g==}
+
+  '@iconify-json/simple-icons@1.1.103':
+    resolution: {integrity: sha512-u5r+Sirr0CME+Q0qUr6OgjErFpTSsGyttJbkfL5BUcRwELgN9FpCj8zYXySKTqCP1ttWIgAAiTC4ZKGoN5Gehw==}
 
   '@iconify/collections@1.0.427':
     resolution: {integrity: sha512-gY4a3w7Tttpsn5qTjaUQ6q+2ObU90ncMlRxbFwUdJG5XQ/cr4irCzKUdLtq6JvQ/VDrvlaxapxWWBNyt93M+ng==}
@@ -6151,6 +6166,14 @@ snapshots:
       vue: 3.4.27(typescript@5.4.5)
 
   '@iconify-json/heroicons@1.1.21':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify-json/ph@1.1.13':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify-json/simple-icons@1.1.103':
     dependencies:
       '@iconify/types': 2.0.0
 
