@@ -142,7 +142,7 @@ const dataHandler = async (
             case 'DELETE':
                 if (id) {
                     response = prismaService.deleteOne(id);
-                } else if (hasQuery && isAdmin) {
+                } else if (hasQuery) {
                     response = prismaService.deleteMany(request);
                 }
                 break;

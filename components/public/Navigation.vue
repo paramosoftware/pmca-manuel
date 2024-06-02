@@ -126,7 +126,6 @@ const openTreeNavigation = (open: boolean) => {
     isTreeNavigationOpen.value = open;
 
     if (open || isTreeNavigationPinned.value) {
-        console.log('removing close class');
         treeNavigationRef.value.classList.remove(closeClass);
         treeNavigationRef.value.classList.add(openClass);
         return;
