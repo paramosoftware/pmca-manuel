@@ -1,6 +1,6 @@
 <template>
     <div
-        @click="node.children.length > 0 && $emit('toggle-children', node)"
+        @click="node.children.length > 0 && toggleNodeChildren(node)"
         :class="{ 'cursor-pointer': node.children.length > 0 }"
     >
         <div class="align-middle items-center">
@@ -25,7 +25,7 @@
             <UITreeNode
                 :node="child"
                 :level="level + 1"
-                @toggle-children="$emit('toggle-children', $event)"
+                @toggle-children="toggleNodeChildren"
             />
         </li>
     </ul>
@@ -45,4 +45,10 @@ defineProps({
         required: true
     }
 });
+
+const emits = defineEmits(['toggle-children']);
+
+const toggleNodeChildren = (node: TreeNode) => {
+  node.expanded = !node.expanded;
+};
 </script>

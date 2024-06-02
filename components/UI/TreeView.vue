@@ -3,7 +3,7 @@
     <ul>
       <li>
         <div v-for="node in treeRef" class="mb-2">
-          <UITreeNode :node="node" :level="1" @toggle-children="toggleNodeChildren" />
+          <UITreeNode :node="node" :level="1" />
         </div>
       </li>
     </ul>
@@ -24,8 +24,5 @@ watch(() => props.tree, (value) => {
   treeRef.value = value;
 });
 
-const toggleNodeChildren = (node: TreeNode) => {
-  node.expanded = !node.expanded;
-};
 
 </script>
