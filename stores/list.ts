@@ -25,6 +25,9 @@ export const useListStore = defineStore('list', () => {
     const canDelete = computed(
         () => userStore.permissions[resourceStore.model]?.delete
     );
+    const canBatch = computed(
+        () => userStore.permissions[resourceStore.model]?.batch
+    );
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
 
@@ -169,6 +172,7 @@ export const useListStore = defineStore('list', () => {
         canCreate,
         canUpdate,
         canDelete,
+        canBatch,
         sortByName,
         deleteItem,
         deleteAll,

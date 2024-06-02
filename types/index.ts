@@ -145,6 +145,7 @@ declare global {
         expanded: boolean;
         children: TreeNode[];
         isLeaf?: boolean;
+        parent?: TreeNode;
     };
 
     export type DataTransferFormat = 'json' | 'xml' | 'csv' | 'xlsx';
@@ -155,6 +156,7 @@ declare global {
             read: boolean;
             update: boolean;
             delete: boolean;
+            batch: boolean;
             import: boolean;
         };
     };

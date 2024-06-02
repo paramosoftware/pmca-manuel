@@ -12,6 +12,7 @@
         <th class="text-left">Editar</th>
         <th class="text-left">Excluir</th>
         <th class="text-left">Importar</th>
+        <th class="text-left">Ações em lote</th>
       </tr>
     </thead>
     <tbody>
@@ -49,7 +50,7 @@ const { data, pending, error } = await useFetchWithBaseUrl('/api/resource', {
 const currentPermissions =
   (props.formStore.getFieldData('permissions') as any[]) ?? []
 
-const permissions = ['read', 'create', 'update', 'delete', 'import']
+const permissions = ['read', 'create', 'update', 'delete', 'import', 'batch'];
 
 const resources = (data.value.items as Resource[]) ?? []
 
@@ -69,6 +70,7 @@ for (const resource of resources) {
     update: found?.update ?? false,
     delete: found?.delete ?? false,
     import: found?.import ?? false,
+    batch: found?.batch ?? false,
     _action_: 'update'
   }
   formPermissions.push(permission)
