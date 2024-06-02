@@ -23,5 +23,5 @@ fi
 if ! command -v pnpm &> /dev/null
 then
     echo "Installing PNPM"
-    corepack enable && corepack prepare pnpm@8.15.6 --activate
+    corepack enable && corepack prepare pnpm@9.1.14 --activate
 fi
