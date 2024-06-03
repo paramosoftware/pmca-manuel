@@ -15,13 +15,16 @@
                 class="h-5 w-5"
             />
             <UIIcon v-else name="ph:dot-outline" class="h-5 w-5" />
-            <UILink :href="'/termos/' + node.slug" class="p-2">
+            <UILink 
+                :href="'/termos/' + node.slug" 
+                :class="'p-2 ' + (node.expanded ? 'font-semibold' : '')"
+                >
                 {{ node.label }}
             </UILink>
         </div>
     </div>
     <ul v-if="node.expanded && node.children.length > 0" class="ml-2">
-        <li v-for="child in node.children" :key="child.id ?? ''" class="m-3">
+        <li v-for="child in node.children" :key="child.id ?? ''" class="m-3 md:m-2">
             <UITreeNode
                 :node="child"
                 :level="level + 1"

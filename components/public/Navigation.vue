@@ -18,7 +18,7 @@
                 closeClass +
                 ' hover:' +
                 openClass +
-                ' shadow-lg border border-gray-200 rounded-md transition-all duration-300 max-h-screen bg-gray-50'
+                ' shadow-lg border border-gray-200 rounded-md transition-all duration-300 max-h-screen bg-gray-50 overflow-auto'
             "
             v-if="!isSmallScreen"
             ref="treeNavigationRef"
@@ -57,7 +57,11 @@
                     >
                         <UITreeView
                             :tree="conceptsTree"
-                            :concept-store="useConceptStoreForTree ? conceptStore : undefined"
+                            :concept-store="
+                                useConceptStoreForTree
+                                    ? conceptStore
+                                    : undefined
+                            "
                             v-if="conceptsTree.length > 0"
                         />
                     </div>
@@ -70,14 +74,23 @@
                 v-model="isTreeNavigationOpen"
                 :overlay="false"
                 class="text-pmca-primary"
+                :ui="{
+                    background: 'bg-gray-100' 
+                }"
             >
-                <div class="flex p-4">
-                    <UIIcon
-                        name="ph:x"
-                        class="ml-auto"
-                        title="Fechar navegação"
-                        @click="isTreeNavigationOpen = !isTreeNavigationOpen"
-                    />
+                <div class="p-4 overflow-x-auto">
+                    <div class="flex flex-row justify-between">
+                        <div class="text-lg font-semibold">Classificação</div>
+
+                        <UIIcon
+                            name="ph:x"
+                            class="ml-auto"
+                            title="Fechar navegação"
+                            @click="
+                                isTreeNavigationOpen = !isTreeNavigationOpen
+                            "
+                        />
+                    </div>
 
                     <UITreeView
                         :tree="conceptsTree"
@@ -102,7 +115,7 @@ defineProps({
         type: Boolean,
         default: true
     }
-})
+});
 
 const conceptStore = useConceptStore();
 await conceptStore.fetchConceptsTree();
@@ -165,9 +178,11 @@ onMounted(() => {
         isSmallScreen.value = window.innerWidth < 768;
         if (!isSmallScreen.value) {
             await nextTick();
-            isTreeNavigationOpen.value = isTreeNavigationOpen.value || isTreeNavigationPinned.value;
+            isTreeNavigationOpen.value = isTreeNavigationOpen.value || isTreeNavigationPinned.value
             openTreeNavigation(isTreeNavigationOpen.value);
             addHoverListener();
+        } else {
+            openTreeNavigation(false);
         }
     });
 });

@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full h-full break-words">
+    <div class="w-full h-full whitespace-nowrap text-md" ref="treeViewRef">
         <ul>
             <li>
                 <div v-for="node in treeRef" class="mb-2">
@@ -26,6 +26,7 @@ const props = defineProps({
 });
 
 const treeRef = ref(props.tree);
+const treeViewRef = ref<HTMLElement | null>(null);
 
 watch(
     () => props.tree,
@@ -33,4 +34,20 @@ watch(
         treeRef.value = value;
     }
 );
+
+onMounted(() => {
+    if (treeViewRef.value) {
+        treeViewRef.value.addEventListener('click', (event) => {
+            if (!treeViewRef.value) {
+                return;
+            }
+
+            const hasHorizontalScrollbar = treeViewRef.value.scrollWidth > treeViewRef.value.clientWidth;
+
+            if (hasHorizontalScrollbar) {
+                treeViewRef.value.scrollLeft = treeViewRef.value.scrollWidth;
+            }
+        });
+    }
+});
 </script>
