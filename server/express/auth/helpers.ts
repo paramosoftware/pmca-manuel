@@ -252,6 +252,7 @@ async function getPermissions(user: User) {
                     read: groupPermission.read ?? false,
                     update: groupPermission.update ?? false,
                     delete: groupPermission.delete ?? false,
+                    batch: groupPermission.batch ?? false,
                     import: groupPermission.import ?? false
                 };
             } else {
@@ -266,6 +267,9 @@ async function getPermissions(user: User) {
                     false;
                 permissions[resource].delete =
                     (permissions[resource].delete || groupPermission.delete) ??
+                    false;
+                permissions[resource].batch =
+                    (permissions[resource].batch || groupPermission.batch) ??
                     false;
                 permissions[resource].import =
                     (permissions[resource].import || groupPermission.import) ??

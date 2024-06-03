@@ -1,26 +1,10 @@
 <template>
     <div class="sm:flex sm:justify-between sm:items-center">
         <UIPageTitle>
+            <PublicBreadcrumb :add-concept-link="false" />
             {{ title }}
         </UIPageTitle>
         <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
-            <span v-if="hasTree" class="flex items-center">
-                <UIIcon
-                    name="ph:cards"
-                    class="mr-3"
-                    :class="mode === 'alfa' ? 'text-pmca-accent' : ''"
-                    @click="mode = 'alfa'"
-                    title="Modo alfabético"
-                />
-
-                <UIIcon
-                    name="ph:tree-structure"
-                    :class="mode === 'hier' ? 'text-pmca-accent' : ''"
-                    @click="mode = 'hier'"
-                    title="Modo hierárquico"
-                />
-            </span>
-
             <span v-if="userSelection" class="flex items-center">
                 <UIIcon
                     name="ph:broom"
@@ -33,21 +17,7 @@
         </div>
     </div>
 
-    <div
-        v-if="mode === 'hier'"
-        class="justify-start items-start border-t border-gray-200 mt-3"
-    >
-        <UITreeView
-            :tree="conceptsTree"
-            class="mt-6"
-            v-if="conceptsTree.length > 0"
-        />
-        <div class="text-xl mt-3" v-else-if="!pending">
-            Nenhuma categoria encontrada.
-        </div>
-    </div>
-
-    <div class="mt-6" v-else>
+    <div class="mt-6">
         <div class="flex flex-col md:flex-row mt-5">
             <div class="w-full md:w-1/3">
                 <FieldInput
@@ -64,7 +34,8 @@
             class="mt-4 md:flex md:flex-row md:justify-between md:items-center"
         >
             <div class="text-md" v-if="total > 0">
-                {{ total }} {{ total > 1 ? 'itens' : 'item' }} encontrado{{
+                {{ total }}
+                {{ total > 1 ? 'itens' : 'item' }} encontrado{{
                     total > 1 ? 's' : ''
                 }}
             </div>
@@ -102,7 +73,7 @@
 
         <div class="flex flex-col mt-5 border-t border-gray-200 py-5">
             <div
-                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8"
                 ref="grid"
             >
                 <div v-for="concept in concepts" :key="concept.id">
@@ -177,9 +148,7 @@ const {
     total,
     search,
     pending,
-    sort,
-    error,
-    conceptsTree
+    sort
 } = storeToRefs(conceptStore);
 
 search.value = query.value?.search?.toString() || '';

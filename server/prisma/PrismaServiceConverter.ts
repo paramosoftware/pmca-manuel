@@ -798,7 +798,8 @@ class PrismaServiceConverter {
                     read: true,
                     update: false,
                     delete: false,
-                    import: false
+                    import: false,
+                    batch: false
                 };
             } else {
                 this.permissions[resource.name].read = true;
@@ -812,7 +813,8 @@ class PrismaServiceConverter {
                             read: true,
                             update: false,
                             delete: false,
-                            import: false
+                            import: false,
+                            batch: false
                         };
                     } else {
                         this.permissions[child.name].read = true;
@@ -841,7 +843,8 @@ class PrismaServiceConverter {
                             read: this.permissions[resource.name].read,
                             update: this.permissions[resource.name].update,
                             delete: this.permissions[resource.name].delete,
-                            import: this.permissions[resource.name].import
+                            import: this.permissions[resource.name].import,
+                            batch: this.permissions[resource.name].batch
                         };
                     } else {
                         this.permissions[child.name].create =
@@ -854,6 +857,8 @@ class PrismaServiceConverter {
                             this.permissions[resource.name].delete;
                         this.permissions[child.name].import =
                             this.permissions[resource.name].import;
+                        this.permissions[child.name].batch =
+                            this.permissions[resource.name].batch;
                     }
                 }
             }

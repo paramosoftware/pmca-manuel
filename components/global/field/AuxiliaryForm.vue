@@ -72,6 +72,7 @@
                 :id="relatedResource.name + '-modal-form'"
                 v-model="isModalOpen"
                 :ui="{
+                    base: 'text-pmca-primary',
                     padding: 'p-0',
                     width: 'sm:max-w-3xl',
                     container: 'items-center'

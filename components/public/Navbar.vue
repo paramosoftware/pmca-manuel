@@ -1,6 +1,6 @@
 <template>
     <nav id="navbar" class="p-4 border-b-2 border-b-pmca-primary">
-        <div class="max-w-screen-2xl mx-auto">
+        <div class="mx-auto">
             <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
                 <div class="mt-1">
                     <NuxtLink to="/">

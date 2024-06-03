@@ -3,6 +3,7 @@
         v-model="isOpen"
         @close="closeModal"
         :ui="{
+            base: 'text-pmca-primary',
             padding: 'p-0',
             width: 'sm:max-w-xl',
             container: 'items-center'

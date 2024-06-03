@@ -1,83 +1,67 @@
 <template>
-    <article>
-        <div class="sm:flex sm:justify-between sm:items-center">
-            <UIPageTitle class="flex items-center">
-                {{ concept?.name }}
-                <client-only>
-                    <UIIcon
-                        class="text-pmca-accent cursor-pointer ml-2"
-                        :name="
-                            conceptSelected
-                                ? 'ph:bookmark-simple-fill'
-                                : 'ph:bookmark-simple'
-                        "
-                        @click="conceptSelected = toggle($event, id)"
-                        :title="conceptSelected ? 'Remover' : 'Adicionar'"
-                    />
-                </client-only>
-            </UIPageTitle>
-            <PublicActionsBar :conceptId="concept!.id" :title="concept!.name" />
-        </div>
+    <PublicNavigation>
+        <article class="max-w-7xl">
+            <PublicBreadcrumb :links="breadcrumb" />
+            <PublicFullCardTitle :id="id" :name="concept!.name" class="mb-4" />
+            <div class="flex flex-row">
+                <div class="pr-2 w-full">
+                    <UITab :tabs="['Termo', 'Histórico de alterações']">
+                        <template #tabPanel-1>
+                            <div class="flex flex-col lg:flex-row gap-5">
+                                <div class="flex flex-col min-h-48 w-full lg:w-8/12">
+                                    <PublicFieldAttribute
+                                        title="Definição"
+                                        :content="concept?.definition"
+                                        :is-html="true"
+                                    />
 
-        <UITab
-            :tabs="['Termo', 'Classificação', 'Histórico de alterações']"
-            @change="onTabChange"
-        >
-            <template #tabPanel-1>
-                <div class="flex flex-col min-h-48">
-                    <PublicMedia :images="images" v-if="images.length > 0" />
+                                    <PublicFieldAttribute
+                                        title="Notas"
+                                        :content="concept?.notes"
+                                        :is-html="true"
+                                    />
 
-                    <PublicFieldAttribute
-                        title="Definição"
-                        :content="concept?.definition"
-                        :is-html="true"
-                    />
+                                    <PublicFieldAttribute
+                                        title="Formas variantes"
+                                        :content="concept?.variations"
+                                    />
 
-                    <PublicFieldAttribute
-                        title="Notas"
-                        :content="concept?.notes"
-                        :is-html="true"
-                    />
+                                    <PublicFieldAttribute
+                                        title="Termos equivalentes em outros idiomas"
+                                        :content="translations"
+                                    />
 
-                    <PublicFieldAttribute
-                        title="Formas variantes"
-                        :content="concept?.variations"
-                    />
+                                    <PublicFieldAttribute
+                                        title="Fontes"
+                                        :content="concept?.references"
+                                        :is-html="true"
+                                        :is-one-line="true"
+                                    />
 
-                    <PublicFieldAttribute
-                        title="Termos equivalentes em outros idiomas"
-                        :content="translations"
-                    />
-
-                    <PublicFieldAttribute
-                        title="Fontes"
-                        :content="concept?.references"
-                        :is-html="true"
-                        :is-one-line="true"
-                    />
-
-                    <PublicRelatedConcepts
-                        title="Ver também"
-                        :concepts="concept?.relatedConcepts"
-                        :opposite-side="concept?.concepts"
-                    />
+                                    <PublicRelatedConcepts
+                                        title="Ver também"
+                                        :concepts="concept?.relatedConcepts"
+                                        :opposite-side="concept?.concepts"
+                                    />
+                                </div>
+                                <div
+                                    class="w-full lg:w-4/12 order-first lg:order-last py-auto bg-gray-100 rounded-md"
+                                    v-if="images.length > 0"
+                                >
+                                    <PublicMedia :images="images" />
+                                </div>
+                            </div>
+                        </template>
+                        <template #tabPanel-2>
+                            <div class="flex flex-col">
+                                <PublicHistoryChange />
+                            </div>
+                        </template>
+                    </UITab>
                 </div>
-            </template>
-            <template #tabPanel-2>
-                <div class="flex flex-col">
-                    <UITreeView
-                        :tree="conceptsTree"
-                        class="p-3 overflow-y-auto text-pmca-primary"
-                    />
-                </div>
-            </template>
-            <template #tabPanel-3>
-                <div class="flex flex-col">
-                    <PublicHistoryChange />
-                </div>
-            </template>
-        </UITab>
-    </article>
+            </div>
+        </article>
+    </PublicNavigation>
 </template>
 
 <script setup lang="ts">
@@ -87,17 +71,16 @@ definePageMeta({
 
 // TODO: Track access to concepts
 // TODO: Get field labels from API
+// TODO: Create a component
 
 const router = useRouter();
 const config = useRuntimeConfig();
 const slug = ref(router.currentRoute.value.params.slug.toString());
 
-const { isSelected, toggle } = useConceptSelection();
 const conceptStore = useConceptStore();
 await conceptStore.load(slug.value);
 
-const { concept, pending, sort, error, conceptsTree } =
-    storeToRefs(conceptStore);
+const { concept, error, ancestors } = storeToRefs(conceptStore);
 
 if (!error.value && !concept.value) {
     throw createError({
@@ -114,7 +97,6 @@ const description = ref(
         ? concept.value.definition.replace(/<[^>]*>?/gm, '').substring(0, 150)
         : ''
 );
-const conceptSelected = ref(isSelected(id.value));
 
 const images = ref<string[]>([]);
 const translations = ref<{ name: string; link: string }[]>([]);
@@ -138,6 +120,18 @@ if (concept.value?.translations) {
     });
 }
 
+const breadcrumb = ref<Link[]>([]);
+
+if (ancestors.value) {
+    ancestors.value.forEach((ancestor: Concept) => {
+        breadcrumb.value.push({
+            label: ancestor.name,
+            to: '/termos/' + ancestor.nameSlug,
+            icon: 'i-ph-article'
+        });
+    });
+}
+
 const url = ref('');
 
 if (images.value.length > 0) {
@@ -150,16 +144,6 @@ if (images.value.length > 0) {
             images.value[0];
     }
 }
-
-const onTabChange = async (value: number) => {
-    if (value === 2 && conceptsTree.value.length === 0) {
-        await conceptStore.fetchConceptsTree();
-    }
-};
-
-onBeforeMount(() => {
-    conceptSelected.value = isSelected(id.value);
-});
 
 useHead({
     title: title.value + ' | ' + config.public.appName,
