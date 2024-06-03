@@ -451,12 +451,14 @@ class PrismaService {
      * Finds the ancestors of a node - only available for Concept model
      * @param nodeId - The node id
      * @param select - The fields to select
+     * @param flatten - If it should return a flat array
      * @returns The ancestors
      * @throws ApiValidationError
      */
     async findAncestors(
         nodeId: number,
-        select: Select = ['id', 'name', 'parentId', 'nameSlug']
+        select: Select = ['id', 'name', 'parentId', 'nameSlug'],
+        flatten = true
     ) {
         const depth = await this.findNodeDepth(nodeId);
 
@@ -494,7 +496,32 @@ class PrismaService {
             select: select
         });
 
-        return result;
+        const parents = result.items[0].parent ? [result.items[0].parent] : [];
+
+        if (!flatten) {
+            return parents;
+        }
+
+        const ancestors = [];
+
+        for (const parent of parents) {
+            const copy = { ...parent };
+            delete copy.parent;
+            ancestors.push(copy);
+
+            let pointer = parent;
+
+            for (let i = 0; i < depth - 1; i++) {
+                if (pointer.parent) {
+                    const copy = { ...pointer.parent };
+                    delete copy.parent;
+                    ancestors.push(copy);
+                    pointer = pointer.parent;
+                }
+            }
+        }
+
+        return ancestors.reverse();
     }
 
     /**
