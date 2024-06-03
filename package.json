@@ -8,7 +8,7 @@
   "engines": {
     "node": "20.x"
   },
-  "packageManager": "pnpm@9.1.4+sha256.30a1801ac4e723779efed13a21f4c39f9eb6c9fbb4ced101bce06b422593d7c9",
+  "packageManager": "pnpm@9.1.4",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -16,9 +16,10 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "generate-env": "node scripts/generate-env.js",
-    "scaffold": "pnpm install && pnpm generate-env && prisma generate && pnpm prisma db push --accept-data-loss && pnpm prisma db seed",
-    "scaffold:soft": "pnpm install && prisma generate && pnpm prisma db push && pnpm prisma db seed",
-    "web:prod": "pnpm build && pnpm prisma generate && pnpm prisma migrate deploy && pnpm prisma db seed",
+    "prisma:setup": "pnpm prisma generate && pnpm prisma migrate deploy && pnpm prisma db seed",
+    "scaffold": "pnpm install && pnpm generate-env && pnpm prisma generate && pnpm prisma db push --accept-data-loss && pnpm prisma db seed",
+    "scaffold:soft": "pnpm install && pnpm prisma:setup", 
+    "web:prod": "pnpm build && pnpm prisma:setup",
     "electron:build": "pnpm scaffold && pnpm build && electron-builder",
     "electron:linux": "pnpm scaffold && pnpm build && electron-builder --linux",
     "electron:win": "pnpm scaffold && pnpm build && electron-builder --win",
