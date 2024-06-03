@@ -90,7 +90,7 @@ const dataHandler = async (
         const request = method == 'GET' ? query : body;
         const select = request.select ? request.select : undefined;
 
-        const hierarchicalEndpoints = ['ancestors', 'descendants', 'treeDepth'];
+        const hierarchicalEndpoints = ['ancestors', 'descendants', 'treeDepth', 'treeIds'];
 
         // TODO: Would be better to another variable to check if it's a hierarchical endpoint?
         if (partialResource && hierarchicalEndpoints.includes(partialResource)) {
@@ -102,6 +102,8 @@ const dataHandler = async (
                 response = prismaService.findTrees(parseNumber(id), select);
             } else if (partialResource === 'treeDepth') {
                 response = prismaService.findTreeDepth(parseNumber(id));
+            } else if (partialResource === 'treeIds') {
+                response = prismaService.findTreeIds(parseNumber(id));
             }
         } else {
             switch (method) {

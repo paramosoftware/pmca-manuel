@@ -112,6 +112,8 @@ declare global {
     export type FormStore = ReturnType<typeof useFormStore>;
     export type ResourceStore = ReturnType<typeof useResourceStore>;
     export type ListStore = ReturnType<typeof useListStore>;
+    export type UserStore = ReturnType<typeof useUserStore>;
+    export type ConceptStore = ReturnType<typeof useConceptStore>;
 
     export type Item = {
         id: ID;
