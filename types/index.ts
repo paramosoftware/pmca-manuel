@@ -228,4 +228,11 @@ declare global {
         permissions: Permission;
         name: string;
     }
+
+    export type Link = {
+        label: string;
+        to: string;
+        icon?: string;
+        active?: boolean;
+    };
 }
