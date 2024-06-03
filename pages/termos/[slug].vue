@@ -1,6 +1,6 @@
 <template>
     <PublicNavigation>
-        <article>
+        <article class="max-w-7xl">
             <PublicBreadcrumb :links="breadcrumb" />
             <PublicFullCardTitle :id="id" :name="concept!.name" class="mb-4" />
             <div class="flex flex-row">
