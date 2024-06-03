@@ -56,7 +56,7 @@ const concepts = {
 
 const linkItems = ref<Link[]>([home]);
 
-if (props.addConcepts) {
+if (props.addConceptLink) {
     linkItems.value.push(concepts);
 }
 
