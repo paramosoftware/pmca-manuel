@@ -400,7 +400,7 @@ class PrismaService {
      * @returns The tree
      * @throws ApiValidationError
      */
-    async findTree(
+    async findTrees(
         nodeId: number | null = null,
         select: Select = ['id', 'name', 'parentId', 'nameSlug']
     ) {
@@ -411,18 +411,23 @@ class PrismaService {
         }
 
         let nestedInclude: any = {
-            include: { children: { select: select } },
-            select: select
+            include: {
+                children: {
+                    select: select
+                }
+            }
         };
 
-        let pointer = nestedInclude;
+        let pointer = nestedInclude.include;
 
-        for (let i = 0; i < depth - 1; i++) {
-            pointer.children = {
-                include: { children: { select: select } },
-                select: select
+        for (let i = 0; i < depth; i++) {
+            pointer.children.include = {
+                children: {
+                    select: select
+                }
             };
-            pointer = pointer.children;
+
+            pointer = pointer.children.include;
         }
 
         let where = {
@@ -437,7 +442,7 @@ class PrismaService {
 
         return await this.readMany({
             where: where,
-            include: nestedInclude,
+            include: nestedInclude.include,
             select: select
         });
     }
@@ -460,18 +465,23 @@ class PrismaService {
         }
 
         let nestedInclude: any = {
-            include: { parent: { select: select } },
-            select: select
+            include: {
+                parent: {
+                    select: select
+                }
+            }
         };
 
-        let pointer = nestedInclude;
+        let pointer = nestedInclude.include;
 
-        for (let i = 0; i < depth - 1; i++) {
-            pointer.parent = {
-                include: { parent: { select: select } },
-                select: select
+        for (let i = 0; i < depth; i++) {
+            pointer.parent.include = {
+                parent: {
+                    select: select
+                }
             };
-            pointer = pointer.parent;
+
+            pointer = pointer.parent.include;
         }
 
         let where = {
@@ -480,7 +490,7 @@ class PrismaService {
 
         const result = await this.readMany({
             where: where,
-            include: nestedInclude,
+            include: nestedInclude.include,
             select: select
         });
 
@@ -517,7 +527,7 @@ class PrismaService {
      * @throws ApiValidationError
      */
     async findTreeIds(parentId: number | null = null) {
-        return await this.findTreeProperty(parentId, true) as number[];
+        return (await this.findTreeProperty(parentId, true)) as number[];
     }
 
     /**
@@ -527,7 +537,7 @@ class PrismaService {
      * @throws ApiValidationError
      */
     async findTreeDepth(parentId: number | null = null) {
-        return await this.findTreeProperty(parentId) as number;
+        return (await this.findTreeProperty(parentId)) as number;
     }
 
     /**
@@ -538,7 +548,7 @@ class PrismaService {
      * @throws ApiValidationError
      */
     async findNodeDepth(nodeId: number) {
-        return await this.findTreeProperty(nodeId, false, true) as number;
+        return (await this.findTreeProperty(nodeId, false, true)) as number;
     }
 
     /**
