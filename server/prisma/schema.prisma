@@ -197,7 +197,7 @@ model Concept {
   published Boolean @default(true) /// defaultValue:true
 
   accessCount Int              @default(0) /// disabled:true|hidden:true
-  position    Int              @default(1) /// disabled:true|hidden:true
+  position    Int              @default(1) /// disabled:true|hidden:true|includeExport:true
   changes     ConceptChanges[] /// disabled:true|hidden:true
 
   definitionNormalized   String?

@@ -15,7 +15,8 @@
   ],
   "verTambem": [
     "amarelecimento"
-  ]
+  ],
+  "posicao": 2
 },{
   "id": "amarelecimento",
   "termo": "amarelecimento",
@@ -35,7 +36,8 @@
   ],
   "verTambem": [
     "abrasao"
-  ]
+  ],
+  "posicao": 1
 },{
   "id": "danos",
   "termo": "Danos",
@@ -45,5 +47,6 @@
   "fontes": [],
   "formasVariantes": [],
   "termosEquivalentesEmOutrosIdiomas": [],
-  "verTambem": []
+  "verTambem": [],
+  "posicao": 1
 }]
