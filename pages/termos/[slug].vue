@@ -1,5 +1,5 @@
 <template>
-    <PublicNavigation  :use-concept-store-for-tree="false">
+    <PublicNavigation :use-concept-store-for-tree="false">
         <article class="w-7xl">
             <PublicBreadcrumb :links="breadcrumb" />
             <PublicFullCardTitle :id="id" :name="concept!.name" class="mb-4" />
@@ -8,7 +8,19 @@
                     <UITab :tabs="['Termo', 'Histórico de alterações']">
                         <template #tabPanel-1>
                             <div class="flex flex-col lg:flex-row gap-5">
-                                <div class="flex flex-col min-h-48 w-full lg:w-8/12">
+                                <div v-if="conceptValidator">
+                                    <div
+                                        class="flex justify-center items-center mt-4 h-48"
+                                    >
+                                        <p class="text-pmca-primary">
+                                            Este termo ainda não tem definições.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else
+                                    class="flex flex-col min-h-48 w-full lg:w-8/12"
+                                >
                                     <PublicFieldAttribute
                                         title="Definição"
                                         :content="concept?.definition"
@@ -90,6 +102,46 @@ if (!error.value && !concept.value) {
     });
 }
 
+const checkIfConceptHasDefinitions = (concept: { value: any }) => {
+    // TODO: Find a better way in the future to not hardcode the properties. 
+    // Current concept has 21 properties, and we check 9 (relevant ones for this case) but if the db structure changes, that must be updated btw
+    const propertiesToBeChecked = [
+        'definition',
+        'notes',
+        'references',
+        'translations',
+        'variations',
+        'concepts',
+        'relatedConcepts',
+        'media',
+        'children'
+    ];
+    if (concept.value) {
+        let counter = propertiesToBeChecked.length;
+        for (const key in concept.value) {
+            if (!propertiesToBeChecked.includes(key)) {
+                continue;
+            }
+
+            if (
+                Array.isArray(concept.value[key]) &&
+                !concept.value[key].length 
+            ) {
+                counter--;
+                continue;
+            }
+
+            if (concept.value[key] == null) {
+                counter--;
+            }
+        }
+
+        return counter == 0 ? true : false;
+    }
+};
+
+const conceptValidator = checkIfConceptHasDefinitions(concept);
+
 const id = ref(concept.value?.id ?? 0);
 const title = ref(concept.value?.name);
 const description = ref(
@@ -160,25 +212,22 @@ useHead({
 });
 </script>
 
-
 <style scoped>
-:deep(.mb-4)  {
-   a {
-    color: blue;
-    text-decoration: underline;
-   }
+:deep(.mb-4) {
+    a {
+        color: blue;
+        text-decoration: underline;
+    }
 
-   a:hover {
-    color: rgb(85, 85, 255);
+    a:hover {
+        color: rgb(85, 85, 255);
+    }
 
-   }
-   
-   a:visited {
-    color: purple;
-
-   }
-   a:visited:hover {
-    color: rgb(202, 27, 202);
-   }
+    a:visited {
+        color: purple;
+    }
+    a:visited:hover {
+        color: rgb(202, 27, 202);
+    }
 }
 </style>
