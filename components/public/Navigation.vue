@@ -102,7 +102,7 @@
         </aside>
 
         <main
-            :class="mainDivClassClose +  ' w-full flex-1 shadow-lg border border-gray-200 rounded-md bg-white xl:ml-5 p-4 h-full'"
+            :class="mainDivClassClose +  ' w-full shadow-lg border border-gray-200 rounded-md bg-white xl:ml-5 p-4 h-full'"
             ref="mainRef"
             id="main-navigation"
         >
@@ -129,10 +129,10 @@ const isTreeNavigationPinned = ref(false);
 const isTreeNavigationOpen = ref(false);
 const treeNavigationRef = ref<HTMLElement | null>(null);
 const mainRef = ref<HTMLElement | null>(null);
-const mainDivClassOpen = 'w-9/12';
-const mainDivClassClose = 'w-11/12';
-const closeClass = 'w-16';
-const openClass = 'w-3/12';
+const mainDivClassOpen = 'xl:w-[74%]';
+const mainDivClassClose = 'xl:w-[95%]';
+const closeClass = 'w-[5%]';
+const openClass = 'w-[24%]';
 const localStorageKey = 'isTreeNavigationFixed';
 const screenBreakpoint = 1280;
 
