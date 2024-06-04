@@ -13,7 +13,13 @@
                         @click="openModalPosition"
                     />
                 </UIButton>
-                <UIButton size="sm" @click="onClear" square class="ml-1" v-if="defaultExpanded">
+                <UIButton
+                    size="sm"
+                    @click="onClear"
+                    square
+                    class="ml-1"
+                    v-if="defaultExpanded"
+                >
                     <UIIcon
                         name="ph:eraser"
                         title="Limpar seleção"
@@ -80,22 +86,27 @@
                     item-key="id"
                     v-if="currentChildren.length"
                 >
-                <!-- if there is space between the template tag and the first div, vuedraggable throws an error: Item slot must have only one child -->
-                    <template #item="{ element, index }"><div>
+                    <!-- if there is space between the template tag and the first div, vuedraggable throws an error: Item slot must have only one child -->
+                    <template #item="{ element, index }"
+                        ><div>
                             <div
                                 class="flex justify-between items-center border border-gray-200 bg-gray-50 p-2 rounded-md w-full shadow-md"
                             >
                                 {{ element.label }}
                                 <span
                                     class="font-semibold text-pmca-secondary-dark"
-                                    >
+                                >
                                     {{ index + 1 }}
                                 </span>
                             </div>
-                        </div></template>
+                        </div></template
+                    >
                 </draggable>
 
-                <div v-else class="flex justify-center items-center h-96 border">
+                <div
+                    v-else
+                    class="flex justify-center items-center h-96 border"
+                >
                     <p>O item selecionado não possui filhos.</p>
                 </div>
             </div>
@@ -162,7 +173,11 @@ if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
 const tree = ref<TreeNode>();
 const sameModel = relatedResource.value.name === props.formStore?.model;
 const formId = props.formStore?.getId();
-const nodeIdToRemove = sameModel ? (formId === 0 ? undefined : formId) : undefined;
+const nodeIdToRemove = sameModel
+    ? formId === 0
+        ? undefined
+        : formId
+    : undefined;
 let parentIdExists = false;
 const defaultExpanded = ref<ID>(null);
 const toast = useToast();
@@ -220,11 +235,11 @@ const fetchTreeData = async () => {
 
 fetchTreeData();
 
-// @ts-ignore
-const onExpand = ({ expanded, sourceEvent, expandedItems }) => {
-    // TODO: As the descendants of the current node are not shown, the circular reference is not a problem in component itself
-    // verify in the backend if the current node is a descendant of the selected node instead
-
+const onExpand = ({
+    expanded,
+    sourceEvent,
+    expandedItems
+}: FinderExpandEvent) => {
     for (let i = 0; i < expanded.length; i++) {
         if (expanded[i] == nodeIdToRemove) {
             toast.add({
@@ -258,7 +273,10 @@ const openModalPosition = () => {
     children.value = new Map();
     currentChildren.value = [];
     isModalOpen.value = true;
-    if (defaultExpanded.value) {
+    if (currentExpanded.value) {
+        getChildrenCurrentNode(tree.value!, currentExpanded.value);
+    } else if (defaultExpanded.value) {
+        currentExpanded.value = defaultExpanded.value;
         getChildrenCurrentNode(tree.value!, defaultExpanded.value);
     }
 };
@@ -269,7 +287,11 @@ const closeModalPosition = () => {
     isModalOpen.value = false;
 };
 
-const setChildren = ({ expanded, sourceEvent, expandedItems }) => {
+const setChildren = ({
+    expanded,
+    sourceEvent,
+    expandedItems
+}: FinderExpandEvent) => {
     currentExpanded.value = expanded[expanded.length - 1];
     getChildrenCurrentNode(tree.value!, currentExpanded.value);
 };

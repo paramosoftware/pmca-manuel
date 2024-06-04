@@ -239,4 +239,10 @@ declare global {
         icon?: string;
         active?: boolean;
     };
+
+    interface FinderExpandEvent {
+        expanded: ID[];
+        sourceEvent: string;
+        expandedItems: TreeNode[];
+    }
 }
