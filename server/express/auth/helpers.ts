@@ -96,6 +96,10 @@ export async function refreshAccessToken(
 
     const user = (await findUserByLoginOrId(decodedToken.userId)) as User;
 
+    if (!user) {
+        throw new UnauthorizedError('Invalid credentials');
+    }
+
     if (user.isBlocked) {
         throw new ForbiddenError('User is blocked');
     }
