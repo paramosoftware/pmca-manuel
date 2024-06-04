@@ -159,3 +159,13 @@ useHead({
     ]
 });
 </script>
+
+
+<style scoped>
+::v-deep .w-full {
+   a {
+    @apply underline text-blue-600 hover:text-blue-800 visited:text-purple-600;
+
+   }
+}
+</style>

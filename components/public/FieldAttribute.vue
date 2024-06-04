@@ -56,11 +56,9 @@ const buildHyperlink = (term?: string, slug?: string, priorityName?: string, url
     const hyperlinkProperties: {
         displayText: string,
         hrefUrl: string,
-        styles: string
     } = {
         displayText: '',
         hrefUrl: '',
-        styles: ["underline", "text-blue-600", "hover:text-blue-800", "visited:text-purple-600"].join(" ")   
     };
 
     if (term) {
@@ -89,7 +87,7 @@ const buildHyperlink = (term?: string, slug?: string, priorityName?: string, url
 
         }
 
-    return `<span class="${hyperlinkProperties.styles}"><a href="${hyperlinkProperties.hrefUrl}">${hyperlinkProperties.displayText}</a></span>` 
+    return `<a href="${hyperlinkProperties.hrefUrl}">${hyperlinkProperties.displayText}</a>` 
 }
 }
 
