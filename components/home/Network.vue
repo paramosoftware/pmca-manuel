@@ -1,5 +1,7 @@
 <template>
-    <div class="mt-5 md:mx-auto min-h-[60vh] w-full">
+    <div class="mt-5 md:mx-auto min-h-[60vh] w-full rounded-tl overflow-hidden">
+        <h1 class="text-4xl pb-8 text-center md:text-5xl font-bold">Mapa de relacionamento</h1>
+
         <div id="network" class="w-full h-full">
             <svg
                 :viewBox="viewBox.join(' ')"
