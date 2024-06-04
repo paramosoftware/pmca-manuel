@@ -209,7 +209,8 @@ export const importData = (function () {
                             .filter((reference: string) => reference != '')
                             .map((reference: string) => {
                                 return {
-                                    name: reference
+                                    name: reference,
+                                    nameRich: reference
                                 };
                             });
                         break;
@@ -317,7 +318,8 @@ export const importData = (function () {
                         value.split(';').forEach((reference) => {
                             if (reference) {
                                 concept.references.push({
-                                    name: reference
+                                    name: reference,
+                                    nameRich: reference
                                 });
                             }
                         });
@@ -435,7 +437,8 @@ export const importData = (function () {
                     if (attribute['skos:referenceNote']) {
                         // @ts-ignore
                         concept.references.push({
-                            name: attribute['skos:referenceNote'][0]['#text']
+                            name: attribute['skos:referenceNote'][0]['#text'],
+                            nameRich: attribute['skos:referenceNote'][0]['#text']
                         });
                     }
 
