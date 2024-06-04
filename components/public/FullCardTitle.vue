@@ -15,7 +15,7 @@
                 />
             </client-only>
         </UIPageTitle>
-        <PublicActionsBar :conceptId="id" :title="name" />
+        <PublicActionsBar :conceptId="id" :title="name" class="mt-5 sm:mt-0" />
     </div>
 </template>
 

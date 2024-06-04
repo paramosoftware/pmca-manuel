@@ -1,6 +1,6 @@
 <template>
-    <PublicNavigation>
-        <article class="max-w-7xl">
+    <PublicNavigation  :use-concept-store-for-tree="false">
+        <article class="w-7xl">
             <PublicBreadcrumb :links="breadcrumb" />
             <PublicFullCardTitle :id="id" :name="concept!.name" class="mb-4" />
             <div class="flex flex-row">

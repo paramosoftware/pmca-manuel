@@ -1,6 +1,6 @@
-<template>
+:<template>
     <div
-        class="flex flex-col w-full h-full shadow-lg border border-gray-200 p-4 rounded-md bg-gray-100 mb-3"
+        class="flex flex-col h-full w-full sm:w-4/6 md:w-2/6 shadow-lg border border-gray-200 p-3 rounded-md bg-gray-100 mb-3"
         v-if="isSmallScreen"
     >
         <div
@@ -18,7 +18,7 @@
                 closeClass +
                 ' hover:' +
                 openClass +
-                ' shadow-lg border border-gray-200 rounded-md transition-all duration-300 max-h-screen bg-gray-50'
+                ' shrink-0 shadow-lg border border-gray-200 rounded-md transition-all duration-300 max-h-screen bg-gray-50 overflow-auto'
             "
             v-if="!isSmallScreen"
             ref="treeNavigationRef"
@@ -57,6 +57,11 @@
                     >
                         <UITreeView
                             :tree="conceptsTree"
+                            :concept-store="
+                                useConceptStoreForTree
+                                    ? conceptStore
+                                    : undefined
+                            "
                             v-if="conceptsTree.length > 0"
                         />
                     </div>
@@ -67,16 +72,25 @@
         <aside v-else>
             <USlideover
                 v-model="isTreeNavigationOpen"
-                :overlay="false"
                 class="text-pmca-primary"
+                side="left"
+                :ui="{
+                    background: 'bg-gray-100' 
+                }"
             >
-                <div class="flex p-4">
-                    <UIIcon
-                        name="ph:x"
-                        class="ml-auto"
-                        title="Fechar navegação"
-                        @click="isTreeNavigationOpen = !isTreeNavigationOpen"
-                    />
+                <div class="p-4 overflow-x-auto">
+                    <div class="flex flex-row justify-between">
+                        <div class="text-lg font-semibold">Classificação</div>
+
+                        <UIIcon
+                            name="ph:x"
+                            class="ml-auto"
+                            title="Fechar navegação"
+                            @click="
+                                isTreeNavigationOpen = !isTreeNavigationOpen
+                            "
+                        />
+                    </div>
 
                     <UITreeView
                         :tree="conceptsTree"
@@ -88,7 +102,9 @@
         </aside>
 
         <main
-            class="w-full shadow-lg border border-gray-200 rounded-md bg-white md:ml-5 p-4 h-full"
+            :class="mainDivClassClose +  ' w-full flex-1 shadow-lg border border-gray-200 rounded-md bg-white xl:ml-5 p-4 h-full'"
+            ref="mainRef"
+            id="main-navigation"
         >
             <slot></slot>
         </main>
@@ -96,6 +112,13 @@
 </template>
 
 <script setup lang="ts">
+defineProps({
+    useConceptStoreForTree: {
+        type: Boolean,
+        default: true
+    }
+});
+
 const conceptStore = useConceptStore();
 await conceptStore.fetchConceptsTree();
 
@@ -105,9 +128,13 @@ const isSmallScreen = ref(false);
 const isTreeNavigationPinned = ref(false);
 const isTreeNavigationOpen = ref(false);
 const treeNavigationRef = ref<HTMLElement | null>(null);
+const mainRef = ref<HTMLElement | null>(null);
+const mainDivClassOpen = 'w-9/12';
+const mainDivClassClose = 'w-11/12';
 const closeClass = 'w-16';
-const openClass = 'w-4/12';
+const openClass = 'w-3/12';
 const localStorageKey = 'isTreeNavigationFixed';
+const screenBreakpoint = 1280;
 
 const openTreeNavigation = (open: boolean) => {
     if (isSmallScreen.value) {
@@ -123,15 +150,27 @@ const openTreeNavigation = (open: boolean) => {
         }
     }
 
+    if (!mainRef.value) {
+        mainRef.value = document.getElementById('main-navigation');
+        if (!mainRef.value) {
+            console.error('main not found');
+            return;
+        }
+    }
+
     isTreeNavigationOpen.value = open;
 
     if (open || isTreeNavigationPinned.value) {
         treeNavigationRef.value.classList.remove(closeClass);
         treeNavigationRef.value.classList.add(openClass);
+        mainRef.value.classList.remove(mainDivClassClose);
+        mainRef.value.classList.add(mainDivClassOpen);
         return;
     } else {
         treeNavigationRef.value.classList.remove(openClass);
         treeNavigationRef.value.classList.add(closeClass);
+        mainRef.value.classList.remove(mainDivClassOpen);
+        mainRef.value.classList.add(mainDivClassClose);
         return;
     }
 };
@@ -148,18 +187,20 @@ const pinTreeNavigation = () => {
 };
 
 onMounted(() => {
-    isSmallScreen.value = window.innerWidth < 768;
+    isSmallScreen.value = window.innerWidth < screenBreakpoint;
     isTreeNavigationPinned.value = localStorage.getItem(localStorageKey) === 'true';
     openTreeNavigation(isTreeNavigationPinned.value && !isSmallScreen.value);
     addHoverListener();
 
     window.addEventListener('resize', async () => {
-        isSmallScreen.value = window.innerWidth < 768;
+        isSmallScreen.value = window.innerWidth < screenBreakpoint;
         if (!isSmallScreen.value) {
             await nextTick();
-            isTreeNavigationOpen.value = isTreeNavigationOpen.value || isTreeNavigationPinned.value;
+            isTreeNavigationOpen.value = isTreeNavigationOpen.value || isTreeNavigationPinned.value
             openTreeNavigation(isTreeNavigationOpen.value);
             addHoverListener();
+        } else {
+            openTreeNavigation(false);
         }
     });
 });
