@@ -162,10 +162,23 @@ useHead({
 
 
 <style scoped>
-::v-deep .w-full {
+:deep(.mb-4)  {
    a {
-    @apply underline text-blue-600 hover:text-blue-800 visited:text-purple-600;
+    color: blue;
+    text-decoration: underline;
+   }
 
+   a:hover {
+    color: rgb(85, 85, 255);
+
+   }
+   
+   a:visited {
+    color: purple;
+
+   }
+   a:visited:hover {
+    color: rgb(202, 27, 202);
    }
 }
 </style>
