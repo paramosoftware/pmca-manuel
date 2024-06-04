@@ -18,6 +18,8 @@ export function buildTreeData(
     });
     let nodeIdExist = false;
 
+    let nodeExpanded = [];
+
     if (!rootNode) {
         return [];
     }
@@ -90,7 +92,26 @@ export function buildTreeData(
                 nodeMap.set(item.parentId, parentNode);
             }
 
+            if (currentNode.expanded) {
+                nodeExpanded.push(currentNode.id)
+            }
+
             parentNode.children.push(currentNode);
+        }
+    }
+
+    if (nodeExpanded.length > 0) {
+        for (const nodeId of nodeExpanded) {
+            let currentNode = nodeMap.get(nodeId);
+            while (currentNode && currentNode.parentId !== null) {
+                const parentNode = nodeMap.get(currentNode.parentId);
+                if (parentNode) {
+                    parentNode.expanded = true;
+                    currentNode = parentNode;
+                } else {
+                    break;
+                }
+            }
         }
     }
 
