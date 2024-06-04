@@ -83,15 +83,32 @@ const menus = [
                 };
             })
         ]
+    },
+    {
+        icon: 'ph:box-arrow-down',
+        title: 'Exportar',
+        onClick: () => {
+            navigateTo(ROUTES.export);
+        }
     }
 ] as any[];
 
 if (canImport.value) {
     menus.push({
-        icon: 'ph:upload-simple',
+        icon: 'ph:box-arrow-up',
         title: 'Importar',
         onClick: () => {
             navigateTo(ROUTES.import);
+        }
+    });
+}
+
+if (userStore.isAdmin) {
+    menus.push({
+        icon: 'ph:archive',
+        title: 'Backup',
+        onClick: () => {
+            navigateTo(ROUTES.backup);
         }
     });
 }
@@ -103,18 +120,6 @@ menus.push({
         accessPublic();
     }
 });
-
-
-if (userStore.isAdmin) {
-    menus.push({
-        icon: 'ph:database',
-        title: 'Backup',
-        onClick: () => {
-            navigateTo(ROUTES.backup);
-        }
-    });
-}
-
 
 menus.push({
     icon: 'ph:user-circle',

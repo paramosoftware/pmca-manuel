@@ -6,6 +6,7 @@ const ROUTES = {
     edit: RESTRICTED_PATH + '/editar/',
     list: RESTRICTED_PATH + '/listar/',
     import: RESTRICTED_PATH + '/importar',
+    export: RESTRICTED_PATH + '/exportar',
     backup: RESTRICTED_PATH + '/backup'
 };
 
