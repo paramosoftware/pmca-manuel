@@ -4,16 +4,18 @@
             <PublicBreadcrumb :links="breadcrumb" />
             <PublicFullCardTitle :id="id" :name="concept!.name" class="mb-4" />
             <div class="flex flex-row">
-                <div class="pr-2 w-full">
+                <div class="pr-2 w-full conceptContainer">
                     <UITab :tabs="['Termo', 'Histórico de alterações']">
                         <template #tabPanel-1>
                             <div class="flex flex-col lg:flex-row gap-5">
-                                <div v-if="conceptValidator">
+                                <div v-if="conceptValidator" class="w-full">
                                     <div
-                                        class="flex justify-center items-center mt-4 h-48"
+                                        class="flex justify-center mt-4 items-center w-full h-48"
                                     >
-                                        <p class="text-pmca-primary">
-                                            Este termo ainda não tem definições.
+                                        <p
+                                            class="text-pmca-primary text-center"
+                                        >
+                                            Nenhuma informação cadastrada.
                                         </p>
                                     </div>
                                 </div>
@@ -103,7 +105,7 @@ if (!error.value && !concept.value) {
 }
 
 const checkIfConceptHasDefinitions = (concept: { value: any }) => {
-    // TODO: Find a better way in the future to not hardcode the properties. 
+    // TODO: Find a better way in the future to not hardcode the properties.
     // Current concept has 21 properties, and we check 9 (relevant ones for this case) but if the db structure changes, that must be updated btw
     const propertiesToBeChecked = [
         'definition',
@@ -125,7 +127,7 @@ const checkIfConceptHasDefinitions = (concept: { value: any }) => {
 
             if (
                 Array.isArray(concept.value[key]) &&
-                !concept.value[key].length 
+                !concept.value[key].length
             ) {
                 counter--;
                 continue;
@@ -212,22 +214,12 @@ useHead({
 });
 </script>
 
-<style scoped>
-:deep(.mb-4) {
-    a {
-        color: blue;
-        text-decoration: underline;
-    }
-
-    a:hover {
-        color: rgb(85, 85, 255);
-    }
-
-    a:visited {
-        color: purple;
-    }
-    a:visited:hover {
-        color: rgb(202, 27, 202);
-    }
+<style>
+.conceptContainer a {
+    color: blue;
+    text-decoration: underline;
+}
+.conceptContainer a:hover {
+    color: rgb(85, 85, 255);
 }
 </style>
