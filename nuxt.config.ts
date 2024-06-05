@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { getIconCollections } from '@egoist/tailwindcss-icons';
+
 export default defineNuxtConfig({
     app: {
         head: {
@@ -72,6 +74,17 @@ export default defineNuxtConfig({
                 headers: {
                     'Cache-Control': 'public, max-age=604800'
                 }
+            }
+        }
+    },
+    ui: {
+        icons: {
+            extraProperties: {
+                'mask-size': 'contain',
+                'mask-position': 'center'
+            },
+            collections: {
+                ...getIconCollections(['heroicons', 'simple-icons', 'ph'])
             }
         }
     }

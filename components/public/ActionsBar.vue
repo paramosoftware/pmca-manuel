@@ -9,6 +9,7 @@
                 :name="item.icon"
                 @click="share(item.name)"
                 :title="item.title ?? ''"
+                class="w-7"
             />
         </a>
         <PublicExportDropdown />

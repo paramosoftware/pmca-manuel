@@ -105,9 +105,11 @@ app.on('window-all-closed', () => {
 });
 
 function handleAppData() {
+    handleDataOnReinstall();
+
     const appDataPath = path.join(process.env.ROOT, 'data');
     const userDataPath = path.join(app.getPath('userData'), 'data');
-
+    
     if (app.isPackaged && !fs.existsSync(userDataPath)) {
         fs.mkdirSync(userDataPath);
 
@@ -117,6 +119,39 @@ function handleAppData() {
             errorOnExist: true
         });
     }
+}
+
+
+function handleDataOnReinstall() {
+    const dataDir = path.join(app.getPath('userData'), 'data');
+    const oldVersion = getAppOldVersion();
+    const version = app.getVersion();
+    const removeDataOnReinstall = process.env.REMOVE_DATA_ON_REINSTALL === 'true';
+
+    if (oldVersion !== version && removeDataOnReinstall) {
+        log(`Old version: ${oldVersion}`);
+        log(`New version: ${version}`);
+        log('Removing data on reinstall');
+        fs.rmSync(dataDir, { recursive: true, force: true });
+        updateAppVersion();
+    }
+}
+
+function getAppOldVersion() {
+    const versionFile = path.join(app.getPath('userData'), '.version');
+
+    if (fs.existsSync(versionFile)) {
+        return fs.readFileSync(versionFile, 'utf-8');
+    } else {
+        return '0.0.0';
+    }
+}
+
+function updateAppVersion() {
+    const versionFile = path.join(app.getPath('userData'), '.version');
+    const appVersion = app.getVersion();
+    fs.writeFileSync(versionFile, appVersion);
+    return appVersion;
 }
 
 async function assignPort(port = 3458) {
@@ -147,6 +182,8 @@ function assignEnvsFromFile() {
 
     if (app.isPackaged && !fs.existsSync(envPath)) {
         generateEnvFile();
+    } else {
+        generateEnvFile(true);
     }
 
     const envFile = fs.readFileSync(envPath, 'utf-8');
@@ -157,7 +194,7 @@ function assignEnvsFromFile() {
     });
 }
 
-function generateEnvFile() {
+function generateEnvFile(update = false) {
     const crypto = require('crypto');
 
     const userDataPath = path.join(app.getPath('userData'), 'data');
@@ -172,6 +209,17 @@ function generateEnvFile() {
     const envExamplePath = path.join(process.env.ROOT, '.env.example');
     const envPath = path.join(app.getPath('userData'), '.env');
 
+    const oldEnv = {};
+
+    if (update && fs.existsSync(envPath)) {
+        const oldEnvFile = fs.readFileSync(envPath, 'utf-8');
+
+        oldEnvFile.split('\n').forEach((line) => {
+            const [key, value] = line.split('=');
+            oldEnv[key] = value;
+        });
+    }
+
     const envExampleFile = fs.readFileSync(envExamplePath, 'utf-8');
 
     const envExample = {};
@@ -182,7 +230,9 @@ function generateEnvFile() {
     });
 
     Object.keys(envExample).forEach((key) => {
-        if (env[key]) {
+        if (oldEnv[key]) {
+            envExample[key] = oldEnv[key];
+        } else if (env[key]) {
             envExample[key] = env[key];
         }
     });
@@ -229,5 +279,6 @@ function createWindow() {
 
 function log(message) {
     const logPath = path.join(app.getPath('userData'), 'log.txt');
-    fs.appendFileSync(logPath, message + '\n');
+    const timestamp = new Date().toISOString();
+    fs.appendFileSync(logPath, `[${timestamp}] ===> ${message}\n`);
 }

@@ -20,6 +20,8 @@ export const useConceptStore = defineStore('concept', () => {
     const conceptsNetwork = ref<Concept[]>([]); // only used to build network for home
     const conceptsTree = ref<TreeNode[]>([]);
     const loadingStore = useLoadingStore();
+    const ancestors = ref<Concept[]>([]);
+    const descendantsIds = ref<ID[]>([]);
 
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
@@ -80,6 +82,14 @@ export const useConceptStore = defineStore('concept', () => {
             });
         }
 
+        if (descendantsIds.value.length > 0) {
+            q.where.AND.push({
+                id: {
+                    in: descendantsIds.value
+                }
+            });
+        }
+
         return q;
     });
 
@@ -122,6 +132,9 @@ export const useConceptStore = defineStore('concept', () => {
         concept.value = data.value;
         pending.value = pending.value;
         error.value = error.value;
+
+        await fetchAncestors();
+
         loadingStore.stop();
     }
 
@@ -179,7 +192,8 @@ export const useConceptStore = defineStore('concept', () => {
             method: 'GET',
             params: {
                 pageSize: -1,
-                select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId'])
+                select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId', 'position']),
+                orderBy: JSON.stringify({ position: 'asc' })
             },
             transform: (data: PaginatedResponse) => {
                 if (!data) {
@@ -253,6 +267,18 @@ export const useConceptStore = defineStore('concept', () => {
         loadingStore.stop();
     }
 
+    async function fetchAncestors() {
+        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/${concept.value?.id}/ancestors`);
+        ancestors.value = data.value;
+        return data;
+    }
+
+    async function fetchDescendants(nodeId: ID) {
+        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/${nodeId}/treeIds`);
+        descendantsIds.value = data.value;
+        await fetchList();
+    }
+
     function sortByName() {
         page.value = 1;
         sort.value === 'asc' ? (sort.value = 'desc') : (sort.value = 'asc');
@@ -297,6 +323,7 @@ export const useConceptStore = defineStore('concept', () => {
         sort,
         concept,
         conceptChanges,
+        ancestors,
         totalConceptChanges,
         conceptChangesLoading,
         randomConceptIds,
@@ -309,6 +336,8 @@ export const useConceptStore = defineStore('concept', () => {
         fetchNetwork,
         fetchConceptsTree,
         fetchConceptChanges,
+        fetchAncestors,
+        fetchDescendants,
         sortByName,
         exportData,
         clear,

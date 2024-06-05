@@ -1,5 +1,7 @@
 <template>
-    <PublicGrid :title="title" />
+    <PublicNavigation>
+        <PublicGrid :title="title" />
+    </PublicNavigation>
 </template>
 
 <script setup lang="ts">

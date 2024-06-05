@@ -14,9 +14,12 @@ export function buildTreeData(
         id: 'root',
         name: 'Root',
         parentId: null,
+        position: 1,
         children: []
     });
     let nodeIdExist = false;
+
+    let nodeExpanded = [];
 
     if (!rootNode) {
         return [];
@@ -74,6 +77,7 @@ export function buildTreeData(
                     id: item.parentId,
                     name: tempLabel,
                     parentId: null,
+                    position: item.position || 1,
                     children: []
                 },
                 nodeIdToExpand,
@@ -90,7 +94,26 @@ export function buildTreeData(
                 nodeMap.set(item.parentId, parentNode);
             }
 
+            if (currentNode.expanded) {
+                nodeExpanded.push(currentNode.id)
+            }
+
             parentNode.children.push(currentNode);
+        }
+    }
+
+    if (nodeExpanded.length > 0) {
+        for (const nodeId of nodeExpanded) {
+            let currentNode = nodeMap.get(nodeId);
+            while (currentNode && currentNode.parentId !== null) {
+                const parentNode = nodeMap.get(currentNode.parentId);
+                if (parentNode) {
+                    parentNode.expanded = true;
+                    currentNode = parentNode;
+                } else {
+                    break;
+                }
+            }
         }
     }
 
@@ -120,7 +143,8 @@ function createNode(
         slug: item.labelSlug || item.nameSlug || null,
         parentId: item.parentId || null,
         expanded: item.id === nodeIdToExpand,
-        children: []
+        position: item.position || 1,
+        children: [],
     } as TreeNode;
 
     // @ts-ignore

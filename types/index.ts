@@ -112,6 +112,8 @@ declare global {
     export type FormStore = ReturnType<typeof useFormStore>;
     export type ResourceStore = ReturnType<typeof useResourceStore>;
     export type ListStore = ReturnType<typeof useListStore>;
+    export type UserStore = ReturnType<typeof useUserStore>;
+    export type ConceptStore = ReturnType<typeof useConceptStore>;
 
     export type Item = {
         id: ID;
@@ -125,6 +127,7 @@ declare global {
         parentId: ID;
         parent?: HierarchicalItem;
         children?: any[];
+        position?: number;
     };
 
     export type PaginatedResponse = {
@@ -145,6 +148,8 @@ declare global {
         expanded: boolean;
         children: TreeNode[];
         isLeaf?: boolean;
+        parent?: TreeNode;
+        position: number;
     };
 
     export type DataTransferFormat = 'json' | 'xml' | 'csv' | 'xlsx';
@@ -155,6 +160,7 @@ declare global {
             read: boolean;
             update: boolean;
             delete: boolean;
+            batch: boolean;
             import: boolean;
         };
     };
@@ -225,5 +231,26 @@ declare global {
         userId: string;
         permissions: Permission;
         name: string;
+    }
+
+    export type Link = {
+        label: string;
+        to: string;
+        icon?: string;
+        active?: boolean;
+    };
+
+    interface FinderExpandEvent {
+        expanded: ID[];
+        sourceEvent: string;
+        expandedItems: TreeNode[];
+    }
+
+    interface ImgHtml {
+        src: string;
+        alt: string;
+        title?: string;
+        width?: number;
+        height?: number;
     }
 }

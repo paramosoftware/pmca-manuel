@@ -4,7 +4,7 @@ import type { ParsedQs } from 'qs';
 import logger from '~/utils/logger';
 import capitalize from '~/utils/capitalize';
 import decodeJwt from '~/utils/decodeJwt';
-import getCookiePrefix from '~/utils/getCookiePrefix';
+import parseNumber from '~/utils/parseNumber';
 import PrismaService from '../../prisma/PrismaService';
 import { exportData } from '../../prisma/export';
 import { importData } from '../../prisma/import';
@@ -43,7 +43,6 @@ const dataHandler = async (
         : body.format
           ? body.format
           : undefined;
-
     const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
 
     const accessToken = getAccessToken(req);
@@ -89,65 +88,85 @@ const dataHandler = async (
         let response: any = null;
         const query = convertQueryParamsToRequest(queryParams);
         const request = method == 'GET' ? query : body;
+        const select = request.select ? request.select : undefined;
 
-        switch (method) {
-            case 'GET':
-                if (isExport) {
-                    response = exportData.exportToFormat(
-                        model,
-                        format,
-                        addMedia,
-                        query
-                    );
-                } else if (id) {
-                    response = prismaService.readOne(
-                        id,
-                        request,
-                        partialResource
-                    );
-                } else {
-                    response = prismaService.readMany(request);
-                }
-                break;
-            case 'PUT':
-                if (id) {
-                    response = prismaService.updateOne(id, request);
-                } else if (isAdmin) {
-                    response = prismaService.updateMany(request);
-                }
-                break;
-            case 'POST':
-                if (id && hasQuery) {
-                    response = prismaService.readOne(
-                        id,
-                        request,
-                        partialResource
-                    );
-                } else if (hasQuery) {
-                    response = prismaService.readMany(request);
-                } else if (isUpload) {
-                    response = uploadMedia(model, id, body, req, res, next);
-                } else if (isImport && canImport) {
-                    const importFilePath = (await importUploadFile(
-                        req,
-                        res,
-                        next
-                    )) as string;
-                    await importData.importFrom(model, importFilePath);
-                    response = { message: 'Imported successfully' };
-                } else {
-                    response = prismaService.createOne(request);
-                }
-                break;
-            case 'DELETE':
-                if (id) {
-                    response = prismaService.deleteOne(id);
-                } else if (hasQuery && isAdmin) {
-                    response = prismaService.deleteMany(request);
-                }
-                break;
-            default:
-                next();
+        const hierarchicalEndpoints = ['ancestors', 'descendants', 'treeDepth', 'treeIds'];
+
+        // TODO: Would be better to another variable to check if it's a hierarchical endpoint?
+        if (partialResource && hierarchicalEndpoints.includes(partialResource)) {
+            if (partialResource === 'ancestors') {
+                response = prismaService.findAncestors(parseNumber(id), select);
+            } else if (partialResource === 'descendants') {
+                response = prismaService.findDescendants(parseNumber(id), select);
+            } else if (partialResource === 'tree') {
+                response = prismaService.findTrees(parseNumber(id), select);
+            } else if (partialResource === 'treeDepth') {
+                response = prismaService.findTreeDepth(parseNumber(id));
+            } else if (partialResource === 'treeIds') {
+                response = prismaService.findTreeIds(parseNumber(id));
+            }
+        } else {
+            switch (method) {
+                case 'GET':
+                    if (isExport) {
+                        response = exportData.exportToFormat(
+                            model,
+                            format,
+                            addMedia,
+                            query
+                        );
+                    } else if (id) {
+                        response = prismaService.readOne(
+                            id,
+                            request,
+                            partialResource
+                        );
+                    } else {
+                        response = prismaService.readMany(request);
+                    }
+                    break;
+                case 'PUT':
+                    if (id) {
+                        response = prismaService.updateOne(id, request);
+                    } else {
+                        response = prismaService.updateMany(request);
+                    }
+                    break;
+                case 'POST':
+                    if (id && hasQuery) {
+                        response = prismaService.readOne(
+                            id,
+                            request,
+                            partialResource
+                        );
+                    } else if (hasQuery) {
+                        response = prismaService.readMany(request);
+                    } else if (isUpload) {
+                        response = uploadMedia(model, id, body, req, res, next);
+                    } else if (isImport && canImport) {
+                        const importFilePath = (await importUploadFile(
+                            req,
+                            res,
+                            next
+                        )) as string;
+                        // mode is accessible only after multipart form data is parsed by multer
+                        const mode = req.body.mode ? req.body.mode : 'merge';
+                        await importData.importFrom(model, importFilePath, mode);
+                        response = { message: 'Imported successfully' };
+                    } else {
+                        response = prismaService.createOne(request);
+                    }
+                    break;
+                case 'DELETE':
+                    if (id) {
+                        response = prismaService.deleteOne(id);
+                    } else if (hasQuery) {
+                        response = prismaService.deleteMany(request);
+                    }
+                    break;
+                default:
+                    next();
+            }
         }
 
         if (response && response instanceof Promise) {
@@ -175,7 +194,7 @@ const dataHandler = async (
  */
 function getParamsFromPath(path: string): {
     model: string;
-    id: string;
+    id: ID;
     hasQuery: boolean;
     partialResource: string;
     isPublic: boolean;
@@ -185,7 +204,7 @@ function getParamsFromPath(path: string): {
 } {
     const info = {
         model: '',
-        id: '',
+        id: null as ID,
         partialResource: '',
         hasQuery: false,
         isPublic: false,

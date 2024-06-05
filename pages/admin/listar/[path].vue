@@ -7,13 +7,22 @@
 
             <div class="justify-between flex flex-row items-center my-4">
                 <UIContainerTitle>{{ labelPlural }}</UIContainerTitle>
-                <UIIcon
-                    name="ph:plus-circle"
-                    @click="goToCreateForm"
-                    title="Criar novo"
-                    class="w-8 h-8 cursor-pointer"
-                    v-if="canCreate"
-                />
+                <div class="flex flex-row items-center">
+                    <UIIcon
+                        name="ph:plus-circle"
+                        @click="goToCreateForm"
+                        title="Criar"
+                        class="w-8 h-8 cursor-pointer"
+                        v-if="canCreate"
+                    />
+                    <UDropdown :items="moreOptions" class="ml-2" v-if="moreOptions[0].length > 0">
+                        <UIIcon
+                            name="ph:dots-three-outline-vertical"
+                            title="Mais opções"
+                            class="w-8 h-8 cursor-pointer"
+                        />
+                    </UDropdown>
+                </div>
             </div>
         </template>
 
@@ -145,7 +154,7 @@
             :title="modalTitle"
             :message="modalMessage"
             :confirmButtonText="modalButtonText"
-            @confirm="deleteItem()"
+            @confirm="modalFunction"
             @close="isModalDialogOpen = false"
         />
     </UICardContainer>
@@ -153,6 +162,8 @@
 
 <script setup lang="ts">
 import ROUTES from '~/config/routes';
+import type { DropdownItem } from '#ui/types';
+
 definePageMeta({
     middleware: ['auth', 'resource']
 });
@@ -163,9 +174,10 @@ const path = useRoute().params.path as string;
 
 const itemToDelete = ref<Item | null>(null);
 const isModalDialogOpen = ref(false);
-const modalTitle = 'Confirmar exclusão';
-const modalMessage = 'Tem certeza que deseja excluir este item?';
-const modalButtonText = 'Excluir';
+const modalTitle = ref('');
+const modalMessage = ref('');
+const modalButtonText = ref('');
+const modalFunction = ref(() => {});
 
 const listStore = useListStore();
 await listStore.fetch(path);
@@ -184,7 +196,8 @@ const {
     error,
     canCreate,
     canDelete,
-    canUpdate
+    canUpdate,
+    canBatch
 } = storeToRefs(listStore);
 
 const createUrl = ROUTES.create + labelSlug.value;
@@ -199,6 +212,10 @@ const filterDisabled = computed(() => {
 });
 
 async function openModal(item: any) {
+    modalTitle.value = 'Confirmar exclusão';
+    modalMessage.value = 'Tem certeza que deseja excluir este item?';
+    modalButtonText.value = 'Excluir';
+    modalFunction.value = () => deleteItem();
     itemToDelete.value = item;
     isModalDialogOpen.value = true;
 }
@@ -213,6 +230,32 @@ const deleteItem = async () => {
 
 function goToCreateForm() {
     navigateTo(createUrl);
+}
+
+const moreOptions = [[]] as DropdownItem[][];
+
+if (canBatch.value) {
+    moreOptions[0].push({
+        label: 'Excluir tudo',
+        icon: 'i-ph-eraser',
+        click: () => {
+            openModalForDeleteAll();
+        }
+    });
+}
+
+function openModalForDeleteAll() {
+    modalTitle.value = 'Confirmar exclusão';
+    modalMessage.value =
+        'Tem certeza que deseja excluir todos os itens? Esta ação não poderá ser desfeita.';
+    modalButtonText.value = 'Excluir todos';
+    modalFunction.value = deleteAll;
+    isModalDialogOpen.value = true;
+}
+
+async function deleteAll() {
+    await listStore.deleteAll();
+    isModalDialogOpen.value = false;
 }
 
 onUnmounted(() => {

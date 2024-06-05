@@ -1,5 +1,5 @@
 <template>
-    <nav id="navbar" class="p-4 border-b-2 border-b-pmca-primary">
+    <nav id="navbar" class="p-4 border-b-2 bg-white shadow-sm rounded-md">
         <div class="max-w-screen-2xl mx-auto">
             <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
                 <div class="mt-1">
@@ -83,15 +83,32 @@ const menus = [
                 };
             })
         ]
+    },
+    {
+        icon: 'ph:box-arrow-down',
+        title: 'Exportar',
+        onClick: () => {
+            navigateTo(ROUTES.export);
+        }
     }
 ] as any[];
 
 if (canImport.value) {
     menus.push({
-        icon: 'ph:upload-simple',
+        icon: 'ph:box-arrow-up',
         title: 'Importar',
         onClick: () => {
             navigateTo(ROUTES.import);
+        }
+    });
+}
+
+if (userStore.isAdmin) {
+    menus.push({
+        icon: 'ph:archive',
+        title: 'Backup',
+        onClick: () => {
+            navigateTo(ROUTES.backup);
         }
     });
 }
@@ -103,18 +120,6 @@ menus.push({
         accessPublic();
     }
 });
-
-
-if (userStore.isAdmin) {
-    menus.push({
-        icon: 'ph:database',
-        title: 'Backup',
-        onClick: () => {
-            navigateTo(ROUTES.backup);
-        }
-    });
-}
-
 
 menus.push({
     icon: 'ph:user-circle',

@@ -12,7 +12,7 @@
                 label="Incluir imagens"
             />
         </template>
-        <UIIcon name="ph:download" title="Exportar" />
+        <UIIcon name="ph:download" title="Exportar" class="w-7" />
     </UDropdown>
 </template>
 

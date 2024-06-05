@@ -394,6 +394,252 @@ class PrismaService {
     }
 
     /**
+     * Finds the tree - only available for Concept model
+     * @param nodeId - The node id
+     * @param select - The fields to select
+     * @returns The tree
+     * @throws ApiValidationError
+     */
+    async findTrees(
+        nodeId: number | null = null,
+        select: Select = ['id', 'name', 'parentId', 'nameSlug']
+    ) {
+        const depth = (await this.findTreeDepth(nodeId)) as number;
+
+        if (depth === 0) {
+            return [];
+        }
+
+        let nestedInclude: any = {
+            include: {
+                children: {
+                    select: select
+                }
+            }
+        };
+
+        let pointer = nestedInclude.include;
+
+        for (let i = 0; i < depth; i++) {
+            pointer.children.include = {
+                children: {
+                    select: select
+                }
+            };
+
+            pointer = pointer.children.include;
+        }
+
+        let where = {
+            id: nodeId
+        } as any;
+
+        if (nodeId === null) {
+            where = {
+                parentId: null
+            };
+        }
+
+        return await this.readMany({
+            where: where,
+            include: nestedInclude.include,
+            select: select
+        });
+    }
+
+    /**
+     * Finds the ancestors of a node - only available for Concept model
+     * @param nodeId - The node id
+     * @param select - The fields to select
+     * @param flatten - If it should return a flat array
+     * @returns The ancestors
+     * @throws ApiValidationError
+     */
+    async findAncestors(
+        nodeId: number,
+        select: Select = ['id', 'name', 'parentId', 'nameSlug'],
+        flatten = true
+    ) {
+        const depth = await this.findNodeDepth(nodeId);
+
+        if (depth === 0) {
+            return [];
+        }
+
+        let nestedInclude: any = {
+            include: {
+                parent: {
+                    select: select
+                }
+            }
+        };
+
+        let pointer = nestedInclude.include;
+
+        for (let i = 0; i < depth; i++) {
+            pointer.parent.include = {
+                parent: {
+                    select: select
+                }
+            };
+
+            pointer = pointer.parent.include;
+        }
+
+        let where = {
+            id: nodeId
+        } as any;
+
+        const result = await this.readMany({
+            where: where,
+            include: nestedInclude.include,
+            select: select
+        });
+
+        const parents = result.items[0].parent ? [result.items[0].parent] : [];
+
+        if (!flatten) {
+            return parents;
+        }
+
+        const ancestors = [];
+
+        for (const parent of parents) {
+            const copy = { ...parent };
+            delete copy.parent;
+            ancestors.push(copy);
+
+            let pointer = parent;
+
+            for (let i = 0; i < depth - 1; i++) {
+                if (pointer.parent) {
+                    const copy = { ...pointer.parent };
+                    delete copy.parent;
+                    ancestors.push(copy);
+                    pointer = pointer.parent;
+                }
+            }
+        }
+
+        return ancestors.reverse();
+    }
+
+    /**
+     * Finds the descendants of a node - only available for Concept model
+     * @param nodeId - The node id
+     * @param select - The fields to select
+     * @returns The descendants
+     * @throws ApiValidationError
+     */
+    async findDescendants(
+        nodeId: number,
+        select: Select = ['id', 'name', 'parentId', 'nameSlug']
+    ) {
+        const ids = await this.findTreeIds(nodeId);
+
+        return await this.readMany({
+            where: {
+                id: {
+                    in: ids
+                }
+            },
+            select: select
+        });
+    }
+
+    /**
+     * Finds the tree - only available for Concept model
+     * @param nodeId - The node id
+     * @returns The tree
+     * @throws ApiValidationError
+     */
+    async findTreeIds(parentId: number | null = null) {
+        return (await this.findTreeProperty(parentId, true)) as number[];
+    }
+
+    /**
+     * Finds the depth of the tree - only available for Concept model
+     * @param parentId - The parent id
+     * @returns The depth
+     * @throws ApiValidationError
+     */
+    async findTreeDepth(parentId: number | null = null) {
+        return (await this.findTreeProperty(parentId)) as number;
+    }
+
+    /**
+     * TODO: Merge with findTreeDepth function
+     * Finds the depth of the node - only available for Concept model
+     * @param nodeId - The node id
+     * @returns The depth
+     * @throws ApiValidationError
+     */
+    async findNodeDepth(nodeId: number) {
+        return (await this.findTreeProperty(nodeId, false, true)) as number;
+    }
+
+    /**
+     * Return depth of the tree or node or return the ids of the tree
+     * @param nodeId - The parent id
+     * @param returnIds - If it should return the ids
+     * @returns The tree
+     * @throws ApiValidationError
+     */
+    private async findTreeProperty(
+        nodeId: number | null = null,
+        returnIds = false,
+        returnNodeDepth = false
+    ) {
+        if (this.model !== 'Concept') {
+            throw new ApiValidationError(
+                'findTreeDepth is only available for Concept model'
+            );
+        }
+
+        if (nodeId !== null && typeof nodeId !== 'number') {
+            throw new ApiValidationError('parentId must be a number');
+        }
+
+        let column = 'parentId';
+        let joinOn = 'concept.parentId = ch.id';
+
+        if (returnNodeDepth && !returnIds) {
+            column = 'id';
+            joinOn = 'concept.id = ch.parentId';
+        }
+
+        const query = `
+                WITH RECURSIVE hierarchy AS (
+                SELECT id, parentId, name, 1 AS depth
+                FROM Concept
+                WHERE ${column} = ${nodeId}
+
+                UNION ALL
+
+                SELECT concept.id, concept.parentId, concept.name, ch.depth + 1
+                FROM Concept concept
+                JOIN hierarchy ch ON ${joinOn}
+            )
+        `;
+
+        if (!returnIds) {
+            const depth = (await prisma.$queryRawUnsafe(`
+                ${query}
+                SELECT max(depth) as depth FROM hierarchy;`)) as {
+                depth: number;
+            }[];
+
+            return Number(depth[0].depth);
+        } else {
+            const ids = (await prisma.$queryRawUnsafe(`
+                ${query}
+                SELECT id FROM hierarchy;`)) as { id: number }[];
+
+            return ids.map((id) => id.id);
+        }
+    }
+
+    /**
      * Processes the create or update request
      * @param model - The model
      * @param request - The request body

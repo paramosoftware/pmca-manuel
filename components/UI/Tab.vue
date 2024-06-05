@@ -31,7 +31,7 @@
         <div
             :key="index"
             v-if="index + 1 === activeTab"
-            class="flex-grow border border-gray-200 p-4 rounded-b-md shadow-md"
+            class="flex-grow border-t border-gray-200 p-4"
         >
             <slot :name="`tabPanel-${index + 1}`" />
         </div>
@@ -55,3 +55,9 @@ watch(activeTab, (value) => {
 
 // TODO: Add hash to URL to keep tab state on refresh (e.g. /concept/1#tab-2)
 </script>
+
+<style scoped>
+::-webkit-scrollbar {
+    height: 3px;
+}
+</style>

@@ -1,11 +1,9 @@
 <template>
     <div class="container mx-auto" v-if="concepts && concepts.length > 0">
-        <Splide :has-track="false" :options="options" class="p-5 sm:px-14">
-            <UITitle id="carousel-heading" class="my-5">
-                <span class="text-semibold text-3xl">
-                    Termos selecionados
-                </span>
-            </UITitle>
+        <Splide :has-track="false" :options="options" class="p-5 sm:px-14 mb-10 md:mb-5">
+            <h3 class="font-semibold text-xl md:text-3xl mb-3">
+                Termos selecionados
+            </h3>
             <SplideTrack>
                 <SplideSlide
                     v-for="concept in concepts"

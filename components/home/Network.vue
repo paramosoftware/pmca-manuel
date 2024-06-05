@@ -1,5 +1,8 @@
 <template>
-    <div class="mt-5 md:mx-auto min-h-[60vh] w-full">
+    <div class="mt-5 md:mx-auto min-h-[60vh] w-full rounded-tl overflow-hidden bg-gray-100" v-if="concepts.length != 0">
+        <h1 class="text-xl pb-8 md:text-3xl text-center font-bold mt-5">
+            Mapa de relacionamentos
+        </h1>
         <div id="network" class="w-full h-full">
             <svg
                 :viewBox="viewBox.join(' ')"
@@ -95,7 +98,12 @@ const viewBox = ref([0, 0, 0, 0]) as Ref<number[]>;
 
 onMounted(() => {
     const updateDimensions = () => {
-        const networkDiv = document.getElementById('network')!;
+        const networkDiv = document.getElementById('network');
+
+        if (!networkDiv) {
+            return;
+        }
+
         width.value = networkDiv.offsetWidth;
         height.value = networkDiv.offsetHeight;
         viewBox.value = [
@@ -157,7 +165,7 @@ onMounted(() => {
         .enter()
         .append('text')
         .style('text-anchor', 'middle')
-        .attr('fill', 'gray')
+        .attr('fill', '#3D405C')
         .text((d) => d.label)
         .attr('font-size', 10)
         .attr('dy', '.35em')
@@ -175,7 +183,7 @@ onMounted(() => {
         d3.select(this).attr('fill', blue);
         d3.select('#label-' + d.id)
             .attr('font-weight', 'normal')
-            .attr('fill', 'gray');
+            .attr('fill', '#3D405C');
     });
 
     node.call(
