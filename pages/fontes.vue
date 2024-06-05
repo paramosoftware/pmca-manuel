@@ -8,6 +8,9 @@
                     class="flex flex-row mb-5"
                     v-html="reference.nameRich"
                 ></div>
+                <div v-if="references.length === 0" class="text-center text-gray-500 mt-10">
+                    Nenhuma fonte encontrada.
+                </div>
             </div>
         </div>
     </PublicPage>
@@ -31,15 +34,20 @@ const { data, pending, error } = (await useFetchWithBaseUrl(
     error: Ref<Error | undefined>;
 };
 
-const references = ref(data.value.items) as Ref<Reference[]>;
+const references = ref([]) as Ref<Reference[]>;
+
+if (data.value) {
+    references.value = data.value.items as Reference[];
+}
+
 </script>
 
 <style scoped>
-div>>>a {
+div :deep(a) {
     color: #1B75D0;
     text-decoration: underline;
 }
-div>>>a:hover {
-    color: #155CA2
+div :deep(a:hover) {
+    color: #155CA2;
 }
 </style>

@@ -217,11 +217,11 @@ const isEmpty = computed(() => {
 </script>
 
 <style scoped>
-div>>>a {
+div :deep(a) {
     color: #1B75D0;
     text-decoration: underline;
 }
-div>>>a:hover {
-    color: #155CA2
+div :deep(a:hover) {
+    color: #155CA2;
 }
 </style>

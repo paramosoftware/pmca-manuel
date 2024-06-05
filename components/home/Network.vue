@@ -1,5 +1,5 @@
 <template>
-    <div class="mt-5 md:mx-auto min-h-[60vh] w-full rounded-tl overflow-hidden bg-gray-100">
+    <div class="mt-5 md:mx-auto min-h-[60vh] w-full rounded-tl overflow-hidden bg-gray-100" v-if="concepts.length != 0">
         <h1 class="text-xl pb-8 md:text-3xl text-center font-bold mt-5">
             Mapa de relacionamentos
         </h1>
@@ -98,7 +98,12 @@ const viewBox = ref([0, 0, 0, 0]) as Ref<number[]>;
 
 onMounted(() => {
     const updateDimensions = () => {
-        const networkDiv = document.getElementById('network')!;
+        const networkDiv = document.getElementById('network');
+
+        if (!networkDiv) {
+            return;
+        }
+
         width.value = networkDiv.offsetWidth;
         height.value = networkDiv.offsetHeight;
         viewBox.value = [

@@ -1,5 +1,5 @@
 <template>
-    <div class="container mb-auto mx-auto">
+    <div class="container mx-auto">
         <section id="home" class="md:flex">
             <div class="p-2 md:p-4 mb-auto mx-auto">
                 <div class="text-center">
