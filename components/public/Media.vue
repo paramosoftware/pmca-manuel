@@ -8,9 +8,10 @@
                     class="items-center flex"
                 >
                     <UIImg
-                        :src="image"
+                        :src="image.src"
                         class="flex-none cursor-zoom-in object-cover w-full h-full mx-2"
                         quality="90"
+                        :alt="image.alt"
                     />
                 </SplideSlide>
             </Splide>
@@ -22,9 +23,10 @@
                 class="items-center flex"
             >
                 <UIImg
-                    :src="image"
+                    :src="image.src"
                     class="flex-none cursor-pointer object-cover w-full h-full mx-2"
                     quality="90"
+                    :alt="image.alt"
                 />
             </SplideSlide>
         </Splide>
@@ -40,7 +42,7 @@ import { Splide, SplideSlide } from '@splidejs/vue-splide';
 
 defineProps({
     images: {
-        type: Array as PropType<string[]>,
+        type: Array as PropType<ImgHtml[]>,
         required: true,
         default: () => []
     }

@@ -245,4 +245,12 @@ declare global {
         sourceEvent: string;
         expandedItems: TreeNode[];
     }
+
+    interface ImgHtml {
+        src: string;
+        alt: string;
+        title?: string;
+        width?: number;
+        height?: number;
+    }
 }

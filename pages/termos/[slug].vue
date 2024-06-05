@@ -152,12 +152,12 @@ const description = ref(
         : ''
 );
 
-const images = ref<string[]>([]);
+const images = ref<ImgHtml[]>([]);
 const translations = ref<{ name: string; link: string }[]>([]);
 
 if (concept.value?.media) {
     concept.value.media.forEach((media: ConceptMedia) => {
-        images.value.push(media.name);
+        images.value.push({ src: media.name!, alt: media.subtitle ?? ''});
     });
 }
 
@@ -195,7 +195,7 @@ if (images.value.length > 0) {
             '//' +
             window.location.host +
             '/media/' +
-            images.value[0];
+            images.value[0].src;
     }
 }
 
