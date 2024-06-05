@@ -2,13 +2,14 @@
     <div class="w-full h-full whitespace-nowrap text-md overflow-auto" ref="treeViewRef">
         <ul>
             <li>
-                <div v-for="node in treeRef" class="mb-2">
+                <div v-for="(node, index) in treeRef" class="mb-2">
                     <UITreeNode
                         :node="node"
                         :level="1"
                         :concept-store="conceptStore"
                         :show-position="showPosition"
                         :load-expanded="true"
+                        :position-among-siblings="index + 1"
                     />
                 </div>
             </li>
