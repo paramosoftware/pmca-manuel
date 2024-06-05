@@ -60,19 +60,17 @@ const originalFormFieldsJson = ref('');
 const isCreationForm = ref(useRoute().fullPath.includes('criar'));
 const isFormSaved = ref(true);
 const isFieldChanged = ref(false);
-const fieldsData =  reactive(props.formStore.getFieldsData());
+const fieldsData = reactive(props.formStore.getFieldsData());
 
-const fieldsDataStringified = computed (() => {
+const fieldsDataStringified = computed(() => {
     return JSON.stringify(fieldsData);
-})
-
+});
 
 const fieldsDataWatcher = watch(fieldsDataStringified, (newValue, oldValue) => {
-
     if (newValue == originalFormFieldsJson.value) {
         isFieldChanged.value = false;
-
     }
+    
     if (newValue != originalFormFieldsJson.value) {
         isFieldChanged.value = true;
 
@@ -81,21 +79,23 @@ const fieldsDataWatcher = watch(fieldsDataStringified, (newValue, oldValue) => {
                 return;
             }
             isFormSaved.value = false;
-   
         }
         return;
-    } 
+    }
 
     isFieldChanged.value = false;
 
     return;
 });
 
-// @ts-ignore 
-const showExitConfirmation = (event?: BeforeUnloadEvent, next?: NavigationGuardNext) => {
+const showExitConfirmation = (
+    event?: BeforeUnloadEvent,
+    // @ts-ignore
+    next?: NavigationGuardNext
+) => {
     if (next) {
         const answer = window.confirm(
-            'Você tem alterações não salvas. Realmente deseja sair?'
+            'Existem alterações não salvas. Realmente deseja sair?'
         );
 
         if (answer) {
@@ -104,48 +104,41 @@ const showExitConfirmation = (event?: BeforeUnloadEvent, next?: NavigationGuardN
             next(false);
         }
         return;
-     
     }
 
     if (event) {
         event.preventDefault();
         return;
     }
-
-}
+};
 
 const shouldPopupAppear = computed(() => {
-    const condition = isFieldChanged.value && !isFormSaved.value; 
-    return condition
-    
-}) 
+    const condition = isFieldChanged.value && !isFormSaved.value;
+    return condition;
+});
 
 const confirmSave = () => {
     isFormSaved.value = true;
     isFieldChanged.value = false;
-    originalFormFieldsJson.value = getcurrentFormFieldsJson();
-    
+    originalFormFieldsJson.value = getCurrentFormFieldsJson();
 };
 
-const getcurrentFormFieldsJson = () => {
+const getCurrentFormFieldsJson = () => {
     return JSON.stringify(props.formStore.getFieldsData());
 };
 
 onBeforeMount(() => {
-    originalFormFieldsJson.value = getcurrentFormFieldsJson();
+    originalFormFieldsJson.value = getCurrentFormFieldsJson();
 });
-
 
 onMounted(() => {
     window.addEventListener(`beforeunload`, (event) => {
-        
         if (shouldPopupAppear.value) {
-            showExitConfirmation(event)
-            return
+            showExitConfirmation(event);
+            return;
         }
 
         return;
-
     });
 });
 
@@ -160,8 +153,7 @@ onBeforeRouteLeave((to, from, next) => {
 onBeforeUnmount(() => {
     fieldsDataWatcher();
     isFieldChanged.value = false;
-
-})
+});
 
 const urlList = ROUTES.list + labelSlug.value;
 const urlCreate = ROUTES.create + labelSlug.value;
@@ -185,7 +177,7 @@ const buttonLabel = computed(() => {
 });
 
 async function submit() {
-    const id = await props.formStore.save();  
+    const id = await props.formStore.save();
 
     if (id && !isAuxiliary) {
         confirmSave();
@@ -199,7 +191,6 @@ async function submit() {
             });
         }
         await props.formStore.load(model.value, id);
-
     }
 }
 
