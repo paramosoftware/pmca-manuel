@@ -2,7 +2,7 @@
     <div class="container mx-auto" v-if="concepts && concepts.length > 0">
         <Splide :has-track="false" :options="options" class="p-5 sm:px-14">
             <UITitle id="carousel-heading" class="my-5">
-                <span class="text-semibold text-3xl">
+                <span class="text-semibold text-xl md:text-3xl">
                     Termos selecionados
                 </span>
             </UITitle>

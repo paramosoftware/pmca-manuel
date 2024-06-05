@@ -1,7 +1,8 @@
 <template>
-    <div class="mt-5 md:mx-auto min-h-[60vh] w-full rounded-tl overflow-hidden">
-        <h1 class="text-4xl pb-8 text-center md:text-5xl font-bold">Mapa de relacionamento</h1>
-
+    <div class="mt-5 md:mx-auto min-h-[60vh] w-full rounded-tl overflow-hidden bg-gray-100">
+        <h1 class="text-xl pb-8 md:text-3xl text-center font-bold mt-5">
+            Mapa de relacionamentos
+        </h1>
         <div id="network" class="w-full h-full">
             <svg
                 :viewBox="viewBox.join(' ')"
@@ -159,7 +160,7 @@ onMounted(() => {
         .enter()
         .append('text')
         .style('text-anchor', 'middle')
-        .attr('fill', 'gray')
+        .attr('fill', '#3D405C')
         .text((d) => d.label)
         .attr('font-size', 10)
         .attr('dy', '.35em')
@@ -177,7 +178,7 @@ onMounted(() => {
         d3.select(this).attr('fill', blue);
         d3.select('#label-' + d.id)
             .attr('font-weight', 'normal')
-            .attr('fill', 'gray');
+            .attr('fill', '#3D405C');
     });
 
     node.call(

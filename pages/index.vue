@@ -20,7 +20,7 @@
 
     <HomeCarousel />
 
-    <HomeNetwork class="mb-5 container mx-auto"/>
+    <HomeNetwork class="mx-auto"/>
 </template>
 
 <script setup lang="ts">
