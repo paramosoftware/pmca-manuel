@@ -210,7 +210,7 @@ export const importData = (function () {
                             .map((reference: string) => {
                                 return {
                                     name: reference,
-                                    nameRich: reference
+                                    nameRich: '<p>' + reference + '</p>'
                                 };
                             });
                         break;
@@ -325,7 +325,7 @@ export const importData = (function () {
                             if (reference) {
                                 concept.references.push({
                                     name: reference,
-                                    nameRich: reference
+                                    nameRich: '<p>' + reference + '</p>'
                                 });
                             }
                         });
@@ -450,7 +450,7 @@ export const importData = (function () {
                         // @ts-ignore
                         concept.references.push({
                             name: attribute['skos:referenceNote'][0]['#text'],
-                            nameRich: attribute['skos:referenceNote'][0]['#text']
+                            nameRich: '<p>' + attribute['skos:referenceNote'][0]['#text'] + '</p>'
                         });
                     }
 
