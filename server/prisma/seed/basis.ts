@@ -258,6 +258,7 @@ async function createDefaultGroups(userId: string) {
             update: true,
             delete: true,
             import: false,
+            batch: false,
             resourceId: resource.id
         };
 
@@ -271,6 +272,7 @@ async function createDefaultGroups(userId: string) {
 
         const permissionCopy = JSON.parse(JSON.stringify(permission));
         permissionCopy.import = true;
+        permissionCopy.batch = true;
         adminGroup.permissions.push(permissionCopy);
     }
 

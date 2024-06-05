@@ -1,41 +1,17 @@
 <template>
-    <footer class="text-white bg-pmca-primary-light shadow-md">
-
-        <div class="max-w-screen-2xl mx-auto">
-            <div class="grid md:grid-cols-2 p-4">
-                <div class="flex flex-col">
-                    <h1 class="text-lg">
-                        {{title}}
-                        <span class="block" v-if="blockTitle">
-                            {{ blockTitle }}
-                        </span>
-                    </h1>
-                    <UIIcon name="ci:github" class="text-white p-1" />
-                    <div class="text-start mt-5">
-                        <p class="text-sm text-start">Projeto Manuel Correia de Andrade (PMCA)</p>
-                        <p class="text-sm text-start">Desenvolvimento por Páramo Software</p>
-                        <p class="text-sm text-start">2023</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-5 mt-5 md:mt-0">
-                    <div class="col-span-5 text-sm">Apoio:</div>
-                    <div class="items-bottom justify-bottom flex">
-                        <img src="/icons/logo-bndes.svg" alt="Logo" class="p-2 sm:p-4" />
-                    </div>
-                    <div class="items-bottom justify-bottom flex">
-                        <img src="/icons/logo-lic.svg" alt="Logo" class="sm:p-3" />
-                    </div>
-                    <div class="items-bottom justify-bottom flex">
-                        <img src="/icons/logo-gf.svg" alt="Logo" class="p-2 sm:p-3" />
-                    </div>
-                    <div class="items-bottom justify-bottom flex">
-                        <img src="/icons/logo-fusp.png" alt="Logo" class="p-4 object-scale-down" />
-                    </div>
-                    <img src="/icons/logo-ieb.png" alt="Logo" class="p-2 sm:p-4 h-13" />
-                </div>
+    <footer
+        class="p-4 border-t-2 bg-white shadow-md rounded-md text-gray-400 text-xs"
+    >
+        <div class="md:flex flex-row justify-center md:justify-between items-center">
+            <div class="flex flex-col items-center md:items-start">
+                <p>Nome da aplicação</p>
+                <p>Versão x.x.x</p>
+            </div>
+            <div class="flex flex-col items-center md:items-start">
+                <p>Projeto Manuel Correia de Andrade (PMCA)</p>
+                <p>Desenvolvimento por Páramo Software</p>
             </div>
         </div>
-
     </footer>
 </template>
 
@@ -48,7 +24,7 @@ const title = ref(config.public.appName);
 const blockTitle = ref('');
 
 if (title.value.length > 30) {
-  title.value = title.value.substring(0, title.value.indexOf(' ', 30));
-  blockTitle.value = config.public.appName.replace(title.value, '');
+    title.value = title.value.substring(0, title.value.indexOf(' ', 30));
+    blockTitle.value = config.public.appName.replace(title.value, '');
 }
 </script>

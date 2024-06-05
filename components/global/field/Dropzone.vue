@@ -3,6 +3,9 @@
         <div class="mb-5 text-end">
             <UIButton @click="uploadFiles" class="mx-auto"> Upload </UIButton>
         </div>
+
+        <slot></slot>
+
         <vue-dropzone
             ref="myVueDropzone"
             id="dropzone"
@@ -30,6 +33,10 @@ const props = defineProps({
     maxFiles: {
         type: Number,
         default: 20
+    },
+    params: {
+        type: Object,
+        default: () => ({})
     }
 });
 
@@ -58,6 +65,9 @@ const dropzoneOptions = {
             'X-CSRF-Token',
             csrfToken.value ? csrfToken.value : ''
         );
+        for (const key in props.params) {
+            formData.append(key, props.params[key]);
+        }
         emit('start');
     },
     success: function (file, response) {

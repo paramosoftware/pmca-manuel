@@ -1,9 +1,11 @@
 <template>
-    <PublicGrid
-        :title="title"
-        :user-selection="true"
-        :has-tree="false"
-    />
+    <PublicPage :show-breadcrumb="false">
+        <PublicGrid
+            :title="title"
+            :user-selection="true"
+            :has-tree="false"
+        />
+    </PublicPage>
 </template>
 
 <script setup lang="ts">

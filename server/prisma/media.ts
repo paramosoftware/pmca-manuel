@@ -9,7 +9,7 @@ import getDataFolderPath from '~/utils/getDataFolderPath';
 
 export async function uploadMedia(
     model: string,
-    id: string | number,
+    id: ID,
     body: any,
     req: express.Request,
     res: express.Response,

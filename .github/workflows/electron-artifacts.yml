@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - dev
+      - generate-electron-artifacts
 
 jobs:
   publish-electron-artifacts:
@@ -36,7 +36,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: '8.15.6'
+          version: '9.1.14'
       
       - name: Build electron
         run: pnpm electron:build

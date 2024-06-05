@@ -1,5 +1,15 @@
 <template>
-    <NuxtImg
+    <img 
+        :src="srcImg"
+        :alt="alt"
+        :class="class"
+        :width="width"
+        :height="height"
+        :loading="lazy ? 'lazy' : 'eager'"
+        v-if="srcImg === placeholderFile"
+    />
+
+    <NuxtImg 
         :src="srcImg"
         :alt="alt"
         :class="class"
@@ -9,11 +19,14 @@
         :loading="lazy ? 'lazy' : 'eager'"
         :format="format"
         :placeholder="placeholder"
+        v-else
     />
 </template>
 
 <script setup lang="ts">
 const config = useRuntimeConfig();
+
+const placeholderFile = '/placeholder.png';
 
 const props = defineProps({
     src: {
@@ -61,6 +74,6 @@ const srcImg = ref(props.src);
 if (props.src) {
     srcImg.value = `${config.public.baseURL}/api/media/${props.src}`;
 } else {
-    srcImg.value = '/placeholder.png';
+    srcImg.value = placeholderFile;
 }
 </script>

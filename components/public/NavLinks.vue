@@ -63,6 +63,10 @@ const links = ref([
         path: '/termos'
     },
     {
+        name: 'Fontes',
+        path: '/fontes'
+    },
+    {
         name: 'Exportar',
         path: '/exportar'
     }

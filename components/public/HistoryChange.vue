@@ -33,8 +33,8 @@
                 </UTable>
             </template>
 
-            <div v-else class="flex justify-center items-center mt-4 h-48">
-                <p class="text-pmca-primary">Nenhuma alteração registrada.</p>
+            <div v-else class="flex justify-center items-center mt-4 h-48 text-gray-400">
+                <p>Nenhuma alteração registrada.</p>
             </div>
         </div>
     </div>

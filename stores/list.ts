@@ -25,6 +25,9 @@ export const useListStore = defineStore('list', () => {
     const canDelete = computed(
         () => userStore.permissions[resourceStore.model]?.delete
     );
+    const canBatch = computed(
+        () => userStore.permissions[resourceStore.model]?.batch
+    );
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
 
@@ -121,6 +124,32 @@ export const useListStore = defineStore('list', () => {
         await fetch(resourceStore.name);
     }
 
+    async function deleteAll() {
+        const urlDelete = computed(() => `/api/${resourceStore.model}/query`);
+
+        const { data, error } = (await useFetchWithBaseUrl(urlDelete, {
+            method: 'DELETE'
+        })) as { data: Ref<{ error: string }>; error: Ref<Error | undefined> };
+
+        pending.value = pending.value;
+
+        if (error.value) {
+            toast.add({
+                title: 'Aconteceu algum problema ao excluir os itens',
+                ui: { rounded: 'rounded-sm', padding: 'p-5' }
+            });
+        }
+
+        if (data.value) {
+            toast.add({
+                title: 'Itens excluídos com sucesso',
+                ui: { rounded: 'rounded-sm', padding: 'p-5' }
+            });
+        }
+
+        await fetch(resourceStore.name);
+    }
+
     function destroy() {
         destroyStore(resourceStore);
     }
@@ -143,8 +172,10 @@ export const useListStore = defineStore('list', () => {
         canCreate,
         canUpdate,
         canDelete,
+        canBatch,
         sortByName,
         deleteItem,
+        deleteAll,
         fetch,
         destroy
     };
