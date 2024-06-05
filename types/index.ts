@@ -127,6 +127,7 @@ declare global {
         parentId: ID;
         parent?: HierarchicalItem;
         children?: any[];
+        position?: number;
     };
 
     export type PaginatedResponse = {
@@ -148,6 +149,7 @@ declare global {
         children: TreeNode[];
         isLeaf?: boolean;
         parent?: TreeNode;
+        position: number;
     };
 
     export type DataTransferFormat = 'json' | 'xml' | 'csv' | 'xlsx';
@@ -237,4 +239,10 @@ declare global {
         icon?: string;
         active?: boolean;
     };
+
+    interface FinderExpandEvent {
+        expanded: ID[];
+        sourceEvent: string;
+        expandedItems: TreeNode[];
+    }
 }

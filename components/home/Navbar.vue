@@ -1,10 +1,10 @@
 <template>
-  <nav id="navbar" class="p-4 border-b-2 border-b-pmca-primary mb-4">
+  <nav id="navbar" class="p-4 border-b-2 bg-white shadow-sm rounded-md mb-10">
         <div class="max-w-screen-2xl mx-auto">
       <div class="grid grid-cols-2 md:grid-cols-8 content-end items-end">
         <div class="mb-1">
           <NuxtLink to="/">
-            <img src="/icons/icon-pmca.png " alt="Logo" class="w-14 h-14" />
+            <img src="/icons/icon-pmca.png" alt="Logo" class="w-14 h-14" />
           </NuxtLink>
         </div>
         <button @click="showMenu = !showMenu"

@@ -192,7 +192,8 @@ export const useConceptStore = defineStore('concept', () => {
             method: 'GET',
             params: {
                 pageSize: -1,
-                select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId'])
+                select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId', 'position']),
+                orderBy: JSON.stringify({ position: 'asc' })
             },
             transform: (data: PaginatedResponse) => {
                 if (!data) {

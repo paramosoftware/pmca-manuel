@@ -4,7 +4,7 @@
             {{ name }}
             <client-only>
                 <UIIcon
-                    class="text-pmca-accent cursor-pointer ml-2"
+                    class="text-pmca-accent cursor-pointer ml-2 w-7"
                     :name="
                         conceptSelected
                             ? 'ph:bookmark-simple-fill'

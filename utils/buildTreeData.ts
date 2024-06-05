@@ -14,6 +14,7 @@ export function buildTreeData(
         id: 'root',
         name: 'Root',
         parentId: null,
+        position: 1,
         children: []
     });
     let nodeIdExist = false;
@@ -76,6 +77,7 @@ export function buildTreeData(
                     id: item.parentId,
                     name: tempLabel,
                     parentId: null,
+                    position: item.position || 1,
                     children: []
                 },
                 nodeIdToExpand,
@@ -141,7 +143,8 @@ function createNode(
         slug: item.labelSlug || item.nameSlug || null,
         parentId: item.parentId || null,
         expanded: item.id === nodeIdToExpand,
-        children: []
+        position: item.position || 1,
+        children: [],
     } as TreeNode;
 
     // @ts-ignore

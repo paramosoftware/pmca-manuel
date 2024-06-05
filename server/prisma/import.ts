@@ -144,6 +144,7 @@ export const importData = (function () {
             return;
         }
 
+        let position = 1;
         for (const item of items) {
             let oldId =
                 item.id ??
@@ -157,7 +158,6 @@ export const importData = (function () {
             }
 
             const concept = {} as any;
-
             concept.translations = [];
             concept.variations = [];
             concept.references = [];
@@ -225,9 +225,14 @@ export const importData = (function () {
                                 };
                             });
                         break;
+
+                    case camelCaseMap.get('position'):
+                        concept.position = item[key] ?? position;
+                        break;
                 }
             }
 
+            position++;
             await upsertConcept(oldId, concept, update);
         }
     }
@@ -277,6 +282,7 @@ export const importData = (function () {
             concept.translations = [];
             concept.variations = [];
             concept.references = [];
+            concept.position = i;
 
             for (const header of headerRow) {
                 const headerIndex = headerRow.indexOf(header);
@@ -349,6 +355,10 @@ export const importData = (function () {
                             }
                         }
                         break;
+
+                    case labelMap.get('position'):
+                        concept.position = parseNumber(value) ?? i;
+                        break;
                 }
             }
 
@@ -362,6 +372,7 @@ export const importData = (function () {
         const result = xmlParser.parse(xml);
         const data = result[0]['rdf:RDF'] ?? [];
 
+        let position = 1;
         for (const item of data) {
             if (item['skos:Concept']) {
                 let oldId = item[':@']?.['@_rdf:about'] ?? undefined;
@@ -379,6 +390,7 @@ export const importData = (function () {
                 concept.variations = [];
                 concept.references = [];
                 concept.name = '';
+                concept.position = position;
 
                 for (const attribute of conceptAttributes) {
                     if (attribute['skos:prefLabel']) {
@@ -450,6 +462,7 @@ export const importData = (function () {
                     }
                 }
 
+                position++;
                 await upsertConcept(oldId, concept, update);
             }
         }

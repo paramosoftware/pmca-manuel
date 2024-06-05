@@ -7,7 +7,7 @@
 
         <p class="mt-4">
             É possível importar termos para o sistema nos formatos:
-            <strong>JSON, CSV, XLXS, SKOS</strong> (extensão .xml) e
+            <strong>JSON, CSV, XLXS, SKOS</strong> (extensão .xml ou .rdf) e
             <strong>ZIP</strong> (contendo um dos formatos anteriores).
         </p>
         <p class="mt-4">
@@ -16,6 +16,13 @@
             cada formato. Arquivos exportados pelo sistema (pelo site ou outras
             instâncias), em qualquer formato, podem ser utilizados para
             importação sem necessidade de alterações.
+        </p>
+
+        <p class="mt-4">
+            A propriedade/coluna <strong>posicao</strong> é opcional e deve ser um
+            número inteiro, representando a posição relativa do termo em relação 
+            aos seus irmãos. Caso não seja informada, o sistema irá atribuir um
+            valor automaticamente com base na ordem de importação.
         </p>
 
         <p class="mt-4">

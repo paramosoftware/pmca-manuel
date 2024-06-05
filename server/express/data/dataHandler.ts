@@ -128,7 +128,7 @@ const dataHandler = async (
                 case 'PUT':
                     if (id) {
                         response = prismaService.updateOne(id, request);
-                    } else if (isAdmin) {
+                    } else {
                         response = prismaService.updateMany(request);
                     }
                     break;

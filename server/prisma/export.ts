@@ -11,6 +11,7 @@ import PrismaService from './PrismaService';
 
 export const exportData = (function () {
     // TODO: Convert to class
+    // TODO: Validate if is public (and set only published in service)
 
     const resourceURI = '#'; // TODO: Change this to the correct URI
     const conceptSchemeId = 'A0'; // TODO: Create real concept scheme id
@@ -198,7 +199,10 @@ export const exportData = (function () {
                 pageSize,
                 page: i + 1,
                 include,
-                where
+                where,
+                orderBy: {
+                    position: 'asc'
+                }
             });
 
             if (!data) {
@@ -518,8 +522,8 @@ export const exportData = (function () {
             }
         }
 
-        if (concept.entries && concept.entries.length > 0) {
-            for (const relatedEntry of concept.entries) {
+        if (concept.concepts && concept.concepts.length > 0) {
+            for (const relatedEntry of concept.concepts) {
                 newConcept['skos:Concept'].push({
                     'skos:related': '',
                     ':@': {
@@ -623,6 +627,7 @@ export const exportData = (function () {
         newItem.definition = item.definition;
         newItem.notes = item.notes;
         newItem.parent = item.parent?.nameSlug;
+        newItem.position = item.position;
         newItem.references =
             item.references?.map((reference: Reference) => reference.name) ??
             [];

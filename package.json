@@ -18,7 +18,7 @@
     "generate-env": "node scripts/generate-env.js",
     "prisma:setup": "pnpm prisma generate && pnpm prisma migrate deploy && pnpm prisma db seed",
     "scaffold": "pnpm install && pnpm generate-env && pnpm prisma generate && pnpm prisma db push --accept-data-loss && pnpm prisma db seed",
-    "scaffold:soft": "pnpm install && pnpm prisma:setup", 
+    "scaffold:soft": "pnpm install && pnpm prisma:setup",
     "web:prod": "pnpm build && pnpm prisma:setup",
     "electron:build": "pnpm scaffold && pnpm build && electron-builder",
     "electron:linux": "pnpm scaffold && pnpm build && electron-builder --linux",
@@ -121,7 +121,7 @@
     "uuid": "^9.0.1",
     "v-viewer": "^3.0.13",
     "vue2-dropzone-vue3": "^1.1.0",
-    "vuedraggable": "next"
+    "vuedraggable": "^4.1.0"
   },
   "pnpm": {
     "overrides": {
