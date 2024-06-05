@@ -4,7 +4,7 @@
             <PublicBreadcrumb :links="breadcrumb" />
             <PublicFullCardTitle :id="id" :name="concept!.name" class="mb-4" />
             <div class="flex flex-row">
-                <div class="pr-2 w-full conceptContainer">
+                <div class="pr-2 w-full">
                     <UITab :tabs="['Termo', 'Histórico de alterações']">
                         <template #tabPanel-1>
                             <div class="flex flex-col lg:flex-row gap-5">
@@ -13,7 +13,7 @@
                                         class="flex justify-center mt-4 items-center w-full h-48"
                                     >
                                         <p
-                                            class="text-pmca-primary text-center"
+                                            class="text-gray-400 text-center"
                                         >
                                             Nenhuma informação cadastrada.
                                         </p>
@@ -213,13 +213,3 @@ useHead({
     ]
 });
 </script>
-
-<style>
-.conceptContainer a {
-    color: blue;
-    text-decoration: underline;
-}
-.conceptContainer a:hover {
-    color: rgb(85, 85, 255);
-}
-</style>
