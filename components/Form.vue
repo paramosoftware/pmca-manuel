@@ -66,7 +66,8 @@ const fieldsDataStringified = computed (() => {
     return JSON.stringify(fieldsData);
 })
 
-watch(fieldsDataStringified, (newValue, oldValue) => {
+
+const fieldsDataWatcher = watch(fieldsDataStringified, (newValue, oldValue) => {
 
     if (newValue == originalFormFieldsJson.value) {
         isFieldChanged.value = false;
@@ -89,6 +90,7 @@ watch(fieldsDataStringified, (newValue, oldValue) => {
 
     return;
 });
+
 // @ts-ignore 
 const showExitConfirmation = (event?: BeforeUnloadEvent, next?: NavigationGuardNext) => {
     if (next) {
@@ -155,6 +157,11 @@ onBeforeRouteLeave((to, from, next) => {
     }
 });
 
+onBeforeUnmount(() => {
+    fieldsDataWatcher();
+    isFieldChanged.value = false;
+
+})
 
 const urlList = ROUTES.list + labelSlug.value;
 const urlCreate = ROUTES.create + labelSlug.value;
@@ -178,9 +185,10 @@ const buttonLabel = computed(() => {
 });
 
 async function submit() {
-    const id = await props.formStore.save();
+    const id = await props.formStore.save();  
 
     if (id && !isAuxiliary) {
+        confirmSave();
         router.push(ROUTES.edit + labelSlug.value + '/' + id);
 
         if (process.client) {
@@ -190,8 +198,8 @@ async function submit() {
                 behavior: 'smooth'
             });
         }
-
         await props.formStore.load(model.value, id);
+
     }
 }
 
