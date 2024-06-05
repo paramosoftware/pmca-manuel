@@ -5,7 +5,7 @@
     >
         <ol class="flex items-center gap-x-1.5">
             <li
-                class="flex items-center gap-x-1.5 text-gray-500 text-sm leading-6 min-w-0"
+                class="flex items-center gap-x-1.5 text-gray-400 text-sm leading-6 min-w-0"
                 v-for="(link, index) in linkItems"
             >
                 <NuxtLink
@@ -23,7 +23,7 @@
                 <span v-if="index < linkItems.length - 1">
                     <UIIcon
                         name="ph:caret-right"
-                        class="text-gray-500 w-3 h-3"
+                        class="w-3 h-3"
                     />
                 </span>
             </li>

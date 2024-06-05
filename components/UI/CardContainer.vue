@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col justify-center items-center m-5 mb-auto">
-        <div class="container mx-auto p-5 bg-white mb-5 max-w-screen-lg" :class="css">
+        <div class="container mx-auto p-5 xl:p-10 2xl:p-15 bg-white mb-5 max-w-screen-lg min-h-[75vh]" :class="css">
 
         <slot name="header" />
 

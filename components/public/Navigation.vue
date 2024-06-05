@@ -102,7 +102,7 @@
         </aside>
 
         <main
-            :class="mainDivClassClose +  ' w-full shadow-lg border border-gray-200 rounded-md bg-white xl:ml-5 p-4 h-full'"
+            :class="mainDivClassClose +  ' w-full shadow-lg border border-gray-200 rounded-md bg-white xl:ml-5 p-5 min-h-[75vh] h-full'"
             ref="mainRef"
             id="main-navigation"
         >

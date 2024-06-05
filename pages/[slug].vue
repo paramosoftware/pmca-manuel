@@ -1,18 +1,17 @@
 <template>
-    <article>
-        <div class="flex flex-col justify-left">
-            <UIPageTitle>
-                {{ page.name }}
-            </UIPageTitle>
-            <p class="text-sm text-end text-gray-500 mb-5">
-                Atualizado em
-                {{ new Date(page.updatedAt).toLocaleDateString('pt-BR') }} às
-                {{ new Date(page.updatedAt).toLocaleTimeString('pt-BR') }}
-            </p>
+    <PublicPage :title="page.name">
+        <article>
+            <div class="flex flex-col justify-left">
+                <p class="text-sm text-end text-gray-500 mb-5">
+                    Atualizado em
+                    {{ new Date(page.updatedAt).toLocaleDateString('pt-BR') }} às
+                    {{ new Date(page.updatedAt).toLocaleTimeString('pt-BR') }}
+                </p>
 
-            <section v-html="page.content"></section>
-        </div>
-    </article>
+                <section v-html="page.content"></section>
+            </div>
+        </article>
+    </PublicPage>
 </template>
 
 <script setup lang="ts">

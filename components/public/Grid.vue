@@ -1,7 +1,7 @@
 <template>
     <div class="sm:flex sm:justify-between sm:items-center">
         <UIPageTitle>
-            <PublicBreadcrumb :add-concept-link="false" />
+            <PublicBreadcrumb :add-concept-link="userSelection" />
             {{ title }}
         </UIPageTitle>
         <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">

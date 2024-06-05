@@ -13,19 +13,6 @@
                     <div class="col-span-4 md:col-span-7 mt-5 text-start">
                         <PublicSearchBar />
                     </div>
-                    <div class="flex justify-evenly mt-6">
-                        <NuxtLink to="/termos?modo=hier">
-                            <UIButton>
-                                <span class="text-xl">Classificação</span>
-                            </UIButton>
-                        </NuxtLink>
-
-                        <NuxtLink to="/termos?modo=alfa">
-                            <UIButton>
-                                <span class="text-xl">Lista alfabética</span>
-                            </UIButton>
-                        </NuxtLink>
-                    </div>
                 </div>
             </div>
         </section>
