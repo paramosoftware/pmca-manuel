@@ -14,7 +14,7 @@ module.exports = {
     script: ".output/server/index.mjs",
     watch: true,
     node_args: "-r dotenv/config",
-    log_file: fileLog.toString(), // TODO: Not working
+    log_file: fileLog.toString(), // TODO: Not working [DISCUSS]
     time: true
   }]
 }

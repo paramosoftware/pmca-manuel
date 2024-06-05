@@ -119,9 +119,9 @@ const props = defineProps({
     }
 });
 
-// TODO: transform the internal search into a filter of the large search
-// TODO: filter tree view based on search
-// TODO: add transition/animations to page change
+// TODO: transform the internal search into a filter of the large search [PMCA-406]
+// TODO: filter tree view based on search [DISCUSS]
+// TODO: add transition/animations to page change [PMCA-405]
 
 const [grid] = useAutoAnimate({ duration: 250 });
 

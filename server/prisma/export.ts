@@ -10,11 +10,11 @@ import { useCamelCase } from '~/utils/useCamelCase';
 import PrismaService from './PrismaService';
 
 export const exportData = (function () {
-    // TODO: Convert to class
-    // TODO: Validate if is public (and set only published in service)
+    // TODO: Convert to class [PMCA-399]
+    // TODO: Validate if is public (and set only published in service) [ASK]
 
-    const resourceURI = '#'; // TODO: Change this to the correct URI
-    const conceptSchemeId = 'A0'; // TODO: Create real concept scheme id
+    const resourceURI = '#'; // TODO: Change this to the correct URI [PMCA-400]
+    const conceptSchemeId = 'A0'; // TODO: Create real concept scheme id [PMCA-401]
     const xmlOptions = {
         ignoreAttributes: false,
         format: true,
@@ -23,7 +23,7 @@ export const exportData = (function () {
         suppressEmptyNode: true,
         ignorePiTags: true
     };
-    const skosLanguage = 'pt'; // TODO: Make this dynamic
+    const skosLanguage = 'pt'; // TODO: Make this dynamic [PMCA-402]
     const pageSize = 200;
 
     const mediaFiles = new Map<string, string>(); // Keep track of media files to add to zip with old file name and new file name

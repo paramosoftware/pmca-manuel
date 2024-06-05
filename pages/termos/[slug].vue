@@ -83,9 +83,9 @@ definePageMeta({
     layout: 'public'
 });
 
-// TODO: Track access to concepts
-// TODO: Get field labels from API
-// TODO: Create a component
+// TODO: Track access to concepts [Já implementado?]
+// TODO: Get field labels from API [Já implementado?]
+// TODO: Create a component [Já implementado?]
 
 const router = useRouter();
 const config = useRuntimeConfig();
@@ -105,7 +105,7 @@ if (!error.value && !concept.value) {
 }
 
 const checkIfConceptHasDefinitions = (concept: { value: any }) => {
-    // TODO: Find a better way in the future to not hardcode the properties.
+    // TODO: Find a better way in the future to not hardcode the properties. [PMCA-413]
     // Current concept has 21 properties, and we check 9 (relevant ones for this case) but if the db structure changes, that must be updated btw
     const propertiesToBeChecked = [
         'definition',

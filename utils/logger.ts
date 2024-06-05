@@ -1,8 +1,8 @@
 import getDataFolderPath from '~/utils/getDataFolderPath';
 import pino from 'pino';
 
-// TODO: redact sensitive data from logs
-// TODO: delete old logs
+// TODO: redact sensitive data from logs [PMCA-286]
+// TODO: delete old logs [PMCA-286]
 
 const date = new Date().toISOString().split('T')[0];
 const logPath = getDataFolderPath('logs') + `/log-${date}.log`;

@@ -15,12 +15,12 @@ import { saveMedia } from './media';
 import PrismaService from './PrismaService';
 
 export const importData = (function () {
-    // TODO: Convert to class
-    // TODO: Memory optimization: reading the whole file at once is not optimal
-    // TODO: Error handling
-    // TODO: Log report (to client and server)
-    // TODO: Progress bar
-    // TODO: Transaction (rollback if something goes wrong)
+    // TODO: Convert to class [PMCA-395]
+    // TODO: Memory optimization: reading the whole file at once is not optimal [PMCA-398]
+    // TODO: Error handling [PMCA-369]
+    // TODO: Log report (to client and server) [PMCA-396]
+    // TODO: Progress bar [PMCA-291]
+    // TODO: Transaction (rollback if something goes wrong) [PMCA-397]
 
     const xmlOptions = {
         ignoreAttributes: false,
@@ -610,7 +610,7 @@ export const importData = (function () {
         if (translation.includes('(')) {
             languageName = translation.split('(')[1].replace(')', '');
         } else {
-            // TODO: Log error
+            // TODO: Log error [PMCA-369]
             return translationAndLanguage;
         }
 

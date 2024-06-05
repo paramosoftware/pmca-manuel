@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-// TODO: Feature: fetch data on demand
+// TODO: Feature: fetch data on demand [DISCUSS... hierarchy or network related? both?]
 
 const props = defineProps({
     node: {

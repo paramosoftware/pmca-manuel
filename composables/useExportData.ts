@@ -3,7 +3,7 @@ export default function useExportData() {
     const toast = useToast();
     const title = ref('Preparando arquivo(s)...');
 
-    //TODO: feat: implement progress bar
+    //TODO: feat: implement progress bar [PMCA-291]
 
     async function download(url: string, filename?: string) {
         loading.value = true;

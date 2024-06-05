@@ -769,7 +769,7 @@ class PrismaServiceConverter {
      * @returns The merged permissions
      */
     public async mergeRelatedPermissions() {
-        // TODO: Check if there is a better way to manage inheritance of permissions between resources and their children, the new privateFieldsPerModel attribute might help
+        // TODO: Check if there is a better way to manage inheritance of permissions between resources and their children, the new privateFieldsPerModel attribute might help [PMCA-409]
 
         const cacheKey = this.userId
             ? `mergeRelatedPermissions|${this.userId}`

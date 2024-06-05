@@ -282,7 +282,7 @@ async function getPermissions(user: User) {
         }
     }
 
-    // TODO: Check if this is needed
+    // TODO: Check if this is needed [DISCUSS]
     if (user.isAdmin && false) {
         const resources = await prisma.resource.findMany();
         for (const resource of resources) {

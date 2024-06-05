@@ -168,7 +168,7 @@ const defaultValue = getFormFieldConfig('defaultValue', [], props);
 const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
 const label = getFormFieldConfig('label', '', props);
-const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation
+const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation [DISCUSS]
 const placeholder = getFormFieldConfig('placeholder', '', props);
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowCreate = getFormFieldConfig('allowCreate', false, props);
@@ -320,7 +320,7 @@ async function searchItems() {
 
     clearTimeout(timeoutId);
 
-    // TODO: search by label
+    // TODO: search by label [PMCA-408]
     const query = {
         where: {
             OR: [

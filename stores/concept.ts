@@ -182,7 +182,7 @@ export const useConceptStore = defineStore('concept', () => {
     }
 
     async function fetchRandom() {
-        // TODO: implement
+        // TODO: implement [PMCA-403]
     }
 
     async function fetchConceptsTree() {

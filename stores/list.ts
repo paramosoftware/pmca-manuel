@@ -31,7 +31,7 @@ export const useListStore = defineStore('list', () => {
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
 
-    // TODO: allow query in label
+    // TODO: allow query in label [DISCUSS]
     const query = computed(() => {
         const q = {
             page: page.value,

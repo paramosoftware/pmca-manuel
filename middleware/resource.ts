@@ -6,7 +6,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
     let action = 'read';
     let resource = to.params?.path as string;
-    // TODO: hardcoded
+    // TODO: hardcoded [PMCA-394]
     if (to.path.includes('criar')) {
         action = 'create';
     } else if (to.path.includes('editar')) {
