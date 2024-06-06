@@ -30,6 +30,7 @@ export const useListStore = defineStore('list', () => {
     );
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
+    let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
     const query = computed(() => {
         const q = {
@@ -72,7 +73,10 @@ export const useListStore = defineStore('list', () => {
     watch(
         () => query.value,
         async () => {
-            await fetch(resourceStore.name);
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(async () => {
+                await fetch(resourceStore.name);
+            }, 500);
         },
         { deep: true }
     );

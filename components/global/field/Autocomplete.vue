@@ -202,7 +202,7 @@ const emit = defineEmits(['update:modelValue', 'select', 'input']);
 const autocompleteRef = ref<HTMLElement | null>(null);
 const search = ref('');
 const results = ref<{ id: number; name: string; label?: string }[]>([]);
-let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 0);
+let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 const searching = ref(false);
 const toast = useToast();
 const showPopper = ref(false);
@@ -367,7 +367,7 @@ async function searchItems() {
 
         searching.value = pending.value;
         results.value = data.value.items;
-    }, 300);
+    }, 500);
 }
 
 async function createItem(value: string) {

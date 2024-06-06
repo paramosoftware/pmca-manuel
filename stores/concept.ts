@@ -22,6 +22,7 @@ export const useConceptStore = defineStore('concept', () => {
     const loadingStore = useLoadingStore();
     const ancestors = ref<Concept[]>([]);
     const descendantsIds = ref<ID[]>([]);
+    let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
@@ -96,7 +97,10 @@ export const useConceptStore = defineStore('concept', () => {
     watch(
         () => query.value,
         async () => {
-            await fetchList();
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(async () => {
+                await fetchList();
+            }, 500);
         },
         { deep: true }
     );
