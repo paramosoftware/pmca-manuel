@@ -320,12 +320,17 @@ async function searchItems() {
 
     clearTimeout(timeoutId);
 
-    // TODO: search by label [PMCA-408]
     const query = {
         where: {
             OR: [
                 {
                     name: {
+                        like: search.value
+                    },
+                    label: {
+                        like: search.value
+                    },
+                    labelPlural: {
                         like: search.value
                     }
                 }

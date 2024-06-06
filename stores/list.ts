@@ -31,15 +31,28 @@ export const useListStore = defineStore('list', () => {
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
 
-    // TODO: allow query in label [DISCUSS]
     const query = computed(() => {
         const q = {
             page: page.value,
             pageSize: pageSize.value,
             where: {
-                name: {
-                    like: search.value
-                }
+                OR : [
+                    { 
+                        name: {
+                            like: search.value
+                        }
+                    },
+                    {
+                        label: {
+                            like: search.value
+                        }
+                    },
+                    {
+                        labelPlural: {
+                            like: search.value
+                        }
+                    }
+                ]
             },
             orderBy: {
                 name: sort.value
