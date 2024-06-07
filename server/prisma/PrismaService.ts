@@ -10,6 +10,7 @@ import { ApiValidationError } from '../express/error';
 import { deleteConceptMedia, handleMedia } from './media';
 import PrismaServiceConverter from './PrismaServiceConverter';
 import PrismaServiceValidator from './PrismaServiceValidator';
+import PrismaServiceImporter from './PrismaServiceImporter';
 import QUERIES from '~/config/queries';
 
 class PrismaService {
@@ -24,6 +25,7 @@ class PrismaService {
     private userId: ID = '';
     private validator: PrismaServiceValidator;
     private converter: PrismaServiceConverter;
+    private importer: PrismaServiceImporter;
     private onlyPublished: boolean = false;
     private removePrivateFields: boolean = false;
 
@@ -54,6 +56,8 @@ class PrismaService {
             this.onlyPublished,
             this.removePrivateFields
         );
+
+        this.importer = new PrismaServiceImporter(this);
     }
 
     /**
@@ -576,6 +580,10 @@ class PrismaService {
      */
     async findNodeDepth(nodeId: number) {
         return (await this.findTreeProperty(nodeId, false, true)) as number;
+    }
+
+    async importData(filePath: string, mode: string = 'merge') {
+        return await this.importer.importFrom(filePath, mode);
     }
 
     /**
@@ -1214,6 +1222,10 @@ class PrismaService {
             default:
                 return false;
         }
+    }
+
+    getModel() {
+        return this.model;
     }
 
     setModel(model: string) {

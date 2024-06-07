@@ -7,7 +7,6 @@ import decodeJwt from '~/utils/decodeJwt';
 import parseNumber from '~/utils/parseNumber';
 import PrismaService from '../../prisma/PrismaService';
 import { exportData } from '../../prisma/export';
-import { importData } from '../../prisma/import';
 import { importUploadFile, uploadMedia } from '../../prisma/media';
 import { ApiValidationError, ForbiddenError } from '../error';
 import { prisma } from '../../prisma/prisma';
@@ -151,7 +150,7 @@ const dataHandler = async (
                         )) as string;
                         // mode is accessible only after multipart form data is parsed by multer
                         const mode = req.body.mode ? req.body.mode : 'merge';
-                        await importData.importFrom(model, importFilePath, mode);
+                        await prismaService.importData(importFilePath, mode);
                         response = { message: 'Imported successfully' };
                     } else {
                         response = prismaService.createOne(request);

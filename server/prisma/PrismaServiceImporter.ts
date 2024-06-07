@@ -1,3 +1,4 @@
+import PrismaService from './PrismaService';
 import Zip from 'adm-zip';
 import ExcelJS from 'exceljs';
 import { XMLParser } from 'fast-xml-parser';
@@ -12,17 +13,16 @@ import parseNumber from '~/utils/parseNumber';
 import normalizeString from '~/utils/normalizeString';
 import { useCamelCase } from '~/utils/useCamelCase';
 import { saveMedia } from './media';
-import PrismaService from './PrismaService';
 
-export const importData = (function () {
-    // TODO: Convert to class [PMCA-395]
-    // TODO: Memory optimization: reading the whole file at once is not optimal [PMCA-398]
-    // TODO: Error handling [PMCA-369]
-    // TODO: Log report (to client and server) [PMCA-396]
-    // TODO: Progress bar [PMCA-291]
-    // TODO: Transaction (rollback if something goes wrong) [PMCA-397]
-
-    const xmlOptions = {
+// TODO: Memory optimization: reading the whole file at once is not optimal [PMCA-398]
+// TODO: Error handling [PMCA-369]
+// TODO: Log report (to client and server) [PMCA-396]
+// TODO: Progress bar [PMCA-291]
+// TODO: Transaction (rollback if something goes wrong) [PMCA-397]
+class PrismaServiceImporter {
+    private model: string;
+    private prismaService: PrismaService;
+    private xmlOptions = {
         ignoreAttributes: false,
         format: true,
         preserveOrder: true,
@@ -30,22 +30,24 @@ export const importData = (function () {
         suppressEmptyNode: true,
         ignorePiTags: true
     };
+    private languages = new Map<string, number>();
+    private parent = new Map<string, string>();
+    private related = new Map<string, string[]>();
+    private createdConcepts = new Map<string | number, number>();
+    private labelMap = new Map<string, string>();
+    private camelCaseMap = new Map<string, string>();
 
-    const languages = new Map<string, number>();
-    const parent = new Map<string, string>();
-    const related = new Map<string, string[]>();
-    const createdConcepts = new Map<string | number, number>();
+    /**
+     * Prisma Importer Service
+     * @param prismaService PrismaService instance
+     */
+    constructor(prismaService: PrismaService) {
+        this.prismaService = prismaService;
+        this.model = prismaService.getModel();
+    }
 
-    let importModel: string;
-    const labelMap = new Map<string, string>();
-    const camelCaseMap = new Map<string, string>();
-
-    async function importFrom(
-        model: string,
-        filePath: string,
-        mode: string = 'merge', 
-    ) {
-
+    async importFrom(filePath: string, mode: string = 'merge') {
+        await this.setResourceConfig();
         const merge = mode === 'merge';
         const overwrite = mode === 'overwrite';
 
@@ -54,10 +56,6 @@ export const importData = (function () {
         if (!fs.existsSync(filePath)) {
             return;
         }
-
-        importModel = model;
-
-        await setResourceConfig();
 
         const importPath = path.join(getDataFolderPath('temp'), 'import');
         const zipPath = filePath;
@@ -71,24 +69,27 @@ export const importData = (function () {
 
         switch (path.extname(filePath)) {
             case '.json':
-                await importFromJson(filePath, merge);
+                await this.importFromJson(filePath, merge);
                 break;
             case '.xml':
             case '.rdf':
-                await importFromSkos(filePath, merge);
+                await this.importFromSkos(filePath, merge);
                 break;
             case '.xlsx':
             case '.xls':
             case '.csv':
-                await importFromXlsxOrCsv(filePath, merge);
+                await this.importFromXlsxOrCsv(filePath, merge);
                 break;
         }
 
-        await processRelations(createdConcepts, related, parent);
+        await this.processRelations(
+            this.createdConcepts,
+            this.related,
+            this.parent
+        );
 
         if (overwrite) {
-            const prismaService = new PrismaService(model, false);
-            await prismaService.deleteMany({
+            await this.prismaService.deleteMany({
                 where: { createdAt: { lte: startDateTime } }
             });
         }
@@ -96,7 +97,7 @@ export const importData = (function () {
         const mediaPath = path.join(importPath, 'media');
 
         if (fs.existsSync(mediaPath)) {
-            await importMediaFromZip(mediaPath);
+            await this.importMediaFromZip(mediaPath);
             deleteFolder(importPath);
         }
 
@@ -109,10 +110,10 @@ export const importData = (function () {
         }
     }
 
-    async function setResourceConfig() {
+    async setResourceConfig() {
         const resourceService = new PrismaService('Resource', false);
 
-        const resourceConfig = await resourceService.readOne(importModel, {
+        const resourceConfig = await resourceService.readOne(this.model, {
             include: {
                 fields: {
                     orderBy: {
@@ -125,8 +126,8 @@ export const importData = (function () {
         if (resourceConfig) {
             for (const field of resourceConfig.fields) {
                 if (field.labelNormalized && field.includeExport) {
-                    labelMap.set(field.name, field.labelNormalized);
-                    camelCaseMap.set(
+                    this.labelMap.set(field.name, field.labelNormalized);
+                    this.camelCaseMap.set(
                         field.name,
                         useCamelCase().to(field.labelNormalized)
                     );
@@ -135,7 +136,7 @@ export const importData = (function () {
         }
     }
 
-    async function importFromJson(filePath: string, update: boolean = true) {
+    async importFromJson(filePath: string, update: boolean = true) {
         let items = [];
 
         try {
@@ -148,7 +149,7 @@ export const importData = (function () {
         for (const item of items) {
             let oldId =
                 item.id ??
-                item[camelCaseMap.get('name') ?? 'name'] ??
+                item[this.camelCaseMap.get('name') ?? 'name'] ??
                 undefined;
 
             oldId = normalizeString(oldId, true);
@@ -166,31 +167,33 @@ export const importData = (function () {
 
             for (const key of keys) {
                 switch (key) {
-                    case camelCaseMap.get('name'):
+                    case this.camelCaseMap.get('name'):
                         concept.name = item[key];
                         break;
 
-                    case camelCaseMap.get('definition'):
+                    case this.camelCaseMap.get('definition'):
                         concept.definition = item[key];
                         break;
 
-                    case camelCaseMap.get('notes'):
+                    case this.camelCaseMap.get('notes'):
                         concept.notes = item[key];
                         break;
 
-                    case camelCaseMap.get('parent'):
-                        parent.set(oldId, item[key]);
+                    case this.camelCaseMap.get('parent'):
+                        this.parent.set(oldId, item[key]);
                         break;
 
-                    case camelCaseMap.get('relatedConcepts'):
-                        related.set(oldId, item[key]);
+                    case this.camelCaseMap.get('relatedConcepts'):
+                        this.related.set(oldId, item[key]);
                         break;
 
-                    case camelCaseMap.get('translations'):
+                    case this.camelCaseMap.get('translations'):
                         const translations = item[key];
                         for (const translation of translations) {
                             const translationAndLanguage =
-                                await getTranslationAndLanguage(translation);
+                                await this.getTranslationAndLanguage(
+                                    translation
+                                );
 
                             if (
                                 translationAndLanguage.name &&
@@ -203,7 +206,7 @@ export const importData = (function () {
                         }
                         break;
 
-                    case camelCaseMap.get('references'):
+                    case this.camelCaseMap.get('references'):
                         // @ts-ignore
                         concept.references = item[key]
                             .filter((reference: string) => reference != '')
@@ -215,7 +218,7 @@ export const importData = (function () {
                             });
                         break;
 
-                    case camelCaseMap.get('variations'):
+                    case this.camelCaseMap.get('variations'):
                         // @ts-ignore
                         concept.variations = item[key]
                             .filter((variation: string) => variation != '')
@@ -226,18 +229,18 @@ export const importData = (function () {
                             });
                         break;
 
-                    case camelCaseMap.get('position'):
+                    case this.camelCaseMap.get('position'):
                         concept.position = item[key] ?? position;
                         break;
                 }
             }
 
             position++;
-            await upsertConcept(oldId, concept, update);
+            await this.upsertConcept(oldId, concept, update);
         }
     }
 
-    async function importFromXlsxOrCsv(filePath: string, update: boolean = true) {
+    async importFromXlsxOrCsv(filePath: string, update: boolean = true) {
         const workbook = new ExcelJS.Workbook();
 
         if (path.extname(filePath) === '.csv') {
@@ -249,25 +252,25 @@ export const importData = (function () {
         const worksheet = workbook.getWorksheet(1);
 
         if (!worksheet) {
-            return createdConcepts;
+            return this.createdConcepts;
         }
 
         const rows = worksheet.getRows(1, worksheet.rowCount);
 
         if (!rows) {
-            return createdConcepts;
+            return this.createdConcepts;
         }
 
         const headerRow = rows[0].values as string[];
 
         for (let i = 1; i < rows.length; i++) {
             let oldId = rows[i].getCell(
-                headerRow.indexOf(labelMap.get('id') ?? 'id')
+                headerRow.indexOf(this.labelMap.get('id') ?? 'id')
             ).value as string;
 
             if (!oldId) {
                 oldId = rows[i].getCell(
-                    headerRow.indexOf(labelMap.get('name') ?? 'name')
+                    headerRow.indexOf(this.labelMap.get('name') ?? 'name')
                 ).value as string;
             }
 
@@ -298,20 +301,20 @@ export const importData = (function () {
                 }
 
                 switch (header) {
-                    case labelMap.get('name'):
+                    case this.labelMap.get('name'):
                         concept.name = value;
                         break;
-                    case labelMap.get('definition'):
+                    case this.labelMap.get('definition'):
                         concept.definition = value;
                         break;
-                    case labelMap.get('notes'):
+                    case this.labelMap.get('notes'):
                         concept.notes = value;
                         break;
-                    case labelMap.get('parent'):
-                        parent.set(oldId, value);
+                    case this.labelMap.get('parent'):
+                        this.parent.set(oldId, value);
                         break;
-                    case labelMap.get('relatedConcepts'):
-                        related.set(
+                    case this.labelMap.get('relatedConcepts'):
+                        this.related.set(
                             oldId,
                             value
                                 .split(';')
@@ -320,7 +323,7 @@ export const importData = (function () {
                                 )
                         );
                         break;
-                    case labelMap.get('references'):
+                    case this.labelMap.get('references'):
                         value.split(';').forEach((reference) => {
                             if (reference) {
                                 concept.references.push({
@@ -330,7 +333,7 @@ export const importData = (function () {
                             }
                         });
                         break;
-                    case labelMap.get('variations'):
+                    case this.labelMap.get('variations'):
                         value.split(';').forEach((variation) => {
                             if (variation) {
                                 concept.variations.push({
@@ -339,11 +342,13 @@ export const importData = (function () {
                             }
                         });
                         break;
-                    case labelMap.get('translations'):
+                    case this.labelMap.get('translations'):
                         const translations = value.split(';');
                         for (const translation of translations) {
                             const translationAndLanguage =
-                                await getTranslationAndLanguage(translation);
+                                await this.getTranslationAndLanguage(
+                                    translation
+                                );
 
                             if (
                                 translationAndLanguage.name &&
@@ -356,18 +361,18 @@ export const importData = (function () {
                         }
                         break;
 
-                    case labelMap.get('position'):
+                    case this.labelMap.get('position'):
                         concept.position = parseNumber(value) ?? i;
                         break;
                 }
             }
 
-            await upsertConcept(oldId, concept, update);
+            await this.upsertConcept(oldId, concept, update);
         }
     }
 
-    async function importFromSkos(filePath: string, update: boolean = true) {
-        const xmlParser = new XMLParser(xmlOptions);
+    async importFromSkos(filePath: string, update: boolean = true) {
+        const xmlParser = new XMLParser(this.xmlOptions);
         const xml = fs.readFileSync(filePath, 'utf-8');
         const result = xmlParser.parse(xml);
         const data = result[0]['rdf:RDF'] ?? [];
@@ -401,10 +406,10 @@ export const importData = (function () {
                                 : undefined;
 
                         if (translation) {
-                            if (!languages.get(translation)) {
+                            if (!this.languages.get(translation)) {
                                 const languageId =
-                                    await upsertLanguage(translation);
-                                languages.set(translation, languageId);
+                                    await this.upsertLanguage(translation);
+                                this.languages.set(translation, languageId);
                             }
 
                             if (concept.name === '') {
@@ -413,7 +418,7 @@ export const importData = (function () {
                                 concept.translations.push({
                                     name: prefLabel['#text'],
                                     // @ts-ignore
-                                    languageId: languages.get(translation)
+                                    languageId: this.languages.get(translation)
                                 });
                             }
                         } else {
@@ -434,23 +439,29 @@ export const importData = (function () {
                         attribute['skos:broader'] &&
                         attribute[':@']?.['@_rdf:resource']
                     ) {
-                        parent.set(oldId, attribute[':@']['@_rdf:resource']);
+                        this.parent.set(
+                            oldId,
+                            attribute[':@']['@_rdf:resource']
+                        );
                     }
 
                     if (
                         attribute['skos:related'] &&
                         attribute[':@']?.['@_rdf:resource']
                     ) {
-                        const relatedConcepts = related.get(oldId) ?? [];
+                        const relatedConcepts = this.related.get(oldId) ?? [];
                         relatedConcepts.push(attribute[':@']['@_rdf:resource']);
-                        related.set(oldId, relatedConcepts);
+                        this.related.set(oldId, relatedConcepts);
                     }
 
                     if (attribute['skos:referenceNote']) {
                         // @ts-ignore
                         concept.references.push({
                             name: attribute['skos:referenceNote'][0]['#text'],
-                            nameRich: '<p>' + attribute['skos:referenceNote'][0]['#text'] + '</p>'
+                            nameRich:
+                                '<p>' +
+                                attribute['skos:referenceNote'][0]['#text'] +
+                                '</p>'
                         });
                     }
 
@@ -463,39 +474,35 @@ export const importData = (function () {
                 }
 
                 position++;
-                await upsertConcept(oldId, concept, update);
+                await this.upsertConcept(oldId, concept, update);
             }
         }
     }
 
-
-    async function upsertConcept(oldId: string, concept: any, update: boolean = true) {
-        const conceptService = new PrismaService('Concept', false);
-
+    async upsertConcept(oldId: string, concept: any, update: boolean = true) {
         let create = !update;
 
         if (update) {
-            const foundConcepts = await conceptService.readMany({
+            const foundConcepts = await this.prismaService.readMany({
                 where: { name: concept.name }
             });
 
             if (foundConcepts && foundConcepts.items.length > 0) {
                 const existingConcept = foundConcepts.items[0] as Concept;
-                await conceptService.updateOne(existingConcept.id, concept);
-                createdConcepts.set(oldId, existingConcept.id);
+                await this.prismaService.updateOne(existingConcept.id, concept);
+                this.createdConcepts.set(oldId, existingConcept.id);
             } else {
                 create = true;
             }
         }
 
         if (create) {
-            const newConcept = await conceptService.createOne(concept);
-            createdConcepts.set(oldId, newConcept.id);
+            const newConcept = await this.prismaService.createOne(concept);
+            this.createdConcepts.set(oldId, newConcept.id);
         }
     }
 
-
-    async function processRelations(
+    async processRelations(
         createdConcepts: Map<string | number, number>,
         related: Map<string, string[]>,
         parent: Map<string, string>
@@ -505,14 +512,14 @@ export const importData = (function () {
             for (let relatedConcept of relatedConcepts) {
                 relatedConcept = normalizeString(relatedConcept, true);
                 const relatedConceptRelations = (
-                    related.get(relatedConcept) ?? []
+                    this.related.get(relatedConcept) ?? []
                 ).map((relatedConcept) => {
                     return normalizeString(relatedConcept, true);
                 });
                 const index = relatedConceptRelations.indexOf(oldId);
                 if (index > -1) {
                     relatedConceptRelations.splice(index, 1);
-                    related.set(relatedConcept, relatedConceptRelations);
+                    this.related.set(relatedConcept, relatedConceptRelations);
                 }
             }
 
@@ -565,7 +572,7 @@ export const importData = (function () {
         }
     }
 
-    async function upsertLanguage(languageName: any) {
+    async upsertLanguage(languageName: any) {
         const where = {
             OR: [{ name: languageName }, { code: languageName }]
         };
@@ -595,7 +602,7 @@ export const importData = (function () {
         return newLanguage.id;
     }
 
-    async function getTranslationAndLanguage(translation: string) {
+    async getTranslationAndLanguage(translation: string) {
         const translationAndLanguage = {
             name: undefined,
             languageId: undefined
@@ -614,9 +621,9 @@ export const importData = (function () {
             return translationAndLanguage;
         }
 
-        if (!languages.get(languageName)) {
-            const languageId = await upsertLanguage(languageName);
-            languages.set(languageName, languageId);
+        if (!this.languages.get(languageName)) {
+            const languageId = await this.upsertLanguage(languageName);
+            this.languages.set(languageName, languageId);
         }
 
         const translationName = translation.split('(')[0].trim();
@@ -627,11 +634,11 @@ export const importData = (function () {
 
         return {
             name: translationName,
-            languageId: languages.get(languageName)
+            languageId: this.languages.get(languageName)
         };
     }
 
-    async function importMediaFromZip(mediaPath: string) {
+    async importMediaFromZip(mediaPath: string) {
         const mediaFiles = fs.readdirSync(mediaPath);
 
         for (const mediaFile of mediaFiles) {
@@ -658,7 +665,8 @@ export const importData = (function () {
             oldId = normalizeString(oldId, true);
 
             const conceptId =
-                createdConcepts.get(oldId) ?? createdConcepts.get('#' + oldId);
+                this.createdConcepts.get(oldId) ??
+                this.createdConcepts.get('#' + oldId);
 
             if (conceptId) {
                 await saveMedia(
@@ -675,8 +683,6 @@ export const importData = (function () {
             fs.renameSync(oldPath, newPath);
         }
     }
+}
 
-    return {
-        importFrom
-    };
-})();
+export default PrismaServiceImporter;
