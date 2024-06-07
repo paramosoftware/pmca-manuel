@@ -162,7 +162,7 @@ const provideHyperLinkFromMatch = async (match: RegExpExecArray): Promise<string
     }
 
     const priorityName = match[2]
-    return provideHyperlinkFromTerm(term, priorityName); 
+    return provideHyperlinkFromTerm(priorityName, term); 
 
 } 
 
