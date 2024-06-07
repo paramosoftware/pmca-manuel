@@ -6,7 +6,6 @@ import capitalize from '~/utils/capitalize';
 import decodeJwt from '~/utils/decodeJwt';
 import parseNumber from '~/utils/parseNumber';
 import PrismaService from '../../prisma/PrismaService';
-import { exportData } from '../../prisma/export';
 import { importUploadFile, uploadMedia } from '../../prisma/media';
 import { ApiValidationError, ForbiddenError } from '../error';
 import { prisma } from '../../prisma/prisma';
@@ -108,7 +107,7 @@ const dataHandler = async (
             switch (method) {
                 case 'GET':
                     if (isExport) {
-                        response = exportData.exportToFormat(
+                        response = prismaService.exportToFormat(
                             model,
                             format,
                             addMedia,

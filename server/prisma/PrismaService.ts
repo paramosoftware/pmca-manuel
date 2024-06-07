@@ -11,6 +11,7 @@ import { deleteConceptMedia, handleMedia } from './media';
 import PrismaServiceConverter from './PrismaServiceConverter';
 import PrismaServiceValidator from './PrismaServiceValidator';
 import PrismaServiceImporter from './PrismaServiceImporter';
+import PrismaServiceExporter from './PrismaServiceExporter';
 import QUERIES from '~/config/queries';
 
 class PrismaService {
@@ -26,6 +27,7 @@ class PrismaService {
     private validator: PrismaServiceValidator;
     private converter: PrismaServiceConverter;
     private importer: PrismaServiceImporter;
+    private exporter: PrismaServiceExporter;
     private onlyPublished: boolean = false;
     private removePrivateFields: boolean = false;
 
@@ -58,6 +60,7 @@ class PrismaService {
         );
 
         this.importer = new PrismaServiceImporter(this);
+        this.exporter = new PrismaServiceExporter(this);
     }
 
     /**
@@ -582,8 +585,27 @@ class PrismaService {
         return (await this.findTreeProperty(nodeId, false, true)) as number;
     }
 
+
+    /**
+     * Imports data from a file
+     * @param filePath - The file path
+     * @param mode - The import mode: merge or replace
+     * @throws ApiValidationError
+    */
     async importData(filePath: string, mode: string = 'merge') {
         return await this.importer.importFrom(filePath, mode);
+    }
+
+
+    /**
+     * Exports data to a file
+     * @param format - The export format: json, csv, xml or xlsx
+     * @param addMedia - If it should add media to the export
+     * @param query - The query object
+     * @throws ApiValidationError
+     */
+    async exportToFormat(model: string, format: DataTransferFormat, addMedia: boolean, query: Query) {
+        return await this.exporter.exportToFormat(model, format, addMedia, query);
     }
 
     /**
