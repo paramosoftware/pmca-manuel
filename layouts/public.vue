@@ -5,8 +5,8 @@
         <PublicNavbar />
 
         <div class="mb-auto">
-            <div class="p-1 md:p-3 mx-auto mt-5">
-                <div class="w-full mb-8">
+            <div class="pr-1 pl-1 md:pl-2 md:pr-2 mx-auto">
+                <div class="w-full mb-2">
                     <slot />
                 </div>
             </div>
