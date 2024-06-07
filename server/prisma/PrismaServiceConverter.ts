@@ -529,6 +529,7 @@ class PrismaServiceConverter {
         model: string,
         fieldsMap: Map<string, Prisma.DMMF.Field>
     ) {
+        const fieldsToIgnore = ['_action_', 'label', 'labelPlural'];
         const prismaQuery: any = {};
         const published = {
             where: {
@@ -634,7 +635,7 @@ class PrismaServiceConverter {
                             );
                         }
                     }
-                } else if (field !== '_action_') {
+                } else if (!fieldsToIgnore.includes(field)) {
                     logger.info(
                         'Field ' + field + ' not found in model: ' + model
                     );
