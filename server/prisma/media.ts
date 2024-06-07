@@ -130,7 +130,7 @@ export async function importUploadFile(
         upload(req, res, async (err: any) => {
             try {
                 if (err) {
-                    throw new UploadError('Error uploading file');
+                    throw new UploadError('Error uploading file: ' + err.message);
                 }
 
                 if (!req.file) {
@@ -139,12 +139,14 @@ export async function importUploadFile(
 
                 resolve(path.join(destinationFolder, req.file?.filename));
             } catch (error) {
+
+                const fileName = req.file?.filename ?? '';
                 const filePath = path.join(
                     destinationFolder,
-                    req.file?.filename!
+                    fileName
                 );
 
-                if (fs.existsSync(filePath)) {
+                if (fs.existsSync(filePath) && fileName) {
                     fs.unlink(filePath, (err) => {
                         if (err) {
                             throw new UploadError('Error deleting file');
