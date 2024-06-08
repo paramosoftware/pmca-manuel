@@ -1,18 +1,19 @@
 import { v4 as uuidv4 } from 'uuid';
+import QUERIES from '~/config/queries';
+import { prisma, Prisma } from '~/server/prisma/prisma';
+import cache from '~/utils/cache';
 import capitalize from '~/utils/capitalize';
 import getBoolean from '~/utils/getBoolean';
 import hashPassword from '~/utils/hashPassword';
 import normalizeString from '~/utils/normalizeString';
 import parseNumber from '~/utils/parseNumber';
 import sanitizeString from '~/utils/sanitizeString';
-import { prisma, Prisma } from '~/server/prisma/prisma';
 import { ApiValidationError } from '../express/error';
 import { deleteConceptMedia, handleMedia } from './media';
 import PrismaServiceConverter from './PrismaServiceConverter';
-import PrismaServiceValidator from './PrismaServiceValidator';
-import PrismaServiceImporter from './PrismaServiceImporter';
 import PrismaServiceExporter from './PrismaServiceExporter';
-import QUERIES from '~/config/queries';
+import PrismaServiceImporter from './PrismaServiceImporter';
+import PrismaServiceValidator from './PrismaServiceValidator';
 
 class PrismaService {
     public model: string;
@@ -585,17 +586,15 @@ class PrismaService {
         return (await this.findTreeProperty(nodeId, false, true)) as number;
     }
 
-
     /**
      * Imports data from a file
      * @param filePath - The file path
      * @param mode - The import mode: merge or replace
      * @throws ApiValidationError
-    */
+     */
     async importData(filePath: string, mode: string = 'merge') {
         return await this.importer.importFrom(filePath, mode);
     }
-
 
     /**
      * Exports data to a file
@@ -604,8 +603,18 @@ class PrismaService {
      * @param query - The query object
      * @throws ApiValidationError
      */
-    async exportToFormat(model: string, format: DataTransferFormat, addMedia: boolean, query: Query) {
-        return await this.exporter.exportToFormat(model, format, addMedia, query);
+    async exportToFormat(
+        model: string,
+        format: DataTransferFormat,
+        addMedia: boolean,
+        query: Query
+    ) {
+        return await this.exporter.exportToFormat(
+            model,
+            format,
+            addMedia,
+            query
+        );
     }
 
     /**
@@ -686,7 +695,9 @@ class PrismaService {
         request: any,
         isUpdate: boolean = false,
         processRelations = true,
-        parentModel: string = ''
+        parentModel: string = '',
+        parentRequest: any = {},
+        parentAttribute: string = ''
     ) {
         const modelFields = Prisma.dmmf.datamodel.models.find(
             (m) => m.name.toLowerCase() === model.toLowerCase()
@@ -720,6 +731,16 @@ class PrismaService {
                 }
             }
         });
+
+        if (isUpdate) {
+            await this.checkIfIsDescendant(
+                model,
+                request,
+                parentModel,
+                parentRequest,
+                parentAttribute
+            );
+        }
 
         for (const [rawId, relatedField] of relations) {
             if (request[rawId] !== undefined) {
@@ -882,9 +903,11 @@ class PrismaService {
         const processedRelatedObject = await this.processCreateOrUpdateRequest(
             relatedModel,
             relatedObject,
-            action === 'update',
+            action !== 'create',
             false,
-            parentModel
+            parentModel,
+            request,
+            field
         );
 
         if (action === 'update') {
@@ -954,9 +977,11 @@ class PrismaService {
                 await this.processCreateOrUpdateRequest(
                     model,
                     item,
-                    action === 'update',
+                    action !== 'create',
                     false,
-                    parentModel
+                    parentModel,
+                    request,
+                    field
                 );
 
             if (action === 'connect') {
@@ -1174,6 +1199,59 @@ class PrismaService {
         }
     }
 
+    /**
+     * Check if request is trying to set the current record to be a descendant of itself
+     */
+    private async checkIfIsDescendant(
+        model: string,
+        request: any,
+        parentModel: string,
+        parentRequest: any,
+        parentAttribute: string
+    ) {
+        if (parentModel && parentModel === model) {
+            if (parentAttribute === 'children') {
+                const currentId = parseNumber(parentRequest.id ?? this.id);
+                const targetId = parseNumber(request.id ?? null);
+
+                if (currentId && targetId && currentId == targetId) {
+                    throw new ApiValidationError(
+                        `Cannot set ${currentId} as parent of ${targetId} because it's the same record`
+                    );
+                }
+
+                const descendants = await this.findTreeIds(targetId);
+
+                if (descendants.includes(currentId)) {
+                    throw new ApiValidationError(
+                        `Cannot set ${currentId} as parent of ${targetId} because it's a descendant`
+                    );
+                }
+            }
+        } else {
+            const currentId = parseNumber(request.id ?? this.id);
+            const targetId = parseNumber(
+                request.parentId ?? request.parent?.id ?? null
+            );
+
+            if (currentId && targetId && currentId == targetId) {
+                throw new ApiValidationError(
+                    `Cannot set ${targetId} as parent of ${currentId} because it's the same record`
+                );
+            }
+
+            if (targetId) {
+                const descendants = await this.findTreeIds(currentId);
+
+                if (descendants.includes(targetId)) {
+                    throw new ApiValidationError(
+                        `Cannot set ${targetId} as parent of ${currentId} because it's a descendant`
+                    );
+                }
+            }
+        }
+    }
+
     // @ts-ignore
     private async calculateSlug(name: string, model: string, key: string) {
         // @ts-ignore
@@ -1255,8 +1333,12 @@ class PrismaService {
         return this.model;
     }
 
+    getId() {
+        return this.id;
+    }
+
     setId(id: ID) {
-        this.id = id;
+        this.id = parseNumber(id);
     }
 
     setMethod(method: Method) {
