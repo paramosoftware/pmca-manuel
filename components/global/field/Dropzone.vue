@@ -41,7 +41,7 @@ const props = defineProps({
 });
 
 const myVueDropzone = ref(null);
-const emit = defineEmits(['start', 'update', 'close']);
+const emit = defineEmits(['start', 'update', 'finish']);
 
 const dropzoneOptions = {
     url: props.url,
@@ -79,7 +79,7 @@ const dropzoneOptions = {
             myVueDropzone.value.getUploadingFiles().length === 0 &&
             myVueDropzone.value.getQueuedFiles().length === 0
         ) {
-            emit('close');
+            emit('finish', response);
         }
     }
 };
