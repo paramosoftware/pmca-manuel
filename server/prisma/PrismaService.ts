@@ -604,13 +604,11 @@ class PrismaService {
      * @throws ApiValidationError
      */
     async exportToFormat(
-        model: string,
         format: DataTransferFormat,
         addMedia: boolean,
         query: Query
     ) {
         return await this.exporter.exportToFormat(
-            model,
             format,
             addMedia,
             query

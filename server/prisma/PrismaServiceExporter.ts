@@ -41,18 +41,17 @@ class PrismaServiceExporter {
     }
 
     async exportToFormat(
-        model: string,
         format: DataTransferFormat,
         addMedia: boolean = false,
         query?: Query,
         template?: string
     ) {
-        if (!model || !format) {
+        if (!format) {
             return;
         }
 
         await this.setResourceConfig();
-        this.include = QUERIES.get(model)?.include || '*';
+        this.include = QUERIES.get(this.model)?.include || '*';
         this.where = query?.where || undefined;
 
         const filePath = path.join(
@@ -75,7 +74,7 @@ class PrismaServiceExporter {
                 await this.exportToJson(filePath);
                 break;
             case 'xml':
-                if (model === 'Concept') {
+                if (this.model === 'Concept') {
                     await this.exportToSkos(filePath);
                 }
                 break;
