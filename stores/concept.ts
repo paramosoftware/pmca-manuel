@@ -272,13 +272,13 @@ export const useConceptStore = defineStore('concept', () => {
     }
 
     async function fetchAncestors() {
-        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/${concept.value?.id}/ancestors`);
+        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/${concept.value?.id}/@ancestors`);
         ancestors.value = data.value;
         return data;
     }
 
     async function fetchDescendants(nodeId: ID) {
-        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/${nodeId}/treeIds`);
+        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/${nodeId}/@treeIds`);
         descendantsIds.value = data.value;
         await fetchList();
     }

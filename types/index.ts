@@ -253,4 +253,16 @@ declare global {
         width?: number;
         height?: number;
     }
+
+    interface ApiParams {
+        model: string;
+        id: ID;
+        hasQuery: boolean;
+        partialResource: string;
+        isPublic: boolean;
+        isUpload: boolean;
+        isImport: boolean;
+        isExport: boolean;
+        apiMethod: string;
+    }
 }

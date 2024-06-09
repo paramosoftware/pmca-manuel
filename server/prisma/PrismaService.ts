@@ -404,14 +404,15 @@ class PrismaService {
     /**
      * Finds the tree - only available for Concept model
      * @param nodeId - The node id
-     * @param select - The fields to select
+     * @param query - The query object with select
      * @returns The tree
      * @throws ApiValidationError
      */
     async findTrees(
         nodeId: number | null = null,
-        select: Select = ['id', 'name', 'parentId', 'nameSlug']
+        query: Query
     ) {
+        const select = query.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const depth = (await this.findTreeDepth(nodeId)) as number;
 
         if (depth === 0) {
@@ -458,16 +459,17 @@ class PrismaService {
     /**
      * Finds the ancestors of a node - only available for Concept model
      * @param nodeId - The node id
-     * @param select - The fields to select
+     * @param query - The query object with select
      * @param flatten - If it should return a flat array
      * @returns The ancestors
      * @throws ApiValidationError
      */
     async findAncestors(
         nodeId: number,
-        select: Select = ['id', 'name', 'parentId', 'nameSlug'],
+        query: Query,
         flatten = true
     ) {
+        const select = query.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const depth = await this.findNodeDepth(nodeId);
 
         if (depth === 0) {
@@ -535,14 +537,15 @@ class PrismaService {
     /**
      * Finds the descendants of a node - only available for Concept model
      * @param nodeId - The node id
-     * @param select - The fields to select
+     * @param query - The query object with select
      * @returns The descendants
      * @throws ApiValidationError
      */
     async findDescendants(
         nodeId: number,
-        select: Select = ['id', 'name', 'parentId', 'nameSlug']
+        query: Query
     ) {
+        const select = query.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const ids = await this.findTreeIds(nodeId);
 
         return await this.readMany({
