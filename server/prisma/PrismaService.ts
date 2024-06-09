@@ -593,10 +593,11 @@ class PrismaService {
      * Imports data from a file
      * @param filePath - The file path
      * @param mode - The import mode: merge or replace
+     * @returns The process id to track the progress with getProgress
      * @throws ApiValidationError
      */
-    async importData(filePath: string, mode: string = 'merge') {
-        return await this.importer.importFrom(filePath, mode);
+    importData(filePath: string, mode: string = 'merge') {
+        return this.importer.importFrom(filePath, mode);
     }
 
     /**
@@ -616,6 +617,31 @@ class PrismaService {
             addMedia,
             query
         );
+    }
+
+    getProgress(processId: string) {
+        const progress = cache.get(processId) as RequestProgress;
+
+        if (!progress) {
+            return {
+                progress: 0,
+                message: 'Process not found',
+                finished: false,
+                error: true
+            } as RequestProgress;
+        }
+
+        return progress;
+    }
+
+    setProgress(
+        processId: string,
+        progress = 0,
+        message = '',
+        finished = false,
+        error = false
+    ) {
+        cache.set(processId, { progress, message, finished, error });
     }
 
     /**

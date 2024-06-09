@@ -265,4 +265,12 @@ declare global {
         isExport: boolean;
         apiMethod: string;
     }
+
+    interface RequestProgress {
+        progress: number;
+        finished: boolean;
+        error: boolean;
+        message: string;
+    }
+
 }

@@ -87,7 +87,7 @@ const dataHandler = async (
         let response: any = null;
         const query = convertQueryParamsToRequest(queryParams);
         const request = requestMethod == 'GET' ? query : body;
-        
+
         if (apiMethod) {
             response = executeApiMethod(apiMethod, prismaService, id, request);
         } else {
@@ -135,8 +135,10 @@ const dataHandler = async (
                         )) as string;
                         // mode is accessible only after multipart form data is parsed by multer
                         const mode = req.body.mode ? req.body.mode : 'merge';
-                        await prismaService.importData(importFilePath, mode);
-                        response = { message: 'Imported successfully' };
+                        response = prismaService.importData(
+                            importFilePath,
+                            mode
+                        );
                     } else {
                         response = prismaService.createOne(request);
                     }
@@ -187,6 +189,7 @@ function executeApiMethod(
     request: any
 ) {
     const mappedMethods = {
+        progress: 'getProgress',
         ancestors: 'findAncestors',
         descendants: 'findDescendants',
         trees: 'findTrees',

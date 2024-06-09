@@ -22,6 +22,7 @@ import { saveMedia } from './media';
 class PrismaServiceImporter {
     private model: string;
     private prismaService: PrismaService;
+    private processId: string = '';
     private xmlOptions = {
         ignoreAttributes: false,
         format: true,
@@ -36,6 +37,9 @@ class PrismaServiceImporter {
     private createdConcepts = new Map<string | number, number>();
     private labelMap = new Map<string, string>();
     private camelCaseMap = new Map<string, string>();
+    private totalItems = 0;
+    private processedItems = 0;
+    private currentProgress = 0;
 
     /**
      * Prisma Importer Service
@@ -46,7 +50,14 @@ class PrismaServiceImporter {
         this.model = prismaService.getModel();
     }
 
-    async importFrom(filePath: string, mode: string = 'merge') {
+    importFrom(filePath: string, mode: string = 'merge') {
+        this.processId = uuidv4();
+        this.prismaService.setProgress(this.processId, 0, 'Started');
+        this._importFrom(filePath, mode);
+        return this.processId;
+    }
+
+    private async _importFrom(filePath: string, mode: string = 'merge') {
         await this.setResourceConfig();
         const merge = mode === 'merge';
         const overwrite = mode === 'overwrite';
@@ -71,15 +82,35 @@ class PrismaServiceImporter {
             case '.json':
                 await this.importFromJson(filePath, merge);
                 break;
-            case '.xml':
-            case '.rdf':
-                await this.importFromSkos(filePath, merge);
-                break;
             case '.xlsx':
             case '.xls':
             case '.csv':
                 await this.importFromXlsxOrCsv(filePath, merge);
                 break;
+            case '.xml':
+            case '.rdf':
+                if (this.model === 'Concept') {
+                    await this.importFromSkos(filePath, merge);
+                    break;
+                } else {
+                    this.prismaService.setProgress(
+                        this.processId,
+                        0,
+                        'Importing SKOS is only supported for Concept model.',
+                        true,
+                        true
+                    );
+                    return;
+                }
+            default:
+                this.prismaService.setProgress(
+                    this.processId,
+                    0,
+                    'Unsupported file format.',
+                    true,
+                    true
+                );
+                return;
         }
 
         await this.processRelations(
@@ -108,6 +139,8 @@ class PrismaServiceImporter {
         if (fs.existsSync(zipPath)) {
             fs.unlinkSync(zipPath);
         }
+
+        this.prismaService.setProgress(this.processId, 100, 'Finished');
     }
 
     async setResourceConfig() {
@@ -146,6 +179,7 @@ class PrismaServiceImporter {
         }
 
         let position = 1;
+        this.totalItems = items.length;
         for (const item of items) {
             let oldId =
                 item.id ??
@@ -235,6 +269,7 @@ class PrismaServiceImporter {
                 }
             }
 
+            this.processedItems++;
             position++;
             await this.upsertConcept(oldId, concept, update);
         }
@@ -263,6 +298,7 @@ class PrismaServiceImporter {
 
         const headerRow = rows[0].values as string[];
 
+        this.totalItems = rows.length;
         for (let i = 1; i < rows.length; i++) {
             let oldId = rows[i].getCell(
                 headerRow.indexOf(this.labelMap.get('id') ?? 'id')
@@ -367,8 +403,11 @@ class PrismaServiceImporter {
                 }
             }
 
+            this.processedItems++;
             await this.upsertConcept(oldId, concept, update);
         }
+
+        this.prismaService.setProgress(this.processId, 100, 'Finished');
     }
 
     async importFromSkos(filePath: string, update: boolean = true) {
@@ -377,6 +416,7 @@ class PrismaServiceImporter {
         const result = xmlParser.parse(xml);
         const data = result[0]['rdf:RDF'] ?? [];
 
+        this.totalItems = data.length;
         let position = 1;
         for (const item of data) {
             if (item['skos:Concept']) {
@@ -473,6 +513,7 @@ class PrismaServiceImporter {
                     }
                 }
 
+                this.processedItems++;
                 position++;
                 await this.upsertConcept(oldId, concept, update);
             }
@@ -481,6 +522,12 @@ class PrismaServiceImporter {
 
     async upsertConcept(oldId: string, concept: any, update: boolean = true) {
         let create = !update;
+
+        this.updateProgress(
+            this.totalItems,
+            this.processedItems,
+            concept.name ?? ''
+        );
 
         if (update) {
             const foundConcepts = await this.prismaService.readMany({
@@ -507,6 +554,12 @@ class PrismaServiceImporter {
         related: Map<string, string[]>,
         parent: Map<string, string>
     ) {
+        this.prismaService.setProgress(
+            this.processId,
+            this.currentProgress + 5,
+            'Processing relations'
+        );
+
         for (const [oldId, relatedConcepts] of related) {
             // delete relations in other direction in related map to avoid duplicate relations
             for (let relatedConcept of relatedConcepts) {
@@ -570,6 +623,12 @@ class PrismaServiceImporter {
                 }
             });
         }
+
+        this.prismaService.setProgress(
+            this.processId,
+            this.currentProgress,
+            'All relations processed'
+        );
     }
 
     async upsertLanguage(languageName: any) {
@@ -599,6 +658,7 @@ class PrismaServiceImporter {
             name: name,
             code: code
         });
+
         return newLanguage.id;
     }
 
@@ -639,6 +699,12 @@ class PrismaServiceImporter {
     }
 
     async importMediaFromZip(mediaPath: string) {
+        this.prismaService.setProgress(
+            this.processId,
+            this.currentProgress + 2,
+            'Importing media'
+        );
+
         const mediaFiles = fs.readdirSync(mediaPath);
 
         for (const mediaFile of mediaFiles) {
@@ -682,6 +748,16 @@ class PrismaServiceImporter {
 
             fs.renameSync(oldPath, newPath);
         }
+    }
+
+    private updateProgress(total: number, current: number, itemLabel: string) {
+        const progress = Math.round((current / total) * 90);
+        this.currentProgress = progress;
+        this.prismaService.setProgress(
+            this.processId,
+            progress,
+            'Processing: ' + itemLabel
+        );
     }
 }
 
