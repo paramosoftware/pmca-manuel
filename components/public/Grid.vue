@@ -17,17 +17,49 @@
         </div>
     </div>
 
-    <div class="mt-6">
-        <div class="flex flex-col md:flex-row mt-5">
-            <div class="w-full md:w-1/3">
+    <div class="mt-6 max-w-full">
+        <div class="flex flex-row md:flex-row mt-5 max-w-full">
+            <div
+                class="max-w-full w-full flex flex-col justify-start items-center space-y-8 mb-4"
+            >
                 <FieldInput
                     id="filter"
+                    class="w-full self-start md:w-3/5 xl:w-2/5 text-3xl"
                     v-model="search"
                     type="text"
                     :placeholder="placeholder"
                     :disabled="filterDisabled"
                     size="lg"
                 />
+                <div
+                    id="alphabetContainer"
+                    v-if="navigationStore.isAlphabetical"
+                    class="max-w-full flex flex-row items-center justify-center"
+                >
+                    <ul
+                        id="alphabeticalSelection"
+                        class="max-w-full flex flex-row items-center overflow-x-auto"
+                    >
+                        
+                        <li
+                            v-for="letter in alphabetArr"
+                            @click="navigationStore.setActiveLetter(letter)"
+                            :class="{
+                                'bg-pmca-green-500 border-0 text-3xl text-white px-2 py-1':
+                                    navigationStore.activeLetter == letter,
+                                'border border-gray-200 px-3 py-1 hover:bg-pmca-green-500 hover:text-white cursor-pointer':
+                                    navigationStore.activeLetter != letter,
+                                'py-3 px-6 text-1xl':
+                                    navigationStore.isSmallScreen,
+                                'text-xl':
+                                    navigationStore.activeLetter == letter &&
+                                    navigationStore.isSmallScreen
+                            }"
+                        >
+                            {{ letter }}
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div
@@ -76,8 +108,15 @@
                 class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8"
                 ref="grid"
             >
-                <div v-for="concept in concepts" :key="concept.id">
-                    <PublicCard :concept="concept" />
+                <div
+                    v-for="concept in concepts"
+                    :key="concept.id"
+                    class="flex md:justify-center items-center"
+                >
+                    <PublicCard
+                        :concept="concept"
+                        class="flex-grow max-w-md md:max-w-md lg:max-w-xl mx-auto"
+                    />
                 </div>
             </div>
         </div>
@@ -118,7 +157,7 @@ const props = defineProps({
         default: true
     }
 });
-
+const alphabetArr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 // TODO: transform the internal search into a filter of the large search [PMCA-406]
 // TODO: filter tree view based on search [DISCUSS]
 // TODO: add transition/animations to page change [PMCA-405]
@@ -137,19 +176,33 @@ if (!props.hasTree) {
     mode.value = 'alfa';
 }
 
+// Move to utils...?
+const isKeyOnLocalStorage = (key: string) => {
+    if (typeof window !== 'undefined' && window.localStorage)
+        return window.localStorage.getItem(key) !== null;
+
+    return false;
+};
+
+const isKeyValueOnLocalStorageAndIsTrue = (key: string) => {
+    if (isKeyOnLocalStorage(key)) {
+        return Boolean(localStorage.getItem(key));
+    }
+    return false;
+};
+//
+
+const navigationStore = useNavigationStore();
+const activeLetter = computed(() => {
+    return navigationStore.activeLetter;
+});
+
 const conceptStore = useConceptStore();
 await conceptStore.load('', props.userSelection);
 await conceptStore.fetchConceptsTree();
 
-const {
-    concepts,
-    page,
-    pageSize,
-    total,
-    search,
-    pending,
-    sort
-} = storeToRefs(conceptStore);
+const { concepts, page, pageSize, total, search, pending, sort } =
+    storeToRefs(conceptStore);
 
 search.value = query.value?.search?.toString() || '';
 
@@ -178,6 +231,14 @@ const placeholder = computed(() => {
     return props.userSelection ? 'Filtrar termos' : 'Pesquisar termos';
 });
 
+onBeforeMount(() => {
+    navigationStore.loadUserPreferences(
+        isKeyOnLocalStorage('isPinned')
+            ? Boolean(localStorage.getItem('isPinned'))
+            : false,
+        localStorage.getItem('lastSelectedNavigation') || null
+    );
+});
 onUnmounted(() => {
     search.value = '';
 });
