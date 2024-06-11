@@ -11,8 +11,7 @@
                 {
                     'bg-gray-50 border-t border-l border-b border-gray-200 ':
                         navigationStore.hierarchical.isHovered ||
-                        navigationStore.hierarchical.isOpen ||
-                        navigationStore.hierarchical.isPinned
+                        navigationStore.hierarchical.isOpen
                 }
             ]"
         >
@@ -53,34 +52,33 @@
     </div>
 
     <USlideover
-    v-if="navigationStore.screen.isSmall"
-            v-model="navigationStore.hierarchical.isOpen"
-            class="md:hidden lg:hidden text-pmca-primary"
-            side="left"
-            :ui="{
-                background: 'bg-gray-100'
-            }"
-        >
-            <div class="p-4 overflow-x-auto">
-                <div class="flex flex-row justify-between">
-                    <div class="text-lg font-semibold">Classificação</div>
+        v-if="navigationStore.screen.isSmall"
+        v-model="navigationStore.hierarchical.isOpen"
+        class="md:hidden lg:hidden text-pmca-primary"
+        side="left"
+        :ui="{
+            background: 'bg-gray-100'
+        }"
+    >
+        <div class="p-4 overflow-x-auto">
+            <div class="flex flex-row justify-between">
+                <div class="text-lg font-semibold">Classificação</div>
 
-                    <UIIcon
-                        name="ph:x"
-                        class="ml-auto"
-                        title="Fechar navegação"
-                        @click="navigationStore.toggleOpen"
-                    />
-                </div>
-
-                <UITreeView
-                    :tree="conceptsTree"
-                    class="mt-6"
-                    v-if="conceptsTree.length > 0"
+                <UIIcon
+                    name="ph:x"
+                    class="ml-auto"
+                    title="Fechar navegação"
+                    @click="navigationStore.toggleOpen"
                 />
             </div>
-        </USlideover>
-        
+
+            <UITreeView
+                :tree="conceptsTree"
+                class="mt-6"
+                v-if="conceptsTree.length > 0"
+            />
+        </div>
+    </USlideover>
 </template>
 
 <script setup lang="ts">

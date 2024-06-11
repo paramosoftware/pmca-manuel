@@ -1,16 +1,16 @@
 <template>
     <div
-        class="px-8 my-2 mb-4 md:flex flex-col items-stretch h-full w-full max-w-full rounded-md"
+        class="lg:px-8 my-2 mb-4 md:flex flex-col items-stretch h-full w-full max-w-full rounded-md"
     >
         <div
             id="firstRow"
-            class="flex md:flex-row lg:flex-row w-full justify-between items-center md:justify-end lg:justify-end"
+            class="flex flex-col md:flex-row lg:flex-row w-full justify-between items-center md:justify-end lg:justify-end"
         >
             <div
                 id="openHierarchical"
-                @click="navigationStore.toggleOpen"
+                @click="navigationStore.onOpenHierarchicalButton()"
                 :class="[
-                    'border-gray-200 border p-4 mb-2 shadow-lg rounded order-1 md:order-1 md:hidden lg:hidden lg:order-1 space-x-2 text-lg font-semibold cursor-pointer bg-gray-100',
+                    'border-gray-200 border p-4 mb-2 shadow-lg rounded order-2 md:order-1 md:hidden lg:hidden lg:order-1 space-x-2 text-lg font-semibold cursor-pointer bg-gray-100',
                     {
                         // 'bg-gray-100': !navigationStore.hierarchical.isOpen,
                         // 'bg-gray-200': navigationStore.hierarchical.isOpen
@@ -30,9 +30,8 @@
             </div>
             <div
                 id="icons"
-                class="order-2 md:order-2 lg:order-2 flex flex-row justify-end items-center"
+                class="order-1 md:order-2 lg:order-2 flex flex-row justify-end items-center"
             >
-                <div></div>
                 <div
                     class="p-8 space-x-12 flex flex-row justify-center items-center bg-gray-50 h-12 mb-2 rounded-md shadow-lg border border-gray-200"
                 >
@@ -91,15 +90,12 @@
                     navigationStore.isHierarchical || navigationStore.isDefault
                 "
                 id="hierarchicalViewContainer"
-                :class="
-                    ([
-                        'hidden md:block lg:block min-w-auto w-auto max-w-[40vw]'
-                    ],
-                    {
-                        'resize-x overflow-auto max-w-[40vw]':
-                            navigationStore.isHierarchicalViewOpen
-                    })
-                "
+                class="hidden md:block lg:block min-w-auto w-auto max-w-[40vw] transition-all duration-300 ease-in-out"
+                :class="{
+                    // overflow-auto here to enable native resize. better wait and actually implement resize with a proper lib
+                    'resize-x max-w-[40vw]':
+                        navigationStore.isHierarchicalViewOpen
+                }"
                 @mouseenter="navigationStore.updateHoverState"
                 @mouseleave="navigationStore.updateHoverState"
             >
@@ -112,7 +108,7 @@
                     navigationStore.isHierarchical
                 "
                 id="grid"
-                class="px-8 py-8 flex-shrink flex-grow bg-gray-50 rounded-md shadow-lg border border-gray-200"
+                class="px-8 max-w-full py-8 flex-shrink flex-grow bg-gray-50 rounded-md shadow-lg border border-gray-200"
             >
                 <PublicGrid class="flex-shrink-0" />
             </div>
@@ -185,10 +181,13 @@ const saveLastSelectedNavigation = (selectedNavigation: string) => {
 onMounted(() => {
     navigationStore.validateScreenSize();
     initializeUserPreferencesOnStore();
+
     window.addEventListener('resize', () =>
         navigationStore.validateScreenSize()
     );
 });
+
+onBeforeUnmount(() => {});
 
 onBeforeMount(() => {
     navigationMode.value = localStorage.getItem('lastSelectedNavigation')
