@@ -22,7 +22,10 @@ export const useNavigationStore = defineStore({
                 isOpen: false
             },
             alphabetical: {
-                activeLetter: 'A'
+                activeLetter: 'A',
+                todos: {
+                    status: false
+                }
             }
         };
     },
@@ -56,6 +59,9 @@ export const useNavigationStore = defineStore({
         },
         activeLetter(state) {
             return state.alphabetical.activeLetter;
+        },
+        isTodosActive(state) {
+            return state.alphabetical.todos.status === true;
         }
     },
     // TODO: Make this less repetitive. Follow toggle logic to avoid multiple re-definitions
@@ -73,6 +79,12 @@ export const useNavigationStore = defineStore({
             if (!this.isHierarchicalViewOpen) {
                 this.openHierarchicalView();
             }
+        },
+        savePinPreference() {
+            localStorage.setItem(
+                localStorageKeys.hierarchical.isPinned,
+                this.hierarchical.isPinned.toString()
+            );
         },
         openHierarchicalView() {
             if (
@@ -102,25 +114,24 @@ export const useNavigationStore = defineStore({
                 this.hierarchical.isOpen == true;
             if (!this.isHierarchicalViewHovered && this.isHierarchicalViewOpen)
                 this.hierarchical.isOpen == false;
-            this.resetActiveLetter()
+            this.resetActiveLetter();
         },
         resetActiveLetter() {
             if (this.navigationMode !== 'alphabetical') {
                 return;
             }
-
             this.alphabetical.activeLetter = 'A';
+        },
+        setActiveLetter(letter: string) {
+            this.alphabetical.activeLetter = letter;
+        },
+        cleanActiveLetter() {
+            this.alphabetical.activeLetter = 'inactive';
         },
         togglePin() {
             this.hierarchical.isPinned = !this.hierarchical.isPinned;
             this.savePinPreference();
             console.log(`toggle isPinned to ${this.hierarchical.isPinned}`);
-        },
-        savePinPreference() {
-            localStorage.setItem(
-                localStorageKeys.hierarchical.isPinned,
-                this.hierarchical.isPinned.toString()
-            );
         },
         toggleOpen() {
             this.hierarchical.isOpen = !this.hierarchical.isOpen;
@@ -129,6 +140,9 @@ export const useNavigationStore = defineStore({
         toggleHover() {
             this.hierarchical.isHovered = !this.hierarchical.isHovered;
             console.log(`toggle isHovered to ${this.hierarchical.isHovered}`);
+        },
+        toggleTodos() {
+            this.alphabetical.todos.status = !this.alphabetical.todos.status
         },
         loadUserPreferences(
             isPinnedLocalStorageValue: boolean,
@@ -141,15 +155,23 @@ export const useNavigationStore = defineStore({
             this.setNavigationMode(userSelectedNavigationMode || 'default'); // modify novanav logic to reflect this. no checks there, just send it
             this.resetActiveLetter;
         },
-        setActiveLetter(letter: string) {
-            this.alphabetical.activeLetter = letter;
-        },
         async onOpenHierarchicalButton() {
             if (!this.isHierarchical) {
                 this.setNavigationMode('hierarchical');
                 await nextTick();
-              }
-              this.toggleOpen();
-        }
+            }
+            this.toggleOpen();
+        },
+        handleTodos() {
+            if (this.isTodosActive) {      
+                this.toggleTodos();
+                this.resetActiveLetter();
+                return
+            }
+
+            this.toggleTodos();
+            this.cleanActiveLetter();
+
+        },
     }
 });
