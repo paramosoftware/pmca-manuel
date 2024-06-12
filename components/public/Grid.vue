@@ -1,5 +1,5 @@
 <template>
-    <div class="sm:flex sm:justify-between sm:items-center">
+    <div class="sm:flex items-center sm:justify-between sm:items-center">
         <div class="flex flex-col">
             <UIPageTitle>
                 <PublicBreadcrumb :add-concept-link="userSelection" />
@@ -17,11 +17,13 @@
                 </span>
             </div>
         </div>
-        <slot />
+        <div id="slotContainer" class="flex justify-center self-center">
+            <slot />
+        </div>
     </div>
 
-    <div class="mt-6 max-w-full">
-        <div class="flex flex-row md:flex-row mt-5 max-w-full">
+    <div class="mt-6 max-w-full h-auto">
+        <div class="flex flex-row md:flex-row mt-5 max-w-full h-auto">
             <div
                 class="max-w-full w-full flex flex-col justify-start items-center space-y-8 mb-4"
             >
@@ -37,41 +39,59 @@
                 <div
                     id="alphabetContainer"
                     v-if="navigationStore.isAlphabetical"
-                    class="max-w-full flex flex-col space-y-4 md:space-y-0 md:flex-row lg:flex-row space-x-4 items-center justify-center"
+                    class="max-w-full flex flex-col space-y-4 md:space-y-0 md:flex-row lg:flex-row space-x-4 items-center justify-center h-auto"
                 >
-                    <ul
-                        id="alphabeticalSelection"
-                        class="max-w-full flex flex-row items-center overflow-x-auto h-full"
+                    <div
+                        id="alphabetWrapper"
+                        class="flex w-auto items-center justify-center h-full self-start flex-col max-w-full"
                     >
-                        <li
-                            v-for="letter in alphabetArr"
-                            @click="navigationStore.setActiveLetter(letter); if (navigationStore.isTodosActive) navigationStore.toggleTodos();"
-                            :class="{
-                                'bg-pmca-green-500 border-0 text-3xl text-white px-2 py-1':
-                                    navigationStore.activeLetter == letter,
-                                'border border-gray-200 px-3 py-1 hover:bg-pmca-green-500 hover:text-white cursor-pointer':
-                                    navigationStore.activeLetter != letter,
-                                'py-3 px-6 text-sm':
-                                    navigationStore.isSmallScreen &&
-                                    navigationStore.activeLetter != letter,
-                                'py-3 px-6 text-xl':
-                                    navigationStore.activeLetter == letter &&
-                                    navigationStore.isSmallScreen
-                            }"
+                        <div
+                            id="todosButtonContainer"
+                            class="flex w-auto items-center justify-center h-full self-end"
                         >
-                            {{ letter }}
-                        </li>
-                    </ul>
-                    <div id="todosButtonContainer" class="w-auto h-full">
-                        <UButton
-                            class="text-xl self-center  bg-gray-400 "
-                            :class="[
-                                { 'bg-pmca-green-600': navigationStore.isTodosActive}
-                            ]"
-                            @click="navigationStore.handleTodos()"
-                            title="Mostrar todos os conceitos sem distinção alfabética."
-                            >TODOS</UButton
+                            <UButton
+                                class="self-center border border-gray-200 text-sm px-2 py-2 font-normal hover:text-white bg-gray-50 text-pmca-primary"
+                                :class="[
+                                    {
+                                        'bg-pmca-green-600 text-white':
+                                            navigationStore.isTodosActive,
+                                        'text-sm py-3 px-2':
+                                            navigationStore.isSmallScreen
+                                    }
+                                ]"
+                                @click="navigationStore.handleTodos()"
+                                title="Mostrar todos os conceitos sem distinção alfabética."
+                                >TODOS</UButton
+                            >
+                        </div>
+                        <ul
+                            id="alphabeticalSelection"
+                            class="max-w-full flex flex-row flex-grow items-center overflow-x-auto overflow-y-hidden h-auto py-4"
                         >
+                            <li
+                                v-for="letter in alphabetArr"
+                                @click="
+                                    navigationStore.setActiveLetter(letter);
+                                    if (navigationStore.isTodosActive)
+                                        navigationStore.toggleTodos();
+                                "
+                                :class="{
+                                    'bg-pmca-green-500 border-0 text-3xl text-white px-2 py-1':
+                                        navigationStore.activeLetter == letter,
+                                    'border border-gray-200 px-3 py-1 hover:bg-pmca-green-500 hover:text-white cursor-pointer':
+                                        navigationStore.activeLetter != letter,
+                                    'py-3 px-6 text-sm':
+                                        navigationStore.isSmallScreen &&
+                                        navigationStore.activeLetter != letter,
+                                    'py-3 px-6 text-xl':
+                                        navigationStore.activeLetter ==
+                                            letter &&
+                                        navigationStore.isSmallScreen
+                                }"
+                            >
+                                {{ letter }}
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -129,7 +149,7 @@
                 >
                     <PublicCard
                         :concept="concept"
-                        class="flex-grow max-w-md md:max-w-md lg:max-w-xl mx-auto"
+                        class="flex-grow max-w-md md:max-w-md lg:max-w-xl mx-auto truncate"
                     />
                 </div>
             </div>
@@ -140,10 +160,7 @@
             {{ props.userSelection ? 'selecionado' : 'encontrado' }}.
         </div>
 
-        <div
-            class="flex flex-row items-center justify-end mt-5 space-x-4"
-            
-        >
+        <div class="flex flex-row items-center justify-end mt-5 space-x-4">
             <UIIcon
                 class="w-8 h-8"
                 :name="
@@ -153,7 +170,8 @@
                 @click="conceptStore.sortByName()"
                 v-if="total > 1"
             />
-            <UPagination v-if="total > pageSize"
+            <UPagination
+                v-if="total > pageSize"
                 v-model="page"
                 :total="total"
                 :page-count="pageSize"

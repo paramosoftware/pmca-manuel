@@ -1,29 +1,11 @@
 <template>
     <div
-        class="lg:px-8 my-8 md:flex flex-col items-stretch h-full w-full max-w-full rounded-md"
+        class="px-4 lg:px-8 md:my-8 md:flex flex-col items-stretch h-full w-full max-w-full rounded-md"
     >
         <div
             id="firstRow"
             class="flex flex-col md:flex-row lg:flex-row w-full justify-between items-center md:justify-end lg:justify-end"
         >
-            <div
-                id="openHierarchical"
-                @click="navigationStore.onOpenHierarchicalButton()"
-                :class="[
-                    'border-gray-200 border p-4 mb-2 shadow-lg rounded order-2 md:order-1 md:hidden lg:hidden lg:order-1 space-x-2 text-lg font-semibold cursor-pointer bg-gray-100'
-                ]"
-            >
-                {{
-                    navigationStore.hierarchical.isOpen
-                        ? 'Esconder classificação'
-                        : 'Abrir classificação'
-                }}
-                <UIIcon
-                    name="ph:tree-structure"
-                    class="ml-auto"
-                    cursor-class=""
-                />
-            </div>
         </div>
 
         <div
@@ -36,15 +18,15 @@
                 "
                 id="hierarchicalViewContainer"
                 class="hidden md:block lg:block min-w-auto w-auto max-w-[40vw] transition-all duration-300 ease-in-out"
-                :class="{
+                :class="[
                     // overflow-auto here to enable native resize. better wait and actually implement resize with a proper lib
-                    'resize-x max-w-[40vw]':
-                        navigationStore.isHierarchicalViewOpen
-                }"
+                    {'max-w-[40vw]': navigationStore.isHierarchicalViewOpen}, `max-h-[${gridCurrentHeight}]`
+                    
+                ]"
                 @mouseenter="navigationStore.updateHoverState"
                 @mouseleave="navigationStore.updateHoverState"
             >
-                <PublicHierarchicalNavigation class="w-full max-w-[40vw]" />
+                <PublicHierarchicalNavigation />
             </div>
             <div
                 v-if="
@@ -52,10 +34,11 @@
                     navigationStore.isDefault ||
                     navigationStore.isHierarchical
                 "
-                id="grid"
+                id="gridContainer"
                 class="px-8 max-w-full py-8 flex-shrink flex-grow bg-gray-50 rounded-md shadow-lg border border-gray-200"
             >
-                <PublicGrid class="flex-shrink-0">
+                <PublicGrid ref="grid" class="flex-shrink-0">
+                    <PublicOpenHierarchical/>
                     <PublicNavigationToggler />
                 </PublicGrid>
             </div>
@@ -70,7 +53,10 @@
                 >
                     <PublicNavigationToggler class="self-end mb-4" />
                     <p class="order-2">
-                        <img src="../../data/media/diagram.png" class="h-4/5" />
+                        <img
+                            src="../../public/media/diagram.png"
+                            class="h-4/5"
+                        />
                     </p>
                 </div>
             </div>
@@ -111,6 +97,12 @@ const initializeUserPreferencesOnStore = () => {
     );
 };
 //
+const grid: Ref<HTMLElement | null> = ref(null);
+const gridCurrentHeight = computed(() => {
+    return grid.value ? grid.value.offsetHeight : 0;
+   
+});
+
 onMounted(() => {
     navigationStore.validateScreenSize();
     initializeUserPreferencesOnStore();

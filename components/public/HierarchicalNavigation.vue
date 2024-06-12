@@ -1,12 +1,13 @@
 <template>
     <div
         id="hierarchicalWrapper"
-        class="flex flex-col h-full bg-gray-200 rounded-tl-lg rounded-bl-lg"
+        class="flex flex-col h-full bg-gray-200 rounded-tl-lg rounded-bl-lg border-t border-l border-b border-gray-200"
+        :class="[{ 'bg-gray-50': navigationStore.hierarchical.isOpen }]"
     >
         <div
             id="firstRowHierarchical"
             :class="[
-                ' rounded-tl-lg justify-center p-4 flex flex-row',
+                ' rounded-tl-lg justify-between items-center p-4 flex flex-row',
                 { 'bg-gray-200': !navigationStore.hierarchical.isOpen },
                 {
                     'bg-gray-50 border-t border-l border-b border-gray-200 ':
@@ -31,7 +32,7 @@
             />
             <div
                 :class="[
-                    'text-lg font-semibold ml-4 my-4',
+                    'text-2xl font-semibold ml-4 my-4',
                     hierarchicalOpenHoverConditionals
                 ]"
             >
@@ -54,13 +55,13 @@
     <USlideover
         v-if="navigationStore.screen.isSmall"
         v-model="navigationStore.hierarchical.isOpen"
-        class="md:hidden lg:hidden text-pmca-primary"
+        class="text-pmca-primary h-screen"
         side="left"
         :ui="{
             background: 'bg-gray-100'
         }"
     >
-        <div class="p-4 overflow-x-auto">
+        <div class="p-4 h-full">
             <div class="flex flex-row justify-between">
                 <div class="text-lg font-semibold">Classificação</div>
 
@@ -71,12 +72,13 @@
                     @click="navigationStore.toggleOpen"
                 />
             </div>
-
-            <UITreeView
-                :tree="conceptsTree"
-                class="mt-6"
-                v-if="conceptsTree.length > 0"
-            />
+            <div id="treeViewWrapper" class="w-full h-5/6 h-max-[4/5]">
+                <UITreeView
+                    :tree="conceptsTree"
+                    class="mt-6 overflow-y-auto overflow-x-auto w-full max-h-full"
+                    v-if="conceptsTree.length > 0"
+                />
+            </div>
         </div>
     </USlideover>
 </template>

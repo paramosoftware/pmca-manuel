@@ -6,25 +6,29 @@
         <div
             class="p-4 bg-gray-50 flex flex-col space-y-4 justify-center items-center h-auto mb-2 rounded-md shadow-lg border border-gray-200"
         >
-            <h2 class="hidden md:block lg:block font-semibold">Visualização</h2>
-            <div
-                id="navigationButtonsContainer"
-                class="p-4 flex space-x-8 px-4"
+            <h2
+                class="hidden md:block lg:block font-semibold text-pmca-primary"
             >
-                <span class="flex flex-col items-center">
+                Visualização
+            </h2>
+            <div id="navigationButtonsContainer" class="flex space-x-8 px-4">
+                <span
+                    @click="
+                        saveLastSelectedNavigation(navigationModes.hierarchical)
+                    "
+                    class="flex flex-col items-center cursor-pointer"
+                >
                     <UIIcon
-                        @click="
-                            saveLastSelectedNavigation(
-                                navigationModes.hierarchical
-                            )
-                        "
+                        :placement="'top'"
                         name="ph:tree-structure"
+                        class="w-5 h-5"
                         :class="{
                             ...navigationStylingConditionals.hierarchical
                         }"
                         title="Utilizar classificação hierárquica."
                     />
                     <h4
+                        class="text-xs"
                         :class="{
                             ...navigationStylingConditionals.hierarchical
                         }"
@@ -32,20 +36,23 @@
                         Hierárquica
                     </h4>
                 </span>
-                <span class="flex flex-col items-center">
+                <span
+                    @click="
+                        saveLastSelectedNavigation(navigationModes.alphabetical)
+                    "
+                    class="flex flex-col items-center cursor-pointer"
+                >
                     <UIIcon
-                        @click="
-                            saveLastSelectedNavigation(
-                                navigationModes.alphabetical
-                            )
-                        "
+                        :placement="'top'"
                         name="ph:text-aa"
+                        class="w-5 h-5"
                         :class="{
                             ...navigationStylingConditionals.alphabetical
                         }"
                         title="Utilizar listagem alfabética."
                     />
                     <h4
+                        class="text-xs"
                         :class="{
                             ...navigationStylingConditionals.alphabetical
                         }"
@@ -53,18 +60,21 @@
                         Alfabética
                     </h4>
                 </span>
-                <span class="flex flex-col items-center">
+                <span
+                    @click="saveLastSelectedNavigation(navigationModes.diagram)"
+                    class="flex flex-col items-center cursor-pointer"
+                >
                     <UIIcon
-                        @click="
-                            saveLastSelectedNavigation(navigationModes.diagram)
-                        "
+                        :placement="'top'"
                         name="ph:align-top-simple"
+                        class="w-5 h-5"
                         :class="{
                             ...navigationStylingConditionals.diagram
                         }"
                         title="Utilizar visão de diagrama"
                     />
                     <h4
+                        class="text-xs"
                         :class="{
                             ...navigationStylingConditionals.diagram
                         }"
@@ -94,17 +104,17 @@ const saveLastSelectedNavigation = (selectedNavigation: string) => {
 
 const navigationStylingConditionals = computed(() => ({
     hierarchical: {
-        'text-black': !navigationStore.isHierarchical,
-        'bg-white text-pmca-green-600 ':
+        'text-pmca-primary': !navigationStore.isHierarchical,
+        'text-pmca-green-600 ':
             navigationStore.isHierarchical || navigationStore.isDefault
     },
     alphabetical: {
-        'text-black': !navigationStore.isAlphabetical,
-        'bg-white text-pmca-green-600': navigationStore.isAlphabetical
+        'text-pmca-primary': !navigationStore.isAlphabetical,
+        ' text-pmca-green-600': navigationStore.isAlphabetical
     },
     diagram: {
-        'text-black': !navigationStore.isDiagram,
-        'bg-white text-pmca-green-600': navigationStore.isDiagram
+        'text-pmca-primary': !navigationStore.isDiagram,
+        'text-pmca-green-600': navigationStore.isDiagram
     }
 }));
 
