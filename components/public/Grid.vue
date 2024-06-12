@@ -1,20 +1,23 @@
 <template>
     <div class="sm:flex sm:justify-between sm:items-center">
-        <UIPageTitle>
-            <PublicBreadcrumb :add-concept-link="userSelection" />
-            {{ title }}
-        </UIPageTitle>
-        <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
-            <span v-if="userSelection" class="flex items-center">
-                <UIIcon
-                    name="ph:broom"
-                    class="ml-3"
-                    title="Desmarcar todos"
-                    @click="conceptStore.clearSelection()"
-                />
-                <PublicExportDropdown class="ml-3" />
-            </span>
+        <div class="flex flex-col">
+            <UIPageTitle>
+                <PublicBreadcrumb :add-concept-link="userSelection" />
+                {{ title }}
+            </UIPageTitle>
+            <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
+                <span v-if="userSelection" class="flex items-center">
+                    <UIIcon
+                        name="ph:broom"
+                        class="ml-3"
+                        title="Desmarcar todos"
+                        @click="conceptStore.clearSelection()"
+                    />
+                    <PublicExportDropdown class="ml-3" />
+                </span>
+            </div>
         </div>
+        <slot />
     </div>
 
     <div class="mt-6 max-w-full">
@@ -34,24 +37,24 @@
                 <div
                     id="alphabetContainer"
                     v-if="navigationStore.isAlphabetical"
-                    class="max-w-full flex flex-row items-center justify-center"
+                    class="max-w-full flex flex-col space-y-4 md:space-y-0 md:flex-row lg:flex-row space-x-4 items-center justify-center"
                 >
                     <ul
                         id="alphabeticalSelection"
-                        class="max-w-full flex flex-row items-center overflow-x-auto"
+                        class="max-w-full flex flex-row items-center overflow-x-auto h-full"
                     >
-                        
                         <li
                             v-for="letter in alphabetArr"
-                            @click="navigationStore.setActiveLetter(letter)"
+                            @click="navigationStore.setActiveLetter(letter); if (navigationStore.isTodosActive) navigationStore.toggleTodos();"
                             :class="{
                                 'bg-pmca-green-500 border-0 text-3xl text-white px-2 py-1':
                                     navigationStore.activeLetter == letter,
                                 'border border-gray-200 px-3 py-1 hover:bg-pmca-green-500 hover:text-white cursor-pointer':
                                     navigationStore.activeLetter != letter,
-                                'py-3 px-6 text-1xl':
-                                    navigationStore.isSmallScreen,
-                                'text-xl':
+                                'py-3 px-6 text-sm':
+                                    navigationStore.isSmallScreen &&
+                                    navigationStore.activeLetter != letter,
+                                'py-3 px-6 text-xl':
                                     navigationStore.activeLetter == letter &&
                                     navigationStore.isSmallScreen
                             }"
@@ -59,6 +62,17 @@
                             {{ letter }}
                         </li>
                     </ul>
+                    <div id="todosButtonContainer" class="w-auto h-full">
+                        <UButton
+                            class="text-xl self-center  bg-gray-400 "
+                            :class="[
+                                { 'bg-pmca-green-600': navigationStore.isTodosActive}
+                            ]"
+                            @click="navigationStore.handleTodos()"
+                            title="Mostrar todos os conceitos sem distinção alfabética."
+                            >TODOS</UButton
+                        >
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,7 +93,7 @@
                 >
             </div>
             <div
-                class="flex flex-row items-center justify-between mt-5 md:mt-0"
+                class="hidden flex-row items-center justify-between mt-5 md:mt-0"
             >
                 <UIIcon
                     class="w-8 h-8 mr-3"
@@ -127,16 +141,32 @@
         </div>
 
         <div
-            class="flex flex-row items-center justify-end mt-5"
-            v-if="total > pageSize"
+            class="flex flex-row items-center justify-end mt-5 space-x-4"
+            
         >
-            <UPagination
+            <UIIcon
+                class="w-8 h-8"
+                :name="
+                    sort === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending'
+                "
+                title="Ordenar por nome"
+                @click="conceptStore.sortByName()"
+                v-if="total > 1"
+            />
+            <UPagination v-if="total > pageSize"
                 v-model="page"
                 :total="total"
                 :page-count="pageSize"
                 show-last
                 show-first
                 size="md"
+            />
+            <FieldGridSelect
+                :options="[
+                    { name: '12', value: 0 },
+                    { name: '24', value: 1 },
+                    { name: '32', value: 2 }
+                ]"
             />
         </div>
     </div>
