@@ -1,6 +1,6 @@
 <template>
     <div class="sm:flex items-center sm:justify-between sm:items-center">
-        <div class="flex flex-col">
+        <div class="flex flex-col w-full">
             <UIPageTitle>
                 <PublicBreadcrumb :add-concept-link="userSelection" />
                 {{ title }}
@@ -112,9 +112,7 @@
                     >"</span
                 >
             </div>
-            <div
-                class="flex-row items-center justify-between mt-5 md:mt-0"
-            >
+            <div class="flex-row items-center justify-between mt-5 md:mt-0">
                 <UIIcon
                     class="w-8 h-8 mr-3"
                     :name="
@@ -156,7 +154,7 @@
             </div>
         </div>
 
-        <div class="text-xl" v-if="search === '' && total === 0 && !pending">
+        <div class="text-xl text-center" v-if="search === '' && total === 0 && !pending">
             Nenhum termo
             {{ props.userSelection ? 'selecionado' : 'encontrado' }}.
         </div>
@@ -173,6 +171,7 @@
                 :size="navigationStore.isSmallScreen ? 'sm' : 'md'"
             />
             <FieldGridSelect
+                v-if="total > 1"
                 :options="[
                     { name: '12', value: 0 },
                     { name: '24', value: 1 },
