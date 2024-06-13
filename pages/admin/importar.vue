@@ -106,27 +106,40 @@
 
         <div class="my-0 h-full" v-if="importing">
             <div class="flex flex-col">
-                <div class="mb-5 flex justify-end">
+                <UProgress
+                    class="mt-5"
+                    :value="progress"
+                    :indicator="progress !== undefined"
+                    size="lg"
+                    :color="error ? 'red' : 'red'"
+                    :ui="{
+                        progress: {
+                            color: 'text-{color}-700 dark:text-{color}-600'
+                        },
+                    }"
+                />
+                <div
+                    class="text-center mt-3"
+                    :class="error ? 'text-red-700' : 'text-gray-400'"
+                >
+                    {{ message }}
+                </div>
+
+                <div v-if="report" class="mt-5">
+                    <UIImportReport :report="report" :has-error="error" />
+                </div>
+
+                <div></div>
+
+                <div class="my-5 flex justify-end">
                     <UIButton
                         class="text-end"
-                        v-if="completed"
+                        v-if="completed || error"
                         @click="restart"
                     >
                         Fazer outra importação
                     </UIButton>
                 </div>
-                <UProgress
-                    class="mt-16"
-                    :value="progress"
-                    :indicator="progress !== undefined"
-                    size="lg"
-                    :color="error ? 'red' : 'pmca-green'"
-                />
-                <div 
-                    class="my-5 p-5 text-center"
-                    :class="error ? 'bg-red-50' : ''"
-                    v-html="message"
-                ></div>
             </div>
         </div>
     </UICardContainer>
@@ -154,10 +167,11 @@ const options = [
 
 const res = ref('');
 const progress = ref<number | undefined>();
+const report = ref<undefined | ImportReport>();
 const message = ref('');
 const error = ref(false);
 const tries = ref(0);
-const maxTries = ref(10);
+const maxTries = ref(5);
 
 const mode = ref('merge');
 const importing = ref(false);
@@ -179,7 +193,6 @@ const templates = ref([
     { ext: 'xml', name: 'SKOS (Simple Knowledge Organization System)' }
 ]);
 
-
 const restart = () => {
     res.value = '';
     progress.value = 0;
@@ -191,7 +204,6 @@ const restart = () => {
 };
 
 const updateProgress = async (processId: string) => {
-
     res.value = processId;
     importing.value = true;
 
@@ -214,16 +226,18 @@ const updateProgress = async (processId: string) => {
                     setTimeout(() => {
                         updateProgress(processId);
                     }, 1000);
-                    message.value = "Processando..."
+                    message.value = 'Processando...';
                     progress.value = undefined;
                 } else {
                     error.value = true;
                     message.value = data.message || 'Erro ao importar os dados';
+                    report.value = data.report || undefined;
                 }
             } else {
                 completed.value = true;
                 message.value = data.message || 'Importação concluída';
                 progress.value = 100;
+                report.value = data.report || undefined;
             }
         } else {
             error.value = true;

@@ -271,6 +271,16 @@ declare global {
         finished: boolean;
         error: boolean;
         message: string;
+        report?: string;
     }
 
+
+    interface ImportReport {
+        duration: string;
+        totalItems: number;
+        processedItems: number;
+        skippedItems: number;
+        warnings: string[];
+        errors: string[];
+    }
 }

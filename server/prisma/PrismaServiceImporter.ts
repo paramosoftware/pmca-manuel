@@ -11,13 +11,13 @@ import deleteFolder from '~/utils/deleteFolder';
 import getDataFolderPath from '~/utils/getDataFolderPath';
 import parseNumber from '~/utils/parseNumber';
 import normalizeString from '~/utils/normalizeString';
+import logger from '~/utils/logger';
 import { useCamelCase } from '~/utils/useCamelCase';
 import { saveMedia } from './media';
 
 // TODO: Memory optimization: reading the whole file at once is not optimal [PMCA-398]
 // TODO: Error handling [PMCA-369]
 // TODO: Log report (to client and server) [PMCA-396]
-// TODO: Progress bar [PMCA-291]
 // TODO: Transaction (rollback if something goes wrong) [PMCA-397]
 class PrismaServiceImporter {
     private model: string;
@@ -39,7 +39,12 @@ class PrismaServiceImporter {
     private camelCaseMap = new Map<string, string>();
     private totalItems = 0;
     private processedItems = 0;
+    private skippedItems = 0;
     private currentProgress = 0;
+    private startTime = performance.now();
+    private endTime = performance.now();
+    private errors = [] as string[];
+    private warnings = [] as string[];
 
     /**
      * Prisma Importer Service
@@ -58,89 +63,109 @@ class PrismaServiceImporter {
     }
 
     private async _importFrom(filePath: string, mode: string = 'merge') {
-        await this.setResourceConfig();
-        const merge = mode === 'merge';
-        const overwrite = mode === 'overwrite';
 
-        const startDateTime = new Date();
+        try {
+            this.startTime = performance.now();
+            await this.setResourceConfig();
+            const merge = mode === 'merge';
+            const overwrite = mode === 'overwrite';
 
-        if (!fs.existsSync(filePath)) {
-            return;
-        }
+            const startDateTime = new Date();
 
-        const importPath = path.join(getDataFolderPath('temp'), 'import');
-        const zipPath = filePath;
+            if (!fs.existsSync(filePath)) {
+                return;
+            }
 
-        if (path.extname(filePath) === '.zip') {
-            const zip = new Zip(filePath);
-            zip.extractAllTo(importPath, true);
-            const files = fs.readdirSync(importPath);
-            filePath = path.join(importPath, files[0]);
-        }
+            const importPath = path.join(getDataFolderPath('temp'), 'import');
+            const zipPath = filePath;
 
-        switch (path.extname(filePath)) {
-            case '.json':
-                await this.importFromJson(filePath, merge);
-                break;
-            case '.xlsx':
-            case '.xls':
-            case '.csv':
-                await this.importFromXlsxOrCsv(filePath, merge);
-                break;
-            case '.xml':
-            case '.rdf':
-                if (this.model === 'Concept') {
-                    await this.importFromSkos(filePath, merge);
+            if (path.extname(filePath) === '.zip') {
+                const zip = new Zip(filePath);
+                zip.extractAllTo(importPath, true);
+                const files = fs.readdirSync(importPath);
+                filePath = path.join(importPath, files[0]);
+            }
+
+            switch (path.extname(filePath)) {
+                case '.json':
+                    await this.importFromJson(filePath, merge);
                     break;
-                } else {
+                case '.xlsx':
+                case '.xls':
+                case '.csv':
+                    await this.importFromXlsxOrCsv(filePath, merge);
+                    break;
+                case '.xml':
+                case '.rdf':
+                    if (this.model === 'Concept') {
+                        await this.importFromSkos(filePath, merge);
+                        break;
+                    } else {
+                        this.prismaService.setProgress(
+                            this.processId,
+                            0,
+                            'Importing SKOS is only supported for Concept model.',
+                            true,
+                            true
+                        );
+                        return;
+                    }
+                default:
                     this.prismaService.setProgress(
                         this.processId,
                         0,
-                        'Importing SKOS is only supported for Concept model.',
+                        'Unsupported file format.',
                         true,
                         true
                     );
                     return;
-                }
-            default:
-                this.prismaService.setProgress(
-                    this.processId,
-                    0,
-                    'Unsupported file format.',
-                    true,
-                    true
-                );
-                return;
+            }
+
+            await this.processRelations(
+                this.createdConcepts,
+                this.related,
+                this.parent
+            );
+
+            if (overwrite) {
+                await this.prismaService.deleteMany({
+                    where: { createdAt: { lte: startDateTime } }
+                });
+            }
+
+            const mediaPath = path.join(importPath, 'media');
+
+            if (fs.existsSync(mediaPath)) {
+                await this.importMediaFromZip(mediaPath);
+                deleteFolder(importPath);
+            }
+
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+
+            if (fs.existsSync(zipPath)) {
+                fs.unlinkSync(zipPath);
+            }
+
+            this.prismaService.setProgress(this.processId, 100, 'Finished');
+            this.endTime = performance.now();
+            this.setImportReport();
+        } catch (error) {
+            this.prismaService.setProgress(
+                this.processId,
+                this.currentProgress,
+                'Um erro ocorreu durante a importação. Verifique o relatório para mais detalhes.',
+                true,
+                true
+            );
+
+            logger.error(error);
+            this.endTime = performance.now();
+            // @ts-ignore
+            this.errors.push(error.message ?? JSON.stringify(error));
+            this.setImportReport();
         }
-
-        await this.processRelations(
-            this.createdConcepts,
-            this.related,
-            this.parent
-        );
-
-        if (overwrite) {
-            await this.prismaService.deleteMany({
-                where: { createdAt: { lte: startDateTime } }
-            });
-        }
-
-        const mediaPath = path.join(importPath, 'media');
-
-        if (fs.existsSync(mediaPath)) {
-            await this.importMediaFromZip(mediaPath);
-            deleteFolder(importPath);
-        }
-
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
-
-        if (fs.existsSync(zipPath)) {
-            fs.unlinkSync(zipPath);
-        }
-
-        this.prismaService.setProgress(this.processId, 100, 'Finished');
     }
 
     async setResourceConfig() {
@@ -758,6 +783,37 @@ class PrismaServiceImporter {
             progress,
             'Processing: ' + itemLabel
         );
+    }
+
+
+    private setImportReport() {
+        const duration = this.endTime - this.startTime;
+        const durationHours = Math.floor(duration / 3600000);
+        const durationMinutes = Math.floor((duration % 3600000) / 60000);
+        const durationSeconds = Math.floor((duration % 60000) / 1000);
+
+        let durationString = '';
+
+        if (durationHours > 0) {
+            durationString += durationHours + 'h ';
+        }
+
+        if (durationMinutes > 0) {
+            durationString += durationMinutes + 'm ';
+        }
+
+        durationString += durationSeconds + 's';
+        
+        const importReport = {
+            totalItems: this.totalItems,
+            processedItems: this.processedItems,
+            skippedItems: this.skippedItems,
+            duration: durationString,
+            warnings: this.warnings,
+            errors: this.errors
+        };
+
+        this.prismaService.setReportProgress(this.processId, importReport);
     }
 }
 

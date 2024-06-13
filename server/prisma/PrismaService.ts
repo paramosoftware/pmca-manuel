@@ -639,10 +639,26 @@ class PrismaService {
         progress = 0,
         message = '',
         finished = false,
-        error = false
+        error = false,
     ) {
         cache.set(processId, { progress, message, finished, error });
     }
+
+
+    setReportProgress(
+        processId: string,
+        report: ImportReport
+    ) {
+
+        const progress = cache.get(processId) as RequestProgress;
+
+        if (!progress) {
+            return;
+        }
+
+        cache.set(processId, { ...progress, report });
+    }
+
 
     /**
      * Return depth of the tree or node or return the ids of the tree
