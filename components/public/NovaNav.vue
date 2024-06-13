@@ -5,11 +5,10 @@
         <div
             id="firstRow"
             class="flex flex-col md:flex-row lg:flex-row w-full justify-between items-center md:justify-end lg:justify-end"
-        >
-        </div>
+        ></div>
 
         <div
-            id="wrapperye"
+            id="generalContainer"
             class="rounded-tl-lg rounded-bl-lg flex flex-shrink-0 h-full"
         >
             <div
@@ -17,11 +16,11 @@
                     navigationStore.isHierarchical || navigationStore.isDefault
                 "
                 id="hierarchicalViewContainer"
-                class="hidden md:block lg:block min-w-auto w-auto max-w-[40vw] transition-all duration-300 ease-in-out"
+                :style="{ 'max-height': `${gridCurrentHeight / 16}rem` }"
                 :class="[
-                    // overflow-auto here to enable native resize. better wait and actually implement resize with a proper lib
-                    {'max-w-[40vw]': navigationStore.isHierarchicalViewOpen}, `max-h-[${gridCurrentHeight}]`
-                    
+                    // TODO: Use a lib to enable resize from hold and drag in a vertical line.
+                    { 'max-w-[40vw]': navigationStore.isHierarchicalViewOpen },
+                    ` hidden md:block lg:block min-w-auto w-auto max-w-[40vw] transition-all duration-300 ease-in-out`
                 ]"
                 @mouseenter="navigationStore.updateHoverState"
                 @mouseleave="navigationStore.updateHoverState"
@@ -35,10 +34,11 @@
                     navigationStore.isHierarchical
                 "
                 id="gridContainer"
-                class="px-8 max-w-full py-8 flex-shrink flex-grow bg-gray-50 rounded-md shadow-lg border border-gray-200"
+                ref="gridContainer"
+                class="px-8 py-8 max-w-full flex-shrink flex-grow bg-gray-50 rounded-md shadow-lg border border-gray-200"
             >
-                <PublicGrid ref="grid" class="flex-shrink-0">
-                    <PublicOpenHierarchical/>
+                <PublicGrid class="flex-shrink-0">
+                    <PublicOpenHierarchical />
                     <PublicNavigationToggler />
                 </PublicGrid>
             </div>
@@ -83,9 +83,6 @@ const validateKeyOnLocalStorage = (key: string) => {
     const itemOnLocalStorage = localStorage.getItem(key);
     const validation =
         (itemOnLocalStorage ? JSON.parse(itemOnLocalStorage) : false) === true;
-    console.log(
-        `Validating key ${key} at localStorage. Returned ${itemOnLocalStorage} with validation ${validation}`
-    );
     return validation;
 };
 
@@ -97,18 +94,32 @@ const initializeUserPreferencesOnStore = () => {
     );
 };
 //
-const grid: Ref<HTMLElement | null> = ref(null);
-const gridCurrentHeight = computed(() => {
-    return grid.value ? grid.value.offsetHeight : 0;
-   
-});
+const gridContainer: Ref<HTMLElement | null> = ref(null);
+const gridCurrentHeight = ref(0);
+
+let gridResizeObserver;
 
 onMounted(() => {
+    if (gridContainer.value.offsetHeight) {
+        gridResizeObserver = new ResizeObserver(() => {
+            if (gridContainer.value) {
+                gridCurrentHeight.value = gridContainer.value.offsetHeight;
+            }
+        });
+        gridResizeObserver.observe(gridContainer.value);
+    }
+
     navigationStore.validateScreenSize();
     initializeUserPreferencesOnStore();
 
     window.addEventListener('resize', () =>
         navigationStore.validateScreenSize()
     );
+});
+
+onUnmounted(() => {
+    if (gridResizeObserver && gridContainer.value) {
+        gridResizeObserver.unobserve(gridContainer.value);
+    }
 });
 </script>

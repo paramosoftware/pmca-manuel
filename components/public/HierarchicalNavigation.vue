@@ -40,16 +40,18 @@
             </div>
             <UIIcon name="ph:tree-structure" class="my-4 block w-24 h-8" />
         </div>
-
-        <UITreeView
+        <div id="treeViewContainer" class="w-full max-h-full overflow-auto">
+            <UITreeView
             :tree="conceptsTree"
             :concept-store="useConceptStoreForTree ? conceptStore : undefined"
             v-if="conceptsTree.length > 0"
             :class="[
-                'hidden md:block lg:block pt-2 mx-8 h-max-full',
+                'hidden md:block lg:block pt-2 mx-8',
                 hierarchicalOpenHoverConditionals
             ]"
         />
+        </div>
+
     </div>
 
     <USlideover

@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full h-full whitespace-nowrap text-md overflow-auto" ref="treeViewRef">
+    <div class="w-full h-full whitespace-nowrap text-md" ref="treeViewRef">
         <ul>
             <li>
                 <div v-for="(node, index) in treeRef" class="mb-2">
