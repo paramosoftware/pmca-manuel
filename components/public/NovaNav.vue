@@ -19,11 +19,8 @@
                 :style="{ 'max-height': `${gridCurrentHeight / 16}rem` }"
                 :class="[
                     // TODO: Use a lib to enable resize from hold and drag in a vertical line.
-                    { 'max-w-[40vw]': navigationStore.isHierarchicalViewOpen },
                     ` hidden md:block lg:block min-w-auto w-auto max-w-[40vw] transition-all duration-300 ease-in-out`
                 ]"
-                @mouseenter="navigationStore.updateHoverState"
-                @mouseleave="navigationStore.updateHoverState"
             >
                 <PublicHierarchicalNavigation />
             </div>
