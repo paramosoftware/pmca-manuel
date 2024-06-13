@@ -111,10 +111,10 @@
                     :value="progress"
                     :indicator="progress !== undefined"
                     size="lg"
-                    :color="error ? 'red' : 'red'"
+                    :color="error ? 'red' : 'pmca-green'"
                     :ui="{
                         progress: {
-                            color: 'text-{color}-700 dark:text-{color}-600'
+                            color: error ? 'text-{color}-700' : 'text-{color}-500',
                         },
                     }"
                 />
