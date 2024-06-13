@@ -110,7 +110,7 @@ defineOptions({
 });
 
 const isHovered = ref(null);
-const isPinned = ref(localStorage.getItem('isPinned') === 'true');
+const isPinned = ref(false);
 const isOpen = computed(() => {
     return isHovered.value || isPinned.value;
 });
@@ -134,5 +134,6 @@ const navigationStore = useNavigationStore();
 const { conceptsTree } = storeToRefs(conceptStore);
 onMounted(() => {
     navigationStore.validateScreenSize();
+    isPinned.value = localStorage.getItem('isPinned') === 'true'
 });
 </script>

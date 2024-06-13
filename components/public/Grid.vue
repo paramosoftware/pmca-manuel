@@ -43,17 +43,17 @@
                 >
                     <div
                         id="alphabetWrapper"
-                        class="flex w-auto items-center justify-center h-full self-start flex-col max-w-full"
+                        class="flex w-auto items-center flex-col justify-center h-full self-start md:flex-row max-w-full"
                     >
                         <div
                             id="todosButtonContainer"
-                            class="flex w-auto items-center justify-center h-full self-end"
+                            class="flex items-center justify-end md:h-full h-auto self-end"
                         >
                             <UButton
-                                class="self-center border border-gray-200 text-sm px-2 py-2 font-normal hover:text-white bg-gray-50 text-pmca-primary"
+                                class="self-center border md:border-gray-200 sm:border-gray-400 text-sm px-2 py-2 font-normal hover:text-white bg-gray-50 text-pmca-primary"
                                 :class="[
                                     {
-                                        'bg-pmca-green-600 text-white':
+                                        'bg-pmca-green-500 text-white font-bold':
                                             navigationStore.isTodosActive,
                                         'text-sm py-3 px-2':
                                             navigationStore.isSmallScreen
@@ -66,7 +66,7 @@
                         </div>
                         <ul
                             id="alphabeticalSelection"
-                            class="max-w-full flex flex-row flex-grow items-center overflow-x-auto overflow-y-hidden h-auto py-4"
+                            class="max-w-full flex flex-row flex-1 flex-grow items-center overflow-x-auto overflow-y-hidden h-auto py-4"
                         >
                             <li
                                 v-for="letter in alphabetArr"
@@ -75,10 +75,11 @@
                                     if (navigationStore.isTodosActive)
                                         navigationStore.toggleTodos();
                                 "
+                                class="cursor-pointer"
                                 :class="{
                                     'bg-pmca-green-500 border-0 text-3xl text-white px-2 py-1':
                                         navigationStore.activeLetter == letter,
-                                    'border border-gray-200 px-3 py-1 hover:bg-pmca-green-500 hover:text-white cursor-pointer':
+                                    'border border-gray-200 px-3 py-1 hover:bg-pmca-green-500 hover:text-white':
                                         navigationStore.activeLetter != letter,
                                     'py-3 px-6 text-sm':
                                         navigationStore.isSmallScreen &&
@@ -154,7 +155,10 @@
             </div>
         </div>
 
-        <div class="text-xl text-center" v-if="search === '' && total === 0 && !pending">
+        <div
+            class="text-xl text-center"
+            v-if="search === '' && total === 0 && !pending"
+        >
             Nenhum termo
             {{ props.userSelection ? 'selecionado' : 'encontrado' }}.
         </div>
