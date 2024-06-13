@@ -113,7 +113,7 @@
                 >
             </div>
             <div
-                class="hidden flex-row items-center justify-between mt-5 md:mt-0"
+                class="flex-row items-center justify-between mt-5 md:mt-0"
             >
                 <UIIcon
                     class="w-8 h-8 mr-3"
@@ -127,6 +127,7 @@
                     v-if="total > 1"
                 />
                 <UPagination
+                    v-else-if="!navigationStore.isAlphabetical"
                     v-model="page"
                     :total="total"
                     :page-count="pageSize"
@@ -161,15 +162,6 @@
         </div>
 
         <div class="flex flex-row items-center justify-end mt-5 space-x-4">
-            <UIIcon
-                class="w-8 h-8"
-                :name="
-                    sort === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending'
-                "
-                title="Ordenar por nome"
-                @click="conceptStore.sortByName()"
-                v-if="total > 1"
-            />
             <UPagination
                 v-if="total > pageSize"
                 v-model="page"
@@ -177,7 +169,8 @@
                 :page-count="pageSize"
                 show-last
                 show-first
-                size="md"
+                :max="navigationStore.isSmallScreen ? 3 : 7"
+                :size="navigationStore.isSmallScreen ? 'sm' : 'md'"
             />
             <FieldGridSelect
                 :options="[
