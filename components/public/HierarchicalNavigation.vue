@@ -2,33 +2,41 @@
     <div
         id="hierarchicalWrapper"
         class="flex flex-col h-full bg-gray-200 rounded-tl-lg rounded-bl-lg border-t border-l border-b border-gray-200"
-        :class="[{ 'bg-gray-50': navigationStore.hierarchical.isOpen }]"
+        :class="[{ 'bg-gray-50': isOpen }]"
+        @mouseenter="
+            () => {
+                if (!loadingStore.loading) isHovered = true;
+            }
+        "
+        @mouseleave="
+            () => {
+                if (!loadingStore.loading) isHovered = false;
+            }
+        "
     >
         <div
             id="firstRowHierarchical"
             :class="[
                 ' rounded-tl-lg justify-between items-center p-4 flex flex-row',
-                { 'bg-gray-200': !navigationStore.hierarchical.isOpen },
+                { 'bg-gray-200': !isOpen },
                 {
                     'bg-gray-50 border-t border-l border-b border-gray-200 ':
-                        navigationStore.hierarchical.isHovered ||
-                        navigationStore.hierarchical.isOpen
+                        isHovered || isOpen
                 }
             ]"
         >
             <UIIcon
-                v-show="navigationStore.isHierarchicalViewOpen"
+                v-show="isOpen"
                 name="ph:push-pin"
                 :class="[
                     ' hover:text-pmca-accent w-6 h-6 m-4',
                     {
-                        'text-pmca-accent':
-                            navigationStore.hierarchical.isPinned
+                        'text-pmca-accent': isPinned
                     },
                     hierarchicalOpenHoverConditionals
                 ]"
                 title="Fixar"
-                @click="navigationStore.pinHierarchicalView"
+                @click="isPinned = !isPinned"
             />
             <div
                 :class="[
@@ -40,23 +48,27 @@
             </div>
             <UIIcon name="ph:tree-structure" class="my-4 block w-24 h-8" />
         </div>
-        <div id="treeViewContainer" class="w-full max-h-full overflow-auto">
+        <div
+            id="treeViewContainer"
+            class="w-full h-full max-h-full overflow-auto"
+        >
             <UITreeView
-            :tree="conceptsTree"
-            :concept-store="useConceptStoreForTree ? conceptStore : undefined"
-            v-if="conceptsTree.length > 0"
-            :class="[
-                'hidden md:block lg:block pt-2 mx-8',
-                hierarchicalOpenHoverConditionals
-            ]"
-        />
+                :tree="conceptsTree"
+                :concept-store="
+                    useConceptStoreForTree ? conceptStore : undefined
+                "
+                v-if="conceptsTree.length > 0"
+                :class="[
+                    'hidden md:block lg:block pt-2 mx-8',
+                    hierarchicalOpenHoverConditionals
+                ]"
+            />
         </div>
-
     </div>
 
     <USlideover
         v-if="navigationStore.screen.isSmall"
-        v-model="navigationStore.hierarchical.isOpen"
+        v-model="navigationStore.isSlideOverOpen"
         class="text-pmca-primary h-screen"
         side="left"
         :ui="{
@@ -71,7 +83,7 @@
                     name="ph:x"
                     class="ml-auto"
                     title="Fechar navegação"
-                    @click="navigationStore.toggleOpen"
+                    @click="navigationStore.toggleSlideOver"
                 />
             </div>
             <div id="treeViewWrapper" class="w-full h-5/6 h-max-[4/5]">
@@ -97,16 +109,25 @@ defineOptions({
     inheritAttrs: false
 });
 
+const isHovered = ref(null);
+const isPinned = ref(localStorage.getItem('isPinned') === 'true');
+const isOpen = computed(() => {
+    return isHovered.value || isPinned.value;
+});
+
+watch(isPinned, (newPinValue) => {
+    localStorage.setItem('isPinned', newPinValue.toString());
+});
+
 const hierarchicalOpenHoverConditionals = computed(() => {
     return {
-        'hidden md:hidden lg:hidden': !navigationStore.hierarchical.isOpen,
+        'hidden md:hidden lg:hidden': !isOpen.value,
         'hidden md:block lg:block':
-            navigationStore.hierarchical.isHovered ||
-            navigationStore.hierarchical.isOpen ||
-            navigationStore.hierarchical.isPinned
+            isHovered.value || isOpen.value || isPinned.value
     };
 });
 const conceptStore = useConceptStore();
+const loadingStore = useLoadingStore();
 await conceptStore.fetchConceptsTree();
 const navigationStore = useNavigationStore();
 
