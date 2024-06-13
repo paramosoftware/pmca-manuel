@@ -4,16 +4,17 @@
         class="order-1 md:order-2 lg:order-2 flex flex-row justify-end items-center h-auto"
     >
         <div
-            class="flex flex-col justify-center items-center h-auto mb-2 rounded-tr-md rounded-br-md md:rounded-md shadow-lg border md:border-gray-200 bg-gray-50"
+            class="w-full flex flex-col items-center h-auto rounded-tr-md rounded-br-md md:rounded-md shadow-md md:shadow-xl border md:border-gray-200 bg-gray-50"
         >
             <h2
-                class="hidden md:block lg:block font-semibold text-pmca-primary"
+                class="pt-1 text-xs md:block lg:block font-semibold text-pmca-primary"
             >
                 Visualização
             </h2>
             <div
                 id="navigationButtonsContainer"
-                class="flex space-x-4 p-2 md:space-x-8 md:px-4"
+                class="flex space-x-4 p-2 md:space-x-8 md:px-4  w-full"
+                :class="[`justify-${props.justifyMethod}`]"
             >
                 <UINavigationOption
                     :dropDownTitle="'Utilizar classificação hierárquica'"
@@ -49,6 +50,12 @@
 </template>
 
 <script setup lang="ts">
+const props = defineProps({
+    justifyMethod: {
+        type: String,
+        default: 'center'
+    }
+});
 const navigationStore = useNavigationStore();
 
 const navigationModes = {

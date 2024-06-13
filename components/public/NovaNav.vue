@@ -2,10 +2,14 @@
     <div
         class="px-4 lg:px-8 md:my-8 md:flex flex-col items-stretch h-full w-full max-w-full rounded-md"
     >
-        <div
-            id="firstRow"
-            class="flex flex-col md:flex-row lg:flex-row w-full justify-between items-center md:justify-end lg:justify-end"
-        ></div>
+<div id="firstRow" class="md:hidden flex flex-row md:flex-row justify-center lg:flex-row h-full  items-center md:justify-end lg:justify-end mb-4">
+    <div class="sm:flex items-center sm:justify-between sm:items-center w-3/4">
+        <div id="slotContainer" class="flex justify-center self-center w-full ">
+            <PublicOpenHierarchical class="flex-0 "/>
+            <PublicNavigationToggler class="flex-1" :justifyMethod="'between'"/>
+        </div>
+    </div>
+</div>
 
         <div
             id="generalContainer"
@@ -35,8 +39,8 @@
                 class="px-8 py-8 max-w-full flex-shrink flex-grow bg-gray-50 rounded-md shadow-lg border border-gray-200"
             >
                 <PublicGrid class="flex-shrink-0">
-                    <PublicOpenHierarchical />
-                    <PublicNavigationToggler />
+                    <PublicOpenHierarchical class="hidden md:block" />
+                    <PublicNavigationToggler class="hidden md:block" />
                 </PublicGrid>
             </div>
 
@@ -94,10 +98,10 @@ const initializeUserPreferencesOnStore = () => {
 const gridContainer: Ref<HTMLElement | null> = ref(null);
 const gridCurrentHeight = ref(0);
 
-let gridResizeObserver;
+let gridResizeObserver: ResizeObserver;
 
 onMounted(() => {
-    if (gridContainer.value.offsetHeight) {
+    if (gridContainer.value?.offsetHeight) {
         gridResizeObserver = new ResizeObserver(() => {
             if (gridContainer.value) {
                 gridCurrentHeight.value = gridContainer.value.offsetHeight;

@@ -172,7 +172,7 @@
                 show-last
                 show-first
                 :max="navigationStore.isSmallScreen ? 3 : 7"
-                :size="navigationStore.isSmallScreen ? 'sm' : 'md'"
+                :size="navigationStore.isSmallScreen ? 'xs' : 'md'"
             />
             <FieldGridSelect
                 v-if="total > 1"
