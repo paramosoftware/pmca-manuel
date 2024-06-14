@@ -24,8 +24,10 @@
                 class="text-pmca-secondary-dark hover:text-pmca-accent"
                 :class="['p-2 ' + (node.expanded ? 'font-semibold' : '')]"
                 :parentConditional="
-                    navigationStore.activeNode?.toString() == node.id
+                    navigationStore.activeNode?.toString() == node.id ||
+                    (path ? (node.slug ? path.includes(node.slug) : false) : false)
                 "
+                @click="navigationStore.setLastClickedNode(node.id)"
             >
                 <span
                     v-if="showPosition"
@@ -35,7 +37,9 @@
                             'text-gray-700 font-semibold':
                                 node.parentId ==
                                 navigationStore.activeNode?.toString(),
-                                'text-gray-700 font-bold': navigationStore.activeNode?.toString() == node.id
+                            'text-gray-700 font-bold':
+                                navigationStore.activeNode?.toString() ==
+                                node.id
                         }
                     ]"
                 >
@@ -98,6 +102,8 @@ const props = defineProps({
 });
 const navigationStore = useNavigationStore();
 const node = ref(props.node);
+const router = useRouter();
+const path = router.currentRoute.value.path;
 
 const position = computed(() => {
     return props.parentPosition
@@ -112,10 +118,6 @@ if (props.loadExpanded && props.node.children.length > 0) {
 const emits = defineEmits(['toggle-children', 'node-opened']);
 
 const lastClickedNode: Ref<ID> = ref('');
-const currentClickedNode = computed(() => {
-    console.log(lastClickedNode.value + 'inside');
-    return lastClickedNode.value;
-});
 
 const toggleNodeChildren = (node: TreeNode) => {
     node.expanded = !node.expanded;
