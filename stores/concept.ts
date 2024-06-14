@@ -7,7 +7,6 @@ export const useConceptStore = defineStore('concept', () => {
     const model = 'Concept';
     const conceptIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
-    
     const pageSizes = ref([12, 24, 36]);
     const pageSize = ref(pageSizes.value[0]);
     const total = ref(0);
@@ -293,16 +292,15 @@ export const useConceptStore = defineStore('concept', () => {
 
     async function fetchAncestors() {
         const { data } = await useFetchWithBaseUrl(
-            `/api/public/${model}/${concept.value?.id}/ancestors`
+            `/api/public/${model}/${concept.value?.id}/@ancestors`
         );
         ancestors.value = data.value;
         return data;
     }
 
     async function fetchDescendants(nodeId: ID) {
-
         const { data } = await useFetchWithBaseUrl(
-            `/api/public/${model}/${nodeId}/treeIds`
+            `/api/public/${model}/${nodeId}@treeIds`
         );
 
         descendantsIds.value = data.value;
@@ -344,8 +342,8 @@ export const useConceptStore = defineStore('concept', () => {
         window.location.reload();
     }
     const updatePageSize = (pageSizeSelection: number) => {
-        pageSize.value = pageSizes.value[pageSizeSelection]
-    }
+        pageSize.value = pageSizes.value[pageSizeSelection];
+    };
     return {
         conceptIdentifier,
         page,
@@ -377,6 +375,6 @@ export const useConceptStore = defineStore('concept', () => {
         exportData,
         clear,
         clearSelection,
-        updatePageSize,
+        updatePageSize
     };
 });
