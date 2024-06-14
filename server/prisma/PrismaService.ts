@@ -14,8 +14,12 @@ import PrismaServiceConverter from './PrismaServiceConverter';
 import PrismaServiceExporter from './PrismaServiceExporter';
 import PrismaServiceImporter from './PrismaServiceImporter';
 import PrismaServiceValidator from './PrismaServiceValidator';
+import type { PrismaClient } from '@prisma/client/extension';
 
+// TODO: Analyze and test possibility of Prisma instance crash in a transaction [PMCA-444]
 class PrismaService {
+    static prisma = prisma;
+    static transactionOpen = false;
     public model: string;
     public modelFields: readonly Prisma.DMMF.Field[] = [];
     public fieldsMap = new Map<string, Prisma.DMMF.Field>();
@@ -31,6 +35,7 @@ class PrismaService {
     private exporter: PrismaServiceExporter;
     private onlyPublished: boolean = false;
     private removePrivateFields: boolean = false;
+    private client: typeof PrismaClient
 
     /**
      * PrismaService constructor
@@ -46,6 +51,9 @@ class PrismaService {
         removePrivateFields = false
     ) {
         this.model = this.setModel(model);
+        // @ts-ignore
+        this.updateClient();
+
         this.checkPermissions = checkPermissions;
         this.onlyPublished = onlyPublished;
         this.removePrivateFields = removePrivateFields;
@@ -80,6 +88,7 @@ class PrismaService {
         partialResource?: string
     ) {
         try {
+            this.updateClient();
             this.request = request ?? {};
             this.validator.validate(this.request);
             const query = await this.converter.convertRequestToPrismaQuery(
@@ -96,31 +105,46 @@ class PrismaService {
 
             query.orderBy = undefined;
 
-            // @ts-ignore
-            return await prisma[this.model].findFirst(query);
+            return await this.client.findFirst(query);
         } catch (error) {
             throw error;
         }
     }
 
-    /**
+    /** TODO: Fix return type
      * Reads many records.
      * @param request {Query} - The request object with select, include, where, orderBy, pageSize, and page
+     * @param returnPaginated {boolean} - Flag indicating whether to return paginated data
      * @returns The records
      * @throws ApiValidationError
      * @example
      * { pageSize: 20, page: 1, select: ['id', 'name'], where: { id: 1 }, include: ['user'], orderBy: { name: 'asc' } }
      */
-    async readMany(request: Query) {
+    async readMany<T extends boolean>(
+        request: Query,
+        returnPaginated: T = true as T
+    ): Promise<T extends true ? PaginatedResponse : Object[]> {
         try {
+            this.updateClient();
             this.request = request;
+
+            if (!returnPaginated) {
+                this.request.pageSize = this.request.pageSize ?? -1;
+            }
+
             this.validator.validate(this.request);
             const query = await this.converter.convertRequestToPrismaQuery(
                 this.request,
                 true
             );
 
-            return await this.readManyWithCount(query);
+            const withCount = await this.readManyWithCount(query);
+
+            if (returnPaginated) {
+                return withCount as T extends true ? PaginatedResponse : Object[];
+            } else {
+                return withCount.items as T extends true ? PaginatedResponse : Object[];
+            }
         } catch (error) {
             throw error;
         }
@@ -128,12 +152,21 @@ class PrismaService {
 
     private async readManyWithCount(query: Query) {
         try {
-            const [total, data] = await prisma.$transaction([
-                // @ts-ignore
-                prisma[this.model].count({ where: query.where }),
-                // @ts-ignore
-                prisma[this.model].findMany(query)
-            ]);
+
+            this.updateClient();
+
+            let data = [];
+            let total = 0;
+
+            if (PrismaService.transactionOpen) {
+                total = await this.client.count({ where: query.where });
+                data = await this.client.findMany(query);
+            } else {
+                [total, data] = await PrismaService.prisma.$transaction([
+                    this.client.count({ where: query.where }),
+                    this.client.findMany(query)
+                ]);
+            }
 
             return {
                 page:
@@ -157,6 +190,7 @@ class PrismaService {
      * { name: 'John Doe' }
      */
     async createOne(request: object) {
+        this.updateClient();
         const data = await this.createMany([request]);
         return data ? data[0] : null;
     }
@@ -170,30 +204,60 @@ class PrismaService {
      * [{ name: 'John Doe' }, { name: 'Jane Doe' }]
      */
     async createMany(request: Array<object>) {
+        this.updateClient();
         this.request = request;
 
         if (!Array.isArray(this.request)) {
             this.request = [this.request];
         }
 
-        const inserts: any[] = [];
-
         if (this.checkPermissions) {
             this.permissions = await this.converter.mergeRelatedPermissions();
         }
 
-        for (const item of this.request) {
-            const query = await this.processCreateOrUpdateRequest(
-                this.model,
-                item
-            );
-            // @ts-ignore
-            inserts.push(prisma[this.model].create({ data: query }));
-        }
+        const data = [] as any[];
 
-        const data = await prisma.$transaction(inserts);
+        await this.executeInTransaction(async () => {
+            const promises = [];
+
+            for (const item of this.request) {
+                this.validator.validate(item);
+                const query = await this.processCreateOrUpdateRequest(
+                    this.model,
+                    item
+                );
+
+                promises.push(() => this.client.create({ data: query }));
+            }
+
+            const result = await this.runPromisesInSequence(promises);
+
+            for (const item of result) {
+                data.push(item);
+            }
+        });
 
         return data;
+    }
+
+    /**
+     * Executes a function in sequence
+     * Workaround for Prisma transaction issue with sqlite
+     * See: https://github.com/prisma/prisma/issues/22947#issuecomment-2115698744
+     * @param fn - The function to execute
+     * @returns The result of the function
+     */
+    private async runPromisesInSequence<T>(
+        functions: Array<() => Promise<T>>
+    ): Promise<Array<T>> {
+        const results: T[] = [];
+
+        for (const fn of functions) {
+            const result = await fn();
+            results.push(result);
+        }
+
+        return results;
     }
 
     /**
@@ -207,6 +271,7 @@ class PrismaService {
      */
     async updateOne(identifier: ID, request?: object) {
         try {
+            this.updateClient();
             this.setId(identifier);
             this.request = request ?? {};
             this.validator.validate(this.request);
@@ -239,80 +304,90 @@ class PrismaService {
      */
     async updateMany(request: Array<object>) {
         try {
+            this.updateClient();
+
             this.request = request;
             if (!Array.isArray(this.request)) {
                 this.request = [this.request];
             }
 
-            const updates: any[] = [];
+            const data = [] as any[];
             const mediaUpdates = new Map<number, ConceptMedia[]>();
 
-            for (const item of this.request) {
-                if (item.where === undefined) {
-                    throw new ApiValidationError(
-                        'Update must have a where clause'
-                    );
-                }
-
-                if (item.data === undefined) {
-                    throw new ApiValidationError(
-                        'Update must have a data clause: ' + item
-                    );
-                }
-
-                this.validator.validate(item);
-                const q = await this.converter.convertRequestToPrismaQuery(
-                    item,
-                    false
-                );
-
-                const where = q.where;
-
-                const query = await this.processCreateOrUpdateRequest(
-                    this.model,
-                    item.data,
-                    true
-                );
-
-                // @ts-ignore
-                const ids = await prisma[this.model].findMany({
-                    where,
-                    select: {
-                        id: true
-                    }
-                });
-
-                for (const id of ids) {
-                    if (this.model.toLowerCase() === 'concept') {
-                        const oldMedia = await prisma.conceptMedia.findMany({
-                            where: {
-                                conceptId: id.id
-                            }
-                        });
-
-                        const changes = await this.trackChanges(
-                            id.id,
-                            item.data
+            await this.executeInTransaction(async () => {
+                for (const item of this.request) {
+                    if (item.where === undefined) {
+                        throw new ApiValidationError(
+                            'Update must have a where clause'
                         );
-                        if (changes.length > 0) {
-                            query['changes'] = { create: changes };
-                        }
-                        mediaUpdates.set(id.id, oldMedia);
                     }
 
-                    updates.push(
-                        // @ts-ignore
-                        prisma[this.model].update({
+                    if (item.data === undefined) {
+                        throw new ApiValidationError(
+                            'Update must have a data clause: ' + item
+                        );
+                    }
+
+                    this.validator.validate(item);
+                    const q = await this.converter.convertRequestToPrismaQuery(
+                        item,
+                        false
+                    );
+
+                    const where = q.where;
+
+                    const query = await this.processCreateOrUpdateRequest(
+                        this.model,
+                        item.data,
+                        true
+                    );
+
+                    const ids = await this.readMany(
+                        {
+                            where,
+                            select: ['id']
+                        },
+                        false
+                    ) as { id: number }[];
+
+                    for (const id of ids) {
+                        if (this.model === 'Concept') {
+                            const mediaService =
+                                this.initPrismaServiceWithFlags(
+                                    'ConceptMedia'
+                                );
+
+                            const oldMedia = (await mediaService.readMany({
+                                    where: {
+                                        conceptId: id.id
+                                    }
+                                },
+                                false
+                            )) as ConceptMedia[];
+
+                            const changes = await this.trackChanges(
+                                id.id,
+                                item.data
+                            );
+
+                            if (changes.length > 0) {
+                                query['changes'] = { create: changes };
+                            }
+
+                            mediaUpdates.set(id.id, oldMedia);
+                        }
+
+                        const result = await this.client.update({
                             where: {
                                 id: id.id
                             },
                             data: query
-                        })
-                    );
-                }
-            }
+                        });
 
-            const data = await prisma.$transaction(updates);
+                        data.push(result);
+                    }
+                }
+            });
 
             for (const [id, media] of mediaUpdates) {
                 await handleMedia(media, id);
@@ -334,6 +409,7 @@ class PrismaService {
      */
     async deleteOne(identifier: ID) {
         try {
+            this.updateClient();
             const query = await this.converter.convertRequestToPrismaQuery(
                 this.request,
                 false,
@@ -360,39 +436,47 @@ class PrismaService {
      */
     async deleteMany(request: Query) {
         try {
+            this.updateClient();
             this.request = request;
             this.validator.validate(this.request);
-            let query = await this.converter.convertRequestToPrismaQuery(
+            const query = await this.converter.convertRequestToPrismaQuery(
                 this.request,
                 false
             );
 
-            query = { where: query.where };
+            const whereQ = JSON.parse(JSON.stringify({ where: query.where }));
 
             const conceptMedia: string | any[] = [];
 
-            if (this.model.toLowerCase() === 'concept') {
-                const concepts = await prisma.concept.findMany(query);
-                const ids = concepts.map((concept) => concept.id);
+            if (this.model == 'Concept') {
+                const concepts = (await this.readMany(
+                    whereQ,
+                    false
+                )) as unknown as Concept[];
+                const ids = concepts.map((concept: Concept) => concept.id);
 
-                let conceptMediaTemp = await prisma.conceptMedia.findMany({
-                    where: {
-                        conceptId: {
-                            in: ids
+                let conceptMediaTemp = (await this.readMany(
+                    {
+                        where: {
+                            conceptId: {
+                                in: ids
+                            }
                         }
-                    }
-                });
+                    },
+                    false
+                )) as ConceptMedia[];
 
                 conceptMediaTemp.forEach((concept) => {
                     conceptMedia.push(concept);
                 });
             }
 
-            // @ts-ignore
-            const data = await prisma[this.model].deleteMany(query);
+            delete whereQ.pageSize;
+            delete whereQ.page;
+            const data = await this.client.deleteMany(whereQ);
 
             if (conceptMedia.length > 0) {
-                deleteConceptMedia(conceptMedia);
+                await deleteConceptMedia(conceptMedia);
             }
 
             return data;
@@ -408,11 +492,9 @@ class PrismaService {
      * @returns The tree
      * @throws ApiValidationError
      */
-    async findTrees(
-        nodeId: number | null = null,
-        query: Query
-    ) {
-        const select = query.select ?? ['id', 'name', 'parentId', 'nameSlug'];
+    async findTrees(nodeId: number | null = null, query: Query) {
+        this.updateClient();
+        const select = query?.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const depth = (await this.findTreeDepth(nodeId)) as number;
 
         if (depth === 0) {
@@ -464,11 +546,8 @@ class PrismaService {
      * @returns The ancestors
      * @throws ApiValidationError
      */
-    async findAncestors(
-        nodeId: number,
-        query: Query,
-        flatten = true
-    ) {
+    async findAncestors(nodeId: number, query: Query, flatten = true) {
+        this.updateClient();
         const select = query.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const depth = await this.findNodeDepth(nodeId);
 
@@ -504,7 +583,7 @@ class PrismaService {
             where: where,
             include: nestedInclude.include,
             select: select
-        });
+        }, true);
 
         const parents = result.items[0].parent ? [result.items[0].parent] : [];
 
@@ -541,10 +620,8 @@ class PrismaService {
      * @returns The descendants
      * @throws ApiValidationError
      */
-    async findDescendants(
-        nodeId: number,
-        query: Query
-    ) {
+    async findDescendants(nodeId: number, query: Query) {
+        this.updateClient();
         const select = query.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const ids = await this.findTreeIds(nodeId);
 
@@ -612,11 +689,7 @@ class PrismaService {
         addMedia: boolean,
         query: Query
     ) {
-        return await this.exporter.exportToFormat(
-            format,
-            addMedia,
-            query
-        );
+        return await this.exporter.exportToFormat(format, addMedia, query);
     }
 
     getProgress(processId: string) {
@@ -639,17 +712,12 @@ class PrismaService {
         progress = 0,
         message = '',
         finished = false,
-        error = false,
+        error = false
     ) {
         cache.set(processId, { progress, message, finished, error });
     }
 
-
-    setReportProgress(
-        processId: string,
-        report: ImportReport
-    ) {
-
+    setReportProgress(processId: string, report: ImportReport) {
         const progress = cache.get(processId) as RequestProgress;
 
         if (!progress) {
@@ -658,7 +726,6 @@ class PrismaService {
 
         cache.set(processId, { ...progress, report });
     }
-
 
     /**
      * Return depth of the tree or node or return the ids of the tree
@@ -672,6 +739,8 @@ class PrismaService {
         returnIds = false,
         returnNodeDepth = false
     ) {
+        this.updateClient();
+
         if (this.model !== 'Concept') {
             throw new ApiValidationError(
                 'findTreeDepth is only available for Concept model'
@@ -705,7 +774,7 @@ class PrismaService {
         `;
 
         if (!returnIds) {
-            const depth = (await prisma.$queryRawUnsafe(`
+            const depth = (await PrismaService.prisma.$queryRawUnsafe(`
                 ${query}
                 SELECT max(depth) as depth FROM hierarchy;`)) as {
                 depth: number;
@@ -713,7 +782,7 @@ class PrismaService {
 
             return Number(depth[0].depth);
         } else {
-            const ids = (await prisma.$queryRawUnsafe(`
+            const ids = (await PrismaService.prisma.$queryRawUnsafe(`
                 ${query}
                 SELECT id FROM hierarchy;`)) as { id: number }[];
 
@@ -1297,8 +1366,7 @@ class PrismaService {
 
     // @ts-ignore
     private async calculateSlug(name: string, model: string, key: string) {
-        // @ts-ignore
-        const obj = await prisma[model].findFirst({
+        const obj = await this.getClient().findFirst({
             where: {
                 [key]: normalizeString(name, true)
             }
@@ -1325,10 +1393,11 @@ class PrismaService {
     }
 
     async canAccess() {
-        const resourceConfig = await prisma.resource.findFirst({
-            where: { nameNormalized: normalizeString(this.model) },
+        const resourceService = new PrismaService('Resource', false);
+
+        const resourceConfig = await resourceService.readOne(this.model, {
             include: { parent: true }
-        });
+        }) as Resource;
 
         if (!resourceConfig) {
             return false;
@@ -1445,10 +1514,7 @@ class PrismaService {
         const ignoreWithSuffix = ['Normalized', 'Slug', 'Id', 'Count'];
         const fieldsToTrack = [] as string[];
 
-        const oldData = (await prisma.concept.findUnique({
-            where: {
-                id: parseInt(id)
-            },
+        const oldData = (await this.readOne(id, {
             include: QUERIES.get('TrackChanges')?.include || {}
         })) as any;
 
@@ -1473,13 +1539,19 @@ class PrismaService {
             }
         });
 
-        const fields = await prisma.resourceField.findMany({
-            where: {
-                resource: {
-                    name: this.model
+        const resourceFieldService =
+            this.initPrismaServiceWithFlags('ResourceField');
+
+        const fields = (await resourceFieldService.getClient().findMany(
+            {
+                where: {
+                    resource: {
+                        name: this.model
+                    }
                 }
-            }
-        });
+            },
+            false
+        )) as unknown as ResourceField[];
 
         const fieldsMap = new Map<string, any>();
 
@@ -1585,6 +1657,52 @@ class PrismaService {
 
             changes.push(data);
         }
+    }
+
+    async executeInTransaction(callback: Function) {
+        try {
+            if (PrismaService.transactionOpen) {
+                return await callback();
+            }
+
+            return await PrismaService.prisma.$transaction(async (prismaTx) => {
+                PrismaService.transactionOpen = true;
+                // @ts-ignore
+                PrismaService.prisma = prismaTx;
+                // @ts-ignore
+                this.client = PrismaService.prisma[this.model];
+                await callback();
+                this.reinitializePrisma();
+            });
+        } catch (error) {
+            this.reinitializePrisma();
+            throw error;
+        }
+    }
+
+    reinitializePrisma() {
+        PrismaService.transactionOpen = false;
+        PrismaService.prisma = prisma;
+        // @ts-ignore
+        this.client = PrismaService.prisma[this.model];
+    }
+
+    initPrismaServiceWithFlags(model: string) {
+        return new PrismaService(
+            model,
+            this.checkPermissions,
+            this.onlyPublished,
+            this.removePrivateFields
+        );
+    }
+
+    getClient() {
+        return this.client;
+    }
+
+    private updateClient() {
+        // @ts-ignore
+        this.client = PrismaService.prisma[this.model];
     }
 }
 

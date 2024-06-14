@@ -15,6 +15,9 @@ declare global {
     export type Resource = Prisma.Resource & {
         groups?: Group[];
         fields?: ResourceField[];
+        relatedResources?: Resource[];
+        children?: Resource[];
+        parent?: Resource;
     };
 
     export type ResourceField = Prisma.ResourceField & {
