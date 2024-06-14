@@ -1,11 +1,15 @@
 import QUERIES from '~/config/queries';
 
+import { useNavigationStore } from './navigation';
+
 export const useConceptStore = defineStore('concept', () => {
+    const navigationStore = useNavigationStore();
     const model = 'Concept';
     const conceptIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
-    const pageSize = ref(12);
+    
     const pageSizes = ref([12, 24, 36]);
+    const pageSize = ref(pageSizes.value[0]);
     const total = ref(0);
     const totalPages = ref(0);
     const search = ref('');
@@ -22,6 +26,9 @@ export const useConceptStore = defineStore('concept', () => {
     const loadingStore = useLoadingStore();
     const ancestors = ref<Concept[]>([]);
     const descendantsIds = ref<ID[]>([]);
+    const searchByInitialLetter = computed(() => {
+        return navigationStore.isAlphabetical;
+    });
     let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
     const pending = ref(false);
@@ -79,6 +86,13 @@ export const useConceptStore = defineStore('concept', () => {
             q.where.AND.push({
                 id: {
                     in: useConceptSelection().getSelected()
+                }
+            });
+        }
+        if (searchByInitialLetter.value && !navigationStore.isTodosActive) {
+            q.where.AND.push({
+                name: {
+                    startsWith: navigationStore.activeLetter
                 }
             });
         }
@@ -196,7 +210,13 @@ export const useConceptStore = defineStore('concept', () => {
             method: 'GET',
             params: {
                 pageSize: -1,
-                select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId', 'position']),
+                select: JSON.stringify([
+                    'id',
+                    'name',
+                    'nameSlug',
+                    'parentId',
+                    'position'
+                ]),
                 orderBy: JSON.stringify({ position: 'asc' })
             },
             transform: (data: PaginatedResponse) => {
@@ -272,13 +292,19 @@ export const useConceptStore = defineStore('concept', () => {
     }
 
     async function fetchAncestors() {
-        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/${concept.value?.id}/@ancestors`);
+        const { data } = await useFetchWithBaseUrl(
+            `/api/public/${model}/${concept.value?.id}/ancestors`
+        );
         ancestors.value = data.value;
         return data;
     }
 
     async function fetchDescendants(nodeId: ID) {
-        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/${nodeId}/@treeIds`);
+
+        const { data } = await useFetchWithBaseUrl(
+            `/api/public/${model}/${nodeId}/treeIds`
+        );
+
         descendantsIds.value = data.value;
         await fetchList();
     }
@@ -290,11 +316,13 @@ export const useConceptStore = defineStore('concept', () => {
 
     async function exportData(format: DataTransferFormat, addMedia = false) {
         const exportData = useExportData();
-        
+
         const date = new Date().toISOString().replace(/:/g, '-');
-        const ext = addMedia? 'zip' : format;
+        const ext = addMedia ? 'zip' : format;
         const fileName = `export-${date}.${ext}`;
-        const where = conceptIdentifier.value ? { id: concept.value?.id } : query.value.where;
+        const where = conceptIdentifier.value
+            ? { id: concept.value?.id }
+            : query.value.where;
         const url = `/api/concept/export?format=${format}&addMedia=${addMedia}&where=${JSON.stringify(where)}`;
 
         await exportData.download(url, fileName);
@@ -315,7 +343,9 @@ export const useConceptStore = defineStore('concept', () => {
         useConceptSelection().clearSelected();
         window.location.reload();
     }
-
+    const updatePageSize = (pageSizeSelection: number) => {
+        pageSize.value = pageSizes.value[pageSizeSelection]
+    }
     return {
         conceptIdentifier,
         page,
@@ -336,6 +366,7 @@ export const useConceptStore = defineStore('concept', () => {
         conceptsTree,
         pending,
         error,
+        searchByInitialLetter,
         load,
         fetchNetwork,
         fetchConceptsTree,
@@ -345,6 +376,7 @@ export const useConceptStore = defineStore('concept', () => {
         sortByName,
         exportData,
         clear,
-        clearSelection
+        clearSelection,
+        updatePageSize,
     };
 });
