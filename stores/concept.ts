@@ -300,7 +300,7 @@ export const useConceptStore = defineStore('concept', () => {
 
     async function fetchDescendants(nodeId: ID) {
         const { data } = await useFetchWithBaseUrl(
-            `/api/public/${model}/${nodeId}@treeIds`
+            `/api/public/${model}/${nodeId}/@treeIds`
         );
 
         descendantsIds.value = data.value;
