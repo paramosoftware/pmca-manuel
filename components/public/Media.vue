@@ -80,7 +80,8 @@ const thumbOptions = {
     cover: true,
     focus: 'center',
     isNavigation: true,
-    updateOnMove: true
+    updateOnMove: true,
+    arrows: false
 };
 
 onMounted(() => {

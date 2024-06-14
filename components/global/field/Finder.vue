@@ -155,7 +155,7 @@ const finderRef = ref<Finder | null>(null);
 const defaultValue = getFormFieldConfig('defaultValue', '', props);
 const label = getFormFieldConfig('label', '', props);
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
-const query = getFormFieldConfig('query', '', props); // TODO: not implemented yet
+const query = getFormFieldConfig('query', '', props); // TODO: not implemented yet [ASK... is it PMCA-358?]
 let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
 
 if (props.formStore) {

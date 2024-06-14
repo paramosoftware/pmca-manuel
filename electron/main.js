@@ -143,7 +143,7 @@ function getAppOldVersion() {
     if (fs.existsSync(versionFile)) {
         return fs.readFileSync(versionFile, 'utf-8');
     } else {
-        return updateAppVersion();
+        return '0.0.0';
     }
 }
 

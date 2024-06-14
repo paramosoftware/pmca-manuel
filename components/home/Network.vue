@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-// TODO: How to handle large networks? Limit the number of nodes and links? Randomize the nodes?
+// TODO: How to handle large networks? Limit the number of nodes and links? Randomize the nodes? [PMCA-410]
 import * as d3 from 'd3';
 
 const blue = '#6699ff';

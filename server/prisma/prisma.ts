@@ -31,7 +31,10 @@ const isProduction = process.env.NODE_ENV === 'production';
 const prisma =
     globalForPrisma.prisma ||
     new PrismaClient({
-        log: isProduction ? ['error'] : ['info', 'warn', 'error']
+        log: isProduction ? ['error'] : ['info', 'warn', 'error'],
+        transactionOptions: {
+            timeout: 1000 * 60 * 10 // 10 minutes
+        },
     });
 
 if (!isProduction) {

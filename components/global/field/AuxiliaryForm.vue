@@ -104,13 +104,13 @@ if (!props.formStore) {
     throw new Error('Form store not defined');
 }
 
-// TODO: Allow edit items
+// TODO: Allow edit items [DISCUSS]
 
 const defaultValue = getFormFieldConfig('defaultValue', [], props);
 const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
 const label = getFormFieldConfig('label', '', props);
-const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation
+const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation [DISCUSS]
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowMultiple = getFormFieldConfig('allowMultiple', false, props);
 let max = getFormFieldConfig('max', 100, props);

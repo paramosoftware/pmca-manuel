@@ -1,5 +1,5 @@
-// TODO: Consider moving to the database
-// TODO: Create more specific queries for each need
+// TODO: Consider moving to the database [PMCA-404]
+// TODO: Create more specific queries for each need [PMCA-367]
 const QUERIES = new Map<
     string,
     {

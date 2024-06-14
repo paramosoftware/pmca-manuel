@@ -6,7 +6,7 @@ export function buildTreeData(
     nodeIdToExpand?: ID,
     nodeIdToRemove?: ID,
     leavesKey?: string, // when the leaves are in a different key
-    nodeIdExistent?: ID // TODO: temporary solution to for finder component to work when the defaultExpanded value does not exist in the tree
+    nodeIdExistent?: ID // TODO: temporary solution to for finder component to work when the defaultExpanded value does not exist in the tree [PMCA-414]
 ): TreeNode[] | [TreeNode, boolean] {
     const tempLabel = '___' + Math.random().toString(36).substring(7);
     const nodeMap = new Map<ID, TreeNode>();

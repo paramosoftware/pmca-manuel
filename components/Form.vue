@@ -184,7 +184,7 @@ async function submit() {
         router.push(ROUTES.edit + labelSlug.value + '/' + id);
 
         if (process.client) {
-            // TODO: Full reload instead?
+            // TODO: Full reload instead? [DISCUSS... might be more pricy]
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'

@@ -50,7 +50,8 @@ const props = defineProps({
         default: false
     }
 })
-// TODO: Maybe implement a URL detector manually? Navite JS API can't validate google.com.br as an example 
+
+// TODO: Maybe implement a URL detector manually? Native JS API can't validate google.com.br as an example [PMCA-411]
 
 const buildHyperlink = (term?: string, slug?: string, priorityName?: string, url?: string) => {
     const hyperlinkProperties: {
@@ -161,7 +162,7 @@ const provideHyperLinkFromMatch = async (match: RegExpExecArray): Promise<string
     }
 
     const priorityName = match[2]
-    return provideHyperlinkFromTerm(term, priorityName); 
+    return provideHyperlinkFromTerm(priorityName, term); 
 
 } 
 

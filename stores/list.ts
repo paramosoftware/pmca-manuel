@@ -30,16 +30,30 @@ export const useListStore = defineStore('list', () => {
     );
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
+    let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
-    // TODO: allow query in label
     const query = computed(() => {
         const q = {
             page: page.value,
             pageSize: pageSize.value,
             where: {
-                name: {
-                    like: search.value
-                }
+                OR : [
+                    { 
+                        name: {
+                            like: search.value
+                        }
+                    },
+                    {
+                        label: {
+                            like: search.value
+                        }
+                    },
+                    {
+                        labelPlural: {
+                            like: search.value
+                        }
+                    }
+                ]
             },
             orderBy: {
                 name: sort.value
@@ -59,7 +73,10 @@ export const useListStore = defineStore('list', () => {
     watch(
         () => query.value,
         async () => {
-            await fetch(resourceStore.name);
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(async () => {
+                await fetch(resourceStore.name);
+            }, 500);
         },
         { deep: true }
     );
