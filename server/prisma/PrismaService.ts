@@ -1666,7 +1666,7 @@ class PrismaService {
     async executeInTransaction(callback: Function) {
         try {
             if (PrismaService.transactionOpen) {
-                logger.info(`Transaction already open: ${PrismaService.transactionId}`);
+                logger.debug(`Transaction already open: ${PrismaService.transactionId}`);
                 return await callback();
             }
 

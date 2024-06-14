@@ -44,7 +44,7 @@ export async function deleteConceptMedia(conceptMedia: Array<ConceptMedia>, medi
     }
 
     for (const media of conceptMedia) {
-        logger.info(`Deleting media ${media.name}`);
+        logger.debug(`Deleting media ${media.name}`);
         const mediaPath = path.join(getDataFolderPath('media'), media.name);
 
         if (fs.existsSync(mediaPath)) {

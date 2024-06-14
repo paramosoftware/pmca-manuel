@@ -201,6 +201,7 @@ const restart = () => {
     importing.value = false;
     completed.value = false;
     tries.value = 0;
+    report.value = undefined;
 };
 
 const updateProgress = async (processId: string) => {
