@@ -450,13 +450,17 @@ class PrismaService {
 
             if (this.model == 'Concept') {
                 const concepts = (await this.readMany(
-                    whereQ,
+                    { select: ['id'], where: whereQ.where },
                     false
                 )) as unknown as Concept[];
+
                 const ids = concepts.map((concept: Concept) => concept.id);
 
-                let conceptMediaTemp = (await this.readMany(
-                    {
+                const mediaService = this.initPrismaServiceWithFlags(
+                    this.model + 'Media'
+                );
+
+                const conceptMediaTemp = (await mediaService.readMany({
                         where: {
                             conceptId: {
                                 in: ids
@@ -466,9 +470,7 @@ class PrismaService {
                     false
                 )) as ConceptMedia[];
 
-                conceptMediaTemp.forEach((concept) => {
-                    conceptMedia.push(concept);
-                });
+                conceptMedia.push(...conceptMediaTemp);
             }
 
             delete whereQ.pageSize;
