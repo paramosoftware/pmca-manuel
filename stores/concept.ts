@@ -7,7 +7,7 @@ export const useConceptStore = defineStore('concept', () => {
     const model = 'Concept';
     const conceptIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
-    const pageSizes = ref([12, 24, 36]);
+    const pageSizes = ref([16, 24, 32]);
     const pageSize = ref(pageSizes.value[0]);
     const total = ref(0);
     const totalPages = ref(0);
