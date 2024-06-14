@@ -6,8 +6,6 @@ import capitalize from '~/utils/capitalize';
 import decodeJwt from '~/utils/decodeJwt';
 import parseNumber from '~/utils/parseNumber';
 import PrismaService from '../../prisma/PrismaService';
-import { exportData } from '../../prisma/export';
-import { importData } from '../../prisma/import';
 import { importUploadFile, uploadMedia } from '../../prisma/media';
 import { ApiValidationError, ForbiddenError } from '../error';
 import { prisma } from '../../prisma/prisma';
@@ -26,7 +24,8 @@ const dataHandler = async (
         isUpload,
         isImport,
         isExport,
-        isPublic
+        isPublic,
+        apiMethod
     } = getParamsFromPath(req.path);
 
     // @ts-ignore
@@ -35,7 +34,7 @@ const dataHandler = async (
         return;
     }
 
-    const method = req.method.toUpperCase() as Method;
+    const requestMethod = req.method.toUpperCase() as Method;
     const body = req.body;
     const queryParams = req.query;
     const format = req.query.format
@@ -58,7 +57,7 @@ const dataHandler = async (
             const decodedToken = decodeJwt(
                 refreshToken.accessToken,
                 process.env.ACCESS_TOKEN_SECRET!
-            ) as { userId: string; permissions: Permission; isAdmin: boolean };
+            ) as UserToken;
 
             userId = decodedToken.userId;
             permissions = decodedToken.permissions;
@@ -71,7 +70,7 @@ const dataHandler = async (
     }
 
     const prismaService = new PrismaService(model, true, isPublic, isPublic);
-    prismaService.setMethod(method);
+    prismaService.setMethod(requestMethod);
     prismaService.setUserId(userId);
     prismaService.setPermissions(permissions);
 
@@ -87,30 +86,15 @@ const dataHandler = async (
     try {
         let response: any = null;
         const query = convertQueryParamsToRequest(queryParams);
-        const request = method == 'GET' ? query : body;
-        const select = request.select ? request.select : undefined;
+        const request = requestMethod == 'GET' ? query : body;
 
-        const hierarchicalEndpoints = ['ancestors', 'descendants', 'treeDepth', 'treeIds'];
-
-        // TODO: Would be better to another variable to check if it's a hierarchical endpoint?
-        if (partialResource && hierarchicalEndpoints.includes(partialResource)) {
-            if (partialResource === 'ancestors') {
-                response = prismaService.findAncestors(parseNumber(id), select);
-            } else if (partialResource === 'descendants') {
-                response = prismaService.findDescendants(parseNumber(id), select);
-            } else if (partialResource === 'tree') {
-                response = prismaService.findTrees(parseNumber(id), select);
-            } else if (partialResource === 'treeDepth') {
-                response = prismaService.findTreeDepth(parseNumber(id));
-            } else if (partialResource === 'treeIds') {
-                response = prismaService.findTreeIds(parseNumber(id));
-            }
+        if (apiMethod) {
+            response = executeApiMethod(apiMethod, prismaService, id, request);
         } else {
-            switch (method) {
+            switch (requestMethod) {
                 case 'GET':
                     if (isExport) {
-                        response = exportData.exportToFormat(
-                            model,
+                        response = prismaService.exportToFormat(
                             format,
                             addMedia,
                             query
@@ -151,8 +135,10 @@ const dataHandler = async (
                         )) as string;
                         // mode is accessible only after multipart form data is parsed by multer
                         const mode = req.body.mode ? req.body.mode : 'merge';
-                        await importData.importFrom(model, importFilePath, mode);
-                        response = { message: 'Imported successfully' };
+                        response = prismaService.importData(
+                            importFilePath,
+                            mode
+                        );
                     } else {
                         response = prismaService.createOne(request);
                     }
@@ -188,30 +174,57 @@ const dataHandler = async (
 };
 
 /**
+ * Execute an API method
+ * @param apiMethod - The API method
+ * @param prismaService - The Prisma service
+ * @param id - The ID
+ * @param request - The request
+ * @param res - The response
+ * @param next - The next function
+ */
+function executeApiMethod(
+    apiMethod: string,
+    prismaService: PrismaService,
+    id: ID,
+    request: any
+) {
+    const mappedMethods = {
+        progress: 'getProgress',
+        ancestors: 'findAncestors',
+        descendants: 'findDescendants',
+        trees: 'findTrees',
+        treeDepth: 'findTreeDepth',
+        treeIds: 'findTreeIds'
+    } as Record<string, string>;
+
+    if (mappedMethods[apiMethod]) {
+        // @ts-ignore
+        return prismaService[mappedMethods[apiMethod]](
+            parseNumber(id),
+            request
+        );
+    } else {
+        throw new ApiValidationError('Invalid API method');
+    }
+}
+
+/**
  * Get the parameters from the path
  * @param path - The path
  * @returns The parameters as an object
  */
-function getParamsFromPath(path: string): {
-    model: string;
-    id: ID;
-    hasQuery: boolean;
-    partialResource: string;
-    isPublic: boolean;
-    isUpload: boolean;
-    isImport: boolean;
-    isExport: boolean;
-} {
+function getParamsFromPath(path: string) {
     const info = {
         model: '',
-        id: null as ID,
+        id: null,
         partialResource: '',
         hasQuery: false,
         isPublic: false,
         isUpload: false,
         isImport: false,
-        isExport: false
-    };
+        isExport: false,
+        apiMethod: ''
+    } as ApiParams;
 
     const parts = path.replace('/api/', '').split('/');
 
@@ -221,8 +234,14 @@ function getParamsFromPath(path: string): {
     }
 
     info.model = capitalize(parts[0]);
-
     parts.shift();
+
+    const lastPart = parts[parts.length - 1];
+
+    if (typeof lastPart === 'string' && lastPart.startsWith('@')) {
+        info.apiMethod = lastPart.substring(1);
+        parts.pop();
+    }
 
     if (parts[parts.length - 1] === 'query') {
         info.hasQuery = true;

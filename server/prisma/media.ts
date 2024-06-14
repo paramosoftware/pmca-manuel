@@ -3,9 +3,10 @@ import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { prisma } from './prisma';
 import { UploadError } from '../express/error';
 import getDataFolderPath from '~/utils/getDataFolderPath';
+import logger from '~/utils/logger';
+import PrismaService from './PrismaService';
 
 export async function uploadMedia(
     model: string,
@@ -37,31 +38,36 @@ export async function uploadMedia(
     res.json(mediaData);
 }
 
-export async function deleteConceptMedia(conceptMedia: Array<ConceptMedia>) {
-    conceptMedia.forEach((media: ConceptMedia) => {
+export async function deleteConceptMedia(conceptMedia: Array<ConceptMedia>, mediaService?: PrismaService, deleteRecords: boolean = true) {
+    if (!mediaService) {
+        mediaService = new PrismaService('ConceptMedia', false);
+    }
+
+    for (const media of conceptMedia) {
+        logger.debug(`Deleting media ${media.name}`);
         const mediaPath = path.join(getDataFolderPath('media'), media.name);
 
         if (fs.existsSync(mediaPath)) {
             fs.unlinkSync(mediaPath);
         }
 
-        prisma.conceptMedia.delete({
-            where: {
-                id: media.id
-            }
-        });
-    });
+        if (deleteRecords) {
+            await mediaService.deleteOne(media.id);
+        }
+    }
 }
 
 export async function handleMedia(
     oldMedia: Array<ConceptMedia>,
     conceptId: number
 ) {
-    const newMedia: Array<ConceptMedia> = await prisma.conceptMedia.findMany({
+    const mediaService = new PrismaService('ConceptMedia', false);
+
+    const newMedia: Array<ConceptMedia> = await mediaService.readMany({
         where: {
             conceptId: conceptId
         }
-    });
+    }, false) as unknown as Array<ConceptMedia>;
 
     const mediaToDelete: Array<ConceptMedia> = [];
 
@@ -73,7 +79,7 @@ export async function handleMedia(
         }
     });
 
-    deleteConceptMedia(mediaToDelete);
+    deleteConceptMedia(mediaToDelete, mediaService);
 }
 
 export async function saveMedia(
@@ -83,18 +89,22 @@ export async function saveMedia(
     position: number = 1
 ) {
     try {
-        const media = await prisma.conceptMedia.create({
-            data: {
+
+        const mediaService = new PrismaService('ConceptMedia', false);
+
+        const media = await mediaService.createOne({
                 name: fileName,
                 originalFilename: originalFilename,
                 position: position,
-                conceptId: conceptId
-            }
+                conceptId: conceptId,
+                concept: {
+                    id: conceptId
+                }
         });
 
         return media;
     } catch (error) {
-        throw new UploadError('Error saving media to database');
+        throw new UploadError('Error saving media to database: ' + JSON.stringify(error));
     }
 }
 
@@ -130,7 +140,7 @@ export async function importUploadFile(
         upload(req, res, async (err: any) => {
             try {
                 if (err) {
-                    throw new UploadError('Error uploading file');
+                    throw new UploadError('Error uploading file: ' + err.message);
                 }
 
                 if (!req.file) {
@@ -139,12 +149,14 @@ export async function importUploadFile(
 
                 resolve(path.join(destinationFolder, req.file?.filename));
             } catch (error) {
+
+                const fileName = req.file?.filename ?? '';
                 const filePath = path.join(
                     destinationFolder,
-                    req.file?.filename!
+                    fileName
                 );
 
-                if (fs.existsSync(filePath)) {
+                if (fs.existsSync(filePath) && fileName) {
                     fs.unlink(filePath, (err) => {
                         if (err) {
                             throw new UploadError('Error deleting file');
