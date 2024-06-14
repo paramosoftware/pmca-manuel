@@ -7,7 +7,7 @@ import pino from 'pino';
 const date = new Date().toISOString().split('T')[0];
 const logPath = getDataFolderPath('logs') + `/log-${date}.log`;
 
-const level = process.env.LOG_LEVEL || 'trace';
+const level = process.env.LOG_LEVEL || 'info';
 const pretty = process.env.NODE_ENV === 'development';
 
 const options = {

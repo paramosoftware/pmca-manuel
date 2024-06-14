@@ -15,6 +15,9 @@ declare global {
     export type Resource = Prisma.Resource & {
         groups?: Group[];
         fields?: ResourceField[];
+        relatedResources?: Resource[];
+        children?: Resource[];
+        parent?: Resource;
     };
 
     export type ResourceField = Prisma.ResourceField & {
@@ -252,5 +255,35 @@ declare global {
         title?: string;
         width?: number;
         height?: number;
+    }
+
+    interface ApiParams {
+        model: string;
+        id: ID;
+        hasQuery: boolean;
+        partialResource: string;
+        isPublic: boolean;
+        isUpload: boolean;
+        isImport: boolean;
+        isExport: boolean;
+        apiMethod: string;
+    }
+
+    interface RequestProgress {
+        progress: number;
+        finished: boolean;
+        error: boolean;
+        message: string;
+        report?: string;
+    }
+
+
+    interface ImportReport {
+        duration: string;
+        totalItems: number;
+        processedItems: number;
+        skippedItems: number;
+        warnings: string[];
+        errors: string[];
     }
 }

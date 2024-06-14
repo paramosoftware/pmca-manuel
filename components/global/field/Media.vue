@@ -45,7 +45,7 @@
 
                         <FieldDropzone
                             @update="addMedia"
-                            @close="isOpen = false"
+                            @finish="isOpen = false"
                             :url="url"
                         />
                     </UCard>

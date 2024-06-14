@@ -22,16 +22,21 @@ The API has the following data endpoints:
 
 ```
     GET /api/:model - Get many
+    GET /api/:model/@<method> - Get with method
     GET /api/:model/:id - Get one
-    GET /api/:model/:id/[:field] - Get one field
+    GET /api/:model/:id/[:field] - Get records from field
+    GET /api/:model/:id/@<method> - Get with method
+    GET /api/:model/query - Get one or many with query
     GET /api/:model/export - Export with query
 
     PUT /api/:model - Update one or many
     PUT /api/:model/:id - Update one
 
     POST /api/:model - Create one or many
+    POST /api/:model/@<method> - Get with method
     POST /api/:model/query - Get one or many with query
     POST /api/:model/:id/[:field]/query - Get one with query or Get one field with query
+    POST /api/:model/:id/@<method> - Get with method
     POST /api/:model/:id/upload - Upload media (only available for Concept model)
     POST /api/:model/import - Import all (only available for Concept model)
 
@@ -50,6 +55,8 @@ Which endpoint can be with the `public` prefix:
 When `public` is appended after `api`, the endpoint is public and does not require authentication. Only the `GET` method is allowed for public endpoints. Only published records are returned in the response.
 
 To use the non-public endpoints, it is necessary to authenticate using the `POST /api/auth/login` endpoint. The endpoint send two cookies in the response: `csrf` and `jwt`. The `csrf` cookie is used to prevent CSRF attacks, and the `jwt` cookie is used to authenticate requests to the API. All the subsequent requests to the API must include the `csrf` and `jwt` cookies and the `X-CSRF-Token` header with the value of the `csrf` cookie.
+
+The `@<method>` is a method that can be executed on the records. It uses the `@` character followed by the method name, to distinguish it from the field name.
 
 ### Endpoint paths
 
