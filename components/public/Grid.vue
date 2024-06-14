@@ -38,38 +38,39 @@
                 />
                 <div
                     id="alphabetContainer"
-                    v-if="navigationStore.isAlphabetical"
+                    v-if="navigationStore.isAlphabetical && props.hasAlphabetical"
                     class="max-w-full flex flex-col space-y-4 md:space-y-0 md:flex-row lg:flex-row space-x-4 items-center justify-center h-auto"
                 >
                     <div
                         id="alphabetWrapper"
                         class="flex w-auto items-center flex-col justify-center h-full self-start md:flex-row max-w-full"
                     >
-                        <div
-                            id="todosButtonContainer"
-                            class="flex items-center justify-end md:h-full h-auto self-end"
-                        >
-                            <UButton
-                                class="self-center border md:border-gray-200 sm:border-gray-400 text-sm px-2 py-2 font-normal hover:text-white bg-gray-50 text-pmca-primary"
-                                :class="[
-                                    {
-                                        'bg-pmca-green-500 text-white font-bold':
-                                            navigationStore.isTodosActive,
-                                        'text-sm py-3 px-2':
-                                            navigationStore.isSmallScreen
-                                    }
-                                ]"
-                                @click="navigationStore.handleTodos()"
-                                title="Mostrar todos os conceitos sem distinção alfabética."
-                                >TODOS</UButton
-                            >
-                        </div>
                         <ul
                             id="alphabeticalSelection"
                             class="max-w-full flex flex-row flex-1 flex-grow items-center overflow-x-auto overflow-y-hidden h-auto py-4"
                         >
+                            <li>
+                                <UButton
+                                    :style="{
+                                        borderTopRightRadius: '0',
+                                        borderBottomRightRadius: '0'
+                                    }"
+                                    class="self-center border md:border-gray-300 sm:border-gray-400 text-sm px-2 py-2 font-normal hover:text-white bg-gray-50 text-pmca-primary"
+                                    :class="[
+                                        {
+                                            'bg-pmca-green-500 text-white font-bold':
+                                                navigationStore.isTodosActive,
+                                            'text-sm py-3 px-2':
+                                                navigationStore.isSmallScreen
+                                        }
+                                    ]"
+                                    @click="navigationStore.handleTodos()"
+                                    title="Mostrar todos os conceitos sem distinção alfabética."
+                                    >TODOS</UButton
+                                >
+                            </li>
                             <li
-                                v-for="letter in alphabetArr"
+                                v-for="(letter, index) in alphabetArr"
                                 @click="
                                     navigationStore.setActiveLetter(letter);
                                     if (navigationStore.isTodosActive)
@@ -87,7 +88,9 @@
                                     'py-3 px-6 text-xl':
                                         navigationStore.activeLetter ==
                                             letter &&
-                                        navigationStore.isSmallScreen
+                                        navigationStore.isSmallScreen,
+                                    'rounded-tr rounded-br':
+                                        index == alphabetArr.length - 1
                                 }"
                             >
                                 {{ letter }}
@@ -177,7 +180,7 @@
             <FieldGridSelect
                 v-if="total > 1"
                 :options="[
-                    { name: '12', value: 0 },
+                    { name: '16', value: 0 },
                     { name: '24', value: 1 },
                     { name: '32', value: 2 }
                 ]"
@@ -199,6 +202,10 @@ const props = defineProps({
     hasTree: {
         type: Boolean,
         default: true
+    },
+    hasAlphabetical: {
+        type: Boolean,
+        default: true,
     }
 });
 const alphabetArr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
