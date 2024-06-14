@@ -6,14 +6,13 @@ import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import LANGUAGES from '~/config/languages';
-import { prisma } from '~/server/prisma/prisma';
 import deleteFolder from '~/utils/deleteFolder';
 import getDataFolderPath from '~/utils/getDataFolderPath';
 import parseNumber from '~/utils/parseNumber';
 import normalizeString from '~/utils/normalizeString';
 import logger from '~/utils/logger';
 import { useCamelCase } from '~/utils/useCamelCase';
-import { saveMedia } from './media';
+import { deleteConceptMedia, saveMedia } from './media';
 
 // TODO: Memory optimization: reading the whole file at once is not optimal [PMCA-398]
 // TODO: Error handling [PMCA-369]
@@ -44,6 +43,7 @@ class PrismaServiceImporter {
     private endTime = performance.now();
     private errors = [] as string[];
     private warnings = [] as string[];
+    private mediaToDelete = [] as any[];
 
     /**
      * Prisma Importer Service
@@ -63,32 +63,50 @@ class PrismaServiceImporter {
 
     private async _importFrom(filePath: string, mode: string = 'merge') {
         try {
-            this.prismaService.executeInTransaction(async () => {
-                this.startTime = performance.now();
-                await this.setResourceConfig();
-                const merge = mode === 'merge';
-                const overwrite = mode === 'overwrite';
+            this.startTime = performance.now();
+            await this.setResourceConfig();
+            const merge = mode === 'merge';
+            const overwrite = mode === 'overwrite';
 
-                // TODO: Refactor to delete media only after the transaction is successful [PMCA-445]
-                if (overwrite) {
-                    await this.prismaService.deleteMany({});
-                }
-
-                if (!fs.existsSync(filePath)) {
-                    return;
-                }
-
-                const importPath = path.join(
-                    getDataFolderPath('temp'),
-                    'import'
+            if (!fs.existsSync(filePath)) {
+                this.prismaService.setProgress(
+                    this.processId,
+                    0,
+                    'File not found.',
+                    true,
+                    true
                 );
-                const zipPath = filePath;
+                return;
+            }
 
-                if (path.extname(filePath) === '.zip') {
-                    const zip = new Zip(filePath);
-                    zip.extractAllTo(importPath, true);
-                    const files = fs.readdirSync(importPath);
-                    filePath = path.join(importPath, files[0]);
+            const importPath = path.join(getDataFolderPath('temp'), 'import');
+            const zipPath = filePath.toString();
+
+            if (path.extname(filePath) === '.zip') {
+                const zip = new Zip(filePath);
+                zip.extractAllTo(importPath, true);
+                const files = fs.readdirSync(importPath);
+                filePath = path.join(importPath, files[0]);
+            }
+
+            await this.prismaService.executeInTransaction(async () => {
+                if (overwrite) {
+                    this.prismaService.setProgress(
+                        this.processId,
+                        5,
+                        'Sobrescrevendo dados existentes'
+                    );
+
+                    const mediaService =
+                        this.prismaService.initPrismaServiceWithFlags(
+                            this.model + 'Media'
+                        );
+
+                    this.mediaToDelete = await mediaService.readMany({}, false);
+
+                    // Use client to avoid deleting media files, which is triggered by service deleteMany
+                    await mediaService.getClient().deleteMany({});
+                    await this.prismaService.getClient().deleteMany({});
                 }
 
                 switch (path.extname(filePath)) {
@@ -140,17 +158,30 @@ class PrismaServiceImporter {
                 }
 
                 if (fs.existsSync(filePath)) {
+                    logger.info(`Deleting file ${filePath}`);
                     fs.unlinkSync(filePath);
                 }
 
                 if (fs.existsSync(zipPath)) {
+                    logger.info(`Deleting zip ${zipPath}`);
                     fs.unlinkSync(zipPath);
                 }
-
-                this.prismaService.setProgress(this.processId, 100, 'Finished');
-                this.endTime = performance.now();
-                this.setImportReport();
             });
+
+            logger.info('Import finished');
+
+            if (this.mediaToDelete.length > 0) {
+                this.prismaService.setProgress(
+                    this.processId,
+                    this.currentProgress + 2,
+                    'Apagando arquivos de mídia'
+                );
+                deleteConceptMedia(this.mediaToDelete, undefined, false);
+            }
+
+            this.prismaService.setProgress(this.processId, 100, 'Finished');
+            this.endTime = performance.now();
+            this.setImportReport();
         } catch (error) {
             this.prismaService.setProgress(
                 this.processId,
@@ -555,9 +586,12 @@ class PrismaServiceImporter {
         );
 
         if (update) {
-            const foundConcepts = await this.prismaService.readMany({
-                where: { name: concept.name }
-            }, true);
+            const foundConcepts = await this.prismaService.readMany(
+                {
+                    where: { name: concept.name }
+                },
+                true
+            );
 
             if (foundConcepts && foundConcepts.items.length > 0) {
                 const existingConcept = foundConcepts.items[0] as Concept;
@@ -662,7 +696,10 @@ class PrismaServiceImporter {
         };
 
         const langService = new PrismaService('Language', false);
-        const foundLanguage = await langService.readMany({ where: where }, true);
+        const foundLanguage = await langService.readMany(
+            { where: where },
+            true
+        );
 
         if (foundLanguage && foundLanguage.total > 0) {
             return foundLanguage.items[0].id;
@@ -729,6 +766,7 @@ class PrismaServiceImporter {
             this.currentProgress + 2,
             'Importing media'
         );
+        logger.info('Importing media');
 
         const mediaFiles = fs.readdirSync(mediaPath);
 
@@ -759,6 +797,8 @@ class PrismaServiceImporter {
                 this.createdConcepts.get(oldId) ??
                 this.createdConcepts.get('#' + oldId);
 
+            logger.info(`Importing media for concept ${conceptId} (${oldId})`);
+
             if (conceptId) {
                 await saveMedia(
                     conceptId,
@@ -773,10 +813,12 @@ class PrismaServiceImporter {
 
             fs.renameSync(oldPath, newPath);
         }
+
+        logger.info('Media imported');
     }
 
     private updateProgress(total: number, current: number, itemLabel: string) {
-        const progress = Math.round((current / total) * 90);
+        const progress = Math.round((current / total) * 85);
         this.currentProgress = progress;
         this.prismaService.setProgress(
             this.processId,

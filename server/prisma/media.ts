@@ -3,9 +3,9 @@ import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { prisma } from './prisma';
 import { UploadError } from '../express/error';
 import getDataFolderPath from '~/utils/getDataFolderPath';
+import logger from '~/utils/logger';
 import PrismaService from './PrismaService';
 
 export async function uploadMedia(
@@ -38,19 +38,22 @@ export async function uploadMedia(
     res.json(mediaData);
 }
 
-export async function deleteConceptMedia(conceptMedia: Array<ConceptMedia>, mediaService?: PrismaService) {
+export async function deleteConceptMedia(conceptMedia: Array<ConceptMedia>, mediaService?: PrismaService, deleteRecords: boolean = true) {
     if (!mediaService) {
         mediaService = new PrismaService('ConceptMedia', false);
     }
 
     for (const media of conceptMedia) {
+        logger.info(`Deleting media ${media.name}`);
         const mediaPath = path.join(getDataFolderPath('media'), media.name);
 
         if (fs.existsSync(mediaPath)) {
             fs.unlinkSync(mediaPath);
         }
 
-        await mediaService.deleteOne(media.id);
+        if (deleteRecords) {
+            await mediaService.deleteOne(media.id);
+        }
     }
 }
 
