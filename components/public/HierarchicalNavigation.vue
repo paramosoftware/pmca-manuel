@@ -89,6 +89,9 @@
             <div id="treeViewWrapper" class="w-full h-5/6 h-max-[4/5]">
                 <UITreeView
                     :tree="conceptsTree"
+                    :concept-store="
+                    useConceptStoreForTree ? conceptStore : undefined
+                "
                     class="mt-6 overflow-y-auto overflow-x-auto w-full max-h-full"
                     v-if="conceptsTree.length > 0"
                 />
@@ -134,6 +137,6 @@ const navigationStore = useNavigationStore();
 const { conceptsTree } = storeToRefs(conceptStore);
 onMounted(() => {
     navigationStore.validateScreenSize();
-    isPinned.value = localStorage.getItem('isPinned') === 'true'
+    isPinned.value = localStorage.getItem('isPinned') === 'true';
 });
 </script>

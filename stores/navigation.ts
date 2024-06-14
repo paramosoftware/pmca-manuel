@@ -16,6 +16,11 @@ export const useNavigationStore = defineStore({
             hierarchical: {
                 slideOver: {
                     status: false
+                },
+                node: {
+                    lastClicked: {
+                        id: null as ID
+                    }
                 }
             },
             alphabetical: {
@@ -50,6 +55,9 @@ export const useNavigationStore = defineStore({
         },
         isSlideOverOpen(state) {
             return state.hierarchical.slideOver.status === true;
+        },
+        activeNode(state) {
+            return state.hierarchical.node.lastClicked.id;
         }
     },
     actions: {
@@ -74,6 +82,12 @@ export const useNavigationStore = defineStore({
         },
         cleanActiveLetter() {
             this.alphabetical.activeLetter = 'inactive';
+        },
+        setLastClickedNode(id: ID) {
+            this.hierarchical.node.lastClicked.id = id;
+        },
+        cleanLastClickedNode() {
+            this.hierarchical.node.lastClicked.id = null;
         },
         toggleTodos() {
             this.alphabetical.todos.status = !this.alphabetical.todos.status;

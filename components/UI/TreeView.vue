@@ -48,12 +48,6 @@ onMounted(() => {
             if (!treeViewRef.value) {
                 return;
             }
-
-            const hasHorizontalScrollbar = treeViewRef.value.scrollWidth > treeViewRef.value.clientWidth;
-
-            if (hasHorizontalScrollbar) {
-                treeViewRef.value.scrollLeft = (treeViewRef.value.scrollWidth - treeViewRef.value.clientWidth) / 2;
-            }
         });
     }
 });

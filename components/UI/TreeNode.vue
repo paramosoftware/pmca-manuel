@@ -14,20 +14,43 @@
                 name="ph:caret-right"
                 class="h-5 w-5"
             />
-            <UIIcon v-else-if="!showPosition" name="ph:dot-outline" class="h-5 w-5" />
-            <UILink 
-                :href="'/termos/' + node.slug" 
-                :class="'p-2 ' + (node.expanded ? 'font-semibold' : '')"
+            <UIIcon
+                v-else-if="!showPosition"
+                name="ph:dot-outline"
+                class="h-5 w-5"
+            />
+            <UITreeLink
+                :href="'/termos/' + node.slug"
+                class="text-pmca-secondary-dark hover:text-pmca-accent"
+                :class="['p-2 ' + (node.expanded ? 'font-semibold' : '')]"
+                :parentConditional="
+                    navigationStore.activeNode?.toString() == node.id
+                "
+            >
+                <span
+                    v-if="showPosition"
+                    class="text-xs text-gray-500"
+                    :class="[
+                        {
+                            'text-gray-700 font-semibold':
+                                node.parentId ==
+                                navigationStore.activeNode?.toString(),
+                                'text-gray-700 font-bold': navigationStore.activeNode?.toString() == node.id
+                        }
+                    ]"
                 >
-                <span v-if="showPosition" class="text-xs text-gray-500">
-                    {{ position }} 
+                    {{ position }}
                 </span>
                 {{ node.label }}
-            </UILink>
+            </UITreeLink>
         </div>
     </div>
     <ul v-if="node.expanded && node.children.length > 0" class="ml-2">
-        <li v-for="(child, index) in node.children" :key="child.id ?? ''" class="m-3 md:m-2">
+        <li
+            v-for="(child, index) in node.children"
+            :key="child.id ?? ''"
+            class="m-3 md:m-2"
+        >
             <UITreeNode
                 :node="child"
                 :level="level + 1"
@@ -44,7 +67,6 @@
 
 <script setup lang="ts">
 // TODO: Feature: fetch data on demand [DISCUSS... hierarchy or network related? both?]
-
 const props = defineProps({
     node: {
         type: Object as PropType<TreeNode>,
@@ -55,7 +77,7 @@ const props = defineProps({
         required: true
     },
     conceptStore: {
-        type: Object as PropType<ConceptStore>,
+        type: Object as PropType<ConceptStore>
     },
     showPosition: {
         type: Boolean,
@@ -74,11 +96,13 @@ const props = defineProps({
         default: false
     }
 });
-
+const navigationStore = useNavigationStore();
 const node = ref(props.node);
 
 const position = computed(() => {
-    return props.parentPosition ? `${props.parentPosition}.${props.positionAmongSiblings}` : `${props.positionAmongSiblings}`;
+    return props.parentPosition
+        ? `${props.parentPosition}.${props.positionAmongSiblings}`
+        : `${props.positionAmongSiblings}`;
 });
 
 if (props.loadExpanded && props.node.children.length > 0) {
@@ -87,11 +111,21 @@ if (props.loadExpanded && props.node.children.length > 0) {
 
 const emits = defineEmits(['toggle-children', 'node-opened']);
 
+const lastClickedNode: Ref<ID> = ref('');
+const currentClickedNode = computed(() => {
+    console.log(lastClickedNode.value + 'inside');
+    return lastClickedNode.value;
+});
+
 const toggleNodeChildren = (node: TreeNode) => {
     node.expanded = !node.expanded;
     if (props.conceptStore) {
         props.conceptStore.fetchDescendants(node.id);
+        navigationStore.setLastClickedNode(node.id);
     }
 };
 
+onBeforeUnmount(() => {
+    navigationStore.cleanLastClickedNode();
+});
 </script>
