@@ -8,6 +8,7 @@ import hashPassword from '~/utils/hashPassword';
 import normalizeString from '~/utils/normalizeString';
 import parseNumber from '~/utils/parseNumber';
 import sanitizeString from '~/utils/sanitizeString';
+import logger from '~/utils/logger';
 import { ApiValidationError } from '../express/error';
 import { deleteConceptMedia, handleMedia } from './media';
 import PrismaServiceConverter from './PrismaServiceConverter';
@@ -20,6 +21,7 @@ import type { PrismaClient } from '@prisma/client/extension';
 class PrismaService {
     static prisma = prisma;
     static transactionOpen = false;
+    static transactionId = "";
     public model: string;
     public modelFields: readonly Prisma.DMMF.Field[] = [];
     public fieldsMap = new Map<string, Prisma.DMMF.Field>();
@@ -1664,18 +1666,24 @@ class PrismaService {
     async executeInTransaction(callback: Function) {
         try {
             if (PrismaService.transactionOpen) {
+                logger.info(`Transaction already open: ${PrismaService.transactionId}`);
                 return await callback();
             }
 
-            return await PrismaService.prisma.$transaction(async (prismaTx) => {
+            await PrismaService.prisma.$transaction(async (prismaTx) => {
+                PrismaService.transactionId = uuidv4();
+                logger.info(`Transaction opened: ${PrismaService.transactionId}`);
                 PrismaService.transactionOpen = true;
                 // @ts-ignore
                 PrismaService.prisma = prismaTx;
                 // @ts-ignore
                 this.client = PrismaService.prisma[this.model];
                 await callback();
-                this.reinitializePrisma();
+
+                logger.info(`Transaction committed: ${PrismaService.transactionId}`);
             });
+
+            this.reinitializePrisma();
         } catch (error) {
             this.reinitializePrisma();
             throw error;
@@ -1683,6 +1691,8 @@ class PrismaService {
     }
 
     reinitializePrisma() {
+        logger.info(`Transaction closed: ${PrismaService.transactionId}`);
+        PrismaService.transactionId = '';
         PrismaService.transactionOpen = false;
         PrismaService.prisma = prisma;
         // @ts-ignore
