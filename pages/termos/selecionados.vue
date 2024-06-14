@@ -4,6 +4,7 @@
             :title="title"
             :user-selection="true"
             :has-tree="false"
+            :has-alphabetical="false"
         />
     </PublicPage>
 </template>
