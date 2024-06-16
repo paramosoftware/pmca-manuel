@@ -1,11 +1,41 @@
 <template>
-    <div id="network" class="w-screen h-screen bg-gray-50"></div>
+    <div id="network" class="w-[95vw] h-[80vh] bg-gray-50">
+        <div class="flex justify-end space-x-4 p-4">
+            <UIIcon
+                name="ph:magnifying-glass-minus"
+                @click="zoomOut"
+                title="Diminuir zoom"
+            />
+            <UIIcon
+                name="ph:magnifying-glass-plus"
+                @click="zoomIn"
+                title="Aumentar zoom"
+            />
+            <UIIcon
+                name="ph:arrows-out-line-vertical"
+                @click="expandAllNodes"
+                title="Expandir todos nós"
+            />
+            <UIIcon
+                name="ph:arrows-in-line-vertical"
+                @click="collapseAllNodes"
+                title="Colapsar todos nós"
+            />
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
 // Based on https://observablehq.com/@d3/collapsible-tree
 // and https://github.com/PierreCapo/treeviz
 import * as d3 from 'd3';
+
+// TODO: Add functions downloadImage, resizeZoom, center [PMCA-453]
+// TODO: Allow external access to the diagram methods and properties [PMCA-453]
+// TODO: Refactor to improve reactivity [PMCA-453]
+// TODO: Move focus to open node when clicking on the plus sign [PMCA-453]
+// TODO: Improve click event handling in eye icon [PMCA-453]
+
 const config = {
     nodeWidth: 120,
     nodeHeight: 60,
@@ -26,25 +56,30 @@ const blue = '#79c8ff';
 const green = '#a9cc44';
 
 const conceptStore = useConceptStore();
-await conceptStore.fetchConceptsTree();
 const { conceptsTree } = storeToRefs(conceptStore);
+
+if (!conceptsTree.value || !conceptsTree.value.length) {
+    await conceptStore.fetchConceptsTree();
+}
 
 const data = ref(JSON.parse(JSON.stringify(conceptsTree.value))[0]);
 const svg = ref<D3SVGElement>();
+const root = ref<D3Node>(d3.hierarchy(data.value) as D3Node);
+const gLink = ref<D3SVGElement>();
+const gNode = ref<D3SVGElement>();
 
 onMounted(() => {
-    const root = d3.hierarchy(data.value) as D3Node;
     svg.value = createSVG('network');
-    const gLink = createGLink(svg.value);
-    const gNode = createGNode(svg.value);
+    gLink.value = createGLink(svg.value);
+    gNode.value = createGNode(svg.value);
 
-    root.descendants().forEach((d: D3Node, i) => {
+    root.value.descendants().forEach((d: D3Node, i) => {
         d.id = i;
         d._children = d.children;
         if (d.depth && d.depth > 1) d.children = null;
     });
 
-    update(root, root, svg.value, gLink, gNode);
+    update(root.value, root.value, svg.value, gLink.value, gNode.value);
 });
 
 function getArea(elementId: string) {
@@ -112,7 +147,38 @@ function tree(root: D3Node) {
     return d3.tree().nodeSize([config.xSpacing, config.ySpacing])(root);
 }
 
+function isNodeOpen(d: any) {
+    const hasChildren = d.children || d._children;
+    if (hasChildren && d.children) {
+        return 'open';
+    } else if (hasChildren && d._children) {
+        return 'closed';
+    } else {
+        return 'no-children';
+    }
+}
+
 function appendNode(node: D3SVGElement) {
+    const getColor = (d: any, color: string) => {
+        if (isNodeOpen(d) === 'open') {
+            return color;
+        } else if (isNodeOpen(d) === 'closed') {
+            return color;
+        } else {
+            return 'transparent';
+        }
+    };
+
+    const getSign = (d: any) => {
+        if (isNodeOpen(d) === 'open') {
+            return '-';
+        } else if (isNodeOpen(d) === 'closed') {
+            return '+';
+        } else {
+            return '';
+        }
+    };
+
     node.append('rect')
         .attr('width', config.nodeWidth)
         .attr('height', config.nodeHeight)
@@ -124,8 +190,8 @@ function appendNode(node: D3SVGElement) {
         .attr('r', 10)
         .attr('cx', config.nodeWidth / 2)
         .attr('cy', config.nodeHeight)
-        .attr('stroke', (d: any) => (d._children ? gray : 'transparent'))
-        .attr('fill', (d: any) => (d._children ? lightGray : 'transparent'))
+        .attr('stroke', (d: any) => getColor(d, gray))
+        .attr('fill', (d: any) => getColor(d, lightGray))
         .attr('stroke-width', 1);
 
     node.append('text')
@@ -133,15 +199,10 @@ function appendNode(node: D3SVGElement) {
         .attr('y', config.nodeHeight)
         .attr('dy', '0.35em')
         .attr('text-anchor', 'middle')
-        .attr('fill', (d: any) => (d._children ? gray : 'transparent'))
+        .attr('fill', (d: any) => getColor(d, gray))
         .attr('font-size', 20)
-        .attr('class', "plus-minus")
-        .text(
-            (d: any) => (
-                console.log('plus minus', d),
-                d._children ? (d.children ? '-' : '+') : ''
-            )
-        );
+        .attr('class', 'plus-minus')
+        .text((d: any) => getSign(d));
 
     node.append('circle')
         .attr('r', 10)
@@ -271,23 +332,17 @@ function update(
 
     const gElements = svg.selectAll('g');
 
-     gElements
-        .selectAll("text[class^='plus-minus']")
-        .text((d: any) => {
-            return d._children ? (d.children ? '-' : '+') : '';
-        });
+    gElements.selectAll("text[class^='plus-minus']").text((d: any) => {
+        return isNodeOpen(d) ? '-' : '+';
+    });
 
-    gElements
-        .selectAll('rect')
-        .attr('fill', (d: any) => {
-            return ancestors.includes(d) ? blue : lightGray;
-        });
+    gElements.selectAll('rect').attr('fill', (d: any) => {
+        return ancestors.includes(d) ? blue : lightGray;
+    });
 
-    gElements
-        .selectAll('path')
-        .attr('stroke', (d: any) => {
-            return ancestors.includes(d.target) ? green : gray;
-        });
+    gElements.selectAll('path').attr('stroke', (d: any) => {
+        return ancestors.includes(d.target) ? green : gray;
+    });
 
     tree(root);
 
@@ -318,5 +373,61 @@ function update(
         d.x0 = d.x;
         d.y0 = d.y;
     });
+}
+
+function zoomIn() {
+    const { areaWidth, areaHeight } = getArea('network');
+
+    const zoom = d3.zoom().on('zoom', (event) => {
+        svg.value.attr(
+            'transform',
+            `translate(${areaWidth / 2}, ${event.transform.y}) scale(${event.transform.k})`
+        );
+    }) as any;
+
+    svg.value.call(zoom.scaleBy, 1.2);
+}
+
+function zoomOut() {
+    const { areaWidth, areaHeight } = getArea('network');
+
+    const zoom = d3.zoom().on('zoom', (event) => {
+        svg.value.attr(
+            'transform',
+            `translate(${areaWidth / 2}, ${event.transform.y}) scale(${event.transform.k})`
+        );
+    }) as any;
+
+    svg.value.call(zoom.scaleBy, 0.8);
+}
+
+function expandAll(node: D3Node) {
+    if (node._children) {
+        node.children = node._children;
+        node._children = null;
+    }
+    if (node.children) {
+        node.children.forEach(expandAll);
+    }
+}
+
+function expandAllNodes() {
+    expandAll(root.value);
+    update(root.value, root.value, svg.value, gLink.value, gNode.value);
+}
+
+function collapseAll(node: D3Node) {
+    if (node.children) {
+        node._children = node.children;
+        node.children = null;
+    }
+    if (node._children) {
+        node._children.forEach(collapseAll);
+    }
+}
+
+function collapseAllNodes() {
+    collapseAll(root.value);
+    update(root.value, root.value, svg.value, gLink.value, gNode.value);
 }
 </script>
