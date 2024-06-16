@@ -7,10 +7,10 @@
 // and https://github.com/PierreCapo/treeviz
 import * as d3 from 'd3';
 const config = {
-    nodeWidth: 80,
-    nodeHeight: 40,
-    xSpacing: 100,
-    ySpacing: 60,
+    nodeWidth: 120,
+    nodeHeight: 60,
+    xSpacing: 200,
+    ySpacing: 150,
     margin: {
         top: 0,
         right: 0,
@@ -20,7 +20,9 @@ const config = {
     duration: 250
 };
 
-const blue = '#6699ff';
+const lightGray = '#f7f7f7';
+const gray = '#555';
+const blue = '#79c8ff';
 const green = '#a9cc44';
 
 const conceptStore = useConceptStore();
@@ -42,7 +44,7 @@ onMounted(() => {
         if (d.depth && d.depth > 1) d.children = null;
     });
 
-    update(null, root, root, svg.value, gLink, gNode);
+    update(root, root, svg.value, gLink, gNode);
 });
 
 function getArea(elementId: string) {
@@ -67,9 +69,9 @@ function createGLink(svg: D3SVGElement) {
     return svg
         .append('g')
         .attr('fill', 'none')
-        .attr('stroke', '#555')
-        .attr('stroke-opacity', 0.4)
-        .attr('stroke-width', 1.5);
+        .attr('stroke', gray)
+        .attr('stroke-width', 1.5)
+        .attr('pointer-events', 'none');
 }
 
 function createGNode(svg: D3SVGElement) {
@@ -77,22 +79,6 @@ function createGNode(svg: D3SVGElement) {
         .append('g')
         .attr('cursor', 'pointer')
         .attr('pointer-events', 'all');
-}
-
-function appendForeignObject(node: D3SVGElement) {
-    node.append('foreignObject')
-        .attr('width', config.nodeWidth)
-        .attr('height', config.nodeHeight)
-        .append('xhtml:div')
-        .style('width', '100%')
-        .style('height', '100%')
-        .style('display', 'flex')
-        .style('justify-content', 'center')
-        .style('align-items', 'center')
-        .style('font-size', '8px')
-        .style('color', 'white')
-        .style('text-align', 'center')
-        .html((d: any) => d.data.label);
 }
 
 function createSVG(elementId: string) {
@@ -130,7 +116,73 @@ function appendNode(node: D3SVGElement) {
     node.append('rect')
         .attr('width', config.nodeWidth)
         .attr('height', config.nodeHeight)
-        .attr('fill', (d: any) => (d._children ? green : blue));
+        .attr('fill', lightGray)
+        .attr('stroke', gray)
+        .attr('stroke-width', 1);
+
+    node.append('circle')
+        .attr('r', 10)
+        .attr('cx', config.nodeWidth / 2)
+        .attr('cy', config.nodeHeight)
+        .attr('stroke', (d: any) => (d._children ? gray : 'transparent'))
+        .attr('fill', (d: any) => (d._children ? lightGray : 'transparent'))
+        .attr('stroke-width', 1);
+
+    node.append('text')
+        .attr('x', config.nodeWidth / 2)
+        .attr('y', config.nodeHeight)
+        .attr('dy', '0.35em')
+        .attr('text-anchor', 'middle')
+        .attr('fill', (d: any) => (d._children ? gray : 'transparent'))
+        .attr('font-size', 20)
+        .attr('class', "plus-minus")
+        .text(
+            (d: any) => (
+                console.log('plus minus', d),
+                d._children ? (d.children ? '-' : '+') : ''
+            )
+        );
+
+    node.append('circle')
+        .attr('r', 10)
+        .attr('cx', config.nodeWidth)
+        .attr('cy', 0)
+        .attr('stroke', gray)
+        .attr('fill', lightGray)
+        .attr('stroke-width', 1)
+        .attr('cursor', 'pointer')
+        .on('click', (event, d) => {
+            window.open(`/termos/${d.data.slug}`, '_blank');
+        });
+
+    node.append('text')
+        .attr('x', config.nodeWidth)
+        .attr('y', 0)
+        .attr('dy', '0.35em')
+        .attr('text-anchor', 'middle')
+        .attr('fill', gray)
+        .attr('font-size', 20)
+        .attr('cursor', 'pointer')
+        .text('👁')
+        .on('click', (event, d) => {
+            window.open(`/termos/${d.data.slug}`, '_blank');
+        });
+}
+
+function appendLabel(node: D3SVGElement) {
+    node.append('foreignObject')
+        .attr('width', config.nodeWidth)
+        .attr('height', config.nodeHeight)
+        .append('xhtml:div')
+        .style('width', '100%')
+        .style('height', '100%')
+        .style('display', 'flex')
+        .style('justify-content', 'center')
+        .style('align-items', 'center')
+        .style('font-size', '12px')
+        .style('color', 'black')
+        .style('text-align', 'center')
+        .html((d: any) => d.data.label);
 }
 
 function addNodeExitTransition(node: D3SVGElement, transition: any) {
@@ -154,8 +206,8 @@ function updateDiagramLinks(
         .enter()
         .append('path')
         .attr('d', (d) => drawLink(d, source))
-        .attr('stroke', '#555')
-        .attr('stroke-width', 2) as any;
+        .attr('stroke', gray)
+        .attr('stroke-width', 3) as any;
 
     link.merge(linkEnter)
         .transition(transition)
@@ -183,16 +235,16 @@ function updateDiagramNodes(
     const nodeEnter = node
         .enter()
         .append('g')
-        .attr('transform', (d) => `translate(${source.x0},${source.y0})`)
+        .attr('transform', `translate(${source.x0},${source.y0})`)
         .attr('fill-opacity', 0)
         .attr('stroke-opacity', 0)
         .on('click', (event, d) => {
             d.children = d.children ? null : d._children;
-            update(event, d, root, svg, gLink, gNode);
+            update(d, root, svg, gLink, gNode);
         }) as unknown as D3SVGElement;
 
     appendNode(nodeEnter);
-    appendForeignObject(nodeEnter);
+    appendLabel(nodeEnter);
 
     // @ts-ignore
     node.merge(nodeEnter)
@@ -206,7 +258,6 @@ function updateDiagramNodes(
 }
 
 function update(
-    event: any,
     source: D3Node,
     root: D3Node,
     svg: D3SVGElement,
@@ -215,6 +266,28 @@ function update(
 ) {
     const nodes = root.descendants().reverse();
     const links = root.links();
+
+    const ancestors = source.ancestors();
+
+    const gElements = svg.selectAll('g');
+
+     gElements
+        .selectAll("text[class^='plus-minus']")
+        .text((d: any) => {
+            return d._children ? (d.children ? '-' : '+') : '';
+        });
+
+    gElements
+        .selectAll('rect')
+        .attr('fill', (d: any) => {
+            return ancestors.includes(d) ? blue : lightGray;
+        });
+
+    gElements
+        .selectAll('path')
+        .attr('stroke', (d: any) => {
+            return ancestors.includes(d.target) ? green : gray;
+        });
 
     tree(root);
 
