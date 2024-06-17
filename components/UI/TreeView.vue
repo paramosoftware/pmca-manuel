@@ -8,7 +8,7 @@
                         :level="1"
                         :concept-store="conceptStore"
                         :show-position="showPosition"
-                        :load-expanded="true"
+                        :load-expanded="false"
                         :position-among-siblings="index + 1"
                     />
                 </div>
