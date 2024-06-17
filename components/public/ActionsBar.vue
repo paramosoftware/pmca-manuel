@@ -1,5 +1,6 @@
 <template>
     <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
+        <PublicOpenHierarchical :actions-bar="true"/>
         <a
             v-for="item in socialMedia"
             :key="item.name"

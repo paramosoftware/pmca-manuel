@@ -1,8 +1,9 @@
 <template>
     <div
         id="hierarchicalWrapper"
-        class="flex flex-col h-full bg-gray-200 rounded-tl-lg rounded-bl-lg border-t border-l border-b border-gray-200"
+        class="flex flex-col h-full min-h-full bg-gray-200 rounded-tl-lg rounded-bl-lg border-t border-l border-b border-gray-200"
         :class="[{ 'bg-gray-50': isOpen }]"
+        v-if="!navigationStore.isSmallScreen"
         @mouseenter="
             () => {
                 if (!loadingStore.loading) isHovered = true;
@@ -43,6 +44,7 @@
                     'text-2xl font-semibold ml-4 my-4',
                     hierarchicalOpenHoverConditionals
                 ]"
+                class="sm: text-sm"
             >
                 Classificação
             </div>
