@@ -286,4 +286,25 @@ declare global {
         warnings: string[];
         errors: string[];
     }
+
+    interface Coords {
+        x: number;
+        y: number;
+        x0: number;
+        y0: number;
+    }
+
+    interface D3Node extends d3.HierarchyNode<TreeNode> {
+        _children: any;
+        children: any;
+        depth: number;
+        data: TreeNode;
+        x: number;
+        y: number;
+        x0: number;
+        y0: number;
+    } 
+
+    type D3SVGElement = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
+
 }
