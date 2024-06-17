@@ -1,6 +1,13 @@
 <template>
     <span
-        @click="saveLastSelectedNavigation(props.selectedNavigationMode)"
+        @click="
+            () => {
+               
+                saveLastSelectedNavigation(props.selectedNavigationMode);
+                conceptStore.clear();
+                
+            }
+        "
         class="flex flex-col items-center cursor-pointer select-none text-pmca-primary border border-gray-300 rounded p-2 transition-all ease-in-out duration-200"
         :class="[
             'hover:text-white hover:bg-pmca-green-500 hover:border-pmca-green-500',
@@ -22,6 +29,7 @@
 
 <script setup lang="ts">
 const navigationStore = useNavigationStore();
+const conceptStore = useConceptStore();
 const props = defineProps({
     dropDownTitle: {
         type: String,

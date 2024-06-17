@@ -26,7 +26,7 @@ export const useConceptStore = defineStore('concept', () => {
     const ancestors = ref<Concept[]>([]);
     const descendantsIds = ref<ID[]>([]);
     const searchByInitialLetter = computed(() => {
-        return navigationStore.isAlphabetical;
+        return navigationStore.isAlphabetical && !navigationStore.isTodosActive;
     });
     let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
@@ -103,8 +103,8 @@ export const useConceptStore = defineStore('concept', () => {
                 }
             });
         }
-
         return q;
+        
     });
 
     watch(
@@ -328,7 +328,10 @@ export const useConceptStore = defineStore('concept', () => {
 
     function clear() {
         concept.value = undefined;
+        ancestors.value = <Concept[]>[];
         conceptChanges.value = undefined;
+        conceptsTree.value = <TreeNode[]>[];
+        descendantsIds.value = [];
         concepts.value = [];
         total.value = 0;
         totalPages.value = 0;
