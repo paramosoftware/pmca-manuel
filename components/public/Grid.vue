@@ -2,7 +2,7 @@
     <div class="sm:flex items-center sm:justify-between sm:items-center">
         <div class="flex flex-col w-full">
             <UIPageTitle>
-                <PublicBreadcrumb :add-concept-link="userSelection" />
+                <PublicBreadcrumb :add-concept-link="userSelection"  class="overflow-x-auto"/>
                 {{ title }}
             </UIPageTitle>
             <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
