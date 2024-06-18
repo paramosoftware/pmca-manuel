@@ -47,6 +47,9 @@
                             @update="addMedia"
                             @finish="isOpen = false"
                             :url="url"
+                            :accepted-files="
+                                isReference ? 'application/pdf' : 'image/*'
+                            "
                         />
                     </UCard>
                 </UModal>
@@ -59,21 +62,43 @@
                 @show="changeQuality"
             >
                 <draggable
-                    class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+                    class="grid gap-4"
+                    :class="[
+                        { 'grid-cols-2': isReference },
+                        {
+                            'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6':
+                                !isReference
+                        }
+                    ]"
                     :list="media"
                     @end="updateMediaPosition"
                     :animation="200"
                     item-key="id"
                 >
+                <!-- TODO: Separate by reference and media. Only 2 v-ifs to avoid nesting -->
                     <template #item="{ element }">
-                        <div class="relative">
+                        <div class="relative" :class="[{'border border-gray-200 p-2': isReference}]">
+                            <h1 v-if="isReference">{{ element.originalFilename }}</h1>
+                            <div v-if="isReference" class="absolute bottom-2 left-2">
+                                <UIIcon 
+                                class="w-7 h-7"
+                                name="ph:file-pdf"
+                                title="Identificação"
+                            />
+                            </div>
+                            <br v-if="isReference">
                             <UIImg
+                                v-if="!isReference"
                                 class="w-full h-32 object-cover rounded cursor-pointer"
                                 :src="element.name"
                                 :alt="element.subtitle"
                                 :quality="quality"
                             />
-                            <div class="absolute top-0 right-0">
+                            <div
+                                :class="[
+                                    { 'absolute top-0 right-0': !isReference },{ 'absolute bottom-2 right-2': isReference },
+                                ]"
+                            >
                                 <UIButton
                                     @click="addSubtitle(element)"
                                     padding="p-1"
@@ -178,7 +203,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
-
+const isReference = props.formStore?.model === 'Reference';
 const label = getFormFieldConfig('label', '', props);
 let modelValue = getFormFieldConfig('modelValue', [], props);
 let itemId = getFormFieldConfig('itemId', 0, props);
