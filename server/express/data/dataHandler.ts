@@ -33,8 +33,9 @@ const dataHandler = async (
         next();
         return;
     }
-
+    
     const requestMethod = req.method.toUpperCase() as Method;
+    
     const body = req.body;
     const queryParams = req.query;
     const format = req.query.format
@@ -43,13 +44,12 @@ const dataHandler = async (
           ? body.format
           : undefined;
     const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
-
+    
     const accessToken = getAccessToken(req);
 
     let userId = '';
     let permissions: Permission = {};
     let isAdmin = false;
-
     if (!isPublic && accessToken) {
         try {
             const refreshToken = await refreshAccessToken(accessToken, res);
@@ -86,10 +86,12 @@ const dataHandler = async (
     try {
         let response: any = null;
         const query = convertQueryParamsToRequest(queryParams);
+        
         const request = requestMethod == 'GET' ? query : body;
 
         if (apiMethod) {
             response = executeApiMethod(apiMethod, prismaService, id, request);
+            
         } else {
             switch (requestMethod) {
                 case 'GET':
@@ -194,7 +196,8 @@ function executeApiMethod(
         descendants: 'findDescendants',
         trees: 'findTrees',
         treeDepth: 'findTreeDepth',
-        treeIds: 'findTreeIds'
+        treeIds: 'findTreeIds',
+        availableLetters: 'getAvailableLetters'
     } as Record<string, string>;
 
     if (mappedMethods[apiMethod]) {
