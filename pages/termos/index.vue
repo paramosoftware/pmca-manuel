@@ -1,8 +1,5 @@
 <template>
-    <PublicNovaNav>
-        
-    </PublicNovaNav>
-    
+    <PublicList :title="title" />
 </template>
 
 <script setup lang="ts">

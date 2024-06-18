@@ -1,9 +1,5 @@
 import QUERIES from '~/config/queries';
-
-import { useNavigationStore } from './navigation';
-
 export const useConceptStore = defineStore('concept', () => {
-    const navigationStore = useNavigationStore();
     const model = 'Concept';
     const conceptIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
@@ -25,15 +21,19 @@ export const useConceptStore = defineStore('concept', () => {
     const loadingStore = useLoadingStore();
     const ancestors = ref<Concept[]>([]);
     const descendantsIds = ref<ID[]>([]);
-    const searchByInitialLetter = computed(() => {
-        return navigationStore.isAlphabetical && !navigationStore.isTodosActive;
-    });
+    const searchInitialLetter = ref<string>('TODOS');
+    const maxPage = computed(() => Math.ceil(total.value / pageSize.value));
+
     let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
 
     const query = computed(() => {
+        if (page.value > maxPage.value) {
+            page.value = 1;
+        }
+
         const q = {
             page: page.value,
             pageSize: pageSize.value,
@@ -88,10 +88,10 @@ export const useConceptStore = defineStore('concept', () => {
                 }
             });
         }
-        if (searchByInitialLetter.value && !navigationStore.isTodosActive) {
+        if (searchInitialLetter.value && searchInitialLetter.value !== "TODOS") {
             q.where.AND.push({
                 name: {
-                    startsWith: navigationStore.activeLetter
+                    startsWith: searchInitialLetter.value
                 }
             });
         }
@@ -344,9 +344,7 @@ export const useConceptStore = defineStore('concept', () => {
         useConceptSelection().clearSelected();
         window.location.reload();
     }
-    const updatePageSize = (pageSizeSelection: number) => {
-        pageSize.value = pageSizes.value[pageSizeSelection];
-    };
+
     return {
         conceptIdentifier,
         page,
@@ -367,7 +365,7 @@ export const useConceptStore = defineStore('concept', () => {
         conceptsTree,
         pending,
         error,
-        searchByInitialLetter,
+        searchInitialLetter,
         load,
         fetchNetwork,
         fetchConceptsTree,
@@ -377,7 +375,6 @@ export const useConceptStore = defineStore('concept', () => {
         sortByName,
         exportData,
         clear,
-        clearSelection,
-        updatePageSize
+        clearSelection
     };
 });
