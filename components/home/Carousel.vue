@@ -10,7 +10,7 @@
                     :key="concept.id"
                     class="mx-auto items-center justify-center"
                 >
-                    <PublicCard :concept="concept" />
+                    <PublicCard :concept="concept" width="w-full" />
                 </SplideSlide>
             </SplideTrack>
 

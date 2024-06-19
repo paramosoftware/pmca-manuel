@@ -1,7 +1,8 @@
 <template>
     <NuxtLink :to="link">
         <div
-            class="max-w-96 min-w-0 lg:flex shadow-sm hover:shadow-md"
+            class="lg:flex shadow-sm hover:shadow-md"
+            :class="width"
         >
             <div
                 class="w-full border border-gray-200 rounded-md flex flex-col justify-between"
@@ -9,7 +10,7 @@
                 <UIImg
                     :src="thumbnail"
                     :alt="concept.name"
-                    class="object-cover rounded-sm"
+                    class="object-cover rounded-sm w-[40rem]"
                     :class="height"
                     quality="70"
                 />
@@ -59,6 +60,10 @@ const props = defineProps({
     concept: {
         type: Object,
         required: true
+    },
+    width: {
+        type: String,
+        default: 'w-full md:w-72 md:w-min-72 lg:w-80 xl:w-96'
     },
     height: {
         type: String,
