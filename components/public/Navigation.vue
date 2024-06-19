@@ -1,113 +1,52 @@
-:<template>
-    <div
-        class="flex flex-col h-full w-full sm:w-4/6 md:w-2/6 shadow-lg border border-gray-200 p-3 rounded-md bg-gray-100 mb-3"
-        v-if="isSmallScreen"
-    >
+<template>
+    <div id="container" class="flex flex-grow min-h-full shadow-lg border border-gray-200 rounded-md">
         <div
-            class="text-lg font-semibold justify-between items-center flex cursor-pointer"
-            @click="isTreeNavigationOpen = !isTreeNavigationOpen"
+            id="left"
+            class="bg-gray-50 overflow-hidden p-5 pl-10 overflow-y-auto"
         >
-            Abrir classificação
-            <UIIcon name="ph:tree-structure" class="ml-auto" cursor-class="" />
-        </div>
-    </div>
-    <div class="flex">
-        <aside
-            id="tree-navigation"
-            :class="
-                closeClass +
-                ' hover:' +
-                openClass +
-                ' shrink-0 shadow-lg border border-gray-200 rounded-md transition-all duration-300 max-h-screen bg-gray-50 overflow-auto'
-            "
-            v-if="!isSmallScreen"
-            ref="treeNavigationRef"
-        >
-            <div class="flex p-4 h-full">
-                <div class="flex flex-col w-full h-full">
-                    <div class="flex justify-between items-center mb-4">
-                        <div
-                            class="flex items-center"
-                            v-show="
-                                isTreeNavigationOpen || isTreeNavigationPinned
-                            "
-                        >
-                            <UIIcon
-                                name="ph:push-pin"
-                                :class="{
-                                    'text-pmca-accent': isTreeNavigationPinned
-                                }"
-                                class="mr-3 hover:text-pmca-accent w-6 h-6"
-                                title="Fixar"
-                                @click="pinTreeNavigation"
-                            />
-                            <div class="text-lg font-semibold">
-                                Classificação
-                            </div>
-                        </div>
-                        <UIIcon
-                            name="ph:tree-structure"
-                            class="ml-auto"
-                            cursor-class=""
-                        />
-                    </div>
-                    <div
-                        class="overflow-auto h-full"
-                        v-show="isTreeNavigationOpen || isTreeNavigationPinned"
-                    >
-                        <UITreeView
-                            :tree="conceptsTree"
-                            :concept-store="
-                                useConceptStoreForTree
-                                    ? conceptStore
-                                    : undefined
-                            "
-                            v-if="conceptsTree.length > 0"
-                        />
-                    </div>
-                </div>
+            <div class="flex flex-row justify-end" v-if="closed">
+                <UIIcon
+                    name="ph:tree-view"
+                    class="hover:text-pmca-accent"
+                    title="Arraste para a direita para abrir a navegação"
+                    @click="openNavigation"
+                />
             </div>
-        </aside>
 
-        <aside v-else>
-            <USlideover
-                v-model="isTreeNavigationOpen"
-                class="text-pmca-primary"
-                side="left"
-                :ui="{
-                    background: 'bg-gray-100' 
-                }"
-            >
-                <div class="p-4 overflow-x-auto">
-                    <div class="flex flex-row justify-between">
-                        <div class="text-lg font-semibold">Classificação</div>
+            <div class="bg-gray-50"
+            v-show="!closed">
 
+                <div class="flex flex-row justify-between border-b border-gray-200 bg-gray-50 mb-5">
+                    <div class="text-xl font-semibold py-3">
                         <UIIcon
-                            name="ph:x"
-                            class="ml-auto"
-                            title="Fechar navegação"
-                            @click="
-                                isTreeNavigationOpen = !isTreeNavigationOpen
-                            "
+                            name="ph:tree-view"
+                            class="mb-2"
                         />
+                        Classificação
                     </div>
-
-                    <UITreeView
-                        :tree="conceptsTree"
-                        class="mt-6"
-                        v-if="conceptsTree.length > 0"
+                    <UIIcon
+                        name="ph:x"
+                        class="mt-1 hover:text-pmca-accent text-xl"
+                        title="Fechar navegação"
+                        @click="closeNavigation"
                     />
                 </div>
-            </USlideover>
-        </aside>
 
-        <main
-            :class="mainDivClassClose +  ' w-full shadow-lg border border-gray-200 rounded-md bg-white xl:ml-5 p-5 min-h-[75vh] h-full'"
-            ref="mainRef"
-            id="main-navigation"
+                <PublicHierarchicalNavigation :useConceptStoreForTree="useConceptStoreForTree" />
+            </div>
+        </div>
+        <div
+            class="w-2 hover:w-2 bg-gray-200 hover:bg-pmca-accent cursor-col-resize flex user-select-none items-center"
+            id="resize"
         >
-            <slot></slot>
-        </main>
+            <div></div>
+        </div>
+        <div
+            id="right"
+            class="bg-white p-5 overflow-hidden items-center shrink grow"
+        >
+            <PublicList :hasAlphabeticalFilter="false"/>
+        </div>
     </div>
 </template>
 
@@ -119,101 +58,97 @@ defineProps({
     }
 });
 
-const conceptStore = useConceptStore();
-await conceptStore.fetchConceptsTree();
-
-const { conceptsTree } = storeToRefs(conceptStore);
-
-const isSmallScreen = ref(false);
-const isTreeNavigationPinned = ref(false);
-const isTreeNavigationOpen = ref(false);
-const treeNavigationRef = ref<HTMLElement | null>(null);
-const mainRef = ref<HTMLElement | null>(null);
-const mainDivClassOpen = 'xl:w-[74%]';
-const mainDivClassClose = 'xl:w-[95%]';
-const closeClass = 'w-[5%]';
-const openClass = 'w-[24%]';
-const localStorageKey = 'isTreeNavigationFixed';
-const screenBreakpoint = 1280;
-
-const openTreeNavigation = (open: boolean) => {
-    if (isSmallScreen.value) {
-        isTreeNavigationOpen.value = open;
-        return;
-    }
-
-    if (!treeNavigationRef.value) {
-        treeNavigationRef.value = document.getElementById('tree-navigation');
-        if (!treeNavigationRef.value) {
-            console.error('tree navigation not found');
-            return;
-        }
-    }
-
-    if (!mainRef.value) {
-        mainRef.value = document.getElementById('main-navigation');
-        if (!mainRef.value) {
-            console.error('main not found');
-            return;
-        }
-    }
-
-    isTreeNavigationOpen.value = open;
-
-    if (open || isTreeNavigationPinned.value) {
-        treeNavigationRef.value.classList.remove(closeClass);
-        treeNavigationRef.value.classList.add(openClass);
-        mainRef.value.classList.remove(mainDivClassClose);
-        mainRef.value.classList.add(mainDivClassOpen);
-        return;
-    } else {
-        treeNavigationRef.value.classList.remove(openClass);
-        treeNavigationRef.value.classList.add(closeClass);
-        mainRef.value.classList.remove(mainDivClassOpen);
-        mainRef.value.classList.add(mainDivClassClose);
-        return;
-    }
-};
-
-const pinTreeNavigation = () => {
-    const pinLocal = localStorage.getItem(localStorageKey);
-    if (!pinLocal || pinLocal === 'false') {
-        localStorage.setItem(localStorageKey, 'true');
-        isTreeNavigationPinned.value = true;
-    } else {
-        localStorage.setItem(localStorageKey, 'false');
-        isTreeNavigationPinned.value = false;
-    }
-};
+const leftWidth = ref(300);
+const rightWidth = ref(300);
+const containerWidth = ref(600);
+const container = ref<HTMLElement | null>(null);
+const left = ref<HTMLElement | null>(null);
+const right = ref<HTMLElement | null>(null);
+const resize = ref<HTMLElement | null>(null);
+const moveX = ref(0);
+const dragTimer = ref(0);
+const closed = ref(false);
+const leftMediumWidthPercentage = 0.25;
+const leftMaxWidthPercentage = 0.60;
+const leftMinWidthPercentage = 0.05;
 
 onMounted(() => {
-    isSmallScreen.value = window.innerWidth < screenBreakpoint;
-    isTreeNavigationPinned.value = localStorage.getItem(localStorageKey) === 'true';
-    openTreeNavigation(isTreeNavigationPinned.value && !isSmallScreen.value);
-    addHoverListener();
+    container.value = document.getElementById('container')!;
+    left.value = document.getElementById('left')!;
+    right.value = document.getElementById('right')!;
+    resize.value = document.getElementById('resize')!;
 
-    window.addEventListener('resize', async () => {
-        isSmallScreen.value = window.innerWidth < screenBreakpoint;
-        if (!isSmallScreen.value) {
-            await nextTick();
-            isTreeNavigationOpen.value = isTreeNavigationOpen.value || isTreeNavigationPinned.value
-            openTreeNavigation(isTreeNavigationOpen.value);
-            addHoverListener();
-        } else {
-            openTreeNavigation(false);
+    setInitialDimensions();
+
+    moveX.value = left.value.getBoundingClientRect().width +
+        resize.value.getBoundingClientRect().width / 2;
+
+    containerWidth.value = container.value.getBoundingClientRect().width;
+
+    let drag = false;
+
+    resize.value.addEventListener('mousedown', function (e) {
+        drag = true;
+        dragTimer.value = performance.now();
+        moveX.value = e.x;
+    });
+
+    container.value.addEventListener('mousemove', function (e) {
+        moveX.value = e.x - container.value!.getBoundingClientRect().x; 
+        if (drag) {
+            leftWidth.value = moveX.value;
+            rightWidth.value = container.value!.getBoundingClientRect().width - moveX.value;
+            resizeSides();
         }
+    });
+
+    container.value.addEventListener('mouseup', function (e) {
+        drag = false;
     });
 });
 
-const addHoverListener = () => {
-    if (treeNavigationRef.value) {
-        treeNavigationRef.value.addEventListener('mouseenter', () => {
-            openTreeNavigation(true);
-        });
+function setInitialDimensions() {
+    containerWidth.value = container.value!.getBoundingClientRect().width;
+    leftWidth.value = containerWidth.value * 0.25;
+    rightWidth.value = containerWidth.value - leftWidth.value;
+    resizeSides();
+}
 
-        treeNavigationRef.value.addEventListener('mouseleave', () => {
-            openTreeNavigation(isTreeNavigationPinned.value);
-        });
+function resizeSides() {
+
+    const leftMaxWidth = containerWidth.value * leftMaxWidthPercentage;
+
+    if (leftWidth.value > leftMaxWidth) {
+        leftWidth.value = leftMaxWidth;
+        rightWidth.value = containerWidth.value - leftWidth.value;
     }
-};
+
+    const leftMinWidth = containerWidth.value * leftMinWidthPercentage;
+
+    if (leftWidth.value < leftMinWidth) {
+        leftWidth.value = leftMinWidth;
+        rightWidth.value = containerWidth.value - leftWidth.value;
+    }
+
+    closed.value = leftWidth.value < containerWidth.value * leftMinWidthPercentage + 100;
+
+    left.value!.style.width = `${leftWidth.value}px`;
+    right.value!.style.width = `${rightWidth.value}px`;
+}
+
+
+function openNavigation() {
+    leftWidth.value = leftMediumWidthPercentage * containerWidth.value;
+    rightWidth.value = containerWidth.value - leftWidth.value;
+    resizeSides();
+}
+
+function closeNavigation() {
+    leftWidth.value = leftMinWidthPercentage * containerWidth.value;
+    rightWidth.value = containerWidth.value - leftWidth.value;
+    resizeSides();
+}
+
+
+
 </script>
