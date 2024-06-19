@@ -150,7 +150,7 @@ const props = defineProps({
         required: true
     },
     modelValue: {
-        type: Array as PropType<ConceptMedia[]>,
+        type: Array as PropType<Media[]>,
         default: []
     },
     label: {
@@ -199,7 +199,7 @@ const media = computed(() => {
         : [modelValue.value];
 });
 
-const deleteMedia = async (media: ConceptMedia) => {
+const deleteMedia = async (media: Media) => {
     if (props.formStore) {
         props.formStore.removeFieldData(props.id, media as unknown as Item);
     }
@@ -207,7 +207,7 @@ const deleteMedia = async (media: ConceptMedia) => {
     updateMediaPosition({ oldIndex: 0, newIndex: 1 });
 };
 
-const addMedia = (media: ConceptMedia) => {
+const addMedia = (media: Media) => {
     if (props.formStore) {
         props.formStore.addFieldData(props.id, media as unknown as Item);
     }
@@ -219,7 +219,7 @@ const updateMediaPosition = (event: any) => {
     if (event.oldIndex !== event.newIndex) {
         const media = modelValue.value;
 
-        media.map((item: ConceptMedia, index: number) => {
+        media.map((item: Media, index: number) => {
             item.position = index + 1;
             // @ts-ignore
             item._action_ = 'update';
@@ -233,7 +233,7 @@ const updateMediaPosition = (event: any) => {
     }
 };
 
-const addSubtitle = (media: ConceptMedia) => {
+const addSubtitle = (media: Media) => {
     modalSubtitleIsOpen.value = true;
     subtitle.value = media.subtitle || '';
     subtitleMediaId.value = media.id;
@@ -249,7 +249,7 @@ const saveSubtitle = () => {
     modalSubtitleIsOpen.value = false;
     const media = modelValue.value;
 
-    media.map((item: ConceptMedia) => {
+    media.map((item: Media) => {
         if (item.id === subtitleMediaId.value) {
             item.subtitle = subtitle.value;
             // @ts-ignore
