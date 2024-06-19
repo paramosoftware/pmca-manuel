@@ -307,4 +307,20 @@ declare global {
 
     type D3SVGElement = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 
+    export interface Media {
+        id: number;
+        name: string;
+        position: number;
+        originalFilename: string | null;
+        path: string | null;
+        subtitle: string | null;
+        type: string | null;
+        published: boolean;
+        subtitleNormalized: string | null;
+        conceptId: number;
+        createdAt: Date;
+        updatedAt: Date;
+        
+    }
+
 }

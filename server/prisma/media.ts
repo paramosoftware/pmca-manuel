@@ -9,20 +9,6 @@ import logger from '~/utils/logger';
 import PrismaService from './PrismaService';
 
 const resource = 'Media'
-interface Media {
-    id: number;
-    name: string;
-    position: number;
-    originalFilename: string | null;
-    path: string | null;
-    subtitle: string | null;
-    type: string | null;
-    published: boolean;
-    subtitleNormalized: string | null;
-    conceptId: number;
-    createdAt: Date;
-    updatedAt: Date;
-}
 
 export async function uploadMedia(
     model: string,
