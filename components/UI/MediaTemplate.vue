@@ -6,7 +6,7 @@
         <UIReferenceModal
             v-model="isReferenceModalOpen"
             :isReferenceModalOpen="isReferenceModalOpen"
-            @update:isReferenceModalOpen="isReferenceModalOpen = $event"
+            @isReferenceModalOpen="isReferenceModalOpen = $event"
             :elementName="element.name"
         />
         <UIImg

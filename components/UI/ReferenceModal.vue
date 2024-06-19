@@ -42,8 +42,8 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['update:isReferenceModalOpen']);
+const emit = defineEmits(['isReferenceModalOpen']);
 const closeModal = () => {
-    emit('update:isReferenceModalOpen', false);
+    emit('isReferenceModalOpen', false);
 };
 </script>
