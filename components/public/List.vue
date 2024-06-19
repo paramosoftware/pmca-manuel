@@ -1,6 +1,6 @@
 <template>
-    <div class="sm:flex items-center sm:justify-between sm:items-center">
-        <div class="flex flex-col w-full">
+    <div>
+        <div>
             <UIPageTitle>
                 <PublicBreadcrumb
                     :add-concept-link="userSelection"
@@ -8,17 +8,6 @@
                 />
                 {{ title }}
             </UIPageTitle>
-            <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
-                <span v-if="userSelection" class="flex items-center">
-                    <UIIcon
-                        name="ph:broom"
-                        class="ml-3"
-                        title="Desmarcar todos"
-                        @click="conceptStore.clearSelection()"
-                    />
-                    <PublicExportDropdown class="ml-3" />
-                </span>
-            </div>
         </div>
     </div>
 

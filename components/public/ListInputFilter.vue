@@ -1,18 +1,13 @@
 <template>
-    <div class="flex flex-row md:flex-row mt-5 max-w-full h-auto">
-        <div
-            class="max-w-full w-full flex flex-col justify-start items-center space-y-8 mb-4"
-        >
-            <FieldInput
-                id="filter"
-                class="w-full self-start text-3xl"
-                v-model="search"
-                type="text"
-                placeholder="Pesquisar"
-                :disabled="filterDisabled"
-                size="lg"
-            />
-        </div>
+    <div class="my-5">
+        <FieldInput
+            id="filter"
+            v-model="search"
+            type="text"
+            placeholder="Pesquisar"
+            :disabled="filterDisabled"
+            size="lg"
+        />
     </div>
 </template>
 

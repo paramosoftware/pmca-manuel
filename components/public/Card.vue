@@ -1,7 +1,7 @@
 <template>
     <NuxtLink :to="link">
         <div
-            class="max-w-md w-full lg:max-w-full lg:flex shadow-sm hover:shadow-md"
+            class="max-w-96 min-w-0 lg:flex shadow-sm hover:shadow-md"
         >
             <div
                 class="w-full border border-gray-200 rounded-md flex flex-col justify-between"
@@ -9,18 +9,19 @@
                 <UIImg
                     :src="thumbnail"
                     :alt="concept.name"
-                    class="object-cover w-full rounded-sm"
+                    class="object-cover rounded-sm"
                     :class="height"
                     quality="70"
                 />
                 <div :class="titlePadding">
-                    <div class="flex flex-row justify-between items-center w-full">
-                        <UITitle
-                            :css-class="'truncate text-semibold ' + titleSize"
+                    <div class="flex flex-row justify-between h-10 items-center">
+                        <h3
+                            class="line-clamp-2 text-semibold text-pmca-secondary"
+                            :class="titleSize"
                             :title="concept.name"
                         >
                             {{ concept.name }}
-                        </UITitle>
+                        </h3>
                         <div class="flex flex-row items-center">
                             <client-only>
                                 <UIIcon
