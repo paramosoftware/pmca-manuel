@@ -69,6 +69,11 @@
                     :hasAlphabeticalFilter="currentView === 'alphabetical'"
                 />
             </div>
+
+            <div class="py-5 px-3 md:px-5" v-else-if="individualCard">
+                <PublicFullCard />
+            </div>
+
             <div class="py-5 px-3 md:px-5" v-else>
                 <PublicDiagram />
             </div>
@@ -77,7 +82,11 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
+    individualCard: {
+        type: Boolean,
+        default: false
+    },
     useConceptStoreForTree: {
         type: Boolean,
         default: true
@@ -108,7 +117,11 @@ const views = ref([
 const currentView = ref('hierarchical');
 const isHierarchical = computed(() => currentView.value === 'hierarchical');
 const showLeftSide = computed(() => isHierarchical.value === true);
-const showList = computed(() => currentView.value === 'alphabetical' || isHierarchical.value);
+const showList = computed(
+    () =>
+        (currentView.value === 'alphabetical' || isHierarchical.value) &&
+        !props.individualCard
+);
 const isSlideOverOpen = ref(false);
 const leftWidth = ref(300);
 const rightWidth = ref(300);

@@ -1,5 +1,5 @@
 <template>
-    <PublicList :title="title" />
+    <PublicNavigation />
 </template>
 
 <script setup lang="ts">
