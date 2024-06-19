@@ -126,7 +126,6 @@ class PrismaService {
     async getAvailableLetters(requestId: string) {
         this.updateClient();
         let teste: Object[] = await PrismaService.prisma.$queryRaw`SELECT GROUP_CONCAT(DISTINCT SUBSTRING(name, 1, 1)) AS firstLetters FROM Concept;`;
-        console.log(teste)
         return teste
     }
 
@@ -283,7 +282,6 @@ class PrismaService {
      * { name: 'John Doe' }
      */
     async updateOne(identifier: ID, request?: object) {
-        console.log(`prismaservice:287 ${this.model}`)
         try {
             this.updateClient();
             this.setId(identifier);
@@ -317,7 +315,6 @@ class PrismaService {
      * [{ where: { id: 1 }, data: { name: 'John Doe' } }, { where: { id: 2 }, data: { name: 'Jane Doe' } }]
      */
     async updateMany(request: Array<object>) {
-        console.log(`prismaservice:321 ${this.model}`)
         try {
             this.updateClient();
 
@@ -1059,7 +1056,6 @@ class PrismaService {
         field: string,
         isUpdate: boolean
     ) {
-        console.log(`prismaservice:1066 processManyToManyRelation ${this.model}`)
         if (!Array.isArray(request[field])) {
             throw new ApiValidationError(
                 field + ' must be an array, got ' + typeof request[field]
@@ -1679,7 +1675,6 @@ class PrismaService {
     }
 
     async executeInTransaction(callback: Function) {
-        console.log(`prismaservice:1685 executeInTransaction ${this.model}`)
         try {
             if (PrismaService.transactionOpen) {
                 logger.debug(
