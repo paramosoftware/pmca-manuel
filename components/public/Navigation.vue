@@ -1,8 +1,13 @@
 <template>
-    <div id="container" class="flex flex-grow min-h-full shadow-lg border border-gray-200 rounded-md">
+    <div
+        id="container"
+        class="flex flex-grow min-h-full shadow-lg border-gray-200 rounded-lg border"
+    >
         <div
             id="left"
-            class="bg-gray-50 overflow-hidden p-5 pl-10 overflow-y-auto"
+            ref="leftRef"
+            class="bg-gray-50 overflow-hidden p-5 pl-10 overflow-y-auto hidden lg:block"
+            v-if="showLeftSide"
         >
             <div class="flex flex-row justify-end" v-if="closed">
                 <UIIcon
@@ -13,15 +18,12 @@
                 />
             </div>
 
-            <div class="bg-gray-50"
-            v-show="!closed">
-
-                <div class="flex flex-row justify-between border-b border-gray-200 bg-gray-50 mb-5">
+            <div class="bg-gray-50" v-show="!closed">
+                <div
+                    class="flex flex-row justify-between border-b border-gray-200 mb-5"
+                >
                     <div class="text-xl font-semibold py-3">
-                        <UIIcon
-                            name="ph:tree-view"
-                            class="mb-2"
-                        />
+                        <UIIcon name="ph:tree-view" class="mb-2" />
                         Classificação
                     </div>
                     <UIIcon
@@ -32,20 +34,94 @@
                     />
                 </div>
 
-                <PublicHierarchicalNavigation :useConceptStoreForTree="useConceptStoreForTree" />
+                <PublicHierarchicalNavigation
+                    :useConceptStoreForTree="useConceptStoreForTree"
+                />
+
+                <USlideover
+                    v-model="isSlideOverOpen"
+                    class="text-pmca-primary h-screen lg:hidden"
+                    side="left"
+                    :ui="{
+                        background: 'bg-gray-100',
+                        width: 'w-screen max-w-lg',
+                    }"
+                >
+                    <div
+                        class="flex flex-row justify-between border-b border-gray-200 mb-5 p-3"
+                    >
+                        <div class="text-xl font-semibold p-3">
+                            <UIIcon name="ph:tree-view" class="mb-2" />
+                            Classificação
+                        </div>
+                        <UIIcon
+                            name="ph:x"
+                            class=" hover:text-pmca-accent"
+                            title="Fechar navegação"
+                            @click="isSlideOverOpen = false"
+                        />
+                    </div>
+
+                    <div class="px-3 pb-3 overflow-auto">
+                        <PublicHierarchicalNavigation :useConceptStoreForTree="useConceptStoreForTree"/>
+                    </div>
+                </USlideover>
             </div>
         </div>
         <div
-            class="w-2 hover:w-2 bg-gray-200 hover:bg-pmca-accent cursor-col-resize flex user-select-none items-center"
+            class="w-2 hover:w-2 bg-gray-200 hover:bg-pmca-accent cursor-col-resize user-select-none items-center hidden lg:flex"
             id="resize"
+            ref="resizeRef"
+            v-if="showLeftSide"
         >
             <div></div>
         </div>
         <div
             id="right"
-            class="bg-white p-5 overflow-hidden items-center shrink grow"
+            class="bg-white overflow-hidden items-center shrink grow"
+            ref="rightRef"
         >
-            <PublicList :hasAlphabeticalFilter="false"/>
+            <div
+                class="flex justify-end border-b border-gray-200 border bg-gray-50"
+            >
+                <div class="flex flex-row items-center space-x-5 px-4 py-2">
+                    <h4 class="text-sm font-semibold">Visualizações:</h4>
+                    <UIIcon
+                        v-for="visualization in views"
+                        :key="visualization.name"
+                        :name="visualization.icon"
+                        :title="visualization.title"
+                        :class="{
+                            'text-pmca-accent': currentView === visualization.id
+                        }"
+                        class="hover:text-pmca-accent"
+                        @click="changeView(visualization.id)"
+                    />
+                </div>
+            </div>
+            <div
+                class="justify-end border-b border-gray-200 border bg-gray-50 flex lg:hidden"
+                v-if="isHierarchical"
+            >
+                <div class="flex flex-row items-center space-x-5 px-4 py-2">
+                    <h4 class="text-sm font-semibold">Abrir classificação:</h4>
+                    <UIIcon
+                        name="ph:tree-view"
+                        title="Abrir classificação"
+                        class="hover:text-pmca-accent"
+                        @click="isSlideOverOpen = true"
+                    />
+                </div>
+            </div>
+
+            <div class="py-5 px-3 md:px-5" v-if="showList">
+                <PublicList
+                    :hasAlphabeticalFilter="currentView === 'alphabetical'"
+                />
+            </div>
+            <div class="py-5 px-3 md:px-5" v-else>
+                <PublicDiagram />
+            </div>
         </div>
     </div>
 </template>
@@ -58,63 +134,74 @@ defineProps({
     }
 });
 
+const views = ref([
+    {
+        id: 'hierarchical',
+        name: 'Hierárquica',
+        icon: 'ph:tree-view',
+        title: 'Visualização hierárquica (classificação)'
+    },
+    {
+        id: 'alphabetical',
+        name: 'Alfabética',
+        title: 'Visualização alfabética',
+        icon: 'ph:text-aa'
+    },
+    {
+        id: 'diagram',
+        name: 'Diagrama',
+        title: 'Visualização em diagrama',
+        icon: 'ph:arrows-split'
+    }
+]);
+
+const currentView = ref('hierarchical');
+const isHierarchical = computed(() => currentView.value === 'hierarchical');
+const showLeftSide = computed(() => isHierarchical.value === true);
+const showList = computed(() => currentView.value === 'alphabetical' || isHierarchical.value);
+const isSlideOverOpen = ref(false);
 const leftWidth = ref(300);
 const rightWidth = ref(300);
 const containerWidth = ref(600);
-const container = ref<HTMLElement | null>(null);
-const left = ref<HTMLElement | null>(null);
-const right = ref<HTMLElement | null>(null);
-const resize = ref<HTMLElement | null>(null);
+const containerRef = ref<HTMLElement | null>(null);
+const leftRef = ref<HTMLElement | null>(null);
+const rightRef = ref<HTMLElement | null>(null);
+const resizeRef = ref<HTMLElement | null>(null);
 const moveX = ref(0);
-const dragTimer = ref(0);
 const closed = ref(false);
 const leftMediumWidthPercentage = 0.25;
-const leftMaxWidthPercentage = 0.60;
+const leftMaxWidthPercentage = 0.6;
 const leftMinWidthPercentage = 0.05;
+const drag = ref(false);
 
 onMounted(() => {
-    container.value = document.getElementById('container')!;
-    left.value = document.getElementById('left')!;
-    right.value = document.getElementById('right')!;
-    resize.value = document.getElementById('resize')!;
-
     setInitialDimensions();
+    setResizeListeners();
+});
 
-    moveX.value = left.value.getBoundingClientRect().width +
-        resize.value.getBoundingClientRect().width / 2;
-
-    containerWidth.value = container.value.getBoundingClientRect().width;
-
-    let drag = false;
-
-    resize.value.addEventListener('mousedown', function (e) {
-        drag = true;
-        dragTimer.value = performance.now();
-        moveX.value = e.x;
-    });
-
-    container.value.addEventListener('mousemove', function (e) {
-        moveX.value = e.x - container.value!.getBoundingClientRect().x; 
-        if (drag) {
-            leftWidth.value = moveX.value;
-            rightWidth.value = container.value!.getBoundingClientRect().width - moveX.value;
-            resizeSides();
-        }
-    });
-
-    container.value.addEventListener('mouseup', function (e) {
-        drag = false;
-    });
+onUpdated(() => {
+    if (isHierarchical.value) {
+        setResizeListeners();
+    }
 });
 
 function setInitialDimensions() {
-    containerWidth.value = container.value!.getBoundingClientRect().width;
+    if (!setHTMLReferences()) {
+        return;
+    }
+
+    moveX.value = leftRef.value.getBoundingClientRect().width + resizeRef.value.getBoundingClientRect().width / 2;
+    containerWidth.value = containerRef.value!.getBoundingClientRect().width;
     leftWidth.value = containerWidth.value * 0.25;
     rightWidth.value = containerWidth.value - leftWidth.value;
     resizeSides();
 }
 
 function resizeSides() {
+
+    if (!setHTMLReferences()) {
+        return;
+    }
 
     const leftMaxWidth = containerWidth.value * leftMaxWidthPercentage;
 
@@ -130,12 +217,12 @@ function resizeSides() {
         rightWidth.value = containerWidth.value - leftWidth.value;
     }
 
-    closed.value = leftWidth.value < containerWidth.value * leftMinWidthPercentage + 100;
+    closed.value =
+        leftWidth.value < containerWidth.value * leftMinWidthPercentage + 100;
 
-    left.value!.style.width = `${leftWidth.value}px`;
-    right.value!.style.width = `${rightWidth.value}px`;
+    leftRef.value!.style.width = `${leftWidth.value}px`;
+    rightRef.value!.style.width = `${rightWidth.value}px`;
 }
-
 
 function openNavigation() {
     leftWidth.value = leftMediumWidthPercentage * containerWidth.value;
@@ -149,6 +236,68 @@ function closeNavigation() {
     resizeSides();
 }
 
+function changeView(view: string) {
+    currentView.value = view;
+}
 
+function setHTMLReferences() {
+    if (!isHierarchical.value) {
+        return false;
+    }
+    
+    if (!containerRef.value) {
+        containerRef.value = document.getElementById('container');
+    }
 
+    if (!leftRef.value) {
+        leftRef.value = document.getElementById('left');
+    }
+
+    if (!rightRef.value) {
+        rightRef.value = document.getElementById('right');
+    }
+
+    if (!resizeRef.value) {
+        resizeRef.value = document.getElementById('resize');
+    }
+
+    if (!containerRef.value || !leftRef.value || !rightRef.value || !resizeRef.value) {
+        console.error('One or more HTML elements are missing', {
+            containerRef: containerRef.value,
+            leftRef: leftRef.value,
+            rightRef: rightRef.value,
+            resizeRef: resizeRef.value
+        });
+
+        return false;
+    }
+
+    return true;
+}
+
+function setResizeListeners() {
+    if (!setHTMLReferences()) {
+        return;
+    }
+
+    window.addEventListener('resize', setInitialDimensions);
+
+    resizeRef.value.addEventListener('mousedown', function (e) {
+        drag.value = true;
+        moveX.value = e.x;
+    });
+
+    containerRef.value.addEventListener('mousemove', function (e) {
+        moveX.value = e.x - containerRef.value!.getBoundingClientRect().x;
+        if (drag.value) {
+            leftWidth.value = moveX.value;
+            rightWidth.value = containerRef.value!.getBoundingClientRect().width - moveX.value;
+            resizeSides();
+        }
+    });
+
+    containerRef.value.addEventListener('mouseup', function (e) {
+        drag.value = false;
+    });
+}
 </script>
