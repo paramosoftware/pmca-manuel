@@ -54,7 +54,6 @@
                     </UCard>
                 </UModal>
             </div>
-
             <Viewer
                 :images="media"
                 @inited="inited"
@@ -75,54 +74,23 @@
                     :animation="200"
                     item-key="id"
                 >
-                <!-- TODO: Separate by reference and media. Only 2 v-ifs to avoid nesting -->
                     <template #item="{ element }">
-                        <div class="relative" :class="[{'border border-gray-200 p-2': isReference}]">
-                            <h1 v-if="isReference">{{ element.originalFilename }}</h1>
-                            <div v-if="isReference" class="absolute bottom-2 left-2">
-                                <UIIcon 
-                                class="w-7 h-7"
-                                name="ph:file-pdf"
-                                title="Identificação"
-                            />
-                            </div>
-                            <br v-if="isReference">
-                            <UIImg
+                        <div id="itemSlotWrapper" class="cursor-pointer rounded">
+                            <UIMediaTemplate
                                 v-if="!isReference"
-                                class="w-full h-32 object-cover rounded cursor-pointer"
-                                :src="element.name"
-                                :alt="element.subtitle"
-                                :quality="quality"
+                                :element="element"
+                                :isReference="false"
+                                :quality="60"
+                                :deleteMedia="deleteMedia"
+                                :addSubtitle="addSubtitle"
                             />
-                            <div
-                                :class="[
-                                    { 'absolute top-0 right-0': !isReference },{ 'absolute bottom-2 right-2': isReference },
-                                ]"
-                            >
-                                <UIButton
-                                    @click="addSubtitle(element)"
-                                    padding="p-1"
-                                    square
-                                    class="mr-1"
-                                >
-                                    <UIIcon
-                                        class="w-4 h-4"
-                                        name="ph:subtitles"
-                                        title="Editar legenda"
-                                    />
-                                </UIButton>
-                                <UIButton
-                                    @click="deleteMedia(element)"
-                                    padding="p-1"
-                                    square
-                                >
-                                    <UIIcon
-                                        class="w-4 h-4"
-                                        name="ph:trash-simple"
-                                        title="Excluir"
-                                    />
-                                </UIButton>
-                            </div>
+                            <UIMediaTemplate
+                                v-if="isReference"
+                                :element="element"
+                                :isReference="true"
+                                :deleteMedia="deleteMedia"
+                                :addSubtitle="addSubtitle"
+                            />
                         </div>
                     </template>
                 </draggable>
@@ -170,7 +138,6 @@ const quality = ref(60);
 function changeQuality() {
     quality.value = 100;
 }
-
 const isOpen = ref(false);
 const isOpenAccordion = ref(false);
 const modalSubtitleIsOpen = ref(false);
