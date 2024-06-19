@@ -9,64 +9,14 @@
             class="bg-gray-50 overflow-hidden p-5 pl-10 overflow-y-auto hidden lg:block"
             v-if="showLeftSide"
         >
-            <div class="flex flex-row justify-end" v-if="closed">
-                <UIIcon
-                    name="ph:tree-view"
-                    class="hover:text-pmca-accent"
-                    title="Arraste para a direita para abrir a navegação"
-                    @click="openNavigation"
-                />
-            </div>
-
-            <div class="bg-gray-50" v-show="!closed">
-                <div
-                    class="flex flex-row justify-between border-b border-gray-200 mb-5"
-                >
-                    <div class="text-xl font-semibold py-3">
-                        <UIIcon name="ph:tree-view" class="mb-2" />
-                        Classificação
-                    </div>
-                    <UIIcon
-                        name="ph:x"
-                        class="mt-1 hover:text-pmca-accent text-xl"
-                        title="Fechar navegação"
-                        @click="closeNavigation"
-                    />
-                </div>
-
-                <PublicHierarchicalNavigation
-                    :useConceptStoreForTree="useConceptStoreForTree"
-                />
-
-                <USlideover
-                    v-model="isSlideOverOpen"
-                    class="text-pmca-primary h-screen lg:hidden"
-                    side="left"
-                    :ui="{
-                        background: 'bg-gray-100',
-                        width: 'w-screen max-w-lg',
-                    }"
-                >
-                    <div
-                        class="flex flex-row justify-between border-b border-gray-200 mb-5 p-3"
-                    >
-                        <div class="text-xl font-semibold p-3">
-                            <UIIcon name="ph:tree-view" class="mb-2" />
-                            Classificação
-                        </div>
-                        <UIIcon
-                            name="ph:x"
-                            class=" hover:text-pmca-accent"
-                            title="Fechar navegação"
-                            @click="isSlideOverOpen = false"
-                        />
-                    </div>
-
-                    <div class="px-3 pb-3 overflow-auto">
-                        <PublicHierarchicalNavigation :useConceptStoreForTree="useConceptStoreForTree"/>
-                    </div>
-                </USlideover>
-            </div>
+            <PublicNavigationLeftSide
+                :use-concept-store-for-tree="useConceptStoreForTree"
+                :closed="closed"
+                :open-navigation="openNavigation"
+                :close-navigation="closeNavigation"
+                :is-slide-over-open="isSlideOverOpen"
+                @slide-over-close="isSlideOverOpen = false"
+            />
         </div>
         <div
             class="w-2 hover:w-2 bg-gray-200 hover:bg-pmca-accent cursor-col-resize user-select-none items-center hidden lg:flex"
@@ -190,7 +140,9 @@ function setInitialDimensions() {
         return;
     }
 
-    moveX.value = leftRef.value.getBoundingClientRect().width + resizeRef.value.getBoundingClientRect().width / 2;
+    moveX.value =
+        leftRef.value.getBoundingClientRect().width +
+        resizeRef.value.getBoundingClientRect().width / 2;
     containerWidth.value = containerRef.value!.getBoundingClientRect().width;
     leftWidth.value = containerWidth.value * 0.25;
     rightWidth.value = containerWidth.value - leftWidth.value;
@@ -198,7 +150,6 @@ function setInitialDimensions() {
 }
 
 function resizeSides() {
-
     if (!setHTMLReferences()) {
         return;
     }
@@ -244,7 +195,7 @@ function setHTMLReferences() {
     if (!isHierarchical.value) {
         return false;
     }
-    
+
     if (!containerRef.value) {
         containerRef.value = document.getElementById('container');
     }
@@ -261,7 +212,12 @@ function setHTMLReferences() {
         resizeRef.value = document.getElementById('resize');
     }
 
-    if (!containerRef.value || !leftRef.value || !rightRef.value || !resizeRef.value) {
+    if (
+        !containerRef.value ||
+        !leftRef.value ||
+        !rightRef.value ||
+        !resizeRef.value
+    ) {
         console.error('One or more HTML elements are missing', {
             containerRef: containerRef.value,
             leftRef: leftRef.value,
@@ -291,7 +247,8 @@ function setResizeListeners() {
         moveX.value = e.x - containerRef.value!.getBoundingClientRect().x;
         if (drag.value) {
             leftWidth.value = moveX.value;
-            rightWidth.value = containerRef.value!.getBoundingClientRect().width - moveX.value;
+            rightWidth.value =
+                containerRef.value!.getBoundingClientRect().width - moveX.value;
             resizeSides();
         }
     });

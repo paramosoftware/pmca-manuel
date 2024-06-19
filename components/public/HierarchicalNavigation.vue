@@ -23,27 +23,7 @@ defineProps({
     }
 });
 
-defineOptions({
-    inheritAttrs: false
-});
-
-const isHovered = ref(null);
-const isPinned = ref(false);
-const isOpen = computed(() => {
-    return isHovered.value || isPinned.value;
-});
-
-watch(isPinned, (newPinValue) => {
-    localStorage.setItem('isPinned', newPinValue.toString());
-});
-
 const conceptStore = useConceptStore();
 await conceptStore.fetchConceptsTree();
-const navigationStore = useNavigationStore();
-
 const { conceptsTree } = storeToRefs(conceptStore);
-onMounted(() => {
-    navigationStore.validateScreenSize();
-    isPinned.value = localStorage.getItem('isPinned') === 'true';
-});
 </script>
