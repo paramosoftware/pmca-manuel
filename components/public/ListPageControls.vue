@@ -1,6 +1,6 @@
 <template>
     <div
-        class="mt-4 md:flex md:flex-row md:justify-between md:items-center"
+        class="mt-4 md:flex md:flex-row justify-between md:items-center mr-2"
     >
         <div class="text-md" v-if="showTotal">
             {{ total }}
@@ -16,7 +16,7 @@
             >
         </div>
         <div v-else></div>
-        <div class="flex justify-center space-x-2 my-5">
+        <div class="flex justify-evenly space-x-2 my-5 overflow-x-auto">
             <UIIcon
                 class="w-8 h-8 mr-3"
                 :name="
@@ -33,6 +33,7 @@
                 show-last
                 show-first
                 size="sm"
+                :max="5"
                 v-if="total > pageSize"
             />
             <FieldSelect
@@ -62,3 +63,9 @@ const { page, total, sort, search, pageSize, pageSizes } = storeToRefs(conceptSt
 const showTotal = computed(() => total.value > 0 && props.top);
 const showOrder = computed(() => total.value > 1 && props.top);
 </script>
+
+<style scoped>
+::-webkit-scrollbar {
+    height: 5px;
+}
+</style>
