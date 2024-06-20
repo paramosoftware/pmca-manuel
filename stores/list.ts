@@ -71,12 +71,14 @@ export const useListStore = defineStore('list', () => {
     });
 
     watch(
-        () => query.value,
-        async () => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(async () => {
-                await fetch(resourceStore.name);
-            }, 500);
+        query,
+        async (newQuery, oldQuery) => {
+            if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(async () => {
+                    await fetch(resourceStore.name);
+                }, 500);
+            }
         },
         { deep: true }
     );

@@ -88,6 +88,7 @@ export const useConceptStore = defineStore('concept', () => {
                 }
             });
         }
+
         if (searchInitialLetter.value && searchInitialLetter.value !== "TODOS") {
             q.where.AND.push({
                 name: {
@@ -103,17 +104,19 @@ export const useConceptStore = defineStore('concept', () => {
                 }
             });
         }
+
         return q;
-        
     });
 
     watch(
-        () => query.value,
-        async () => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(async () => {
-                await fetchList();
-            }, 500);
+        query,
+        async (newQuery, oldQuery) => {
+            if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(async () => {
+                    await fetchList();
+                }, 500);
+            }
         },
         { deep: true }
     );
@@ -304,7 +307,6 @@ export const useConceptStore = defineStore('concept', () => {
         );
 
         descendantsIds.value = data.value;
-        await fetchList();
     }
 
     function sortByName() {
