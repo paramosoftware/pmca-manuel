@@ -10,7 +10,7 @@
             v-if="showLeftSide"
         >
             <PublicNavigationLeftSide
-                :use-concept-store-for-tree="useConceptStoreForTree"
+                :use-concept-store-for-tree="isHierarchical && !individualCard"
                 :closed="closed"
                 :open-navigation="openNavigation"
                 :close-navigation="closeNavigation"
@@ -32,11 +32,13 @@
             ref="rightRef"
         >
             <PublicPage
-                :title="!isDiagram ? title : ''"
-                :show-breadcrumb="!isDiagram"
-                :has-header="!isDiagram"
+                :title="showHeader ? title : ''"
+                :show-breadcrumb="showHeader"
+                :has-header="showHeader"
             >
-                <template #actions-title> Visualizações: </template>
+                <template #actions-title> 
+                    {{ individualCard ? 'Ações:' : 'Visualizações:' }}
+                </template>
                 <template #actions-icons>
                     <UIIcon
                         v-for="visualization in views"
@@ -48,7 +50,9 @@
                         }"
                         class="hover:text-pmca-accent"
                         @click="changeView(visualization.id)"
+                        v-if="!individualCard"
                     />
+                    <PublicActionsBar v-else-if="individualCard" />
                 </template>
 
                 <template #actions-sub-title v-if="isHierarchical">
@@ -113,16 +117,18 @@ const views = ref([
     }
 ]);
 
-const currentView = ref('diagram');
+const conceptStore = useConceptStore();
+const currentView = ref('hierarchical');
 const isHierarchical = computed(() => currentView.value === 'hierarchical');
 const isDiagram = computed(() => currentView.value === 'diagram');
 const isAlphabetical = computed(() => currentView.value === 'alphabetical');
 const showLeftSide = computed(() => isHierarchical.value === true);
 const showList = computed(
     () =>
-        (currentView.value === 'alphabetical' || isHierarchical.value) &&
+        (isAlphabetical.value || isHierarchical.value) &&
         !props.individualCard
 );
+const showHeader = computed(() => !isDiagram.value && !props.individualCard);
 const isSlideOverOpen = ref(false);
 const leftWidth = ref(300);
 const rightWidth = ref(300);
@@ -138,7 +144,17 @@ const leftMaxWidthPercentage = 0.6;
 const leftMinWidthPercentage = 0.05;
 const drag = ref(false);
 
+watch(() => props.individualCard, () => {
+    if (props.individualCard === false) {
+        conceptStore.resetConcept();
+    }
+});
+
 onMounted(() => {
+    if (props.individualCard === false) {
+        conceptStore.resetConcept();
+    }
+
     setInitialDimensions();
     setResizeListeners();
 });

@@ -1,7 +1,7 @@
 <template>
     <article class="w-7xl">
-        <PublicBreadcrumb :links="breadcrumb" />
-        <PublicFullCardTitle :id="id" :name="concept!.name" class="mb-4" />
+        <PublicBreadcrumb use-concept-store />
+        <PublicFullCardTitle :id="id" :name="concept ? concept.name : ''" class="mb-4" />
         <div class="flex flex-row">
             <div class="pr-2 w-full">
                 <UITab :tabs="['Termo', 'Histórico de alterações']">
@@ -82,9 +82,9 @@ const slug = ref(router.currentRoute.value.params.slug.toString());
 const conceptStore = useConceptStore();
 await conceptStore.load(slug.value);
 
-const { concept, error, ancestors } = storeToRefs(conceptStore);
+const { concept, error } = storeToRefs(conceptStore);
 
-if (!error.value && !concept.value) {
+if (error.value || !concept.value) {
     throw createError({
         data: {
             title: 'Termo não encontrado'
@@ -157,18 +157,6 @@ if (concept.value?.translations) {
                 (translation.language?.code ?? translation.language?.name) +
                 ')',
             link: ''
-        });
-    });
-}
-
-const breadcrumb = ref<Link[]>([]);
-
-if (ancestors.value) {
-    ancestors.value.forEach((ancestor: Concept) => {
-        breadcrumb.value.push({
-            label: ancestor.name,
-            to: '/termos/' + ancestor.nameSlug,
-            icon: 'i-ph-article'
         });
     });
 }

@@ -1,6 +1,6 @@
 <template>
     <main
-        class="w-full h-full shadow-lg border border-gray-200 rounded-md bg-white"
+        class="w-full h-full shadow-lg border-b border-gray-200 rounded-md bg-white"
     >
         <div
             class="flex justify-end border-b border-gray-200 border bg-gray-50"
@@ -30,7 +30,7 @@
             <span v-else>
                 <PublicBreadcrumb :add-concept-link="false" v-if="showBreadcrumb" />
                 <UIPageTitle
-                    class="border-b border-gray-200 pb-1 mb-4"
+                    class="pb-1 mb-4"
                     v-if="title"
                 >
                     {{ title }}

@@ -3,7 +3,7 @@ export const useConceptStore = defineStore('concept', () => {
     const model = 'Concept';
     const conceptIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
-    const pageSizes = ref([16, 24, 32]);
+    const pageSizes = ref([12, 24, 36]);
     const pageSize = ref(pageSizes.value[0]);
     const total = ref(0);
     const totalPages = ref(0);
@@ -23,6 +23,7 @@ export const useConceptStore = defineStore('concept', () => {
     const descendantsIds = ref<ID[]>([]);
     const searchInitialLetter = ref<string>('TODOS');
     const maxPage = computed(() => Math.ceil(total.value / pageSize.value));
+    const date = new Date();
 
     let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
@@ -159,7 +160,6 @@ export const useConceptStore = defineStore('concept', () => {
     }
 
     async function fetchList() {
-        conceptIdentifier.value = '';
         const urlData = computed(() => `/api/public/${model}`);
 
         loadingStore.start();
@@ -328,7 +328,7 @@ export const useConceptStore = defineStore('concept', () => {
         await exportData.download(url, fileName);
     }
 
-    function clear() {
+    function reset() {
         concept.value = undefined;
         ancestors.value = <Concept[]>[];
         conceptChanges.value = undefined;
@@ -342,9 +342,18 @@ export const useConceptStore = defineStore('concept', () => {
         search.value = '';
     }
 
+    function resetConcept() {
+        conceptIdentifier.value = '';
+        concept.value = undefined;
+        ancestors.value = <Concept[]>[];
+        conceptChanges.value = undefined;
+    }
+
     async function clearSelection() {
         useConceptSelection().clearSelected();
-        window.location.reload();
+        if (process.client) {
+           window.location.reload();
+        }
     }
 
     return {
@@ -376,7 +385,8 @@ export const useConceptStore = defineStore('concept', () => {
         fetchDescendants,
         sortByName,
         exportData,
-        clear,
+        reset,
+        resetConcept,
         clearSelection
     };
 });

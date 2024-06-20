@@ -41,8 +41,4 @@ const userSelection = computed(() => {
 watch(userSelection, async () => {
     await conceptStore.load('', true);
 });
-
-onUnmounted(() => {
-    conceptStore.clear();
-});
 </script>

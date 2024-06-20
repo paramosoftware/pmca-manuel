@@ -1,6 +1,5 @@
 <template>
     <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
-        <PublicOpenHierarchical :actions-bar="true"/>
         <a
             v-for="item in socialMedia"
             :key="item.name"
@@ -9,7 +8,7 @@
             <UIIcon
                 :name="item.icon"
                 @click="share(item.name)"
-                :title="item.title ?? ''"
+                :title="item.title ?? `Compartilhar no ${item.name}`"
                 class="w-7"
             />
         </a>
@@ -18,25 +17,32 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
-    title: {
-        type: String,
-        required: true
-    },
-    conceptId: {
-        type: Number,
-        required: true
-    }
-});
+const conceptStore = useConceptStore();
+
+const { concept } = storeToRefs(conceptStore);
+
+const conceptName = ref('');
+
+if (concept.value) {
+    conceptName.value = concept.value.name ?? '';
+}
 
 const toast = useToast();
 
 const socialMedia = [
+    /*
     {
         name: 'Baixar',
         icon: 'ph:file-pdf',
         shareUrl: '',
         title: 'Baixar PDF'
+    },
+    */
+    {
+        name: 'Link',
+        icon: 'ph:link',
+        shareUrl: '',
+        title: 'Copiar link'
     },
     {
         name: 'Facebook',
@@ -57,7 +63,7 @@ const socialMedia = [
 
 const share = (name: string) => {
     let url = window.location.href;
-    let title = props.title;
+    let title = conceptName.value;
 
     if (name === 'Link') {
         navigator.clipboard.writeText(url);
