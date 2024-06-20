@@ -1596,31 +1596,48 @@ class PrismaService {
 
             if (typeof newData[field] === 'object' && newData[field] !== null) {
                 if (Array.isArray(newData[field])) {
-                    const newNames = newData[field].map(
-                        (item: any) => item.name
-                    );
-                    const oldNames = oldData[field].map(
-                        (item: any) => item.name
-                    );
+                    const newItems = newData[field].map((item: any) => ({
+                        name: item.name || undefined,
+                        id: item.id || undefined
+                    }));
+                    const oldItems = oldData[field].map((item: any) => ({
+                        name: item.name || undefined,
+                        id: item.id || undefined
+                    }));
 
-                    const added = newNames.filter(
-                        (name: any) => !oldNames.includes(name)
+                    const added = newItems.filter(
+                        (newItem: any) =>
+                            !oldItems.some((oldItem: any) =>
+                                newItem.name
+                                    ? newItem.name !== oldItem.name
+                                    : newItem[Object.keys(newItem)[0]] !==
+                                      oldItem[Object.keys(oldItem)[0]]
+                            )
                     );
-                    const removed = oldNames.filter(
-                        (name: any) => !newNames.includes(name)
+                    const removed = oldItems.filter(
+                        (oldItem: any) =>
+                            !newItems.some((newItem: any) =>
+                                newItem.name
+                                    ? newItem.name.trim() ===
+                                      oldItem.name.trim()
+                                    : newItem.id === oldItem.id
+                            )
                     );
 
                     const fieldChanges = {} as {
                         added: string[];
                         removed: string[];
                     };
-
                     if (added.length > 0) {
-                        fieldChanges['added'] = added;
+                        fieldChanges['added'] = added.map((item: any) =>
+                            JSON.stringify(item)
+                        );
                     }
 
                     if (removed.length > 0) {
-                        fieldChanges['removed'] = removed;
+                        fieldChanges['removed'] = removed.map((item: any) =>
+                            JSON.stringify(item)
+                        );
                     }
 
                     if (added.length > 0 || removed.length > 0) {
