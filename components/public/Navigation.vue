@@ -31,11 +31,13 @@
             class="bg-white overflow-hidden items-center shrink grow"
             ref="rightRef"
         >
-            <div
-                class="flex justify-end border-b border-gray-200 border bg-gray-50"
+            <PublicPage
+                :title="!isDiagram ? title : ''"
+                :show-breadcrumb="!isDiagram"
+                :has-header="!isDiagram"
             >
-                <div class="flex flex-row items-center space-x-5 px-4 py-2">
-                    <h4 class="text-sm font-semibold">Visualizações:</h4>
+                <template #actions-title> Visualizações: </template>
+                <template #actions-icons>
                     <UIIcon
                         v-for="visualization in views"
                         :key="visualization.name"
@@ -47,42 +49,39 @@
                         class="hover:text-pmca-accent"
                         @click="changeView(visualization.id)"
                     />
-                </div>
-            </div>
-            <div
-                class="justify-end border-b border-gray-200 border bg-gray-50 flex lg:hidden"
-                v-if="isHierarchical"
-            >
-                <div class="flex flex-row items-center space-x-5 px-4 py-2">
-                    <h4 class="text-sm font-semibold">Abrir classificação:</h4>
+                </template>
+
+                <template #actions-sub-title v-if="isHierarchical">
+                    Abrir classificação:
+                </template>
+                <template #actions-sub-icons v-if="isHierarchical">
                     <UIIcon
                         name="ph:tree-view"
                         title="Abrir classificação"
                         class="hover:text-pmca-accent"
                         @click="isSlideOverOpen = true"
                     />
-                </div>
-            </div>
+                </template>
 
-            <div class="py-5 px-3 md:px-5" v-if="showList">
                 <PublicList
-                    :hasAlphabeticalFilter="currentView === 'alphabetical'"
+                    :hasAlphabeticalFilter="isAlphabetical"
+                    v-if="showList"
                 />
-            </div>
 
-            <div class="py-5 px-3 md:px-5" v-else-if="individualCard">
-                <PublicFullCard />
-            </div>
+                <PublicFullCard v-else-if="individualCard" />
 
-            <div class="py-5 px-3 md:px-5" v-else>
-                <PublicDiagram />
-            </div>
+                <PublicDiagram v-else-if="isDiagram" />
+            </PublicPage>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 const props = defineProps({
+    title: {
+        type: String,
+        default: 'Termos'
+    },
     individualCard: {
         type: Boolean,
         default: false
@@ -114,8 +113,10 @@ const views = ref([
     }
 ]);
 
-const currentView = ref('hierarchical');
+const currentView = ref('diagram');
 const isHierarchical = computed(() => currentView.value === 'hierarchical');
+const isDiagram = computed(() => currentView.value === 'diagram');
+const isAlphabetical = computed(() => currentView.value === 'alphabetical');
 const showLeftSide = computed(() => isHierarchical.value === true);
 const showList = computed(
     () =>
@@ -251,12 +252,12 @@ function setResizeListeners() {
 
     window.addEventListener('resize', setInitialDimensions);
 
-    resizeRef.value.addEventListener('mousedown', function (e) {
+    resizeRef.value!.addEventListener('mousedown', function (e) {
         drag.value = true;
         moveX.value = e.x;
     });
 
-    containerRef.value.addEventListener('mousemove', function (e) {
+    containerRef.value!.addEventListener('mousemove', function (e) {
         moveX.value = e.x - containerRef.value!.getBoundingClientRect().x;
         if (drag.value) {
             leftWidth.value = moveX.value;
@@ -266,7 +267,7 @@ function setResizeListeners() {
         }
     });
 
-    containerRef.value.addEventListener('mouseup', function (e) {
+    containerRef.value!.addEventListener('mouseup', function (e) {
         drag.value = false;
     });
 }

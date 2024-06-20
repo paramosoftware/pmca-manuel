@@ -1,16 +1,4 @@
 <template>
-    <div>
-        <div>
-            <UIPageTitle>
-                <PublicBreadcrumb
-                    :add-concept-link="userSelection"
-                    class="overflow-x-auto"
-                />
-                {{ title }}
-            </UIPageTitle>
-        </div>
-    </div>
-
     <PublicListInputFilter />
 
     <PublicListAlphabeticalFilter v-if="hasAlphabeticalFilter" />
