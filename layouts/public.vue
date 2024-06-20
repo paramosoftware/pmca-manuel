@@ -4,7 +4,7 @@
     >
         <PublicNavbar />
 
-        <div class="h-auto flex flex-col flex-grow justify-start items-start min-h-[40vh] w-full   py-8 px-16">
+        <div class="h-auto flex flex-col flex-grow justify-start items-start min-h-[40vh] w-full px-3 py-5 md:px-6 lg:px-8 xl:px-10">
             <div class="flex flex-col h-full w-full flex-grow  justify-start ">
                 <div class="h-full flex flex-col flex-grow min-w-full max-h-auto max-w-screen-2xl ">
                     <slot />
