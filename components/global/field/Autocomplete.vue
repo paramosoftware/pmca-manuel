@@ -46,6 +46,7 @@
                 :show-icon="showIcon"
                 :loading="searching"
                 :size="size"
+                :navbar="true"
             />
 
             <span ref="autocompleteRef">
@@ -161,6 +162,10 @@ const props = defineProps({
     },
     formStore: {
         type: Object as PropType<FormStore>
+    },
+    navbar: {
+        type: Boolean,
+        default: false
     }
 });
 
