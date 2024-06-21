@@ -11,7 +11,6 @@
                 <NuxtLink
                     :to="link.to"
                     class="flex items-center gap-x-1.5 group font-semibold min-w-0 hover:text-pmca-accent"
-                    :aria-current="link.active ? 'page' : undefined"
                 >
                     <UIIcon
                         v-if="link.icon"
@@ -33,8 +32,9 @@
 
 <script setup lang="ts">
 const props = defineProps({
-    links: {
-        type: Array<Link>,
+    useConceptStore: {
+        type: Boolean,
+        default: false
     },
     addConceptLink: {
         type: Boolean,
@@ -54,14 +54,41 @@ const concepts = {
     icon: 'ph:cards-three'
 };
 
-const linkItems = ref<Link[]>([home]);
+const conceptStore = useConceptStore();
 
-if (props.addConceptLink) {
-    linkItems.value.push(concepts);
-}
+const { conceptIdentifier, ancestors } = storeToRefs(conceptStore);
 
-if (props.links) {
-  linkItems.value.push(...props.links);
+const linkItems = computed(() => buildBreadcrumb());
+
+watch(
+    () => conceptIdentifier.value,
+    () => {
+        buildBreadcrumb();
+    }
+);
+
+function buildBreadcrumb() {
+    const breadcrumb = [home];
+
+    if (props.addConceptLink) {
+        breadcrumb.push(concepts);
+    }
+
+    if (!props.useConceptStore) {
+        return breadcrumb;
+    }
+
+    if (conceptIdentifier.value && ancestors.value) {
+        ancestors.value.forEach((ancestor: Concept) => {
+            breadcrumb.push({
+                label: ancestor.name,
+                to: '/termos/' + ancestor.nameSlug,
+                icon: 'ph:article'
+            });
+        });
+    }
+
+    return breadcrumb;
 }
 </script>
 

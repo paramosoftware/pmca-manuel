@@ -20,8 +20,7 @@
                     :dropDownTitle="'Utilizar classificação hierárquica'"
                     :selectedNavigationMode="navigationModes.hierarchical"
                     :navigationStylingConditionals="
-                        navigationStore.isHierarchical ||
-                        navigationStore.isDefault
+                        navigationStore.isHierarchical 
                     "
                     :iconName="'tree-structure'"
                     :placeholder="'Hierárquica'"
@@ -62,7 +61,6 @@ const navigationModes = {
     hierarchical: 'hierarchical',
     alphabetical: 'alphabetical',
     diagram: 'diagram',
-    default: 'default'
 };
 
 onBeforeMount(() => {});

@@ -3,7 +3,7 @@
         <UDropdown 
             mode="hover" 
             :items="items" 
-            :popper="{ placement: props.placement }" 
+            :popper="{ placement: placement }" 
             :ui="{ width: 'w-30', padding: 'p-0', background: 'bg-gray-100 opacity-90' }"
         >
             <Icon :name="name" :class="css" @click="onClick($event)" />

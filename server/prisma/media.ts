@@ -8,6 +8,8 @@ import getDataFolderPath from '~/utils/getDataFolderPath';
 import logger from '~/utils/logger';
 import PrismaService from './PrismaService';
 
+const resource = 'Media'
+
 export async function uploadMedia(
     model: string,
     id: ID,
@@ -16,6 +18,7 @@ export async function uploadMedia(
     res: express.Response,
     next: express.NextFunction
 ) {
+
     const mediaPath = (await importUploadFile(
         req,
         res,
@@ -32,18 +35,19 @@ export async function uploadMedia(
     const mediaData = await saveMedia(
         id,
         fileName,
-        req.file?.originalname ?? ''
+        req.file?.originalname ?? '',
+        model
     );
 
     res.json(mediaData);
 }
 
-export async function deleteConceptMedia(conceptMedia: Array<ConceptMedia>, mediaService?: PrismaService, deleteRecords: boolean = true) {
+export async function deleteModelMedia(modelMedia: Array<Media>, mediaService?: PrismaService, deleteRecords: boolean = true) {
     if (!mediaService) {
         mediaService = new PrismaService('ConceptMedia', false);
     }
 
-    for (const media of conceptMedia) {
+    for (const media of modelMedia) {
         logger.debug(`Deleting media ${media.name}`);
         const mediaPath = path.join(getDataFolderPath('media'), media.name);
 
@@ -58,49 +62,52 @@ export async function deleteConceptMedia(conceptMedia: Array<ConceptMedia>, medi
 }
 
 export async function handleMedia(
-    oldMedia: Array<ConceptMedia>,
-    conceptId: number
+    oldMedia: Array<Media>,
+    modelId: number,
+    model: string
 ) {
-    const mediaService = new PrismaService('ConceptMedia', false);
-
-    const newMedia: Array<ConceptMedia> = await mediaService.readMany({
+    
+    const mediaService = new PrismaService(`${model}Media`, false);
+    const newMedia: Array<Media> = await mediaService.readMany({
         where: {
-            conceptId: conceptId
+            [`${model.toLowerCase()}Id`]: modelId
         }
-    }, false) as unknown as Array<ConceptMedia>;
+    }, false) as unknown as Array<Media>;
 
-    const mediaToDelete: Array<ConceptMedia> = [];
+    const mediaToDelete: Array<Media> = [];
 
-    oldMedia.forEach((media: ConceptMedia) => {
+    oldMedia.forEach((media: Media) => {
         if (
-            !newMedia.find((newMedia: ConceptMedia) => newMedia.id === media.id)
+            !newMedia.find((newMedia: Media) => newMedia.id === media.id)
         ) {
             mediaToDelete.push(media);
         }
     });
 
-    deleteConceptMedia(mediaToDelete, mediaService);
+    deleteModelMedia(mediaToDelete, mediaService);
 }
 
 export async function saveMedia(
-    conceptId: number,
+    modelId: number,
     fileName: string,
     originalFilename: string,
+    model: string,
     position: number = 1
 ) {
     try {
-
-        const mediaService = new PrismaService('ConceptMedia', false);
-
+        const serviceModel = `${model}${resource}`
+        const mediaService = new PrismaService(serviceModel, false);
+ 
         const media = await mediaService.createOne({
-                name: fileName,
-                originalFilename: originalFilename,
-                position: position,
-                conceptId: conceptId,
-                concept: {
-                    id: conceptId
-                }
-        });
+            name: fileName,
+            originalFilename: originalFilename,
+            position: position,
+            [`${model.toLowerCase()}Id`]: modelId,
+            [model.toLowerCase()]: {
+                id: modelId
+            }
+            
+    } );
 
         return media;
     } catch (error) {

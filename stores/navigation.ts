@@ -9,7 +9,7 @@ export const useNavigationStore = defineStore({
 
     state: () => {
         return {
-            navigationMode: 'default',
+            navigationMode: 'hierarchical',
             screen: {
                 isSmall: false
             },
@@ -32,9 +32,6 @@ export const useNavigationStore = defineStore({
         };
     },
     getters: {
-        isDefault(state) {
-            return state.navigationMode === 'default';
-        },
         isHierarchical(state) {
             return state.navigationMode === 'hierarchical';
         },
@@ -58,13 +55,17 @@ export const useNavigationStore = defineStore({
         },
         activeNode(state) {
             return state.hierarchical.node.lastClicked.id;
+        },
+        currentNavigationMode(state) {
+            return state.navigationMode;
         }
     },
     actions: {
         validateScreenSize() {
             this.screen.isSmall = window.innerWidth < 768;
         },
-        setNavigationMode(mode: string) {
+        async setNavigationMode(mode: string) {
+            await nextTick();
             this.navigationMode = mode;
             this.resetActiveLetter;
         },
@@ -96,7 +97,7 @@ export const useNavigationStore = defineStore({
             isPinnedLocalStorageValue: boolean,
             userSelectedNavigationMode: string | null
         ) {
-            this.setNavigationMode(userSelectedNavigationMode || 'default'); // modify novanav logic to reflect this. no checks there, just send it
+            this.setNavigationMode(userSelectedNavigationMode || 'hierarchical'); // modify novanav logic to reflect this. no checks there, just send it
             this.resetActiveLetter;
         },
         async onOpenHierarchicalButton() {

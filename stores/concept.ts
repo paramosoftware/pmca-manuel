@@ -1,13 +1,9 @@
 import QUERIES from '~/config/queries';
-
-import { useNavigationStore } from './navigation';
-
 export const useConceptStore = defineStore('concept', () => {
-    const navigationStore = useNavigationStore();
     const model = 'Concept';
     const conceptIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
-    const pageSizes = ref([16, 24, 32]);
+    const pageSizes = ref([12, 24, 36]);
     const pageSize = ref(pageSizes.value[0]);
     const total = ref(0);
     const totalPages = ref(0);
@@ -25,15 +21,20 @@ export const useConceptStore = defineStore('concept', () => {
     const loadingStore = useLoadingStore();
     const ancestors = ref<Concept[]>([]);
     const descendantsIds = ref<ID[]>([]);
-    const searchByInitialLetter = computed(() => {
-        return navigationStore.isAlphabetical;
-    });
+    const searchInitialLetter = ref<string>('TODOS');
+    const maxPage = computed(() => Math.ceil(total.value / pageSize.value));
+    const date = new Date();
+
     let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
 
     const query = computed(() => {
+        if (page.value > maxPage.value) {
+            page.value = 1;
+        }
+
         const q = {
             page: page.value,
             pageSize: pageSize.value,
@@ -88,10 +89,11 @@ export const useConceptStore = defineStore('concept', () => {
                 }
             });
         }
-        if (searchByInitialLetter.value && !navigationStore.isTodosActive) {
+
+        if (searchInitialLetter.value && searchInitialLetter.value !== "TODOS") {
             q.where.AND.push({
                 name: {
-                    startsWith: navigationStore.activeLetter
+                    startsWith: searchInitialLetter.value
                 }
             });
         }
@@ -108,12 +110,14 @@ export const useConceptStore = defineStore('concept', () => {
     });
 
     watch(
-        () => query.value,
-        async () => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(async () => {
-                await fetchList();
-            }, 500);
+        query,
+        async (newQuery, oldQuery) => {
+            if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(async () => {
+                    await fetchList();
+                }, 500);
+            }
         },
         { deep: true }
     );
@@ -156,7 +160,6 @@ export const useConceptStore = defineStore('concept', () => {
     }
 
     async function fetchList() {
-        conceptIdentifier.value = '';
         const urlData = computed(() => `/api/public/${model}`);
 
         loadingStore.start();
@@ -304,7 +307,6 @@ export const useConceptStore = defineStore('concept', () => {
         );
 
         descendantsIds.value = data.value;
-        await fetchList();
     }
 
     function sortByName() {
@@ -326,9 +328,12 @@ export const useConceptStore = defineStore('concept', () => {
         await exportData.download(url, fileName);
     }
 
-    function clear() {
+    function reset() {
         concept.value = undefined;
+        ancestors.value = <Concept[]>[];
         conceptChanges.value = undefined;
+        conceptsTree.value = <TreeNode[]>[];
+        descendantsIds.value = [];
         concepts.value = [];
         total.value = 0;
         totalPages.value = 0;
@@ -337,13 +342,20 @@ export const useConceptStore = defineStore('concept', () => {
         search.value = '';
     }
 
+    function resetConcept() {
+        conceptIdentifier.value = '';
+        concept.value = undefined;
+        ancestors.value = <Concept[]>[];
+        conceptChanges.value = undefined;
+    }
+
     async function clearSelection() {
         useConceptSelection().clearSelected();
-        window.location.reload();
+        if (process.client) {
+           window.location.reload();
+        }
     }
-    const updatePageSize = (pageSizeSelection: number) => {
-        pageSize.value = pageSizes.value[pageSizeSelection];
-    };
+
     return {
         conceptIdentifier,
         page,
@@ -364,7 +376,7 @@ export const useConceptStore = defineStore('concept', () => {
         conceptsTree,
         pending,
         error,
-        searchByInitialLetter,
+        searchInitialLetter,
         load,
         fetchNetwork,
         fetchConceptsTree,
@@ -373,8 +385,8 @@ export const useConceptStore = defineStore('concept', () => {
         fetchDescendants,
         sortByName,
         exportData,
-        clear,
-        clearSelection,
-        updatePageSize
+        reset,
+        resetConcept,
+        clearSelection
     };
 });

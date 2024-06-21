@@ -7,7 +7,7 @@
 
             <div class="justify-between flex flex-row items-center my-4">
                 <UIContainerTitle>{{ labelPlural }}</UIContainerTitle>
-                <div class="flex flex-row items-center">
+                <div class="flex flex-row items-center space-x-2">
                     <UIIcon
                         name="ph:plus-circle"
                         @click="goToCreateForm"
@@ -15,7 +15,24 @@
                         class="w-8 h-8 cursor-pointer"
                         v-if="canCreate"
                     />
-                    <UDropdown :items="moreOptions" class="ml-2" v-if="moreOptions[0].length > 0">
+
+                    <UIIcon
+                        @click="openModalPosition"
+                        v-if="listStore.isHierarchical"
+                        name="ph:list-numbers"
+                        title="Alterar posição dos itens"
+                        class="w-8 h-8"
+                    />
+                    <UIPositionModal
+                        v-model="isPositionModalOpen"
+                        :resource="listStore.model"
+                        :isPositionModalOpen="isPositionModalOpen"
+                        @isPositionModalOpen="isPositionModalOpen = $event"
+                    />
+                    <UDropdown
+                        :items="moreOptions"
+                        v-if="moreOptions[0].length > 0"
+                    >
                         <UIIcon
                             name="ph:dots-three-outline-vertical"
                             title="Mais opções"
@@ -163,6 +180,11 @@
 <script setup lang="ts">
 import ROUTES from '~/config/routes';
 import type { DropdownItem } from '#ui/types';
+const isPositionModalOpen = ref(false);
+
+const openModalPosition = () => {
+    isPositionModalOpen.value = true;
+};
 
 definePageMeta({
     middleware: ['auth', 'resource']

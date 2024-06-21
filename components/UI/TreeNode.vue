@@ -25,7 +25,11 @@
                 :class="['p-2 ' + (node.expanded ? 'font-semibold' : '')]"
                 :parentConditional="
                     navigationStore.activeNode?.toString() == node.id ||
-                    (path ? (node.slug ? path.includes(node.slug) : false) : false)
+                    (path
+                        ? node.slug
+                            ? path.includes(node.slug)
+                            : false
+                        : false)
                 "
                 @click="navigationStore.setLastClickedNode(node.id)"
             >

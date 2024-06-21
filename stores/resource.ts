@@ -10,7 +10,7 @@ export const useResourceStore = defineStore('resource', () => {
     const genderNoun = ref('n');
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
-
+    const isHierarchical = ref(false)
     const query = computed(() => {
         return {
             include: {
@@ -50,6 +50,7 @@ export const useResourceStore = defineStore('resource', () => {
             fields.value = data.value.fields || [];
             isAppModel.value = data.value.isAppModel || false;
             isPublic.value = data.value.isPublic || false;
+            isHierarchical.value = data.value.isHierarchical || false;
         }
 
         pending.value = pending.value;
@@ -66,6 +67,7 @@ export const useResourceStore = defineStore('resource', () => {
         fields,
         isAppModel,
         isPublic,
+        isHierarchical,
         pending,
         error,
         fetch
