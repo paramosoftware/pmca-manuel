@@ -16,6 +16,8 @@ export const useListStore = defineStore('list', () => {
     const resourceStore = useResourceStore();
     const userStore = useUserStore();
     const loadingStore = useLoadingStore();
+    const isHierarchical = ref(false)
+    const model = ref('');
     const canCreate = computed(
         () => userStore.permissions[resourceStore.model]?.create
     );
@@ -101,6 +103,8 @@ export const useListStore = defineStore('list', () => {
         label.value = resourceStore.label || '';
         labelPlural.value = resourceStore.labelPlural || '';
         labelSlug.value = resourceStore.labelSlug || '';
+        isHierarchical.value = resourceStore.isHierarchical || false;
+        model.value = resourceStore.model || '';
         genderNoun.value = resourceStore.genderNoun || 'n';
         items.value = data.value?.items || [];
         total.value = data.value?.total || 0;
@@ -186,6 +190,8 @@ export const useListStore = defineStore('list', () => {
         search,
         items,
         query,
+        isHierarchical,
+        model,
         pending,
         error,
         canCreate,

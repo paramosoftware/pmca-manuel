@@ -54,7 +54,6 @@
                     </UCard>
                 </UModal>
             </div>
-
             <Viewer
                 :images="media"
                 @inited="inited"
@@ -75,54 +74,23 @@
                     :animation="200"
                     item-key="id"
                 >
-                <!-- TODO: Separate by reference and media. Only 2 v-ifs to avoid nesting -->
                     <template #item="{ element }">
-                        <div class="relative" :class="[{'border border-gray-200 p-2': isReference}]">
-                            <h1 v-if="isReference">{{ element.originalFilename }}</h1>
-                            <div v-if="isReference" class="absolute bottom-2 left-2">
-                                <UIIcon 
-                                class="w-7 h-7"
-                                name="ph:file-pdf"
-                                title="Identificação"
-                            />
-                            </div>
-                            <br v-if="isReference">
-                            <UIImg
+                        <div id="itemSlotWrapper" class="cursor-pointer rounded">
+                            <UIMediaTemplate
                                 v-if="!isReference"
-                                class="w-full h-32 object-cover rounded cursor-pointer"
-                                :src="element.name"
-                                :alt="element.subtitle"
-                                :quality="quality"
+                                :element="element"
+                                :isReference="false"
+                                :quality="60"
+                                :deleteMedia="deleteMedia"
+                                :addSubtitle="addSubtitle"
                             />
-                            <div
-                                :class="[
-                                    { 'absolute top-0 right-0': !isReference },{ 'absolute bottom-2 right-2': isReference },
-                                ]"
-                            >
-                                <UIButton
-                                    @click="addSubtitle(element)"
-                                    padding="p-1"
-                                    square
-                                    class="mr-1"
-                                >
-                                    <UIIcon
-                                        class="w-4 h-4"
-                                        name="ph:subtitles"
-                                        title="Editar legenda"
-                                    />
-                                </UIButton>
-                                <UIButton
-                                    @click="deleteMedia(element)"
-                                    padding="p-1"
-                                    square
-                                >
-                                    <UIIcon
-                                        class="w-4 h-4"
-                                        name="ph:trash-simple"
-                                        title="Excluir"
-                                    />
-                                </UIButton>
-                            </div>
+                            <UIMediaTemplate
+                                v-if="isReference"
+                                :element="element"
+                                :isReference="true"
+                                :deleteMedia="deleteMedia"
+                                :addSubtitle="addSubtitle"
+                            />
                         </div>
                     </template>
                 </draggable>
@@ -170,7 +138,6 @@ const quality = ref(60);
 function changeQuality() {
     quality.value = 100;
 }
-
 const isOpen = ref(false);
 const isOpenAccordion = ref(false);
 const modalSubtitleIsOpen = ref(false);
@@ -183,7 +150,7 @@ const props = defineProps({
         required: true
     },
     modelValue: {
-        type: Array as PropType<ConceptMedia[]>,
+        type: Array as PropType<Media[]>,
         default: []
     },
     label: {
@@ -232,7 +199,7 @@ const media = computed(() => {
         : [modelValue.value];
 });
 
-const deleteMedia = async (media: ConceptMedia) => {
+const deleteMedia = async (media: Media) => {
     if (props.formStore) {
         props.formStore.removeFieldData(props.id, media as unknown as Item);
     }
@@ -240,7 +207,7 @@ const deleteMedia = async (media: ConceptMedia) => {
     updateMediaPosition({ oldIndex: 0, newIndex: 1 });
 };
 
-const addMedia = (media: ConceptMedia) => {
+const addMedia = (media: Media) => {
     if (props.formStore) {
         props.formStore.addFieldData(props.id, media as unknown as Item);
     }
@@ -252,7 +219,7 @@ const updateMediaPosition = (event: any) => {
     if (event.oldIndex !== event.newIndex) {
         const media = modelValue.value;
 
-        media.map((item: ConceptMedia, index: number) => {
+        media.map((item: Media, index: number) => {
             item.position = index + 1;
             // @ts-ignore
             item._action_ = 'update';
@@ -266,7 +233,7 @@ const updateMediaPosition = (event: any) => {
     }
 };
 
-const addSubtitle = (media: ConceptMedia) => {
+const addSubtitle = (media: Media) => {
     modalSubtitleIsOpen.value = true;
     subtitle.value = media.subtitle || '';
     subtitleMediaId.value = media.id;
@@ -282,7 +249,7 @@ const saveSubtitle = () => {
     modalSubtitleIsOpen.value = false;
     const media = modelValue.value;
 
-    media.map((item: ConceptMedia) => {
+    media.map((item: Media) => {
         if (item.id === subtitleMediaId.value) {
             item.subtitle = subtitle.value;
             // @ts-ignore

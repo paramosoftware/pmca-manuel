@@ -126,7 +126,6 @@ class PrismaService {
     async getAvailableLetters(requestId: string) {
         this.updateClient();
         let teste: Object[] = await PrismaService.prisma.$queryRaw`SELECT GROUP_CONCAT(DISTINCT SUBSTRING(name, 1, 1)) AS firstLetters FROM Concept;`;
-        console.log(teste)
         return teste
     }
 
@@ -283,7 +282,6 @@ class PrismaService {
      * { name: 'John Doe' }
      */
     async updateOne(identifier: ID, request?: object) {
-        console.log(`prismaservice:287 ${this.model}`)
         try {
             this.updateClient();
             this.setId(identifier);
@@ -317,7 +315,6 @@ class PrismaService {
      * [{ where: { id: 1 }, data: { name: 'John Doe' } }, { where: { id: 2 }, data: { name: 'Jane Doe' } }]
      */
     async updateMany(request: Array<object>) {
-        console.log(`prismaservice:321 ${this.model}`)
         try {
             this.updateClient();
 
@@ -1059,7 +1056,6 @@ class PrismaService {
         field: string,
         isUpdate: boolean
     ) {
-        console.log(`prismaservice:1066 processManyToManyRelation ${this.model}`)
         if (!Array.isArray(request[field])) {
             throw new ApiValidationError(
                 field + ' must be an array, got ' + typeof request[field]
@@ -1600,31 +1596,48 @@ class PrismaService {
 
             if (typeof newData[field] === 'object' && newData[field] !== null) {
                 if (Array.isArray(newData[field])) {
-                    const newNames = newData[field].map(
-                        (item: any) => item.name
-                    );
-                    const oldNames = oldData[field].map(
-                        (item: any) => item.name
-                    );
+                    const newItems = newData[field].map((item: any) => ({
+                        name: item.name || undefined,
+                        id: item.id || undefined
+                    }));
+                    const oldItems = oldData[field].map((item: any) => ({
+                        name: item.name || undefined,
+                        id: item.id || undefined
+                    }));
 
-                    const added = newNames.filter(
-                        (name: any) => !oldNames.includes(name)
+                    const added = newItems.filter(
+                        (newItem: any) =>
+                            !oldItems.some((oldItem: any) =>
+                                newItem.name
+                                    ? newItem.name !== oldItem.name
+                                    : newItem[Object.keys(newItem)[0]] !==
+                                      oldItem[Object.keys(oldItem)[0]]
+                            )
                     );
-                    const removed = oldNames.filter(
-                        (name: any) => !newNames.includes(name)
+                    const removed = oldItems.filter(
+                        (oldItem: any) =>
+                            !newItems.some((newItem: any) =>
+                                newItem.name
+                                    ? newItem.name.trim() ===
+                                      oldItem.name.trim()
+                                    : newItem.id === oldItem.id
+                            )
                     );
 
                     const fieldChanges = {} as {
                         added: string[];
                         removed: string[];
                     };
-
                     if (added.length > 0) {
-                        fieldChanges['added'] = added;
+                        fieldChanges['added'] = added.map((item: any) =>
+                            JSON.stringify(item)
+                        );
                     }
 
                     if (removed.length > 0) {
-                        fieldChanges['removed'] = removed;
+                        fieldChanges['removed'] = removed.map((item: any) =>
+                            JSON.stringify(item)
+                        );
                     }
 
                     if (added.length > 0 || removed.length > 0) {
@@ -1679,7 +1692,6 @@ class PrismaService {
     }
 
     async executeInTransaction(callback: Function) {
-        console.log(`prismaservice:1685 executeInTransaction ${this.model}`)
         try {
             if (PrismaService.transactionOpen) {
                 logger.debug(

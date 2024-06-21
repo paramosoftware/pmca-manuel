@@ -849,7 +849,8 @@ class PrismaServiceImporter {
                     conceptId,
                     newFileName,
                     mediaFile,
-                    parseNumber(position)
+                    this.model,
+                    parseNumber(position),
                 );
             }
 
