@@ -1,8 +1,5 @@
 <template>
-    <PublicNovaNav>
-        
-    </PublicNovaNav>
-    
+    <PublicNavigation />
 </template>
 
 <script setup lang="ts">

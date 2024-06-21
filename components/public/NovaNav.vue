@@ -1,64 +1,75 @@
 <template>
     <div
-        class="px-4 lg:px-8 md:my-8 md:flex flex-col items-stretch h-full w-full max-w-full rounded-md"
+        class="min-w-full md:flex flex-col flex-grow max-h-auto min-h-full rounded-md "
     >
-<div id="firstRow" class="md:hidden flex flex-row md:flex-row justify-center lg:flex-row h-full  items-center md:justify-end lg:justify-end mb-4">
-    <div class="sm:flex items-center sm:justify-between sm:items-center w-3/4">
-        <div id="slotContainer" class="flex justify-center self-center w-full ">
-            <PublicOpenHierarchical class="flex-0 "/>
-            <PublicNavigationToggler class="flex-1" :justifyMethod="'between'"/>
+        <div
+            id="firstRow"
+            class="md:hidden flex flex-row md:flex-row justify-center lg:flex-row h-full items-center md:justify-end lg:justify-end mb-4"
+        >
+            <div
+                class="sm:flex items-center sm:justify-between sm:items-center w-3/4"
+            >
+                <div
+                    id="slotContainer"
+                    class="flex justify-center self-center w-full"
+                >
+                    <PublicOpenHierarchical class="flex-0" />
+                    <PublicNavigationToggler
+                        class="flex-1"
+                        :justifyMethod="'between'"
+                    />
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
         <div
             id="generalContainer"
-            class="rounded-tl-lg rounded-bl-lg flex flex-shrink-0 h-full"
+            class="rounded-tl-lg rounded-bl-lg flex flex-grow flex-shrink-0 h-full min-h-full max-h-auto w-full max-w-full"
         >
             <div
                 v-if="
-                    navigationStore.isHierarchical || navigationStore.isDefault
+                    navigationStore.isHierarchical
                 "
                 id="hierarchicalViewContainer"
                 :style="{ 'max-height': `${gridCurrentHeight / 16}rem` }"
                 :class="[
                     // TODO: Use a lib to enable resize from hold and drag in a vertical line.
-                    ` hidden md:block lg:block min-w-auto w-auto max-w-[40vw] transition-all duration-300 ease-in-out`
+                    ` hidden md:block lg:block flex-flex-grow min-w-auto  rounded-tl rounded-bl bg-gray-200 w-auto max-w-[40vw] min-h-full transition-all duration-300 ease-in-out `
                 ]"
             >
-                <PublicHierarchicalNavigation />
+                <PublicHierarchicalNavigation/>
             </div>
             <div
                 v-if="
                     navigationStore.isAlphabetical ||
-                    navigationStore.isDefault ||
                     navigationStore.isHierarchical
                 "
                 id="gridContainer"
                 ref="gridContainer"
-                class="px-8 py-8 max-w-full flex-shrink flex-grow bg-gray-50 rounded-md shadow-lg border border-gray-200"
+                class="px-8 py-8 min-w-auto max-w-full flex-shrink flex-grow bg-white rounded-md shadow-lg border border-gray-200"
             >
-                <PublicGrid class="flex-shrink-0">
+                <PublicGrid class="flex-shrink">
                     <PublicOpenHierarchical class="hidden md:block" />
                     <PublicNavigationToggler class="hidden md:block" />
                 </PublicGrid>
             </div>
-
             <div
                 v-if="navigationStore.isDiagram"
-                class="max-w-full p-8 flex-shrink flex-grow bg-gray-50 rounded-md shadow-lg border border-gray-200"
+                class="min-w-full p-8 flex-shrink flex-grow bg-gray-50 rounded-md shadow-lg border border-gray-200"
                 id="diagram"
             >
                 <div
                     class="flex flex-col items-center justify-center h-auto max-w-full"
                 >
-                    <PublicNavigationToggler class="self-end mb-4" />
-                    <p class="order-2">
-                        <img
-                            src="../../public/media/diagram.png"
-                            class="h-4/5"
-                        />
-                    </p>
+                <div id="diagramMenu" class="flex flex-row justify-between items-center w-full">
+                    <h1 class="text-2xl font-semibold">Visão de Diagrama</h1>
+                    <PublicNavigationToggler
+                        v-if="!navigationStore.isSmallScreen"
+                        class="self-end mb-4"
+                    />
+                </div>
+                    
+                    <PublicDiagram class="order-2  min-h-full border border-gray-200 rounded shadow-lg" />
                 </div>
             </div>
         </div>
@@ -69,6 +80,7 @@
 defineProps({});
 
 const navigationStore = useNavigationStore();
+const conceptStore = useConceptStore();
 
 // Maybe move those to utils?
 const localStorageKeys = {
@@ -122,5 +134,12 @@ onUnmounted(() => {
     if (gridResizeObserver && gridContainer.value) {
         gridResizeObserver.unobserve(gridContainer.value);
     }
+});
+const currentNavigationOnStore = computed(() => {
+    return navigationStore.currentNavigationMode;
+});
+watch(currentNavigationOnStore, (newNavigationMode) => {
+    console.log(currentNavigationOnStore.value);
+    conceptStore.clear();
 });
 </script>

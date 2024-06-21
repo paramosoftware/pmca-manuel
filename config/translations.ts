@@ -48,6 +48,11 @@ MODELS.set('ConceptMedia', {
     labelPlural: 'Imagens dos termos',
     genderNoun: 'f'
 });
+MODELS.set('ReferenceMedia', {
+    label: 'PDF da fonte',
+    labelPlural: 'PDFs das fontes',
+    genderNoun: 'f'
+});
 MODELS.set('ConceptVariation', {
     label: 'Forma variante do termo',
     labelPlural: 'Formas variantes dos termos',

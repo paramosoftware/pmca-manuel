@@ -12,7 +12,7 @@ import parseNumber from '~/utils/parseNumber';
 import normalizeString from '~/utils/normalizeString';
 import logger from '~/utils/logger';
 import { useCamelCase } from '~/utils/useCamelCase';
-import { deleteConceptMedia, saveMedia } from './media';
+import { deleteModelMedia, saveMedia } from './media';
 
 // TODO: Memory optimization: reading the whole file at once is not optimal [PMCA-398]
 // TODO: Error handling [PMCA-369]
@@ -178,7 +178,7 @@ class PrismaServiceImporter {
                     this.currentProgress + 2,
                     'Apagando arquivos de mídia'
                 );
-                deleteConceptMedia(this.mediaToDelete, undefined, false);
+                deleteModelMedia(this.mediaToDelete, undefined, false);
             }
 
             this.prismaService.setProgress(this.processId, 100, 'Finished');
@@ -849,7 +849,8 @@ class PrismaServiceImporter {
                     conceptId,
                     newFileName,
                     mediaFile,
-                    parseNumber(position)
+                    this.model,
+                    parseNumber(position),
                 );
             }
 

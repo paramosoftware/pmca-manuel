@@ -10,7 +10,7 @@ import parseNumber from '~/utils/parseNumber';
 import sanitizeString from '~/utils/sanitizeString';
 import logger from '~/utils/logger';
 import { ApiValidationError } from '../express/error';
-import { deleteConceptMedia, handleMedia } from './media';
+import { deleteModelMedia, handleMedia } from './media';
 import PrismaServiceConverter from './PrismaServiceConverter';
 import PrismaServiceExporter from './PrismaServiceExporter';
 import PrismaServiceImporter from './PrismaServiceImporter';
@@ -21,7 +21,7 @@ import type { PrismaClient } from '@prisma/client/extension';
 class PrismaService {
     static prisma = prisma;
     static transactionOpen = false;
-    static transactionId = "";
+    static transactionId = '';
     public model: string;
     public modelFields: readonly Prisma.DMMF.Field[] = [];
     public fieldsMap = new Map<string, Prisma.DMMF.Field>();
@@ -37,7 +37,7 @@ class PrismaService {
     private exporter: PrismaServiceExporter;
     private onlyPublished: boolean = false;
     private removePrivateFields: boolean = false;
-    private client: typeof PrismaClient
+    private client: typeof PrismaClient;
 
     /**
      * PrismaService constructor
@@ -122,6 +122,13 @@ class PrismaService {
      * @example
      * { pageSize: 20, page: 1, select: ['id', 'name'], where: { id: 1 }, include: ['user'], orderBy: { name: 'asc' } }
      */
+
+    async getAvailableLetters(requestId: string) {
+        this.updateClient();
+        let teste: Object[] = await PrismaService.prisma.$queryRaw`SELECT GROUP_CONCAT(DISTINCT SUBSTRING(name, 1, 1)) AS firstLetters FROM Concept;`;
+        return teste
+    }
+
     async readMany<T extends boolean>(
         request: Query,
         returnPaginated: T = true as T
@@ -143,9 +150,13 @@ class PrismaService {
             const withCount = await this.readManyWithCount(query);
 
             if (returnPaginated) {
-                return withCount as T extends true ? PaginatedResponse : Object[];
+                return withCount as T extends true
+                    ? PaginatedResponse
+                    : Object[];
             } else {
-                return withCount.items as T extends true ? PaginatedResponse : Object[];
+                return withCount.items as T extends true
+                    ? PaginatedResponse
+                    : Object[];
             }
         } catch (error) {
             throw error;
@@ -154,7 +165,6 @@ class PrismaService {
 
     private async readManyWithCount(query: Query) {
         try {
-
             this.updateClient();
 
             let data = [];
@@ -344,22 +354,21 @@ class PrismaService {
                         true
                     );
 
-                    const ids = await this.readMany(
+                    const ids = (await this.readMany(
                         {
                             where,
                             select: ['id']
                         },
                         false
-                    ) as { id: number }[];
+                    )) as { id: number }[];
 
                     for (const id of ids) {
                         if (this.model === 'Concept') {
                             const mediaService =
-                                this.initPrismaServiceWithFlags(
-                                    'ConceptMedia'
-                                );
+                                this.initPrismaServiceWithFlags('ConceptMedia');
 
-                            const oldMedia = (await mediaService.readMany({
+                            const oldMedia = (await mediaService.readMany(
+                                {
                                     where: {
                                         conceptId: id.id
                                     }
@@ -392,7 +401,7 @@ class PrismaService {
             });
 
             for (const [id, media] of mediaUpdates) {
-                await handleMedia(media, id);
+                await handleMedia(media, id, this.model);
             }
 
             return data;
@@ -462,7 +471,8 @@ class PrismaService {
                     this.model + 'Media'
                 );
 
-                const conceptMediaTemp = (await mediaService.readMany({
+                const conceptMediaTemp = (await mediaService.readMany(
+                    {
                         where: {
                             conceptId: {
                                 in: ids
@@ -480,7 +490,7 @@ class PrismaService {
             const data = await this.client.deleteMany(whereQ);
 
             if (conceptMedia.length > 0) {
-                await deleteConceptMedia(conceptMedia);
+                await deleteModelMedia(conceptMedia);
             }
 
             return data;
@@ -583,11 +593,14 @@ class PrismaService {
             id: nodeId
         } as any;
 
-        const result = await this.readMany({
-            where: where,
-            include: nestedInclude.include,
-            select: select
-        }, true);
+        const result = await this.readMany(
+            {
+                where: where,
+                include: nestedInclude.include,
+                select: select
+            },
+            true
+        );
 
         const parents = result.items[0].parent ? [result.items[0].parent] : [];
 
@@ -818,11 +831,9 @@ class PrismaService {
         const modelFields = Prisma.dmmf.datamodel.models.find(
             (m) => m.name.toLowerCase() === model.toLowerCase()
         )?.fields!;
-
         const prismaQuery: any = {};
         const fieldsMap = new Map<string, Prisma.DMMF.Field>();
         const relations = new Map<string, string>();
-
         modelFields?.forEach((f) => {
             if (
                 this.isFieldMandatory(
@@ -838,7 +849,7 @@ class PrismaService {
                     f.name + ' is required for ' + model
                 );
             }
-
+            
             fieldsMap.set(f.name, f);
 
             if (f.kind.toLowerCase() === 'object') {
@@ -848,7 +859,7 @@ class PrismaService {
             }
         });
 
-        if (isUpdate) {
+        if (isUpdate && this.model === 'Concept') {
             await this.checkIfIsDescendant(
                 model,
                 request,
@@ -1399,9 +1410,9 @@ class PrismaService {
     async canAccess() {
         const resourceService = new PrismaService('Resource', false);
 
-        const resourceConfig = await resourceService.readOne(this.model, {
+        const resourceConfig = (await resourceService.readOne(this.model, {
             include: { parent: true }
-        }) as Resource;
+        })) as Resource;
 
         if (!resourceConfig) {
             return false;
@@ -1585,31 +1596,48 @@ class PrismaService {
 
             if (typeof newData[field] === 'object' && newData[field] !== null) {
                 if (Array.isArray(newData[field])) {
-                    const newNames = newData[field].map(
-                        (item: any) => item.name
-                    );
-                    const oldNames = oldData[field].map(
-                        (item: any) => item.name
-                    );
+                    const newItems = newData[field].map((item: any) => ({
+                        name: item.name || undefined,
+                        id: item.id || undefined
+                    }));
+                    const oldItems = oldData[field].map((item: any) => ({
+                        name: item.name || undefined,
+                        id: item.id || undefined
+                    }));
 
-                    const added = newNames.filter(
-                        (name: any) => !oldNames.includes(name)
+                    const added = newItems.filter(
+                        (newItem: any) =>
+                            !oldItems.some((oldItem: any) =>
+                                newItem.name
+                                    ? newItem.name !== oldItem.name
+                                    : newItem[Object.keys(newItem)[0]] !==
+                                      oldItem[Object.keys(oldItem)[0]]
+                            )
                     );
-                    const removed = oldNames.filter(
-                        (name: any) => !newNames.includes(name)
+                    const removed = oldItems.filter(
+                        (oldItem: any) =>
+                            !newItems.some((newItem: any) =>
+                                newItem.name
+                                    ? newItem.name.trim() ===
+                                      oldItem.name.trim()
+                                    : newItem.id === oldItem.id
+                            )
                     );
 
                     const fieldChanges = {} as {
                         added: string[];
                         removed: string[];
                     };
-
                     if (added.length > 0) {
-                        fieldChanges['added'] = added;
+                        fieldChanges['added'] = added.map((item: any) =>
+                            JSON.stringify(item)
+                        );
                     }
 
                     if (removed.length > 0) {
-                        fieldChanges['removed'] = removed;
+                        fieldChanges['removed'] = removed.map((item: any) =>
+                            JSON.stringify(item)
+                        );
                     }
 
                     if (added.length > 0 || removed.length > 0) {
@@ -1666,13 +1694,17 @@ class PrismaService {
     async executeInTransaction(callback: Function) {
         try {
             if (PrismaService.transactionOpen) {
-                logger.debug(`Transaction already open: ${PrismaService.transactionId}`);
+                logger.debug(
+                    `Transaction already open: ${PrismaService.transactionId}`
+                );
                 return await callback();
             }
 
             await PrismaService.prisma.$transaction(async (prismaTx) => {
                 PrismaService.transactionId = uuidv4();
-                logger.info(`Transaction opened: ${PrismaService.transactionId}`);
+                logger.info(
+                    `Transaction opened: ${PrismaService.transactionId}`
+                );
                 PrismaService.transactionOpen = true;
                 // @ts-ignore
                 PrismaService.prisma = prismaTx;
@@ -1680,7 +1712,9 @@ class PrismaService {
                 this.client = PrismaService.prisma[this.model];
                 await callback();
 
-                logger.info(`Transaction committed: ${PrismaService.transactionId}`);
+                logger.info(
+                    `Transaction committed: ${PrismaService.transactionId}`
+                );
             });
 
             this.reinitializePrisma();

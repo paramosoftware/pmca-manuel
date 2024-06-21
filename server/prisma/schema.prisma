@@ -244,7 +244,29 @@ model ConceptMedia {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
 }
+
+model ReferenceMedia {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  position Int    @default(0)
+
+  originalFilename String?
+  path             String?
+  subtitle         String?
+  type             String?
+  published        Boolean @default(true) /// defaultValue:true
+
+  subtitleNormalized String?
+
+  referenceId Int
+  reference  Reference @relation(fields: [referenceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 
 model ConceptVariation {
   id   Int    @id @default(autoincrement())
@@ -297,9 +319,10 @@ model Reference {
 
   nameRich       String? /// hidden:true
   nameNormalized String?
+  
 
   concepts Concept[]
-
+  media ReferenceMedia[] /// label:PDFs
   published Boolean? @default(true) /// defaultValue:true
 
   createdAt DateTime @default(now())

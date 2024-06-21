@@ -1,10 +1,10 @@
 <template>
-    <PublicPage :show-breadcrumb="false">
-        <PublicGrid
+    <PublicPage :show-breadcrumb="false" class="flex-grow">
+        <PublicList
             :title="title"
             :user-selection="true"
             :has-tree="false"
-            :has-alphabetical="false"
+            :has-alphabetical-filter="false"
         />
     </PublicPage>
 </template>

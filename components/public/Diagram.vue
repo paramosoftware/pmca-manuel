@@ -1,27 +1,53 @@
 <template>
-    <div id="network" class="w-[95vw] h-[80vh] bg-gray-50">
-        <div class="flex justify-end space-x-4 p-4">
-            <UIIcon
-                name="ph:magnifying-glass-minus"
-                @click="zoomOut"
-                title="Diminuir zoom"
-            />
-            <UIIcon
-                name="ph:magnifying-glass-plus"
-                @click="zoomIn"
-                title="Aumentar zoom"
-            />
-            <UIIcon
-                name="ph:arrows-out-line-vertical"
-                @click="expandAllNodes"
-                title="Expandir todos nós"
-            />
-            <UIIcon
-                name="ph:arrows-in-line-vertical"
-                @click="collapseAllNodes"
-                title="Colapsar todos nós"
-            />
+    <div :id="htmlId" class="w-full h-[60vh]">
+        <div class="flex justify-between space-x-4 p-4">
+            <h4 class="text-lg md:text-2xl font-semibold text-pmca-primary">
+                Diagrama
+            </h4>
+            <div class="flex space-x-4">
+                <UIIcon
+                    name="ph:magnifying-glass-minus"
+                    @click="zoomOut"
+                    title="Diminuir zoom"
+                />
+                <UIIcon
+                    name="ph:magnifying-glass-plus"
+                    @click="zoomIn"
+                    title="Aumentar zoom"
+                />
+                <UIIcon
+                    name="ph:arrows-out-line-vertical"
+                    @click="expandAllNodes"
+                    title="Expandir todos nós"
+                />
+                <UIIcon
+                    name="ph:arrows-in-line-vertical"
+                    @click="collapseAllNodes"
+                    title="Colapsar todos nós"
+                />
+                <!--
+                <UIIcon
+                    name="ph:arrows-in-cardinal"
+                    @click="centerDiagram"
+                    title="Centralizar diagrama"
+                />
+                -->
+            </div>
         </div>
+        <svg
+            :viewBox="viewBox.join(' ')"
+            :width="width"
+            :height="height"
+            style="max-width: 100%; height: auto"
+            :style="{ 
+                cursor: 'grab',
+                font: '10px sans-serif',
+                'user-select': 'none',
+                overflow: 'hidden'
+            }"
+
+            :id="`${htmlId}-svg`"
+        ></svg>
     </div>
 </template>
 
@@ -62,16 +88,23 @@ if (!conceptsTree.value || !conceptsTree.value.length) {
     await conceptStore.fetchConceptsTree();
 }
 
+const htmlId = 'diagram';
 const data = ref(JSON.parse(JSON.stringify(conceptsTree.value))[0]);
 const svg = ref<D3SVGElement>();
 const root = ref<D3Node>(d3.hierarchy(data.value) as D3Node);
 const gLink = ref<D3SVGElement>();
 const gNode = ref<D3SVGElement>();
+const width = ref(0);
+const height = ref(0);
+const viewBox = ref([0, 0, 0, 0]) as Ref<number[]>;
 
 onMounted(() => {
-    svg.value = createSVG('network');
+    window.addEventListener('resize', updateDimensions);
+    updateDimensions();
+    svg.value = createSVG(htmlId);
     gLink.value = createGLink(svg.value);
     gNode.value = createGNode(svg.value);
+
 
     root.value.descendants().forEach((d: D3Node, i) => {
         d.id = i;
@@ -80,10 +113,42 @@ onMounted(() => {
     });
 
     update(root.value, root.value, svg.value, gLink.value, gNode.value);
+
+    centerDiagram();
 });
 
+function centerDiagram() {
+    // Do not center the diagram if the root node is not visible
+    const { areaWidth, areaHeight } = getArea(htmlId);
+    const { x, y } = root.value;
+
+    const scale = 0.8;
+    const xPosition = areaWidth / 2 - x * scale;
+    const yPosition = (areaHeight - 200 / 2) - y * scale;
+
+    // @ts-ignore
+    svg.value.attr('transform', `translate(${xPosition}, ${yPosition}) scale(${scale})`);
+}
+
+function updateDimensions() {
+    const diagramContainer = document.getElementById(htmlId);
+
+    if (!diagramContainer) {
+        return;
+    }
+
+    width.value = diagramContainer.getBoundingClientRect().width;
+    height.value = diagramContainer.getBoundingClientRect().height;
+    viewBox.value = [
+        -width.value / 2,
+        -height.value / 2,
+        width.value,
+        height.value
+    ];
+}
+
 function getArea(elementId: string) {
-    const SVGContainer = document.querySelector(`#${elementId}`);
+    const SVGContainer = document.querySelector(`#${elementId}-svg`);
     if (!SVGContainer) {
         console.error(`The container with id ${elementId} was not found`);
         return { areaWidth: 0, areaHeight: 0 };
@@ -120,14 +185,7 @@ function createSVG(elementId: string) {
     const { areaHeight, areaWidth } = getArea(elementId);
 
     const svg = d3
-        .select(`#${elementId}`)
-        .append('svg')
-        .attr('width', areaWidth)
-        .attr('height', areaHeight)
-        .style('font', '10px sans-serif')
-        .style('user-select', 'none')
-        .style('cursor', 'grab')
-        .style('overflow', 'hidden');
+        .select(`#${elementId}-svg`);
 
     const svgG = svg.append('g');
 
@@ -139,7 +197,7 @@ function createSVG(elementId: string) {
 
     return svgG
         .append('g')
-        .attr('transform', `translate(${areaWidth / 2}, ${areaHeight / 10})`);
+        .attr('transform', `translate(${areaWidth / 2},${areaHeight * 5})`);
 }
 
 function tree(root: D3Node) {
@@ -376,12 +434,10 @@ function update(
 }
 
 function zoomIn() {
-    const { areaWidth, areaHeight } = getArea('network');
-
     const zoom = d3.zoom().on('zoom', (event) => {
         svg.value.attr(
             'transform',
-            `translate(${areaWidth / 2}, ${event.transform.y}) scale(${event.transform.k})`
+            event.transform
         );
     }) as any;
 
@@ -389,12 +445,9 @@ function zoomIn() {
 }
 
 function zoomOut() {
-    const { areaWidth, areaHeight } = getArea('network');
-
     const zoom = d3.zoom().on('zoom', (event) => {
         svg.value.attr(
-            'transform',
-            `translate(${areaWidth / 2}, ${event.transform.y}) scale(${event.transform.k})`
+            'transform', event.transform
         );
     }) as any;
 
