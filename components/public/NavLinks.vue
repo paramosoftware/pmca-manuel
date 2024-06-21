@@ -12,6 +12,7 @@
                     v-for="link in links"
                     :key="link.name"
                     :class="showMenu && 'py-2'"
+                    @click="closeMenu()"
                 >
                     <UILink :href="link.path" class="text-2xl">
                         {{ link.name }}
@@ -46,16 +47,18 @@ const props = defineProps({
 const isElectronApp = isElectron();
 const showMenu = computed(() => props.showMenu);
 const webPages = ref(<WebPage[]>[]);
-
 const emit = defineEmits(['update:showMenu']);
-
+const closeMenu = () => {
+    emit('update:showMenu', false);
+};
 if (process.client) {
     window.addEventListener('resize', () => {
         if (window.innerWidth > 768) {
-            emit('update:showMenu', false);
+            closeMenu();
         }
     });
 }
+
 
 const links = ref([
     {
