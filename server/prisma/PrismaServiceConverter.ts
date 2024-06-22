@@ -502,8 +502,11 @@ class PrismaServiceConverter {
                     : values.map((v) => parseNumber(v));
                 break;
             case 'notin':
+                const notInValues = Array.isArray(value) ? value : [value];
                 prismaQuery[field].not = {
-                    in: Array.isArray(value) ? value : [value]
+                    in: isNormalized 
+                        ? notInValues.map((v) => normalizeString(v as string))
+                        : notInValues.map((v) => parseNumber(v))
                 };
                 break;
             case 'isnull':
