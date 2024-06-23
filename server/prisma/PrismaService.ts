@@ -176,18 +176,10 @@ class PrismaService {
         try {
             this.updateClient();
 
-            let data = [];
-            let total = 0;
-
-            if (PrismaService.transactionOpen) {
-                total = await this.client.count({ where: query.where });
-                data = await this.client.findMany(query);
-            } else {
-                [total, data] = await PrismaService.prisma.$transaction([
-                    this.client.count({ where: query.where }),
-                    this.client.findMany(query)
-                ]);
-            }
+            const [total, data] = (await this.runPromisesInSequence([
+                () => this.client.count({ where: query.where }),
+                () => this.client.findMany(query)
+            ])) as [number, any[]];
 
             return {
                 page:
