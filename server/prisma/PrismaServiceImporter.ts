@@ -104,8 +104,8 @@ class PrismaServiceImporter {
                     this.mediaToDelete = await mediaService.readMany({}, false);
 
                     // Use client to avoid deleting media files, which is triggered by service deleteMany
-                    await mediaService.getClient().deleteMany({});
-                    await this.prismaService.getClient().deleteMany({});
+                    await mediaService.getModelClient().deleteMany({});
+                    await this.prismaService.getModelClient().deleteMany({});
                 }
 
                 switch (path.extname(filePath)) {
@@ -849,7 +849,7 @@ class PrismaServiceImporter {
                     conceptId,
                     newFileName,
                     mediaFile,
-                    parseNumber(position),
+                    parseNumber(position)
                 );
             }
 

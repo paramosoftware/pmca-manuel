@@ -149,7 +149,7 @@ export async function setUserPassword(userId: string, password: string) {
     const userService = new PrismaService('User', false);
 
     try {
-        await userService.getClient().update({
+        await userService.getModelClient().update({
             where: {
                 id: userId
             },
@@ -173,12 +173,11 @@ export async function findUserByLoginOrId(login: string) {
 
     const userService = new PrismaService('User', false);
 
-    return await userService.getClient().findFirst(query);
+    return await userService.getModelClient().findFirst(query);
 }
 
 export async function deleteSession(sessionId: string) {
     try {
-
         const sessionService = new PrismaService('UserSession', false);
 
         await sessionService.deleteMany({
@@ -194,10 +193,9 @@ export async function deleteSession(sessionId: string) {
 }
 
 export async function getSession(sessionId: string) {
-
     const sessionService = new PrismaService('UserSession', false);
 
-    const session = await sessionService.getClient().findFirst({
+    const session = await sessionService.getModelClient().findFirst({
         where: {
             id: sessionId
         }
@@ -207,10 +205,9 @@ export async function getSession(sessionId: string) {
 }
 
 export async function setSession(userId: string, refreshToken: string) {
-
     const sessionService = new PrismaService('UserSession', false);
 
-    const session = await sessionService.getClient().upsert({
+    const session = await sessionService.getModelClient().upsert({
         where: {
             userId_refreshToken: {
                 userId,
@@ -252,16 +249,18 @@ async function getPermissions(user: User) {
     const groupPermissionService = new PrismaService('GroupPermission', false);
 
     if (user.groupId && !user.isBlocked) {
-        const groupPermissions = await groupPermissionService.getClient().findMany({
-            where: {
-                groupId: {
-                    in: [user.groupId]
+        const groupPermissions = await groupPermissionService
+            .getModelClient()
+            .findMany({
+                where: {
+                    groupId: {
+                        in: [user.groupId]
+                    }
+                },
+                include: {
+                    resource: true
                 }
-            },
-            include: {
-                resource: true
-            }
-        });
+            });
 
         for (const groupPermission of groupPermissions) {
             const resource = groupPermission.resource.name as string;

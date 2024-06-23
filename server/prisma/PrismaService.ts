@@ -21,7 +21,7 @@ import fs from 'fs';
 
 // TODO: Analyze and test possibility of Prisma instance crash in a transaction [PMCA-444]
 class PrismaService {
-    static prisma = prisma;
+    static client = prisma;
     static transactionOpen = false;
     static transactionId = '';
     public model: string;
@@ -40,7 +40,7 @@ class PrismaService {
     private exporter: PrismaServiceExporter;
     private onlyPublished: boolean = false;
     private removePrivateFields: boolean = false;
-    private client: typeof PrismaClient;
+    private _modelClient: typeof PrismaClient;
     private hasMedia: boolean = false;
     private hasChanges: boolean = false;
 
@@ -61,9 +61,6 @@ class PrismaService {
         this.modelLower = this.setModelLower();
         this.setHasMedia();
         this.setHasChanges();
-        // @ts-ignore
-        this.updateClient();
-
         this.checkPermissions = checkPermissions;
         this.onlyPublished = onlyPublished;
         this.removePrivateFields = removePrivateFields;
@@ -98,7 +95,6 @@ class PrismaService {
         partialResource?: string
     ) {
         try {
-            this.updateClient();
             this.request = request ?? {};
             this.validator.validate(this.request);
             const query = await this.converter.convertRequestToPrismaQuery(
@@ -115,7 +111,7 @@ class PrismaService {
 
             query.orderBy = undefined;
 
-            return await this.client.findFirst(query);
+            return await this.getModelClient().findFirst(query);
         } catch (error) {
             throw error;
         }
@@ -132,8 +128,7 @@ class PrismaService {
      */
 
     async getAvailableLetters(requestId: string) {
-        this.updateClient();
-        let teste: Object[] = await PrismaService.prisma
+        let teste: Object[] = await PrismaService.client
             .$queryRaw`SELECT GROUP_CONCAT(DISTINCT SUBSTRING(name, 1, 1)) AS firstLetters FROM Concept;`;
         return teste;
     }
@@ -143,7 +138,6 @@ class PrismaService {
         returnPaginated: T = true as T
     ): Promise<T extends true ? PaginatedResponse : Object[]> {
         try {
-            this.updateClient();
             this.request = request;
 
             if (!returnPaginated) {
@@ -174,11 +168,9 @@ class PrismaService {
 
     private async readManyWithCount(query: Query) {
         try {
-            this.updateClient();
-
             const [total, data] = (await this.runPromisesInSequence([
-                () => this.client.count({ where: query.where }),
-                () => this.client.findMany(query)
+                () => this.getModelClient().count({ where: query.where }),
+                () => this.getModelClient().findMany(query)
             ])) as [number, any[]];
 
             return {
@@ -203,7 +195,6 @@ class PrismaService {
      * { name: 'John Doe' }
      */
     async createOne(request: object) {
-        this.updateClient();
         const data = await this.createMany([request]);
         return data ? data[0] : null;
     }
@@ -217,7 +208,6 @@ class PrismaService {
      * [{ name: 'John Doe' }, { name: 'Jane Doe' }]
      */
     async createMany(request: Array<object>) {
-        this.updateClient();
         this.request = request;
 
         if (!Array.isArray(this.request)) {
@@ -240,7 +230,9 @@ class PrismaService {
                     item
                 );
 
-                promises.push(() => this.client.create({ data: query }));
+                promises.push(() =>
+                    this.getModelClient().create({ data: query })
+                );
             }
 
             const result = await this.runPromisesInSequence(promises);
@@ -284,7 +276,6 @@ class PrismaService {
      */
     async updateOne(identifier: ID, request?: object) {
         try {
-            this.updateClient();
             this.setId(identifier);
             this.request = request ?? {};
             this.validator.validate(this.request);
@@ -317,8 +308,6 @@ class PrismaService {
      */
     async updateMany(request: Array<object>) {
         try {
-            this.updateClient();
-
             this.request = request;
             if (!Array.isArray(this.request)) {
                 this.request = [this.request];
@@ -393,7 +382,7 @@ class PrismaService {
                             }
                         }
 
-                        const result = await this.client.update({
+                        const result = await this.getModelClient().update({
                             where: {
                                 id: id.id
                             },
@@ -425,7 +414,7 @@ class PrismaService {
      */
     async deleteOne(identifier: ID) {
         try {
-            this.updateClient();
+            this.refreshModelClient();
             const query = await this.converter.convertRequestToPrismaQuery(
                 this.request,
                 false,
@@ -452,7 +441,7 @@ class PrismaService {
      */
     async deleteMany(request: Query) {
         try {
-            this.updateClient();
+            this.refreshModelClient();
             this.request = request;
             this.validator.validate(this.request);
             const query = await this.converter.convertRequestToPrismaQuery(
@@ -494,7 +483,7 @@ class PrismaService {
 
             delete whereQ.pageSize;
             delete whereQ.page;
-            const data = await this.client.deleteMany(whereQ);
+            const data = await this.getModelClient().deleteMany(whereQ);
 
             if (modelMedia.length > 0) {
                 await this.deleteMedia(modelMedia);
@@ -514,7 +503,7 @@ class PrismaService {
      * @throws ApiValidationError
      */
     async findTrees(nodeId: number | null = null, query: Query) {
-        this.updateClient();
+        this.refreshModelClient();
         const select = query?.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const depth = (await this.findTreeDepth(nodeId)) as number;
 
@@ -568,7 +557,7 @@ class PrismaService {
      * @throws ApiValidationError
      */
     async findAncestors(nodeId: number, query: Query, flatten = true) {
-        this.updateClient();
+        this.refreshModelClient();
         const select = query.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const depth = await this.findNodeDepth(nodeId);
 
@@ -645,7 +634,7 @@ class PrismaService {
      * @throws ApiValidationError
      */
     async findDescendants(nodeId: number, query: Query) {
-        this.updateClient();
+        this.refreshModelClient();
         const select = query.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const ids = await this.findTreeIds(nodeId);
 
@@ -853,7 +842,7 @@ class PrismaService {
         returnIds = false,
         returnNodeDepth = false
     ) {
-        this.updateClient();
+        this.refreshModelClient();
 
         if (this.model !== 'Concept') {
             throw new ApiValidationError(
@@ -888,7 +877,7 @@ class PrismaService {
         `;
 
         if (!returnIds) {
-            const depth = (await PrismaService.prisma.$queryRawUnsafe(`
+            const depth = (await PrismaService.client.$queryRawUnsafe(`
                 ${query}
                 SELECT max(depth) as depth FROM hierarchy;`)) as {
                 depth: number;
@@ -896,7 +885,7 @@ class PrismaService {
 
             return Number(depth[0].depth);
         } else {
-            const ids = (await PrismaService.prisma.$queryRawUnsafe(`
+            const ids = (await PrismaService.client.$queryRawUnsafe(`
                 ${query}
                 SELECT id FROM hierarchy;`)) as { id: number }[];
 
@@ -1478,7 +1467,7 @@ class PrismaService {
 
     // @ts-ignore
     private async calculateSlug(name: string, model: string, key: string) {
-        const obj = await this.getClient().findFirst({
+        const obj = await this.getModelClient().findFirst({
             where: {
                 [key]: normalizeString(name, true)
             }
@@ -1654,7 +1643,7 @@ class PrismaService {
         const resourceFieldService =
             this.initPrismaServiceWithFlags('ResourceField');
 
-        const fields = (await resourceFieldService.getClient().findMany(
+        const fields = (await resourceFieldService.getModelClient().findMany(
             {
                 where: {
                     resource: {
@@ -1797,16 +1786,16 @@ class PrismaService {
                 return await callback();
             }
 
-            await PrismaService.prisma.$transaction(async (prismaTx) => {
+            await PrismaService.client.$transaction(async (prismaTx) => {
                 PrismaService.transactionId = uuidv4();
                 logger.info(
                     `Transaction opened: ${PrismaService.transactionId}`
                 );
                 PrismaService.transactionOpen = true;
                 // @ts-ignore
-                PrismaService.prisma = prismaTx;
+                PrismaService.client = prismaTx;
                 // @ts-ignore
-                this.client = PrismaService.prisma[this.model];
+                this.refreshModelClient();
                 await callback();
 
                 logger.info(
@@ -1825,9 +1814,9 @@ class PrismaService {
         logger.info(`Transaction closed: ${PrismaService.transactionId}`);
         PrismaService.transactionId = '';
         PrismaService.transactionOpen = false;
-        PrismaService.prisma = prisma;
+        PrismaService.client = prisma;
         // @ts-ignore
-        this.client = PrismaService.prisma[this.model];
+        this._modelClient = PrismaService.client[this.model];
     }
 
     initPrismaServiceWithFlags(model: string) {
@@ -1839,13 +1828,14 @@ class PrismaService {
         );
     }
 
-    getClient() {
-        return this.client;
+    getModelClient() {
+        this.refreshModelClient();
+        return this._modelClient;
     }
 
-    private updateClient() {
+    private refreshModelClient() {
         // @ts-ignore
-        this.client = PrismaService.prisma[this.model];
+        this._modelClient = PrismaService.client[this.model];
     }
 
     private setHasMedia() {
