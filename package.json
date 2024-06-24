@@ -1,7 +1,7 @@
 {
   "name": "pmca-manuel",
   "displayName": "Manuel",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "author": "Páramo Software <contato@paramosoftware.com.br>",
   "description": "Ferramenta para gestão de glossários",
   "private": true,
