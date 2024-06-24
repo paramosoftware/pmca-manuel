@@ -48,7 +48,7 @@
                             @finish="isOpen = false"
                             :url="url"
                             :accepted-files="
-                                isReference ? 'application/pdf' : 'image/*'
+                                isPdf ? 'application/pdf' : 'image/*'
                             "
                         />
                     </UCard>
@@ -61,33 +61,21 @@
                 @show="changeQuality"
             >
                 <draggable
-                    class="grid gap-4"
-                    :class="[
-                        { 'grid-cols-2': isReference },
-                        {
-                            'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6':
-                                !isReference
-                        }
-                    ]"
+                    class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
                     :list="media"
                     @end="updateMediaPosition"
                     :animation="200"
                     item-key="id"
                 >
                     <template #item="{ element }">
-                        <div id="itemSlotWrapper" class="cursor-pointer rounded">
+                        <div
+                            id="itemSlotWrapper"
+                            class="cursor-pointer rounded"
+                        >
                             <UIMediaTemplate
-                                v-if="!isReference"
                                 :element="element"
-                                :isReference="false"
+                                :isPdf="isPdf"
                                 :quality="60"
-                                :deleteMedia="deleteMedia"
-                                :addSubtitle="addSubtitle"
-                            />
-                            <UIMediaTemplate
-                                v-if="isReference"
-                                :element="element"
-                                :isReference="true"
                                 :deleteMedia="deleteMedia"
                                 :addSubtitle="addSubtitle"
                             />
@@ -170,7 +158,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
-const isReference = props.formStore?.model === 'Reference';
+const isPdf = props.formStore?.model === 'Reference';
 const label = getFormFieldConfig('label', '', props);
 let modelValue = getFormFieldConfig('modelValue', [], props);
 let itemId = getFormFieldConfig('itemId', 0, props);

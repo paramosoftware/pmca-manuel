@@ -1,43 +1,43 @@
 <template>
     <div
-        class="relative rounded border border-gray-300 shadow-sm"
-        @click="isReferenceModalOpen = true"
+        class="relative rounded border border-gray-300 shadow-sm min-h-32"
+        @click="isPdfModalOpen = true"
     >
-        <UIReferenceModal
-            v-model="isReferenceModalOpen"
-            :isReferenceModalOpen="isReferenceModalOpen"
-            @isReferenceModalOpen="isReferenceModalOpen = $event"
+        <UIPdfViewerModal
+            v-model="isPdfModalOpen"
+            :isPdfModalOpen="isPdfModalOpen"
+            @isPdfModalOpen="isPdfModalOpen = $event"
             :elementName="element.name"
+            v-if="isPdf"
         />
         <UIImg
-            v-if="!props.isReference"
+            v-else
             class="w-full h-32 object-cover rounded cursor-pointer"
-            :src="props.element.name || undefined"
-            :alt="props.element.subtitle || undefined"
-            :quality="props.quality"
+            :src="element.name || undefined"
+            :alt="element.subtitle || undefined"
+            :quality="quality"
         />
-        <h1 v-if="props.isReference" class="p-2">
-            {{ props.element.originalFilename }}
-        </h1>
-        <div
-            class="flex justify-between"
-            :class="[
-                { 'absolute bottom-2 right-2': !isReference },
-                { 'p-2': isReference }
-            ]"
-        >
+        <div class="h-32 bg-gray-50 bg-opacity-50 flex flex-col justify-between" v-if="isPdf">
+            <p class="text-gray-600 text-opacity-80 p-2 line-clamp-2">
+                {{  element.originalFilename || 'PDF' }}
+            </p>
             <UIIcon
-                v-if="props.isReference"
-                class="w-7 h-7"
+                class="w-16 h-16 text-red-600 text-opacity-80 p-2"
                 name="ph:file-pdf"
-                title="Identificação"
+                :title="element.originalFilename || 'PDF'"
             />
+        </div>
+
+        <div
+            class="flex justify-between absolute bottom-2 right-2"
+        >
             <div id="rightSideButtons">
                 <UIButton
-                    @click="addSubtitle(props.element)"
+                    @click="addSubtitle(element)"
                     padding="p-1"
                     square
                     class="mr-1"
+                    v-if="!isPdf"
                 >
                     <UIIcon
                         class="w-4 h-4"
@@ -46,7 +46,7 @@
                     />
                 </UIButton>
                 <UIButton
-                    @click="deleteMedia(props.element)"
+                    @click="deleteMedia(element)"
                     padding="p-1"
                     square
                 >
@@ -62,9 +62,10 @@
 </template>
 
 <script setup lang="ts">
-const isReferenceModalOpen = ref(false);
-const props = defineProps({
-    isReference: {
+const isPdfModalOpen = ref(false);
+
+defineProps({
+    isPdf: {
         type: Boolean,
         default: false
     },

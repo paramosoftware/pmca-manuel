@@ -12,7 +12,6 @@ import parseNumber from '~/utils/parseNumber';
 import normalizeString from '~/utils/normalizeString';
 import logger from '~/utils/logger';
 import { useCamelCase } from '~/utils/useCamelCase';
-import { deleteModelMedia, saveMedia } from './media';
 
 // TODO: Memory optimization: reading the whole file at once is not optimal [PMCA-398]
 // TODO: Error handling [PMCA-369]
@@ -105,8 +104,8 @@ class PrismaServiceImporter {
                     this.mediaToDelete = await mediaService.readMany({}, false);
 
                     // Use client to avoid deleting media files, which is triggered by service deleteMany
-                    await mediaService.getClient().deleteMany({});
-                    await this.prismaService.getClient().deleteMany({});
+                    await mediaService.getModelClient().deleteMany({});
+                    await this.prismaService.getModelClient().deleteMany({});
                 }
 
                 switch (path.extname(filePath)) {
@@ -178,7 +177,8 @@ class PrismaServiceImporter {
                     this.currentProgress + 2,
                     'Apagando arquivos de mídia'
                 );
-                deleteModelMedia(this.mediaToDelete, undefined, false);
+
+                await this.prismaService.deleteMedia(this.mediaToDelete, false);
             }
 
             this.prismaService.setProgress(this.processId, 100, 'Finished');
@@ -845,12 +845,11 @@ class PrismaServiceImporter {
             logger.debug(`Importing media for concept ${conceptId} (${oldId})`);
 
             if (conceptId) {
-                await saveMedia(
+                await this.prismaService.saveMedia(
                     conceptId,
                     newFileName,
                     mediaFile,
-                    this.model,
-                    parseNumber(position),
+                    parseNumber(position)
                 );
             }
 
