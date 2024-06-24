@@ -46,7 +46,7 @@
                 :show-icon="showIcon"
                 :loading="searching"
                 :size="size"
-                :navbar="true"
+                :square-right-corners="squareRightCorners"
             />
 
             <span ref="autocompleteRef">
@@ -64,7 +64,9 @@
                     </li>
 
                     <li
-                        v-if="results.length === 0 && !searching && showNoResults"
+                        v-if="
+                            results.length === 0 && !searching && showNoResults
+                        "
                         class="px-2 py-2 text-gray-400"
                         @click="search = ''"
                     >
@@ -163,7 +165,7 @@ const props = defineProps({
     formStore: {
         type: Object as PropType<FormStore>
     },
-    navbar: {
+    squareRightCorners: {
         type: Boolean,
         default: false
     }
@@ -359,7 +361,9 @@ async function searchItems() {
 
     timeoutId = setTimeout(async () => {
         const { data, pending, error } = (await useFetchWithBaseUrl(
-            'api/' + (props.isPublic ? 'public/' : '') + relatedResource.value.name,
+            'api/' +
+                (props.isPublic ? 'public/' : '') +
+                relatedResource.value.name,
             {
                 method: 'GET',
                 params: query
