@@ -1821,7 +1821,7 @@ class PrismaService {
         PrismaService.transactionId = '';
         PrismaService.transactionOpen = false;
         this.inTransaction = false;
-        PrismaService._clientWriter = PrismaService.getPrismaClientWriter(true);
+        PrismaService._clientWriter = PrismaService.getPrismaClientWriter();
     }
 
     initPrismaServiceWithFlags(model: string) {
