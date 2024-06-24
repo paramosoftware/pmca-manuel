@@ -9,7 +9,6 @@ import getDataFolderPath from '~/utils/getDataFolderPath';
 import PrismaService from '../../prisma/PrismaService';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiValidationError, ForbiddenError, UploadError } from '../error';
-import { prisma } from '../../prisma/prisma';
 import { refreshAccessToken, getAccessToken } from '../auth/helpers';
 import multer from 'multer';
 import path from 'path';
@@ -32,7 +31,7 @@ const dataHandler = async (
     } = getParamsFromPath(req.path);
 
     // @ts-ignore
-    if (!model || !prisma[model]) {
+    if (!model || !PrismaService.modelExists(model)) {
         next();
         return;
     }

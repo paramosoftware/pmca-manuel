@@ -61,6 +61,9 @@ class PrismaService {
         onlyPublished = false,
         removePrivateFields = false
     ) {
+        if (!PrismaService.modelExists(model)) {
+            throw new ApiValidationError('Model ' + model + ' does not exist');
+        }
         this.setClients();
         this.model = this.setModel(model);
         this.modelLower = this.setModelLower();
@@ -1815,7 +1818,7 @@ class PrismaService {
         PrismaService.transactionId = '';
         PrismaService.transactionOpen = false;
         this.inTransaction = false;
-        PrismaService._clientWriter = this.getPrismaClientWriter();
+        PrismaService._clientWriter = PrismaService.getPrismaClientWriter(true);
     }
 
     initPrismaServiceWithFlags(model: string) {
@@ -1828,8 +1831,8 @@ class PrismaService {
     }
 
     setClients() {
-        PrismaService._clientWriter = this.getPrismaClientWriter();
-        PrismaService._clientReader = this.getPrismaClientReader();
+        PrismaService._clientWriter = PrismaService.getPrismaClientWriter();
+        PrismaService._clientReader = PrismaService.getPrismaClientReader();
     }
 
     private getClient(reader = false) {
@@ -1884,7 +1887,7 @@ class PrismaService {
         return this.modelLower;
     }
 
-    private getPrismaClientReader() {
+    private static getPrismaClientReader() {
         if (!PrismaService._clientReader) {
             const prismaReader = new PrismaClient();
             PrismaService._clientReader = prismaReader;
@@ -1895,10 +1898,10 @@ class PrismaService {
         }
     }
 
-    private getPrismaClientWriter() {
+    private static getPrismaClientWriter() {
         if (!PrismaService._clientWriter) {
             const prismaWriter = new PrismaClient({
-                log: process.env.NODE_ENV === 'development' ? ['query'] : [],
+                log: ['error', 'warn', 'info'],
                 transactionOptions: {
                     maxWait: 1000 * 60 * 10, // 10 minutes
                     timeout: 1000 * 60 * 10 // 10 minutes
@@ -1910,6 +1913,12 @@ class PrismaService {
         } else {
             return PrismaService._clientWriter;
         }
+    }
+
+    static modelExists(model: string) {
+        const reader = this.getPrismaClientReader();
+        // @ts-ignore
+        return reader[capitalize(model)] !== undefined;
     }
 }
 
