@@ -22,9 +22,10 @@ export const useConceptStore = defineStore('concept', () => {
     const ancestors = ref<Concept[]>([]);
     const descendantsIds = ref<ID[]>([]);
     const searchInitialLetter = ref<string>('TODOS');
+    const currentQueryAvailableLetters: Ref<string[]> = ref([])
+    const currentDatabaseAvailableLetters: Ref<string[]> = ref([])
     const maxPage = computed(() => Math.ceil(total.value / pageSize.value));
     const date = new Date();
-
     let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
     const pending = ref(false);
@@ -108,7 +109,35 @@ export const useConceptStore = defineStore('concept', () => {
 
         return q;
     });
+    const currentAvailableLettersQuery: ComputedRef<any> = computed(() => {
+        let lettersQuery = query;
+        lettersQuery.value['page'] = 1;
+        lettersQuery.value['pageSize'] = -1;
+        
+        return lettersQuery;
 
+    })
+
+    const availableGlobalLetters = async () => {
+        try {
+            const response = await useFetchWithBaseUrl(
+                `/api/public/concept/@availableLetters`,
+                {
+                    method: 'GET'
+                }
+            ).then((data) => {
+                return data;
+            });
+            let availableLetters: string[] = response.data.value[0].firstLetters.split(",")
+            availableLetters.push('TODOS')
+            console.log(`AVAILABLE LETTERS:  ${availableLetters}`)
+            currentDatabaseAvailableLetters.value = availableLetters;
+        } catch (err) {
+            console.error(err);
+        }
+    };
+    availableGlobalLetters();
+    
     watch(
         query,
         async (newQuery, oldQuery) => {
@@ -116,6 +145,7 @@ export const useConceptStore = defineStore('concept', () => {
                 clearTimeout(timeoutId);
                 timeoutId = setTimeout(async () => {
                     await fetchList();
+                    await fetchCompleteListAndReturnAvailableLetters() // TODO: Only query this when in alphabetical mode, otherwise ignore
                 }, 500);
             }
         },
@@ -175,6 +205,36 @@ export const useConceptStore = defineStore('concept', () => {
             concepts.value = data.value.items || [];
             total.value = data.value?.total || 0;
             totalPages.value = data.value?.totalPages || 0;
+        }
+
+        pending.value = pending.value;
+        error.value = error.value;
+        loadingStore.stop();
+    }
+
+    async function fetchCompleteListAndReturnAvailableLetters() {
+        console.log('fetchCompleteListAndReturnAvailableLetters with ' + currentAvailableLettersQuery.value)
+        const urlData = computed(() => `/api/public/${model}`);
+
+        loadingStore.start();
+        const { data, pending, error } = (await useFetchWithBaseUrl(urlData, {
+            params: currentAvailableLettersQuery.value
+        })) as {
+            data: Ref<PaginatedResponse>;
+            pending: Ref<boolean>;
+            error: Ref<Error | undefined>;
+        };
+
+        if (data.value) {
+            console.log(`value of all be ${data.value.items.length}`)
+            currentQueryAvailableLetters.value =
+                data.value.items
+                    .map((item) => item.name[0])
+                    .filter(
+                        (letter, index, self) =>
+                            self.indexOf(letter) === index &&
+                            !currentQueryAvailableLetters.value.includes(letter)
+                    ) || [];
         }
 
         pending.value = pending.value;
@@ -377,12 +437,15 @@ export const useConceptStore = defineStore('concept', () => {
         pending,
         error,
         searchInitialLetter,
+        currentQueryAvailableLetters,
+        currentDatabaseAvailableLetters,
         load,
         fetchNetwork,
         fetchConceptsTree,
         fetchConceptChanges,
         fetchAncestors,
         fetchDescendants,
+        fetchCompleteListAndReturnAvailableLetters,
         sortByName,
         exportData,
         reset,

@@ -135,10 +135,9 @@ class PrismaService {
      * { pageSize: 20, page: 1, select: ['id', 'name'], where: { id: 1 }, include: ['user'], orderBy: { name: 'asc' } }
      */
 
-    async getAvailableLetters(requestId: string) {
-        let teste: Object[] = await this.getClient(true)
+    async getAvailableLetters() {
+        return await this.getClient(true)
             .$queryRaw`SELECT GROUP_CONCAT(DISTINCT SUBSTRING(name, 1, 1)) AS firstLetters FROM Concept;`;
-        return teste;
     }
 
     async readMany<T extends boolean>(
