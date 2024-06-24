@@ -1,5 +1,5 @@
 import { ApiValidationError } from '../express/error';
-import { prisma } from './prisma';
+import PrismaService from './PrismaService';
 
 class PrismaServiceValidator {
     private model: string;
@@ -17,7 +17,7 @@ class PrismaServiceValidator {
      */
     validate(query: Query) {
         // @ts-ignore
-        if (!prisma[this.model]) {
+        if (!PrismaService.modelExists(this.model)) {
             throw new ApiValidationError(
                 'Model ' + this.model + ' does not exist'
             );

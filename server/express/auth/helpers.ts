@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import decodeJwt from '~/utils/decodeJwt';
 import getCookieOptions from '~/utils/getCookieOptions';
 import hashPassword from '~/utils/hashPassword';
-import { prisma } from '../../prisma/prisma';
 import { UnauthorizedError, ForbiddenError } from '../error';
 import PrismaService from '../../prisma/PrismaService';
 

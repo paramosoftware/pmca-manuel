@@ -1,8 +1,8 @@
-import { Prisma } from '~/server/prisma/prisma';
 import type { ErrorRequestHandler } from 'express';
 import multer from 'multer';
 import { CustomError } from '.';
 import logger from '~/utils/logger';
+import { Prisma } from '@prisma/client';
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     logger.error(err);

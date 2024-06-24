@@ -4,7 +4,7 @@ import logger from '~/utils/logger';
 import normalizeString from '~/utils/normalizeString';
 import parseNumber from '~/utils/parseNumber';
 import { ApiValidationError } from '../express/error';
-import { Prisma } from '~/server/prisma/prisma';
+import { Prisma } from '@prisma/client';
 import PrismaService from '~/server/prisma/PrismaService';
 
 class PrismaServiceConverter {
