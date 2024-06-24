@@ -1,6 +1,5 @@
-const config = useRuntimeConfig();
-
 export const useGlossaryStore = defineStore('glossary', () => {
+    const config = useRuntimeConfig();
     const id = ref('');
     const code = ref('');
     const name = ref(config.public.appName);
