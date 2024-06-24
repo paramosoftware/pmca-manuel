@@ -79,6 +79,15 @@ declare global {
         relatedResource?: Resource | undefined;
     };
 
+    export type Glossary = Prisma.Glossary & {
+        language: Language;
+        keywords?: Keyword[];
+    };
+
+    export type Keyword = Prisma.Keyword & {
+        glossaries?: Glossary[];
+    };
+
     export type ValueType =
         | 'string'
         | 'number'
