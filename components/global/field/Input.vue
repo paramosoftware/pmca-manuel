@@ -19,6 +19,16 @@
             :size="size"
             class="mt-1"
             padding="sm"
+            :style="
+                navbar
+                    ? {
+                          borderTopLeftRadius: '0.375rem',
+                          borderBottomLeftRadius: '0.375rem',
+                          borderTopRightRadius: '0',
+                          borderBottomRightRadius: '0'
+                      }
+                    : {}
+            "
         >
             <template #trailing v-if="showIcon && !loading">
                 <UIIcon :name="icon" class="w-6 h-6" :class="iconColor" />
@@ -83,6 +93,10 @@ const props = defineProps({
     },
     formStore: {
         type: Object as PropType<FormStore>
+    },
+    navbar: {
+        type: Boolean,
+        default: false
     }
 });
 

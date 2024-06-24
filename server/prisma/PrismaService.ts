@@ -1,30 +1,38 @@
 import { v4 as uuidv4 } from 'uuid';
 import QUERIES from '~/config/queries';
-import { prisma, Prisma } from '~/server/prisma/prisma';
 import cache from '~/utils/cache';
 import capitalize from '~/utils/capitalize';
 import getBoolean from '~/utils/getBoolean';
+import getDataFolderPath from '~/utils/getDataFolderPath';
 import hashPassword from '~/utils/hashPassword';
 import normalizeString from '~/utils/normalizeString';
 import parseNumber from '~/utils/parseNumber';
 import sanitizeString from '~/utils/sanitizeString';
 import logger from '~/utils/logger';
-import { ApiValidationError } from '../express/error';
-import { deleteModelMedia, handleMedia } from './media';
+import { ApiValidationError, UploadError } from '../express/error';
 import PrismaServiceConverter from './PrismaServiceConverter';
 import PrismaServiceExporter from './PrismaServiceExporter';
 import PrismaServiceImporter from './PrismaServiceImporter';
 import PrismaServiceValidator from './PrismaServiceValidator';
-import type { PrismaClient } from '@prisma/client/extension';
+import path from 'path';
+import fs from 'fs';
+import { PrismaClient, Prisma } from '@prisma/client';
 
-// TODO: Analyze and test possibility of Prisma instance crash in a transaction [PMCA-444]
 class PrismaService {
-    static prisma = prisma;
+    static _clientWriter: PrismaClient;
+    static _clientReader: PrismaClient;
+    static _clientTransaction: PrismaClient;
+    private _modelClient!: PrismaClient;
+
+    private inTransaction = false;
     static transactionOpen = false;
     static transactionId = '';
+
     public model: string;
+    public modelLower: string;
     public modelFields: readonly Prisma.DMMF.Field[] = [];
     public fieldsMap = new Map<string, Prisma.DMMF.Field>();
+
     private checkPermissions: boolean = true;
     private permissions: Permission = {};
     private method: Method = 'GET';
@@ -37,7 +45,8 @@ class PrismaService {
     private exporter: PrismaServiceExporter;
     private onlyPublished: boolean = false;
     private removePrivateFields: boolean = false;
-    private client: typeof PrismaClient;
+    private hasMedia: boolean = false;
+    private hasChanges: boolean = false;
 
     /**
      * PrismaService constructor
@@ -52,10 +61,11 @@ class PrismaService {
         onlyPublished = false,
         removePrivateFields = false
     ) {
+        this.setClients();
         this.model = this.setModel(model);
-        // @ts-ignore
-        this.updateClient();
-
+        this.modelLower = this.setModelLower();
+        this.setHasMedia();
+        this.setHasChanges();
         this.checkPermissions = checkPermissions;
         this.onlyPublished = onlyPublished;
         this.removePrivateFields = removePrivateFields;
@@ -90,7 +100,6 @@ class PrismaService {
         partialResource?: string
     ) {
         try {
-            this.updateClient();
             this.request = request ?? {};
             this.validator.validate(this.request);
             const query = await this.converter.convertRequestToPrismaQuery(
@@ -107,7 +116,7 @@ class PrismaService {
 
             query.orderBy = undefined;
 
-            return await this.client.findFirst(query);
+            return await this.getModelClient(true).findFirst(query);
         } catch (error) {
             throw error;
         }
@@ -124,9 +133,9 @@ class PrismaService {
      */
 
     async getAvailableLetters(requestId: string) {
-        this.updateClient();
-        let teste: Object[] = await PrismaService.prisma.$queryRaw`SELECT GROUP_CONCAT(DISTINCT SUBSTRING(name, 1, 1)) AS firstLetters FROM Concept;`;
-        return teste
+        let teste: Object[] = await this.getClient(true)
+            .$queryRaw`SELECT GROUP_CONCAT(DISTINCT SUBSTRING(name, 1, 1)) AS firstLetters FROM Concept;`;
+        return teste;
     }
 
     async readMany<T extends boolean>(
@@ -134,7 +143,6 @@ class PrismaService {
         returnPaginated: T = true as T
     ): Promise<T extends true ? PaginatedResponse : Object[]> {
         try {
-            this.updateClient();
             this.request = request;
 
             if (!returnPaginated) {
@@ -165,20 +173,10 @@ class PrismaService {
 
     private async readManyWithCount(query: Query) {
         try {
-            this.updateClient();
-
-            let data = [];
-            let total = 0;
-
-            if (PrismaService.transactionOpen) {
-                total = await this.client.count({ where: query.where });
-                data = await this.client.findMany(query);
-            } else {
-                [total, data] = await PrismaService.prisma.$transaction([
-                    this.client.count({ where: query.where }),
-                    this.client.findMany(query)
-                ]);
-            }
+            const [total, data] = (await this.runPromisesInSequence([
+                () => this.getModelClient(true).count({ where: query.where }),
+                () => this.getModelClient(true).findMany(query)
+            ])) as [number, any[]];
 
             return {
                 page:
@@ -202,7 +200,6 @@ class PrismaService {
      * { name: 'John Doe' }
      */
     async createOne(request: object) {
-        this.updateClient();
         const data = await this.createMany([request]);
         return data ? data[0] : null;
     }
@@ -216,7 +213,6 @@ class PrismaService {
      * [{ name: 'John Doe' }, { name: 'Jane Doe' }]
      */
     async createMany(request: Array<object>) {
-        this.updateClient();
         this.request = request;
 
         if (!Array.isArray(this.request)) {
@@ -239,7 +235,9 @@ class PrismaService {
                     item
                 );
 
-                promises.push(() => this.client.create({ data: query }));
+                promises.push(() =>
+                    this.getModelClient().create({ data: query })
+                );
             }
 
             const result = await this.runPromisesInSequence(promises);
@@ -283,7 +281,6 @@ class PrismaService {
      */
     async updateOne(identifier: ID, request?: object) {
         try {
-            this.updateClient();
             this.setId(identifier);
             this.request = request ?? {};
             this.validator.validate(this.request);
@@ -316,15 +313,13 @@ class PrismaService {
      */
     async updateMany(request: Array<object>) {
         try {
-            this.updateClient();
-
             this.request = request;
             if (!Array.isArray(this.request)) {
                 this.request = [this.request];
             }
 
             const data = [] as any[];
-            const mediaUpdates = new Map<number, ConceptMedia[]>();
+            const mediaUpdates = new Map<number, Media[]>();
 
             await this.executeInTransaction(async () => {
                 for (const item of this.request) {
@@ -363,19 +358,25 @@ class PrismaService {
                     )) as { id: number }[];
 
                     for (const id of ids) {
-                        if (this.model === 'Concept') {
+                        if (this.hasMedia) {
                             const mediaService =
-                                this.initPrismaServiceWithFlags('ConceptMedia');
+                                this.initPrismaServiceWithFlags(
+                                    `${this.model}Media`
+                                );
 
                             const oldMedia = (await mediaService.readMany(
                                 {
                                     where: {
-                                        conceptId: id.id
+                                        [this.modelLower + 'Id']: id.id
                                     }
                                 },
                                 false
-                            )) as ConceptMedia[];
+                            )) as Media[];
 
+                            mediaUpdates.set(id.id, oldMedia);
+                        }
+
+                        if (this.hasChanges) {
                             const changes = await this.trackChanges(
                                 id.id,
                                 item.data
@@ -384,11 +385,9 @@ class PrismaService {
                             if (changes.length > 0) {
                                 query['changes'] = { create: changes };
                             }
-
-                            mediaUpdates.set(id.id, oldMedia);
                         }
 
-                        const result = await this.client.update({
+                        const result = await this.getModelClient().update({
                             where: {
                                 id: id.id
                             },
@@ -398,11 +397,11 @@ class PrismaService {
                         data.push(result);
                     }
                 }
-            });
 
-            for (const [id, media] of mediaUpdates) {
-                await handleMedia(media, id, this.model);
-            }
+                for (const [id, media] of mediaUpdates) {
+                    await this.handleMedia(media, id);
+                }
+            });
 
             return data;
         } catch (error) {
@@ -420,7 +419,6 @@ class PrismaService {
      */
     async deleteOne(identifier: ID) {
         try {
-            this.updateClient();
             const query = await this.converter.convertRequestToPrismaQuery(
                 this.request,
                 false,
@@ -447,7 +445,6 @@ class PrismaService {
      */
     async deleteMany(request: Query) {
         try {
-            this.updateClient();
             this.request = request;
             this.validator.validate(this.request);
             const query = await this.converter.convertRequestToPrismaQuery(
@@ -457,15 +454,15 @@ class PrismaService {
 
             const whereQ = JSON.parse(JSON.stringify({ where: query.where }));
 
-            const conceptMedia: string | any[] = [];
+            const modelMedia: string | any[] = [];
 
-            if (this.model == 'Concept') {
-                const concepts = (await this.readMany(
+            if (this.hasMedia) {
+                const records = (await this.readMany(
                     { select: ['id'], where: whereQ.where },
                     false
                 )) as unknown as Concept[];
 
-                const ids = concepts.map((concept: Concept) => concept.id);
+                const ids = records.map((concept: Item) => concept.id);
 
                 const mediaService = this.initPrismaServiceWithFlags(
                     this.model + 'Media'
@@ -473,24 +470,26 @@ class PrismaService {
 
                 const conceptMediaTemp = (await mediaService.readMany(
                     {
+                        select: ['id', 'name'],
+                        // @ts-ignore
                         where: {
-                            conceptId: {
+                            [`${this.modelLower}Id`]: {
                                 in: ids
                             }
                         }
                     },
                     false
-                )) as ConceptMedia[];
+                )) as Media[];
 
-                conceptMedia.push(...conceptMediaTemp);
+                modelMedia.push(...conceptMediaTemp);
             }
 
             delete whereQ.pageSize;
             delete whereQ.page;
-            const data = await this.client.deleteMany(whereQ);
+            const data = await this.getModelClient().deleteMany(whereQ);
 
-            if (conceptMedia.length > 0) {
-                await deleteModelMedia(conceptMedia);
+            if (modelMedia.length > 0) {
+                await this.deleteMedia(modelMedia);
             }
 
             return data;
@@ -507,7 +506,6 @@ class PrismaService {
      * @throws ApiValidationError
      */
     async findTrees(nodeId: number | null = null, query: Query) {
-        this.updateClient();
         const select = query?.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const depth = (await this.findTreeDepth(nodeId)) as number;
 
@@ -561,7 +559,6 @@ class PrismaService {
      * @throws ApiValidationError
      */
     async findAncestors(nodeId: number, query: Query, flatten = true) {
-        this.updateClient();
         const select = query.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const depth = await this.findNodeDepth(nodeId);
 
@@ -638,7 +635,6 @@ class PrismaService {
      * @throws ApiValidationError
      */
     async findDescendants(nodeId: number, query: Query) {
-        this.updateClient();
         const select = query.select ?? ['id', 'name', 'parentId', 'nameSlug'];
         const ids = await this.findTreeIds(nodeId);
 
@@ -744,6 +740,96 @@ class PrismaService {
         cache.set(processId, { ...progress, report });
     }
 
+    async deleteMedia(
+        mediaToDelete: Array<Media>,
+        deleteRecords: boolean = true
+    ) {
+        if (!this.hasMedia) {
+            return;
+        }
+
+        const mediaService = this.initPrismaServiceWithFlags(
+            `${this.model}Media`
+        );
+
+        for (const media of mediaToDelete) {
+            logger.debug(`Deleting media ${media.name}`);
+            const mediaPath = path.join(getDataFolderPath('media'), media.name);
+
+            if (fs.existsSync(mediaPath)) {
+                fs.unlinkSync(mediaPath);
+            }
+
+            if (deleteRecords) {
+                await mediaService.deleteOne(media.id);
+            }
+        }
+    }
+
+    private async handleMedia(oldMedia: Array<Media>, recordId: number) {
+        if (!this.hasMedia) {
+            return;
+        }
+
+        const mediaService = this.initPrismaServiceWithFlags(
+            `${this.model}Media`
+        );
+
+        const newMedia: Array<Media> = (await mediaService.readMany(
+            {
+                where: {
+                    [`${this.modelLower}Id`]: recordId
+                }
+            },
+            false
+        )) as unknown as Array<Media>;
+
+        const mediaToDelete: Array<Media> = [];
+
+        oldMedia.forEach((media: Media) => {
+            if (!newMedia.find((newMedia: Media) => newMedia.id === media.id)) {
+                mediaToDelete.push(media);
+            }
+        });
+
+        this.deleteMedia(mediaToDelete);
+    }
+
+    async saveMedia(
+        recordId: number,
+        fileName: string,
+        originalFilename: string,
+        position: number = 1
+    ) {
+        try {
+            if (!this.hasMedia) {
+                throw new ApiValidationError(
+                    'Media not available for ' + this.model
+                );
+            }
+
+            const mediaService = this.initPrismaServiceWithFlags(
+                `${this.model}Media`
+            );
+
+            const media = await mediaService.createOne({
+                name: fileName,
+                originalFilename: originalFilename,
+                position: position,
+                [`${this.modelLower}Id`]: recordId,
+                [this.modelLower]: {
+                    id: recordId
+                }
+            });
+
+            return media;
+        } catch (error) {
+            throw new UploadError(
+                'Error saving media to database: ' + JSON.stringify(error)
+            );
+        }
+    }
+
     /**
      * Return depth of the tree or node or return the ids of the tree
      * @param nodeId - The parent id
@@ -756,7 +842,6 @@ class PrismaService {
         returnIds = false,
         returnNodeDepth = false
     ) {
-        this.updateClient();
 
         if (this.model !== 'Concept') {
             throw new ApiValidationError(
@@ -791,7 +876,7 @@ class PrismaService {
         `;
 
         if (!returnIds) {
-            const depth = (await PrismaService.prisma.$queryRawUnsafe(`
+            const depth = (await this.getClient(true).$queryRawUnsafe(`
                 ${query}
                 SELECT max(depth) as depth FROM hierarchy;`)) as {
                 depth: number;
@@ -799,7 +884,7 @@ class PrismaService {
 
             return Number(depth[0].depth);
         } else {
-            const ids = (await PrismaService.prisma.$queryRawUnsafe(`
+            const ids = (await this.getClient(true).$queryRawUnsafe(`
                 ${query}
                 SELECT id FROM hierarchy;`)) as { id: number }[];
 
@@ -849,7 +934,7 @@ class PrismaService {
                     f.name + ' is required for ' + model
                 );
             }
-            
+
             fieldsMap.set(f.name, f);
 
             if (f.kind.toLowerCase() === 'object') {
@@ -1381,7 +1466,7 @@ class PrismaService {
 
     // @ts-ignore
     private async calculateSlug(name: string, model: string, key: string) {
-        const obj = await this.getClient().findFirst({
+        const obj = await this.getModelClient(true).findFirst({
             where: {
                 [key]: normalizeString(name, true)
             }
@@ -1557,7 +1642,7 @@ class PrismaService {
         const resourceFieldService =
             this.initPrismaServiceWithFlags('ResourceField');
 
-        const fields = (await resourceFieldService.getClient().findMany(
+        const fields = (await resourceFieldService.getModelClient(true).findMany(
             {
                 where: {
                     resource: {
@@ -1700,27 +1785,28 @@ class PrismaService {
                 return await callback();
             }
 
-            await PrismaService.prisma.$transaction(async (prismaTx) => {
+            await PrismaService._clientWriter.$transaction(async (prismaTx) => {
                 PrismaService.transactionId = uuidv4();
                 logger.info(
                     `Transaction opened: ${PrismaService.transactionId}`
                 );
                 PrismaService.transactionOpen = true;
+                this.inTransaction = true;
                 // @ts-ignore
-                PrismaService.prisma = prismaTx;
-                // @ts-ignore
-                this.client = PrismaService.prisma[this.model];
+                PrismaService._clientTransaction = prismaTx;
+
                 await callback();
+
+                this.reinitializePrisma();
 
                 logger.info(
                     `Transaction committed: ${PrismaService.transactionId}`
                 );
             });
-
-            this.reinitializePrisma();
         } catch (error) {
-            this.reinitializePrisma();
             throw error;
+        } finally {
+            //this.reinitializePrisma();
         }
     }
 
@@ -1728,9 +1814,8 @@ class PrismaService {
         logger.info(`Transaction closed: ${PrismaService.transactionId}`);
         PrismaService.transactionId = '';
         PrismaService.transactionOpen = false;
-        PrismaService.prisma = prisma;
-        // @ts-ignore
-        this.client = PrismaService.prisma[this.model];
+        this.inTransaction = false;
+        PrismaService._clientWriter = this.getPrismaClientWriter();
     }
 
     initPrismaServiceWithFlags(model: string) {
@@ -1742,13 +1827,89 @@ class PrismaService {
         );
     }
 
-    getClient() {
-        return this.client;
+    setClients() {
+        PrismaService._clientWriter = this.getPrismaClientWriter();
+        PrismaService._clientReader = this.getPrismaClientReader();
     }
 
-    private updateClient() {
-        // @ts-ignore
-        this.client = PrismaService.prisma[this.model];
+    private getClient(reader = false) {
+        if (this.inTransaction) {
+            return PrismaService._clientTransaction;
+        } else if (reader) {
+            return PrismaService._clientReader;
+        } else {
+            return PrismaService._clientWriter;
+        }
+    }
+
+    /**
+     * Get the model client which can be used to perform queries using PrismaClient directly.
+     * Recommended to use the PrismaService methods instead
+     * @param reader - If it should return the reader client
+     * @returns The model client
+     * @throws ApiValidationError
+     * @example
+     * const client = this.getModelClient();
+     */
+    getModelClient(reader = false): PrismaClient | any {
+        if (this.inTransaction) {
+            // @ts-ignore
+            this._modelClient = PrismaService._clientTransaction[this.model];
+        } else if (reader) {
+            // @ts-ignore
+            this._modelClient = PrismaService._clientReader[this.model];
+        } else {
+            // @ts-ignore
+            this._modelClient = PrismaService._clientWriter[this.model];
+        }
+
+        return this._modelClient;
+    }
+
+    private setHasMedia() {
+        this.hasMedia = Prisma.dmmf.datamodel.models.some(
+            (m) => m.name === this.model + 'Media'
+        );
+    }
+
+    private setHasChanges() {
+        this.hasChanges = Prisma.dmmf.datamodel.models.some(
+            (m) => m.name === this.model + 'Changes'
+        );
+    }
+
+    private setModelLower() {
+        this.modelLower =
+            this.model.charAt(0).toLowerCase() + this.model.slice(1);
+        return this.modelLower;
+    }
+
+    private getPrismaClientReader() {
+        if (!PrismaService._clientReader) {
+            const prismaReader = new PrismaClient();
+            PrismaService._clientReader = prismaReader;
+
+            return prismaReader;
+        } else {
+            return PrismaService._clientReader;
+        }
+    }
+
+    private getPrismaClientWriter() {
+        if (!PrismaService._clientWriter) {
+            const prismaWriter = new PrismaClient({
+                log: process.env.NODE_ENV === 'development' ? ['query'] : [],
+                transactionOptions: {
+                    maxWait: 1000 * 60 * 10, // 10 minutes
+                    timeout: 1000 * 60 * 10 // 10 minutes
+                }
+            });
+
+            PrismaService._clientWriter = prismaWriter;
+            return prismaWriter;
+        } else {
+            return PrismaService._clientWriter;
+        }
     }
 }
 

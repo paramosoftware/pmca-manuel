@@ -502,8 +502,11 @@ class PrismaServiceConverter {
                     : values.map((v) => parseNumber(v));
                 break;
             case 'notin':
+                const notInValues = Array.isArray(value) ? value : [value];
                 prismaQuery[field].not = {
-                    in: Array.isArray(value) ? value : [value]
+                    in: isNormalized
+                        ? notInValues.map((v) => normalizeString(v as string))
+                        : notInValues.map((v) => parseNumber(v))
                 };
                 break;
             case 'isnull':
@@ -787,16 +790,24 @@ class PrismaServiceConverter {
 
         const userPermissions = Object.keys(this.permissions);
 
-        const resourceService = new PrismaService('Resource', false, false, false);
+        const resourceService = new PrismaService(
+            'Resource',
+            false,
+            false,
+            false
+        );
 
-        const publicResources = await resourceService.readMany({
-            where: {
-                isPublic: true
+        const publicResources = (await resourceService.readMany(
+            {
+                where: {
+                    isPublic: true
+                },
+                include: {
+                    children: true
+                }
             },
-            include: {
-                children: true
-            }
-        }, false) as Resource[];
+            false
+        )) as Resource[];
 
         for (const resource of publicResources) {
             if (!this.permissions[resource.name]) {
@@ -830,16 +841,19 @@ class PrismaServiceConverter {
             }
         }
 
-        const currentPermissions = await resourceService.readMany({
-            where: {
-                name: {
-                    in: userPermissions
+        const currentPermissions = (await resourceService.readMany(
+            {
+                where: {
+                    name: {
+                        in: userPermissions
+                    }
+                },
+                include: {
+                    children: true
                 }
             },
-            include: {
-                children: true
-            }
-        }, false) as Resource[];
+            false
+        )) as Resource[];
 
         for (const resource of currentPermissions) {
             if (resource.children && resource.children.length > 0) {
@@ -929,21 +943,28 @@ class PrismaServiceConverter {
             return cache.get(cacheKey)!;
         }
 
-        const resourceFieldService = new PrismaService('ResourceField', false, false, false);
+        const resourceFieldService = new PrismaService(
+            'ResourceField',
+            false,
+            false,
+            false
+        );
 
-        const privateFields = await resourceFieldService.getClient().findMany({
-            select: {
-                name: true,
-                resource: {
-                    select: {
-                        name: true
+        const privateFields = await resourceFieldService
+            .getModelClient()
+            .findMany({
+                select: {
+                    name: true,
+                    resource: {
+                        select: {
+                            name: true
+                        }
                     }
+                },
+                where: {
+                    isPrivate: true
                 }
-            },
-            where: {
-                isPrivate: true
-            }
-        });
+            });
 
         const privateFieldsPerModel = {} as { [key: string]: string[] };
 
