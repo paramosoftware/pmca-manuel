@@ -1363,13 +1363,16 @@ class PrismaService {
             return false;
         }
 
+        // TODO: Check is this function is being used correctly from processCreateOrUpdateRequest (line 928) [PMCA-470]
+        const relationField = field.relationFromFields?.[0] ?? '';
+
         if (
             field.isRequired &&
             !field.hasDefaultValue &&
             !field.isList &&
             !field.isUpdatedAt
         ) {
-            if (body[field.name]) {
+            if (body[field.name] || body[relationField]) {
                 return false;
             }
 
