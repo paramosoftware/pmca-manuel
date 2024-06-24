@@ -1,8 +1,9 @@
 {
-  "name": "pmca-glossario",
+  "name": "pmca-manuel",
+  "displayName": "Manuel",
   "version": "0.7.0",
   "author": "Páramo Software <contato@paramosoftware.com.br>",
-  "description": "Glossário de conservação-restauro de livros e documentos em papel do Projeto Manuel Correia de Andrade (PMCA)",
+  "description": "Ferramenta para gestão de glossários",
   "private": true,
   "main": "electron/main.js",
   "engines": {
@@ -26,8 +27,8 @@
     "electron:mac": "pnpm scaffold && pnpm build && electron-builder --mac"
   },
   "build": {
-    "appId": "pmca.glossario",
-    "productName": "Glossario de conservacao-restauro (PMCA)",
+    "appId": "pmca.manuel",
+    "productName": "Manuel",
     "files": [
       "electron/**/*",
       "!node_modules/**/*"

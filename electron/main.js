@@ -3,6 +3,8 @@ const { pathToFileURL } = require('url');
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
+const data = fs.readFileSync(__dirname + '/../package.json', 'utf8');
+const packageJson = JSON.parse(data);
 
 const isProduction = process.env.NODE_ENV !== 'development';
 
@@ -270,7 +272,7 @@ function createWindow() {
             contextIsolation: false
         },
         autoHideMenuBar: true,
-        title: process.env.APP_NAME,
+        title: packageJson.displayName,
         icon: path.join(process.env.ROOT, '.output/public/favicon.ico')
     });
 
