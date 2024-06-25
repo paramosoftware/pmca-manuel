@@ -11,7 +11,7 @@
             :show-selected="showSelected"
             :is-public="isPublic"
             :show-no-results="showNoResults"
-            :navbar="true"
+            :square-right-corners="true"
             class="w-full"
             @select="onSelect"
             @input="onInput"

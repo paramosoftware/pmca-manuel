@@ -89,7 +89,21 @@ if (!conceptsTree.value || !conceptsTree.value.length) {
 }
 
 const htmlId = 'diagram';
-const data = ref(JSON.parse(JSON.stringify(conceptsTree.value))[0]);
+
+if (conceptsTree.value.length > 1) {
+    const root = {
+        label: 'Raiz',
+        id: 'root',
+        parentId: null,
+        expanded: true,
+        position: 0,
+        children: conceptsTree.value
+    };
+
+    conceptsTree.value = [root];
+}
+
+const data = ref(JSON.parse(JSON.stringify(conceptsTree.value[0])));
 const svg = ref<D3SVGElement>();
 const root = ref<D3Node>(d3.hierarchy(data.value) as D3Node);
 const gLink = ref<D3SVGElement>();
@@ -271,7 +285,9 @@ function appendNode(node: D3SVGElement) {
         .attr('stroke-width', 1)
         .attr('cursor', 'pointer')
         .on('click', (event, d) => {
-            window.open(`/termos/${d.data.slug}`, '_blank');
+            if (d.data.id != 'root') {
+                window.open(`/termos/${d.data.slug}`, '_blank');
+            }
         });
 
     node.append('text')
@@ -284,7 +300,9 @@ function appendNode(node: D3SVGElement) {
         .attr('cursor', 'pointer')
         .text('👁')
         .on('click', (event, d) => {
-            window.open(`/termos/${d.data.slug}`, '_blank');
+            if (d.data.id != 'root') {
+                window.open(`/termos/${d.data.slug}`, '_blank');
+            }
         });
 }
 
@@ -391,7 +409,7 @@ function update(
     const gElements = svg.selectAll('g');
 
     gElements.selectAll("text[class^='plus-minus']").text((d: any) => {
-        return isNodeOpen(d) ? '-' : '+';
+        return isNodeOpen(d) === 'open' ? '-' : '+';
     });
 
     gElements.selectAll('rect').attr('fill', (d: any) => {

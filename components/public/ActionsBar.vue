@@ -1,15 +1,14 @@
 <template>
-    <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
+    <div class="flex justify-end">
         <a
-            v-for="item in socialMedia"
-            :key="item.name"
-            class="mr-2 cursor-pointer"
+            v-for="item in actions"
+            :key="item.icon"
+            class="mr-3 cursor-pointer"
         >
             <UIIcon
                 :name="item.icon"
-                @click="share(item.name)"
+                @click="item['action'] ? item.action() : share(item.name)"
                 :title="item.title ?? `Compartilhar no ${item.name}`"
-                class="w-7"
             />
         </a>
         <PublicExportDropdown />
@@ -17,17 +16,36 @@
 </template>
 
 <script setup lang="ts">
+const props = defineProps({
+    userSelection: {
+        type: Boolean,
+        default: false
+    }
+});
+
+
 const conceptStore = useConceptStore();
 
 const { concept } = storeToRefs(conceptStore);
 
 const conceptName = ref('');
+const actions = computed(() => {
+    return props.userSelection ? userSelectionActions : socialMedia;
+}) as Ref<{ icon: string; title?: string; action?: () => void; name: string }[]>;
 
 if (concept.value) {
     conceptName.value = concept.value.name ?? '';
 }
 
 const toast = useToast();
+
+const userSelectionActions = [
+    {
+        icon: 'ph:broom',
+        title: 'Limpar seleção',
+        action: () => conceptStore.clearSelection()
+    }
+];
 
 const socialMedia = [
     /*

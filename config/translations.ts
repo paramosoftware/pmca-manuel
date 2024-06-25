@@ -78,6 +78,16 @@ MODELS.set('WebPage', {
     labelPlural: 'Páginas web',
     genderNoun: 'f'
 });
+MODELS.set('Glossary', {
+    label: 'Glossário',
+    labelPlural: 'Glossários',
+    genderNoun: 'm'
+});
+MODELS.set('Keyword', {
+    label: 'Palavra-chave',
+    labelPlural: 'Palavras-chave',
+    genderNoun: 'f'
+});
 
 const FIELDS = new Map<string, string>();
 FIELDS.set('id', 'id');
@@ -176,5 +186,9 @@ FIELDS.set('children', 'Termos inferiores');
 FIELDS.set('type', 'Tipo');
 FIELDS.set('published', 'Publicado');
 FIELDS.set('privateNotes', 'Notas internas');
+FIELDS.set('glossary', 'Glossário');
+FIELDS.set('glossaryId', 'Glossário');
+FIELDS.set('glossaries', 'Glossários');
+FIELDS.set('keywords', 'Palavras-chave');
 
 export { MODELS, FIELDS };

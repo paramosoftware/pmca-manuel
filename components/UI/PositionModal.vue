@@ -121,10 +121,7 @@ const fetchTreeData = async () => {
     if (data.value) {
         const builtTree = buildTreeData(
             data.value,
-            true,
-            undefined,
-            undefined,
-            undefined
+            true
         );
 
         tree.value = builtTree[0];
@@ -133,6 +130,7 @@ const fetchTreeData = async () => {
 };
 
 fetchTreeData();
+
 const closeModalPosition = () => {
     children.value = new Map();
     currentChildren.value = [];
@@ -148,6 +146,7 @@ const setChildren = ({
     getChildrenCurrentNode(tree.value!, currentExpanded.value);
 };
 
+
 const getChildrenCurrentNode = (node: TreeNode, targetNodeId: ID) => {
     if (node.id === targetNodeId) {
         if (!children.value.has(node.id)) {
@@ -162,6 +161,7 @@ const getChildrenCurrentNode = (node: TreeNode, targetNodeId: ID) => {
         });
     }
 };
+
 
 const updatePositionInNode = (event: any) => {
     if (event.oldIndex !== event.newIndex) {
@@ -220,4 +220,11 @@ const updateTreePosition = async () => {
     currentChildren.value = [];
 };
 
+onUpdated(() => {
+    setChildren({
+        expanded: [tree.value!.id],
+        sourceEvent: 'null',
+        expandedItems: [tree.value!]
+    });
+});
 </script>

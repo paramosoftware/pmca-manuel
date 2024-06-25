@@ -16,7 +16,10 @@
             >
         </div>
         <div v-else></div>
-        <div class="flex justify-evenly space-x-2 my-5 overflow-x-auto">
+        <div 
+            class="flex space-x-2 my-5 overflow-x-auto"
+            :class="total > pageSize ? 'justify-between' : 'justify-end'"
+        >
             <UIIcon
                 class="w-8 h-8 mr-3"
                 :name="

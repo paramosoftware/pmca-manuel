@@ -20,7 +20,7 @@
             class="mt-1"
             padding="sm"
             :style="
-                navbar
+                squareRightCorners
                     ? {
                           borderTopLeftRadius: '0.375rem',
                           borderBottomLeftRadius: '0.375rem',
@@ -94,7 +94,7 @@ const props = defineProps({
     formStore: {
         type: Object as PropType<FormStore>
     },
-    navbar: {
+    squareRightCorners: {
         type: Boolean,
         default: false
     }

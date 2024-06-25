@@ -4,27 +4,23 @@
     >
         <div class="md:flex flex-row justify-center md:justify-between items-center">
             <div class="flex flex-col items-center md:items-start">
-                <p>Nome da aplicação</p>
-                <p>Versão x.x.x</p>
+                <p>{{ title }}</p>
+                <p>Versão {{ version }}</p>
             </div>
             <div class="flex flex-col items-center md:items-start">
-                <p>Projeto Manuel Correia de Andrade (PMCA)</p>
-                <p>Desenvolvimento por Páramo Software</p>
+                <a href="https://sites.usp.br/pmca/" target="_blank" rel="noopener">
+                    Projeto Manuel Correia de Andrade (PMCA)
+                </a>
+                <a href="https://paramosoftware.com.br/" target="_blank" rel="noopener">
+                    Desenvolvimento por Páramo Software
+                </a>
             </div>
         </div>
     </footer>
 </template>
 
 <script setup lang="ts">
-const router = useRouter();
-const path = router.currentRoute.value.path;
-
 const config = useRuntimeConfig();
 const title = ref(config.public.appName);
-const blockTitle = ref('');
-
-if (title.value.length > 30) {
-    title.value = title.value.substring(0, title.value.indexOf(' ', 30));
-    blockTitle.value = config.public.appName.replace(title.value, '');
-}
+const version = ref(config.public.appVersion);
 </script>

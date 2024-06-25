@@ -176,6 +176,9 @@ model Concept {
   id   Int    @id @default(autoincrement()) /// includeExport:true
   name String /// includeExport:true|label:Termo
 
+  glossaryId Int? /// hidden:true
+  glossary   Glossary? @relation(fields: [glossaryId], references: [id]) /// hidden:true
+
   parentId Int?
   children Concept[] @relation("ConceptToChildren")
   parent   Concept?  @relation("ConceptToChildren", fields: [parentId], references: [id]) /// includeExport:true
@@ -303,6 +306,7 @@ model Language {
   code String? @unique
 
   translations ConceptTranslation[] /// disabled:true|hidden:true
+  glossaries Glossary[] /// disabled:true|hidden:true
 
   published Boolean @default(true) /// defaultValue:true
 
@@ -341,6 +345,44 @@ model WebPage {
 
   nameNormalized    String?
   contentNormalized String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// isPublic:true
+model Glossary {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  code String? @unique /// label:ID
+  description String?
+
+  keywords Keyword[]
+
+  languageId Int? /// required:true
+  language   Language? @relation(fields: [languageId], references: [id]) /// required:true
+
+  concepts Concept[] /// disabled:true|hidden:true
+
+  nameNormalized        String?
+  descriptionNormalized String?
+
+  published Boolean @default(true) /// defaultValue:true
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// isPublic:true
+model Keyword {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  glossaries Glossary[] /// disabled:true|hidden:true
+
+  nameNormalized String?
+
+  published Boolean @default(true) /// defaultValue:true
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,6 +1,6 @@
 <template>
     <nav id="navbar" class="p-4 border-b-2 bg-white shadow-sm rounded-md">
-        <div class="max-w-screen-2xl mx-auto">
+        <div class="max-w-screen-xl mx-auto">
             <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
                 <div class="mt-1">
                     <NuxtLink to="/admin">
@@ -17,6 +17,9 @@
                             <h1 class="text-2xl font-semibold flex-row mb-2">
                                 {{ title }}
                             </h1>
+                            <p class="text-sm text-gray-500 truncate">
+                                {{ glossaryName }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -66,8 +69,11 @@ const isElectronApp = isElectron();
 
 const userStore = useUserStore();
 await userStore.fetch();
-
 const { name, resources, canImport } = storeToRefs(userStore);
+
+const glossaryStore = useGlossaryStore();
+await glossaryStore.fetch();
+const { name: glossaryName } = storeToRefs(glossaryStore);
 
 const menus = [
     {

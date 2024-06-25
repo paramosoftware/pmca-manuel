@@ -208,6 +208,7 @@ async function main() {
     }
 
     await createDefaultGroups(user.id);
+    await createDefaultGlossary();
 
     console.log(
         'Found ' +
@@ -290,6 +291,23 @@ async function createDefaultGroups(userId: string) {
         } else {
             await groupService.createOne(groupCopy);
         }
+    }
+}
+
+async function createDefaultGlossary() {
+    const glossaryService = new PrismaService('glossary', false);
+    const glossary = await glossaryService.readMany({}, false);
+
+    if (!glossary || glossary.length === 0) {
+        const createdGlossary = await glossaryService.createOne({
+            name: 'Glossário padrão',
+            description: 'Altere o nome e a descrição do glossário padrão em Glossários',
+            code: 'GP',
+            languageId: '1',
+            keywords: []
+        });
+
+        console.log('Created default glossary', createdGlossary);
     }
 }
 

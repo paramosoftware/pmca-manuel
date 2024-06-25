@@ -16,6 +16,9 @@
                         <h1 class="text-2xl font-semibold flex-row mb-2">
                             {{ title }}
                         </h1>
+                        <p class="text-sm text-gray-500 truncate">
+                            {{ glossaryName }}
+                        </p>
                     </div>
                 </div>
                 <div id="menuOpen" class="flex justify-end md:hidden row-start-2 col-start-3 col-span-2 ">
@@ -68,6 +71,9 @@
 <script setup lang="ts">
 const showMenu = ref(false);
 const isElectronApp = isElectron();
+const glossaryStore = useGlossaryStore();
+await glossaryStore.fetch();
+const { name: glossaryName } = storeToRefs(glossaryStore);
 
 const config = useRuntimeConfig();
 const title = ref(config.public.appName);
