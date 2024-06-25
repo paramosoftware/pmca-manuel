@@ -13,8 +13,10 @@ class PrismaServiceExporter {
     private model: string;
     private prismaService: PrismaService;
     private resourceURI = '#'; // TODO: Change this to the correct URI [PMCA-400]
-    private conceptSchemeId = 'A0'; // TODO: Create real concept scheme id [PMCA-401]
-    private skosLanguage = 'pt'; // TODO: Make this dynamic [PMCA-402]
+    private glossaryCode = 'A0';
+    private glossaryLanguage = 'pt';
+    private glossaryName = 'Glossário';
+    private glossaryDescription = '';
     private xmlOptions = {
         ignoreAttributes: false,
         format: true,
@@ -51,6 +53,7 @@ class PrismaServiceExporter {
         }
 
         await this.setResourceConfig();
+
         this.include = QUERIES.get(this.model)?.include || '*';
         this.where = query?.where || undefined;
 
@@ -75,6 +78,7 @@ class PrismaServiceExporter {
                 break;
             case 'xml':
                 if (this.model === 'Concept') {
+                    await this.getGlossaryProperties();
                     await this.exportToSkos(filePath);
                 }
                 break;
@@ -139,6 +143,27 @@ class PrismaServiceExporter {
         }
     }
 
+    async getGlossaryProperties() {
+        const glossaryService = new PrismaService('Glossary');
+
+        const data = await glossaryService.readMany(
+            { pageSize: 1, include: ['language'] },
+            true
+        );
+
+        if (data && data.items.length > 0) {
+            const glossary = data.items[0] as Glossary;
+            this.glossaryCode =
+                glossary.code ??
+                glossary.nameNormalized?.replace(/ /g, '-') ??
+                'A0';
+            this.glossaryLanguage =
+                glossary.language?.code ?? this.glossaryLanguage;
+            this.glossaryName = glossary.name ?? this.glossaryName;
+            this.glossaryDescription = glossary.description ?? '';
+        }
+    }
+
     async exportToJson(filePath: string) {
         fs.writeFileSync(filePath, '');
         fs.appendFileSync(filePath, '[');
@@ -150,7 +175,7 @@ class PrismaServiceExporter {
                 pageSize: this.pageSize,
                 page: i + 1,
                 include: this.include,
-                where: this.where,
+                where: this.where
             });
 
             if (!data) {
@@ -160,7 +185,10 @@ class PrismaServiceExporter {
             totalPages = data.totalPages;
 
             for (const item of data.items) {
-                const obj = this.replaceKeys(this.buildExportItem(item), this.camelCaseMap);
+                const obj = this.replaceKeys(
+                    this.buildExportItem(item),
+                    this.camelCaseMap
+                );
                 fs.appendFileSync(filePath, JSON.stringify(obj, null, 2));
                 fs.appendFileSync(filePath, ',');
                 this.addMediaToMap(item.media, item.nameSlug);
@@ -190,7 +218,7 @@ class PrismaServiceExporter {
             filePath,
             xmlBuilder,
             this.resourceURI,
-            this.conceptSchemeId,
+            this.glossaryCode,
             this.model
         );
 
@@ -215,7 +243,7 @@ class PrismaServiceExporter {
                 const concept = this.buildSkosConcept(
                     item,
                     this.resourceURI,
-                    this.conceptSchemeId
+                    this.glossaryCode
                 );
                 fs.appendFileSync(filePath, xmlBuilder.build(concept));
                 this.addMediaToMap(item.media, item.nameSlug);
@@ -230,7 +258,9 @@ class PrismaServiceExporter {
         const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
             filename: filePath
         });
-        const worksheet = workbook.addWorksheet(this.labelNormalized ?? this.model);
+        const worksheet = workbook.addWorksheet(
+            this.labelNormalized ?? this.model
+        );
 
         worksheet.columns = this.getColumns();
 
@@ -280,7 +310,7 @@ class PrismaServiceExporter {
                 pageSize: this.pageSize,
                 page: i + 1,
                 include: this.include,
-                where: this.where,
+                where: this.where
             });
 
             if (!data) {
@@ -412,7 +442,7 @@ class PrismaServiceExporter {
                 }
             ],
             ':@': {
-                '@_xml:lang': this.skosLanguage
+                '@_xml:lang': this.glossaryLanguage
             }
         });
 
@@ -442,7 +472,7 @@ class PrismaServiceExporter {
                         }
                     ],
                     ':@': {
-                        '@_xml:lang': this.skosLanguage
+                        '@_xml:lang': this.glossaryLanguage
                     }
                 });
             }
@@ -476,7 +506,7 @@ class PrismaServiceExporter {
                     }
                 ],
                 ':@': {
-                    '@_xml:lang': this.skosLanguage
+                    '@_xml:lang': this.glossaryLanguage
                 }
             });
         }
@@ -489,7 +519,7 @@ class PrismaServiceExporter {
                     }
                 ],
                 ':@': {
-                    '@_xml:lang': this.skosLanguage
+                    '@_xml:lang': this.glossaryLanguage
                 }
             });
         }
@@ -503,7 +533,7 @@ class PrismaServiceExporter {
                         }
                     ],
                     ':@': {
-                        '@_xml:lang': this.skosLanguage
+                        '@_xml:lang': this.glossaryLanguage
                     }
                 });
             }
@@ -571,28 +601,32 @@ class PrismaServiceExporter {
                 {
                     'skos:prefLabel': [
                         {
-                            '#text': process.env.APP_NAME
+                            '#text': this.glossaryName
                         }
                     ],
                     ':@': {
-                        '@_xml:lang': this.skosLanguage
-                    }
-                },
-                {
-                    'skos:definition': [
-                        {
-                            '#text': process.env.APP_DESCRIPTION
-                        }
-                    ],
-                    ':@': {
-                        '@_xml:lang': this.skosLanguage
+                        '@_xml:lang': this.glossaryLanguage
                     }
                 }
-            ],
-            ':@': {
-                '@_rdf:about': resourceURI + conceptSchemeId
-            }
+            ]
         } as any;
+
+        if (this.glossaryDescription) {
+            conceptScheme['skos:ConceptScheme'].push({
+                'skos:definition': [
+                    {
+                        '#text': this.glossaryDescription
+                    }
+                ],
+                ':@': {
+                    '@_xml:lang': this.glossaryLanguage
+                }
+            });
+        }
+
+        conceptScheme[':@'] = {
+            '@_rdf:about': resourceURI + conceptSchemeId
+        };
 
         const where = { parentId: { isNull: true } };
 
@@ -600,7 +634,7 @@ class PrismaServiceExporter {
             pageSize: -1,
             page: 1,
             where
-        });
+        }, true);
 
         if (topConcepts && topConcepts.items.length > 0) {
             for (const topConcept of topConcepts.items) {

@@ -183,7 +183,6 @@ class PrismaServiceImporter {
 
             this.prismaService.setProgress(this.processId, 100, 'Finished');
             this.endTime = performance.now();
-            this.setImportReport();
         } catch (error) {
             this.prismaService.setProgress(
                 this.processId,
@@ -197,6 +196,7 @@ class PrismaServiceImporter {
             this.endTime = performance.now();
             // @ts-ignore
             this.errors.push(error.message ?? JSON.stringify(error));
+        } finally {
             this.setImportReport();
         }
     }
@@ -597,15 +597,19 @@ class PrismaServiceImporter {
                     this.processedItems++;
                     position++;
                     await this.upsertConcept(oldId, concept, update);
+                    logger.debug(`Processed concept ${oldId}`);
                 }
             }
         } catch (error) {
+            logger.error(error);
             throw error;
         }
     }
 
     async upsertConcept(oldId: string, concept: any, update: boolean = true) {
         let create = !update;
+
+        logger.debug(`Processing concept ${oldId}`);
 
         this.updateProgress(
             this.totalItems,
@@ -614,6 +618,7 @@ class PrismaServiceImporter {
         );
 
         if (update) {
+            logger.debug(`Checking if concept ${oldId} exists`);
             const foundConcepts = await this.prismaService.readMany(
                 {
                     where: { name: concept.name }
@@ -621,8 +626,11 @@ class PrismaServiceImporter {
                 true
             );
 
+            logger.debug(`Found ${foundConcepts.total} concepts`);
+
             if (foundConcepts && foundConcepts.items.length > 0) {
                 const existingConcept = foundConcepts.items[0] as Concept;
+                logger.debug(`Updating concept ${oldId}`);
                 await this.prismaService.updateOne(existingConcept.id, concept);
                 this.createdConcepts.set(oldId, existingConcept.id);
             } else {
@@ -631,6 +639,7 @@ class PrismaServiceImporter {
         }
 
         if (create) {
+            logger.debug(`Creating concept ${oldId}`);
             const newConcept = await this.prismaService.createOne(concept);
             this.createdConcepts.set(oldId, newConcept.id);
         }
@@ -647,6 +656,8 @@ class PrismaServiceImporter {
                 this.currentProgress + 5,
                 'Processando relacionamentos'
             );
+
+            logger.info('Processing relations');
 
             for (const [oldId, relatedConcepts] of related) {
                 // delete relations in other direction in related map to avoid duplicate relations

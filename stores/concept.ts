@@ -4,7 +4,7 @@ export const useConceptStore = defineStore('concept', () => {
     const conceptIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
     const pageSizes = ref([12, 24, 36]);
-    const pageSize = ref(pageSizes.value[0]);
+    const pageSize = ref(pageSizes.value[1]);
     const total = ref(0);
     const totalPages = ref(0);
     const search = ref('');
@@ -356,6 +356,16 @@ export const useConceptStore = defineStore('concept', () => {
         }
     }
 
+    function resetFilters() {
+        search.value = '';
+        searchInitialLetter.value = 'TODOS';
+        sort.value = 'asc';
+        page.value = 1;
+        pageSize.value = pageSizes.value[1];
+        descendantsIds.value = [];
+        ancestors.value = <Concept[]>[];
+    }
+
     return {
         conceptIdentifier,
         page,
@@ -387,6 +397,7 @@ export const useConceptStore = defineStore('concept', () => {
         exportData,
         reset,
         resetConcept,
+        resetFilters,
         clearSelection
     };
 });

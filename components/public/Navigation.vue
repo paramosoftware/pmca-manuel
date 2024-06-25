@@ -36,8 +36,8 @@
                 :show-breadcrumb="showHeader"
                 :has-header="showHeader"
             >
-                <template #actions-title> 
-                    {{ individualCard ? 'Ações:' : 'Visualizações:' }}
+                <template #actions-title>
+                    {{ showActions ? 'Ações:' : 'Visualizações:' }}
                 </template>
                 <template #actions-icons>
                     <UIIcon
@@ -50,9 +50,9 @@
                         }"
                         class="hover:text-pmca-accent"
                         @click="changeView(visualization.id)"
-                        v-if="!individualCard"
+                        v-if="!showActions"
                     />
-                    <PublicActionsBar v-else-if="individualCard" />
+                    <PublicActionsBar v-else :user-selection="userSelection" />
                 </template>
 
                 <template #actions-sub-title v-if="isHierarchical">
@@ -68,7 +68,8 @@
                 </template>
 
                 <PublicList
-                    :hasAlphabeticalFilter="isAlphabetical"
+                    :hasAlphabeticalFilter="isAlphabetical && !userSelection"
+                    :user-selection="userSelection"
                     v-if="showList"
                 />
 
@@ -87,6 +88,10 @@ const props = defineProps({
         default: 'Termos'
     },
     individualCard: {
+        type: Boolean,
+        default: false
+    },
+    userSelection: {
         type: Boolean,
         default: false
     },
@@ -122,13 +127,19 @@ const currentView = ref('hierarchical');
 const isHierarchical = computed(() => currentView.value === 'hierarchical');
 const isDiagram = computed(() => currentView.value === 'diagram');
 const isAlphabetical = computed(() => currentView.value === 'alphabetical');
-const showLeftSide = computed(() => isHierarchical.value === true);
+const showLeftSide = computed(
+    () =>
+        (isHierarchical.value === true || props.individualCard === true) &&
+        !props.userSelection
+);
 const showList = computed(
     () =>
-        (isAlphabetical.value || isHierarchical.value) &&
+        (isAlphabetical.value || isHierarchical.value || props.userSelection) &&
         !props.individualCard
 );
 const showHeader = computed(() => !isDiagram.value && !props.individualCard);
+const showActions = computed(() => props.individualCard || props.userSelection);
+
 const isSlideOverOpen = ref(false);
 const leftWidth = ref(300);
 const rightWidth = ref(300);
@@ -140,29 +151,47 @@ const resizeRef = ref<HTMLElement | null>(null);
 const moveX = ref(0);
 const closed = ref(false);
 const leftMediumWidthPercentage = 0.25;
-const leftMaxWidthPercentage = 0.6;
+const leftMaxWidthPercentage = 0.5;
 const leftMinWidthPercentage = 0.05;
 const drag = ref(false);
 
-watch(() => props.individualCard, () => {
-    if (props.individualCard === false) {
-        conceptStore.resetConcept();
+watch(
+    () => props.individualCard,
+    () => {
+        if (props.individualCard === false) {
+            conceptStore.resetConcept();
+        }
     }
-});
+);
 
 onMounted(() => {
     if (props.individualCard === false) {
         conceptStore.resetConcept();
     }
 
-    setInitialDimensions();
-    setResizeListeners();
+    if (showLeftSide.value) {
+        setInitialDimensions();
+        setResizeListeners();
+    }
 });
 
 onUpdated(() => {
-    if (isHierarchical.value) {
+    if (showLeftSide.value) {
+        setInitialDimensions();
         setResizeListeners();
     }
+
+    if (props.individualCard === false) {
+        conceptStore.resetConcept();
+    }
+
+    if (!isAlphabetical.value) {
+        conceptStore.resetFilters();
+    }
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', setInitialDimensions);
 });
 
 function setInitialDimensions() {
@@ -170,12 +199,15 @@ function setInitialDimensions() {
         return;
     }
 
-    moveX.value =
-        leftRef.value.getBoundingClientRect().width +
-        resizeRef.value.getBoundingClientRect().width / 2;
+    const leftClientWidth = leftRef.value!.getBoundingClientRect().width;
+    const resizeClientWidth = resizeRef.value!.getBoundingClientRect().width;
+
+    moveX.value = leftClientWidth + resizeClientWidth / 2;
     containerWidth.value = containerRef.value!.getBoundingClientRect().width;
-    leftWidth.value = containerWidth.value * 0.25;
+
+    leftWidth.value = containerWidth.value * leftMediumWidthPercentage;
     rightWidth.value = containerWidth.value - leftWidth.value;
+    getStoredNavigationConfig();
     resizeSides();
 }
 
@@ -203,6 +235,8 @@ function resizeSides() {
 
     leftRef.value!.style.width = `${leftWidth.value}px`;
     rightRef.value!.style.width = `${rightWidth.value}px`;
+
+    saveNavigationConfig();
 }
 
 function openNavigation() {
@@ -219,10 +253,11 @@ function closeNavigation() {
 
 function changeView(view: string) {
     currentView.value = view;
+    saveNavigationConfig();
 }
 
 function setHTMLReferences() {
-    if (!isHierarchical.value) {
+    if (!showLeftSide.value) {
         return false;
     }
 
@@ -286,5 +321,62 @@ function setResizeListeners() {
     containerRef.value!.addEventListener('mouseup', function (e) {
         drag.value = false;
     });
+
+    saveNavigationConfig();
+}
+
+function getStoredNavigationConfig() {
+    const storedConfig = localStorage.getItem('navigationConfig');
+
+    if (storedConfig && setHTMLReferences()) {
+        const config = JSON.parse(storedConfig);
+
+        const containerWidth =
+            containerRef.value!.getBoundingClientRect().width;
+
+        const storedContainerWidth = config.containerWidth ?? 0;
+
+        const containerWidthDifference = Math.abs(
+            containerWidth - storedContainerWidth
+        );
+
+        if (containerWidthDifference > containerWidth * 0.1) {
+            return false;
+        } else if (containerWidthDifference <= containerWidth * 0.1) {
+            const leftWidthPercentage = config.leftWidth / storedContainerWidth;
+            const rightWidthPercentage =
+                config.rightWidth / storedContainerWidth;
+            leftWidth.value = containerWidth * leftWidthPercentage;
+            rightWidth.value = containerWidth * rightWidthPercentage;
+        } else {
+            leftWidth.value = containerWidth * leftMediumWidthPercentage;
+            rightWidth.value = containerWidth - leftWidth.value;
+        }
+
+        if (config.closed) {
+            closed.value = config.closed;
+        }
+
+        if (config.currentView) {
+            currentView.value = config.currentView;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+function saveNavigationConfig() {
+    localStorage.setItem(
+        'navigationConfig',
+        JSON.stringify({
+            leftWidth: leftWidth.value,
+            rightWidth: rightWidth.value,
+            closed: closed.value,
+            currentView: currentView.value,
+            containerWidth: containerWidth.value
+        })
+    );
 }
 </script>

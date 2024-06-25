@@ -31,6 +31,7 @@ import { Splide, SplideSlide, SplideTrack } from '@splidejs/vue-splide';
 import '@splidejs/vue-splide/css';
 
 const conceptStore = useConceptStore();
+conceptStore.reset();
 await conceptStore.load();
 const { concepts } = storeToRefs(conceptStore);
 

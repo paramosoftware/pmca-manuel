@@ -845,7 +845,6 @@ class PrismaService {
         returnIds = false,
         returnNodeDepth = false
     ) {
-
         if (this.model !== 'Concept') {
             throw new ApiValidationError(
                 'findTreeDepth is only available for Concept model'
@@ -1363,13 +1362,16 @@ class PrismaService {
             return false;
         }
 
+        // TODO: Check is this function is being used correctly from processCreateOrUpdateRequest (line 928) [PMCA-470]
+        const relationField = field.relationFromFields?.[0] ?? '';
+
         if (
             field.isRequired &&
             !field.hasDefaultValue &&
             !field.isList &&
             !field.isUpdatedAt
         ) {
-            if (body[field.name]) {
+            if (body[field.name] || body[relationField]) {
                 return false;
             }
 
@@ -1645,16 +1647,21 @@ class PrismaService {
         const resourceFieldService =
             this.initPrismaServiceWithFlags('ResourceField');
 
-        const fields = (await resourceFieldService.getModelClient(true).findMany(
-            {
-                where: {
-                    resource: {
-                        name: this.model
+        const fields = (await resourceFieldService
+            .getModelClient(true)
+            .findMany(
+                {
+                    where: {
+                        resource: {
+                            name: this.model
+                        }
+                    },
+                    include: {
+                        resource: true
                     }
-                }
-            },
-            false
-        )) as unknown as ResourceField[];
+                },
+                false
+            )) as unknown as ResourceField[];
 
         const fieldsMap = new Map<string, any>();
 
@@ -1668,7 +1675,7 @@ class PrismaService {
             changes: string;
         }[];
 
-        fieldsToTrack.forEach((field: any) => {
+        for (const field of fieldsToTrack) {
             if (typeof newData[field] === 'string' || newData[field] === null) {
                 if (newData[field] !== oldData[field]) {
                     _addChange(
@@ -1688,44 +1695,60 @@ class PrismaService {
                         name: item.name || undefined,
                         id: item.id || undefined
                     }));
+
                     const oldItems = oldData[field].map((item: any) => ({
                         name: item.name || undefined,
                         id: item.id || undefined
                     }));
 
-                    const added = newItems.filter(
-                        (newItem: any) =>
-                            !oldItems.some((oldItem: any) =>
-                                newItem.name
-                                    ? newItem.name !== oldItem.name
-                                    : newItem[Object.keys(newItem)[0]] !==
-                                      oldItem[Object.keys(oldItem)[0]]
-                            )
-                    );
-                    const removed = oldItems.filter(
-                        (oldItem: any) =>
-                            !newItems.some((newItem: any) =>
-                                newItem.name
-                                    ? newItem.name.trim() ===
-                                      oldItem.name.trim()
-                                    : newItem.id === oldItem.id
-                            )
-                    );
+                    const added = newItems.filter((newItem: any) => {
+                        return !oldItems.some((oldItem: any) => {
+                            if (newItem.name) {
+                                return newItem.name !== oldItem.name;
+                            } else if (newItem.id) {
+                                return newItem.id !== oldItem.id;
+                            }
+                        });
+                    });
+
+                    const removed = oldItems.filter((oldItem: any) => {
+                        return !newItems.some((newItem: any) => {
+                            if (newItem.name) {
+                                return (
+                                    newItem.name.trim() === oldItem.name.trim()
+                                );
+                            } else if (newItem.id) {
+                                return newItem.id === oldItem.id;
+                            }
+                        });
+                    });
 
                     const fieldChanges = {} as {
                         added: string[];
                         removed: string[];
                     };
+
                     if (added.length > 0) {
-                        fieldChanges['added'] = added.map((item: any) =>
-                            JSON.stringify(item)
-                        );
+                        for (const item of added) {
+                            const itemName = await _getItemName(field, item);
+                            if (itemName) {
+                                fieldChanges['added'] = [
+                                    ...(fieldChanges['added'] || []),
+                                    itemName
+                                ];
+                            }
+                        }
                     }
 
                     if (removed.length > 0) {
-                        fieldChanges['removed'] = removed.map((item: any) =>
-                            JSON.stringify(item)
-                        );
+                        const removedNames = removed
+                            .filter(
+                                (item: any) =>
+                                    item.name !== undefined && item.name !== ''
+                            )
+                            .map((item: any) => item.name);
+
+                        fieldChanges['removed'] = removedNames;
                     }
 
                     if (added.length > 0 || removed.length > 0) {
@@ -1748,7 +1771,7 @@ class PrismaService {
                     }
                 }
             }
-        });
+        }
 
         return changes;
 
@@ -1776,6 +1799,27 @@ class PrismaService {
             }
 
             changes.push(data);
+        }
+
+        async function _getItemName(field: string, item: Item) {
+            const resource = fieldsMap.get(field)?.resource.model;
+
+            if (item.name) {
+                return item.name;
+            }
+
+            if (item.id && resource) {
+                const itemService = new PrismaService(resource, false);
+                const itemData = await itemService.readOne(item.id, {
+                    select: ['name']
+                });
+
+                if (itemData) {
+                    return itemData.name;
+                }
+            }
+
+            return '';
         }
     }
 
@@ -1818,7 +1862,7 @@ class PrismaService {
         PrismaService.transactionId = '';
         PrismaService.transactionOpen = false;
         this.inTransaction = false;
-        PrismaService._clientWriter = PrismaService.getPrismaClientWriter(true);
+        PrismaService._clientWriter = PrismaService.getPrismaClientWriter();
     }
 
     initPrismaServiceWithFlags(model: string) {
