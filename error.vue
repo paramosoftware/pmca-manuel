@@ -1,7 +1,7 @@
 <template>
     <NuxtLayout :name="layout">
         <PublicPage :show-breadcrumb="false">
-            <div class="items-center justify-center flex flex-col">
+            <div class="items-center justify-center flex flex-col min-h-[70vh]">
                 <UIIcon name="ph:warning-circle" class="w-24 h-24" />
                 <h1 class="text-5xl text-center font-bold">
                     {{ title }}
