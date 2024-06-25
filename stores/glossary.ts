@@ -22,8 +22,6 @@ export const useGlossaryStore = defineStore('glossary', () => {
             error: Ref<Error | undefined>;
         };
 
-        console.log(data.value);
-
         if (data.value && data.value.items.length > 0) {
             id.value = data.value.items[0].id;
             code.value = data.value.items[0].code;
