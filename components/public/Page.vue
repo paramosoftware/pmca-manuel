@@ -6,7 +6,7 @@
             class="flex justify-end border-b border-gray-200 border bg-gray-50"
             v-if="hasActions()"
         >
-            <div class="flex flex-row items-center space-x-4 px-4 py-2">
+            <div class="flex flex-row items-center space-x-4 p-4">
                 <h4 class="text-sm font-semibold text-pmca-primary">
                     <slot name="actions-title"></slot>
                 </h4>
@@ -17,7 +17,7 @@
             class="flex justify-end border-b border-gray-200 border bg-gray-50 lg:hidden"
             v-if="hasSubActions()"
         >
-            <div class="flex flex-row items-center space-x-4 px-4 py-2">
+            <div class="flex flex-row items-center space-x-4 p-4">
                 <h4 class="text-sm font-semibold text-pmca-primary">
                     <slot name="actions-sub-title"></slot>
                 </h4>

@@ -36,8 +36,8 @@
                 :show-breadcrumb="showHeader"
                 :has-header="showHeader"
             >
-                <template #actions-title> 
-                    {{ individualCard ? 'Ações:' : 'Visualizações:' }}
+                <template #actions-title>
+                    {{ showActions ? 'Ações:' : 'Visualizações:' }}
                 </template>
                 <template #actions-icons>
                     <UIIcon
@@ -50,9 +50,9 @@
                         }"
                         class="hover:text-pmca-accent"
                         @click="changeView(visualization.id)"
-                        v-if="!individualCard"
+                        v-if="!showActions"
                     />
-                    <PublicActionsBar v-else-if="individualCard" />
+                    <PublicActionsBar v-else :user-selection="userSelection" />
                 </template>
 
                 <template #actions-sub-title v-if="isHierarchical">
@@ -68,7 +68,8 @@
                 </template>
 
                 <PublicList
-                    :hasAlphabeticalFilter="isAlphabetical"
+                    :hasAlphabeticalFilter="isAlphabetical && !userSelection"
+                    :user-selection="userSelection"
                     v-if="showList"
                 />
 
@@ -87,6 +88,10 @@ const props = defineProps({
         default: 'Termos'
     },
     individualCard: {
+        type: Boolean,
+        default: false
+    },
+    userSelection: {
         type: Boolean,
         default: false
     },
@@ -122,13 +127,19 @@ const currentView = ref('hierarchical');
 const isHierarchical = computed(() => currentView.value === 'hierarchical');
 const isDiagram = computed(() => currentView.value === 'diagram');
 const isAlphabetical = computed(() => currentView.value === 'alphabetical');
-const showLeftSide = computed(() => isHierarchical.value === true || props.individualCard === true);
+const showLeftSide = computed(
+    () =>
+        (isHierarchical.value === true || props.individualCard === true) &&
+        !props.userSelection
+);
 const showList = computed(
     () =>
-        (isAlphabetical.value || isHierarchical.value) &&
+        (isAlphabetical.value || isHierarchical.value || props.userSelection) &&
         !props.individualCard
 );
 const showHeader = computed(() => !isDiagram.value && !props.individualCard);
+const showActions = computed(() => props.individualCard || props.userSelection);
+
 const isSlideOverOpen = ref(false);
 const leftWidth = ref(300);
 const rightWidth = ref(300);
@@ -144,12 +155,14 @@ const leftMaxWidthPercentage = 0.5;
 const leftMinWidthPercentage = 0.05;
 const drag = ref(false);
 
-watch(() => props.individualCard, () => {
-    if (props.individualCard === false) {
-        conceptStore.resetConcept();
+watch(
+    () => props.individualCard,
+    () => {
+        if (props.individualCard === false) {
+            conceptStore.resetConcept();
+        }
     }
-});
-
+);
 
 onMounted(() => {
     if (props.individualCard === false) {
@@ -318,17 +331,21 @@ function getStoredNavigationConfig() {
     if (storedConfig && setHTMLReferences()) {
         const config = JSON.parse(storedConfig);
 
-        const containerWidth = containerRef.value!.getBoundingClientRect().width;
-        
+        const containerWidth =
+            containerRef.value!.getBoundingClientRect().width;
+
         const storedContainerWidth = config.containerWidth ?? 0;
 
-        const containerWidthDifference = Math.abs(containerWidth - storedContainerWidth);
+        const containerWidthDifference = Math.abs(
+            containerWidth - storedContainerWidth
+        );
 
         if (containerWidthDifference > containerWidth * 0.1) {
             return false;
         } else if (containerWidthDifference <= containerWidth * 0.1) {
             const leftWidthPercentage = config.leftWidth / storedContainerWidth;
-            const rightWidthPercentage = config.rightWidth / storedContainerWidth;
+            const rightWidthPercentage =
+                config.rightWidth / storedContainerWidth;
             leftWidth.value = containerWidth * leftWidthPercentage;
             rightWidth.value = containerWidth * rightWidthPercentage;
         } else {
@@ -358,9 +375,8 @@ function saveNavigationConfig() {
             rightWidth: rightWidth.value,
             closed: closed.value,
             currentView: currentView.value,
-            containerWidth: containerWidth.value,
+            containerWidth: containerWidth.value
         })
     );
 }
-
 </script>
