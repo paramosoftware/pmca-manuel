@@ -9,13 +9,15 @@ import getDataFolderPath from '~/utils/getDataFolderPath';
 import { useCamelCase } from '~/utils/useCamelCase';
 import PrismaService from './PrismaService';
 
-export const exportData = (function () {
-    // TODO: Convert to class
-    // TODO: Validate if is public (and set only published in service)
-
-    const resourceURI = '#'; // TODO: Change this to the correct URI
-    const conceptSchemeId = 'A0'; // TODO: Create real concept scheme id
-    const xmlOptions = {
+class PrismaServiceExporter {
+    private model: string;
+    private prismaService: PrismaService;
+    private resourceURI = '#'; // TODO: Change this to the correct URI [PMCA-400]
+    private glossaryCode = 'A0';
+    private glossaryLanguage = 'pt';
+    private glossaryName = 'Glossário';
+    private glossaryDescription = '';
+    private xmlOptions = {
         ignoreAttributes: false,
         format: true,
         preserveOrder: true,
@@ -23,34 +25,37 @@ export const exportData = (function () {
         suppressEmptyNode: true,
         ignorePiTags: true
     };
-    const skosLanguage = 'pt'; // TODO: Make this dynamic
-    const pageSize = 200;
+    private pageSize = 200;
+    private include: Include | undefined;
+    private where: Where | undefined;
+    private labelNormalized: string | undefined;
+    private mediaFiles = new Map<string, string>(); // Keep track of media files to add to zip with old file name and new file name
+    private labelMap = new Map<string, string>();
+    private camelCaseMap = new Map<string, string>();
 
-    const mediaFiles = new Map<string, string>(); // Keep track of media files to add to zip with old file name and new file name
-    const camelCaseMap = new Map<string, string>();
-    const labelMap = new Map<string, string>();
+    /**
+     * Prisma Service Exporter
+     * @param prismaService PrismaService instance
+     */
+    constructor(prismaService: PrismaService) {
+        this.prismaService = prismaService;
+        this.model = prismaService.getModel();
+    }
 
-    let exportModel: string;
-    let include: Include | undefined;
-    let where: Where | undefined;
-    let labelNormalized: string | undefined;
-
-    async function exportToFormat(
-        model: string,
+    async exportToFormat(
         format: DataTransferFormat,
         addMedia: boolean = false,
         query?: Query,
         template?: string
     ) {
-        if (!model || !format) {
+        if (!format) {
             return;
         }
 
-        exportModel = model;
-        include = QUERIES.get(model)?.include || '*';
-        where = query?.where || undefined;
+        await this.setResourceConfig();
 
-        await setResourceConfig();
+        this.include = QUERIES.get(this.model)?.include || '*';
+        this.where = query?.where || undefined;
 
         const filePath = path.join(
             getDataFolderPath('temp'),
@@ -63,17 +68,18 @@ export const exportData = (function () {
 
         switch (format) {
             case 'xlsx':
-                await exportToXlsx(filePath);
+                await this.exportToXlsx(filePath);
                 break;
             case 'csv':
-                await exportToCsv(filePath);
+                await this.exportToCsv(filePath);
                 break;
             case 'json':
-                await exportToJson(filePath);
+                await this.exportToJson(filePath);
                 break;
             case 'xml':
-                if (model === 'Concept') {
-                    await exportToSkos(filePath);
+                if (this.model === 'Concept') {
+                    await this.getGlossaryProperties();
+                    await this.exportToSkos(filePath);
                 }
                 break;
             default:
@@ -81,17 +87,17 @@ export const exportData = (function () {
         }
 
         if (addMedia) {
-            createZip(filePath, zipPath);
+            this.createZip(filePath, zipPath);
             return zipPath;
         } else {
             return filePath;
         }
     }
 
-    function createZip(filePath: string, zipPath: string) {
+    private async createZip(filePath: string, zipPath: string) {
         const zip = new Zip();
 
-        for (const [fileName, newFileName] of mediaFiles) {
+        for (const [fileName, newFileName] of this.mediaFiles) {
             const absoluteFilePath = path.join(
                 getDataFolderPath('media'),
                 fileName
@@ -109,10 +115,10 @@ export const exportData = (function () {
         fs.unlinkSync(filePath);
     }
 
-    async function setResourceConfig() {
+    async setResourceConfig() {
         const resourceService = new PrismaService('Resource');
 
-        const resourceConfig = await resourceService.readOne(exportModel, {
+        const resourceConfig = await resourceService.readOne(this.model, {
             include: {
                 fields: {
                     orderBy: {
@@ -122,34 +128,54 @@ export const exportData = (function () {
             }
         });
 
-        labelNormalized = resourceConfig?.labelNormalized;
+        this.labelNormalized = resourceConfig?.labelNormalized;
 
         if (resourceConfig) {
             for (const field of resourceConfig.fields) {
                 if (field.labelNormalized && field.includeExport) {
-                    camelCaseMap.set(
+                    this.camelCaseMap.set(
                         field.name,
                         useCamelCase().to(field.labelNormalized)
                     );
-                    labelMap.set(field.name, field.labelNormalized);
+                    this.labelMap.set(field.name, field.labelNormalized);
                 }
             }
         }
     }
 
-    async function exportToJson(filePath: string) {
+    async getGlossaryProperties() {
+        const glossaryService = new PrismaService('Glossary');
+
+        const data = await glossaryService.readMany(
+            { pageSize: 1, include: ['language'] },
+            true
+        );
+
+        if (data && data.items.length > 0) {
+            const glossary = data.items[0] as Glossary;
+            this.glossaryCode =
+                glossary.code ??
+                glossary.nameNormalized?.replace(/ /g, '-') ??
+                'A0';
+            this.glossaryLanguage =
+                glossary.language?.code ?? this.glossaryLanguage;
+            this.glossaryName = glossary.name ?? this.glossaryName;
+            this.glossaryDescription = glossary.description ?? '';
+        }
+    }
+
+    async exportToJson(filePath: string) {
         fs.writeFileSync(filePath, '');
         fs.appendFileSync(filePath, '[');
 
         let totalPages = 1;
 
         for (let i = 0; i < totalPages; i++) {
-            const prismaService = new PrismaService(exportModel);
-            const data = await prismaService.readMany({
-                pageSize,
+            const data = await this.prismaService.readMany({
+                pageSize: this.pageSize,
                 page: i + 1,
-                include,
-                where
+                include: this.include,
+                where: this.where
             });
 
             if (!data) {
@@ -159,10 +185,13 @@ export const exportData = (function () {
             totalPages = data.totalPages;
 
             for (const item of data.items) {
-                const obj = replaceKeys(buildExportItem(item), camelCaseMap);
+                const obj = this.replaceKeys(
+                    this.buildExportItem(item),
+                    this.camelCaseMap
+                );
                 fs.appendFileSync(filePath, JSON.stringify(obj, null, 2));
                 fs.appendFileSync(filePath, ',');
-                addMediaToMap(item.media, item.nameSlug);
+                this.addMediaToMap(item.media, item.nameSlug);
             }
         }
 
@@ -172,7 +201,7 @@ export const exportData = (function () {
         fs.appendFileSync(filePath, ']');
     }
 
-    async function exportToSkos(filePath: string) {
+    private async exportToSkos(filePath: string) {
         fs.writeFileSync(filePath, '');
         fs.appendFileSync(filePath, '<?xml version="1.0" encoding="UTF-8"?>');
         fs.appendFileSync(filePath, '\n');
@@ -182,24 +211,23 @@ export const exportData = (function () {
         );
         fs.appendFileSync(filePath, '\n');
 
-        const xmlBuilder = new XMLBuilder(xmlOptions);
+        const xmlBuilder = new XMLBuilder(this.xmlOptions);
         let totalPages = 1;
 
-        addSkosProperties(
+        this.addSkosProperties(
             filePath,
             xmlBuilder,
-            resourceURI,
-            conceptSchemeId,
-            exportModel
+            this.resourceURI,
+            this.glossaryCode,
+            this.model
         );
 
         for (let i = 0; i < totalPages; i++) {
-            const prismaService = new PrismaService(exportModel);
-            const data = await prismaService.readMany({
-                pageSize,
+            const data = await this.prismaService.readMany({
+                pageSize: this.pageSize,
                 page: i + 1,
-                include,
-                where,
+                include: this.include,
+                where: this.where,
                 orderBy: {
                     position: 'asc'
                 }
@@ -212,13 +240,13 @@ export const exportData = (function () {
             totalPages = data.totalPages;
 
             for (const item of data.items) {
-                const concept = buildSkosConcept(
+                const concept = this.buildSkosConcept(
                     item,
-                    resourceURI,
-                    conceptSchemeId
+                    this.resourceURI,
+                    this.glossaryCode
                 );
                 fs.appendFileSync(filePath, xmlBuilder.build(concept));
-                addMediaToMap(item.media, item.nameSlug);
+                this.addMediaToMap(item.media, item.nameSlug);
             }
         }
 
@@ -226,23 +254,24 @@ export const exportData = (function () {
         fs.appendFileSync(filePath, '</rdf:RDF>');
     }
 
-    async function exportToXlsx(filePath: string) {
+    async exportToXlsx(filePath: string) {
         const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
             filename: filePath
         });
-        const worksheet = workbook.addWorksheet(labelNormalized ?? exportModel);
+        const worksheet = workbook.addWorksheet(
+            this.labelNormalized ?? this.model
+        );
 
-        worksheet.columns = getColumns();
+        worksheet.columns = this.getColumns();
 
         let totalPages = 1;
 
         for (let i = 0; i < totalPages; i++) {
-            const prismaService = new PrismaService(exportModel);
-            const data = await prismaService.readMany({
-                pageSize,
+            const data = await this.prismaService.readMany({
+                pageSize: this.pageSize,
                 page: i + 1,
-                include,
-                where
+                include: this.include,
+                where: this.where
             });
 
             if (!data) {
@@ -252,7 +281,7 @@ export const exportData = (function () {
             totalPages = data.totalPages;
 
             for (const item of data.items) {
-                const obj = buildExportItem(item);
+                const obj = this.buildExportItem(item);
                 const keys = Object.keys(obj);
 
                 for (const key of keys) {
@@ -262,27 +291,26 @@ export const exportData = (function () {
                 }
 
                 worksheet.addRow(obj).commit();
-                addMediaToMap(item.media, item.nameSlug);
+                this.addMediaToMap(item.media, item.nameSlug);
             }
         }
 
         await workbook.commit();
     }
 
-    async function exportToCsv(filePath: string) {
+    async exportToCsv(filePath: string) {
         fs.writeFileSync(filePath, '');
 
-        const columns = getColumns();
+        const columns = this.getColumns();
 
         let totalPages = 1;
 
         for (let i = 0; i < totalPages; i++) {
-            const prismaService = new PrismaService(exportModel);
-            const data = await prismaService.readMany({
-                pageSize,
+            const data = await this.prismaService.readMany({
+                pageSize: this.pageSize,
                 page: i + 1,
-                include,
-                where
+                include: this.include,
+                where: this.where
             });
 
             if (!data) {
@@ -294,7 +322,7 @@ export const exportData = (function () {
             const rows = [] as string[];
 
             for (const item of data.items) {
-                const obj = buildExportItem(item);
+                const obj = this.buildExportItem(item);
 
                 const keys = Object.keys(obj);
 
@@ -304,7 +332,7 @@ export const exportData = (function () {
                     }
                 }
 
-                addMediaToMap(item.media, item.nameSlug);
+                this.addMediaToMap(item.media, item.nameSlug);
 
                 rows.push(obj);
             }
@@ -323,14 +351,14 @@ export const exportData = (function () {
         }
     }
 
-    async function addSkosProperties(
+    async addSkosProperties(
         filePath: string,
         xmlBuilder: XMLBuilder,
         resourceURI: string,
         conceptSchemeId: string,
         model: string
     ) {
-        const referenceNote = buildRdfProperty(
+        const referenceNote = this.buildRdfProperty(
             'referenceNote',
             'Bibliographic reference to the concept',
             'Reference',
@@ -340,7 +368,7 @@ export const exportData = (function () {
 
         fs.appendFileSync(filePath, xmlBuilder.build(referenceNote));
 
-        const conceptScheme = await buildSkosConceptScheme(
+        const conceptScheme = await this.buildSkosConceptScheme(
             model,
             resourceURI,
             conceptSchemeId
@@ -349,7 +377,7 @@ export const exportData = (function () {
         fs.appendFileSync(filePath, xmlBuilder.build(conceptScheme));
     }
 
-    function buildRdfProperty(
+    private buildRdfProperty(
         name: string,
         comment: string,
         label: string,
@@ -387,7 +415,7 @@ export const exportData = (function () {
         ];
     }
 
-    function buildSkosConcept(
+    private buildSkosConcept(
         concept: Concept,
         resourceURI: string,
         conceptSchemeId: string
@@ -414,7 +442,7 @@ export const exportData = (function () {
                 }
             ],
             ':@': {
-                '@_xml:lang': skosLanguage
+                '@_xml:lang': this.glossaryLanguage
             }
         });
 
@@ -444,7 +472,7 @@ export const exportData = (function () {
                         }
                     ],
                     ':@': {
-                        '@_xml:lang': skosLanguage
+                        '@_xml:lang': this.glossaryLanguage
                     }
                 });
             }
@@ -478,7 +506,7 @@ export const exportData = (function () {
                     }
                 ],
                 ':@': {
-                    '@_xml:lang': skosLanguage
+                    '@_xml:lang': this.glossaryLanguage
                 }
             });
         }
@@ -491,7 +519,7 @@ export const exportData = (function () {
                     }
                 ],
                 ':@': {
-                    '@_xml:lang': skosLanguage
+                    '@_xml:lang': this.glossaryLanguage
                 }
             });
         }
@@ -505,7 +533,7 @@ export const exportData = (function () {
                         }
                     ],
                     ':@': {
-                        '@_xml:lang': skosLanguage
+                        '@_xml:lang': this.glossaryLanguage
                     }
                 });
             }
@@ -563,7 +591,7 @@ export const exportData = (function () {
         return [newConcept];
     }
 
-    async function buildSkosConceptScheme(
+    private async buildSkosConceptScheme(
         model: string,
         resourceURI: string,
         conceptSchemeId: string
@@ -573,37 +601,40 @@ export const exportData = (function () {
                 {
                     'skos:prefLabel': [
                         {
-                            '#text': process.env.APP_NAME
+                            '#text': this.glossaryName
                         }
                     ],
                     ':@': {
-                        '@_xml:lang': skosLanguage
-                    }
-                },
-                {
-                    'skos:definition': [
-                        {
-                            '#text': process.env.APP_DESCRIPTION
-                        }
-                    ],
-                    ':@': {
-                        '@_xml:lang': skosLanguage
+                        '@_xml:lang': this.glossaryLanguage
                     }
                 }
-            ],
-            ':@': {
-                '@_rdf:about': resourceURI + conceptSchemeId
-            }
+            ]
         } as any;
+
+        if (this.glossaryDescription) {
+            conceptScheme['skos:ConceptScheme'].push({
+                'skos:definition': [
+                    {
+                        '#text': this.glossaryDescription
+                    }
+                ],
+                ':@': {
+                    '@_xml:lang': this.glossaryLanguage
+                }
+            });
+        }
+
+        conceptScheme[':@'] = {
+            '@_rdf:about': resourceURI + conceptSchemeId
+        };
 
         const where = { parentId: { isNull: true } };
 
-        const prismaService = new PrismaService(model);
-        const topConcepts = await prismaService.readMany({
+        const topConcepts = await this.prismaService.readMany({
             pageSize: -1,
             page: 1,
             where
-        });
+        }, true);
 
         if (topConcepts && topConcepts.items.length > 0) {
             for (const topConcept of topConcepts.items) {
@@ -619,7 +650,7 @@ export const exportData = (function () {
         return [conceptScheme];
     }
 
-    function buildExportItem(item: Concept) {
+    private buildExportItem(item: Concept) {
         const newItem = {} as any;
 
         newItem.id = item.nameSlug;
@@ -654,7 +685,7 @@ export const exportData = (function () {
         return newItem;
     }
 
-    function addMediaToMap(media: ConceptMedia[], nameSlug: string) {
+    private addMediaToMap(media: ConceptMedia[], nameSlug: string) {
         if (!media) {
             return;
         }
@@ -665,13 +696,13 @@ export const exportData = (function () {
             const position = mediaItem.position ? mediaItem.position : 1;
             const newFileName = `${nameSlug}_${position}.${extension}`;
 
-            mediaFiles.set(fileName, newFileName);
+            this.mediaFiles.set(fileName, newFileName);
         }
     }
 
-    function getColumns() {
-        let columns = Array.from(labelMap.keys()).map((key) => ({
-            header: labelMap.get(key),
+    private getColumns() {
+        let columns = Array.from(this.labelMap.keys()).map((key) => ({
+            header: this.labelMap.get(key),
             key: key
         }));
 
@@ -683,7 +714,7 @@ export const exportData = (function () {
         return columns;
     }
 
-    function replaceKeys(obj: any, map: Map<string, string>) {
+    private replaceKeys(obj: any, map: Map<string, string>) {
         const keys = Object.keys(obj);
         const newObj = {} as any;
         for (const key of keys) {
@@ -692,8 +723,6 @@ export const exportData = (function () {
         }
         return newObj;
     }
+}
 
-    return {
-        exportToFormat
-    };
-})();
+export default PrismaServiceExporter;

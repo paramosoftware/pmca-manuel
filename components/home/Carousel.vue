@@ -10,7 +10,7 @@
                     :key="concept.id"
                     class="mx-auto items-center justify-center"
                 >
-                    <PublicCard :concept="concept" />
+                    <PublicCard :concept="concept" width="w-full" />
                 </SplideSlide>
             </SplideTrack>
 
@@ -31,6 +31,7 @@ import { Splide, SplideSlide, SplideTrack } from '@splidejs/vue-splide';
 import '@splidejs/vue-splide/css';
 
 const conceptStore = useConceptStore();
+conceptStore.reset();
 await conceptStore.load();
 const { concepts } = storeToRefs(conceptStore);
 

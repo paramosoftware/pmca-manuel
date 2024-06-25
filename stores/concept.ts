@@ -1,11 +1,10 @@
 import QUERIES from '~/config/queries';
-
 export const useConceptStore = defineStore('concept', () => {
     const model = 'Concept';
     const conceptIdentifier = ref<ID>(''); // nameSlug or Id
     const page = ref(1);
-    const pageSize = ref(12);
     const pageSizes = ref([12, 24, 36]);
+    const pageSize = ref(pageSizes.value[1]);
     const total = ref(0);
     const totalPages = ref(0);
     const search = ref('');
@@ -22,11 +21,20 @@ export const useConceptStore = defineStore('concept', () => {
     const loadingStore = useLoadingStore();
     const ancestors = ref<Concept[]>([]);
     const descendantsIds = ref<ID[]>([]);
+    const searchInitialLetter = ref<string>('TODOS');
+    const maxPage = computed(() => Math.ceil(total.value / pageSize.value));
+    const date = new Date();
+
+    let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
 
     const query = computed(() => {
+        if (page.value > maxPage.value) {
+            page.value = 1;
+        }
+
         const q = {
             page: page.value,
             pageSize: pageSize.value,
@@ -82,6 +90,14 @@ export const useConceptStore = defineStore('concept', () => {
             });
         }
 
+        if (searchInitialLetter.value && searchInitialLetter.value !== "TODOS") {
+            q.where.AND.push({
+                name: {
+                    startsWith: searchInitialLetter.value
+                }
+            });
+        }
+
         if (descendantsIds.value.length > 0) {
             q.where.AND.push({
                 id: {
@@ -94,9 +110,14 @@ export const useConceptStore = defineStore('concept', () => {
     });
 
     watch(
-        () => query.value,
-        async () => {
-            await fetchList();
+        query,
+        async (newQuery, oldQuery) => {
+            if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(async () => {
+                    await fetchList();
+                }, 500);
+            }
         },
         { deep: true }
     );
@@ -139,7 +160,6 @@ export const useConceptStore = defineStore('concept', () => {
     }
 
     async function fetchList() {
-        conceptIdentifier.value = '';
         const urlData = computed(() => `/api/public/${model}`);
 
         loadingStore.start();
@@ -182,7 +202,7 @@ export const useConceptStore = defineStore('concept', () => {
     }
 
     async function fetchRandom() {
-        // TODO: implement
+        // TODO: implement [PMCA-403]
     }
 
     async function fetchConceptsTree() {
@@ -192,7 +212,13 @@ export const useConceptStore = defineStore('concept', () => {
             method: 'GET',
             params: {
                 pageSize: -1,
-                select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId', 'position']),
+                select: JSON.stringify([
+                    'id',
+                    'name',
+                    'nameSlug',
+                    'parentId',
+                    'position'
+                ]),
                 orderBy: JSON.stringify({ position: 'asc' })
             },
             transform: (data: PaginatedResponse) => {
@@ -268,15 +294,19 @@ export const useConceptStore = defineStore('concept', () => {
     }
 
     async function fetchAncestors() {
-        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/${concept.value?.id}/ancestors`);
+        const { data } = await useFetchWithBaseUrl(
+            `/api/public/${model}/${concept.value?.id}/@ancestors`
+        );
         ancestors.value = data.value;
         return data;
     }
 
     async function fetchDescendants(nodeId: ID) {
-        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/${nodeId}/treeIds`);
+        const { data } = await useFetchWithBaseUrl(
+            `/api/public/${model}/${nodeId}/@treeIds`
+        );
+
         descendantsIds.value = data.value;
-        await fetchList();
     }
 
     function sortByName() {
@@ -286,19 +316,24 @@ export const useConceptStore = defineStore('concept', () => {
 
     async function exportData(format: DataTransferFormat, addMedia = false) {
         const exportData = useExportData();
-        
+
         const date = new Date().toISOString().replace(/:/g, '-');
-        const ext = addMedia? 'zip' : format;
+        const ext = addMedia ? 'zip' : format;
         const fileName = `export-${date}.${ext}`;
-        const where = conceptIdentifier.value ? { id: concept.value?.id } : query.value.where;
+        const where = conceptIdentifier.value
+            ? { id: concept.value?.id }
+            : query.value.where;
         const url = `/api/concept/export?format=${format}&addMedia=${addMedia}&where=${JSON.stringify(where)}`;
 
         await exportData.download(url, fileName);
     }
 
-    function clear() {
+    function reset() {
         concept.value = undefined;
+        ancestors.value = <Concept[]>[];
         conceptChanges.value = undefined;
+        conceptsTree.value = <TreeNode[]>[];
+        descendantsIds.value = [];
         concepts.value = [];
         total.value = 0;
         totalPages.value = 0;
@@ -307,9 +342,28 @@ export const useConceptStore = defineStore('concept', () => {
         search.value = '';
     }
 
+    function resetConcept() {
+        conceptIdentifier.value = '';
+        concept.value = undefined;
+        ancestors.value = <Concept[]>[];
+        conceptChanges.value = undefined;
+    }
+
     async function clearSelection() {
         useConceptSelection().clearSelected();
-        window.location.reload();
+        if (process.client) {
+           window.location.reload();
+        }
+    }
+
+    function resetFilters() {
+        search.value = '';
+        searchInitialLetter.value = 'TODOS';
+        sort.value = 'asc';
+        page.value = 1;
+        pageSize.value = pageSizes.value[1];
+        descendantsIds.value = [];
+        ancestors.value = <Concept[]>[];
     }
 
     return {
@@ -332,6 +386,7 @@ export const useConceptStore = defineStore('concept', () => {
         conceptsTree,
         pending,
         error,
+        searchInitialLetter,
         load,
         fetchNetwork,
         fetchConceptsTree,
@@ -340,7 +395,9 @@ export const useConceptStore = defineStore('concept', () => {
         fetchDescendants,
         sortByName,
         exportData,
-        clear,
+        reset,
+        resetConcept,
+        resetFilters,
         clearSelection
     };
 });

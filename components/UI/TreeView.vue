@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full h-full whitespace-nowrap text-md overflow-auto" ref="treeViewRef">
+    <div class="w-full h-full whitespace-nowrap text-md" ref="treeViewRef">
         <ul>
             <li>
                 <div v-for="(node, index) in treeRef" class="mb-2">
@@ -8,7 +8,7 @@
                         :level="1"
                         :concept-store="conceptStore"
                         :show-position="showPosition"
-                        :load-expanded="true"
+                        :load-expanded="false"
                         :position-among-siblings="index + 1"
                     />
                 </div>
@@ -47,12 +47,6 @@ onMounted(() => {
         treeViewRef.value.addEventListener('click', (event) => {
             if (!treeViewRef.value) {
                 return;
-            }
-
-            const hasHorizontalScrollbar = treeViewRef.value.scrollWidth > treeViewRef.value.clientWidth;
-
-            if (hasHorizontalScrollbar) {
-                treeViewRef.value.scrollLeft = (treeViewRef.value.scrollWidth - treeViewRef.value.clientWidth) / 2;
             }
         });
     }

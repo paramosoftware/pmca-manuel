@@ -1,6 +1,6 @@
 <template>
-    <div class="mt-4" :class="{ hidden: hidden }">
-        <UILabel :for="id">
+    <div :class="{ hidden: hidden, 'mt-4': addMargin }">
+        <UILabel :for="id" v-if="label">
             {{ label }}
         </UILabel>
 
@@ -17,8 +17,8 @@
             :options="list"
             option-attribute="name"
             @input="onInput"
-            size="md"
-            class="w-full mt-1"
+            :size="size"
+            class="w-full"
             variant="outline"
             color="gray"
         >
@@ -60,15 +60,23 @@ const props = defineProps({
         type: Object as PropType<{ name: string }>,
         default: null
     },
+    addMargin: {
+        type: Boolean,
+        default: true
+    },
     options: {
         type: Array as PropType<
-            { name: string; value: string | number }[] | string[]
+            { name: string; value: string | number }[] | string[] | number[]
         >,
         default: []
     },
     formStore: {
         type: Object as PropType<FormStore>
-    }
+    },
+    size: {
+        type: String as PropType<'sm' | 'md' | 'lg'>,
+        default: 'md'
+    },
 });
 
 const list = ref<{ id?: ID; name: string; value: string | number }[]>([]);

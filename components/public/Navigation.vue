@@ -1,219 +1,382 @@
-:<template>
+<template>
     <div
-        class="flex flex-col h-full w-full sm:w-4/6 md:w-2/6 shadow-lg border border-gray-200 p-3 rounded-md bg-gray-100 mb-3"
-        v-if="isSmallScreen"
+        id="container"
+        class="flex flex-grow min-h-full shadow-lg border-gray-200 rounded-lg border"
     >
         <div
-            class="text-lg font-semibold justify-between items-center flex cursor-pointer"
-            @click="isTreeNavigationOpen = !isTreeNavigationOpen"
+            id="left"
+            ref="leftRef"
+            class="bg-gray-50 overflow-hidden p-5 pl-10 overflow-y-auto hidden lg:block"
+            v-if="showLeftSide"
         >
-            Abrir classificação
-            <UIIcon name="ph:tree-structure" class="ml-auto" cursor-class="" />
+            <PublicNavigationLeftSide
+                :use-concept-store-for-tree="isHierarchical && !individualCard"
+                :closed="closed"
+                :open-navigation="openNavigation"
+                :close-navigation="closeNavigation"
+                :is-slide-over-open="isSlideOverOpen"
+                @slide-over-close="isSlideOverOpen = false"
+            />
         </div>
-    </div>
-    <div class="flex">
-        <aside
-            id="tree-navigation"
-            :class="
-                closeClass +
-                ' hover:' +
-                openClass +
-                ' shrink-0 shadow-lg border border-gray-200 rounded-md transition-all duration-300 max-h-screen bg-gray-50 overflow-auto'
-            "
-            v-if="!isSmallScreen"
-            ref="treeNavigationRef"
+        <div
+            class="w-2 hover:w-2 bg-gray-200 hover:bg-pmca-accent cursor-col-resize user-select-none items-center hidden lg:flex"
+            id="resize"
+            ref="resizeRef"
+            v-if="showLeftSide"
         >
-            <div class="flex p-4 h-full">
-                <div class="flex flex-col w-full h-full">
-                    <div class="flex justify-between items-center mb-4">
-                        <div
-                            class="flex items-center"
-                            v-show="
-                                isTreeNavigationOpen || isTreeNavigationPinned
-                            "
-                        >
-                            <UIIcon
-                                name="ph:push-pin"
-                                :class="{
-                                    'text-pmca-accent': isTreeNavigationPinned
-                                }"
-                                class="mr-3 hover:text-pmca-accent w-6 h-6"
-                                title="Fixar"
-                                @click="pinTreeNavigation"
-                            />
-                            <div class="text-lg font-semibold">
-                                Classificação
-                            </div>
-                        </div>
-                        <UIIcon
-                            name="ph:tree-structure"
-                            class="ml-auto"
-                            cursor-class=""
-                        />
-                    </div>
-                    <div
-                        class="overflow-auto h-full"
-                        v-show="isTreeNavigationOpen || isTreeNavigationPinned"
-                    >
-                        <UITreeView
-                            :tree="conceptsTree"
-                            :concept-store="
-                                useConceptStoreForTree
-                                    ? conceptStore
-                                    : undefined
-                            "
-                            v-if="conceptsTree.length > 0"
-                        />
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <aside v-else>
-            <USlideover
-                v-model="isTreeNavigationOpen"
-                class="text-pmca-primary"
-                side="left"
-                :ui="{
-                    background: 'bg-gray-100' 
-                }"
+            <div></div>
+        </div>
+        <div
+            id="right"
+            class="bg-white overflow-hidden items-center shrink grow"
+            ref="rightRef"
+        >
+            <PublicPage
+                :title="showHeader ? title : ''"
+                :show-breadcrumb="showHeader"
+                :has-header="showHeader"
             >
-                <div class="p-4 overflow-x-auto">
-                    <div class="flex flex-row justify-between">
-                        <div class="text-lg font-semibold">Classificação</div>
-
-                        <UIIcon
-                            name="ph:x"
-                            class="ml-auto"
-                            title="Fechar navegação"
-                            @click="
-                                isTreeNavigationOpen = !isTreeNavigationOpen
-                            "
-                        />
-                    </div>
-
-                    <UITreeView
-                        :tree="conceptsTree"
-                        class="mt-6"
-                        v-if="conceptsTree.length > 0"
+                <template #actions-title>
+                    {{ showActions ? 'Ações:' : 'Visualizações:' }}
+                </template>
+                <template #actions-icons>
+                    <UIIcon
+                        v-for="visualization in views"
+                        :key="visualization.name"
+                        :name="visualization.icon"
+                        :title="visualization.title"
+                        :class="{
+                            'text-pmca-accent': currentView === visualization.id
+                        }"
+                        class="hover:text-pmca-accent"
+                        @click="changeView(visualization.id)"
+                        v-if="!showActions"
                     />
-                </div>
-            </USlideover>
-        </aside>
+                    <PublicActionsBar v-else :user-selection="userSelection" />
+                </template>
 
-        <main
-            :class="mainDivClassClose +  ' w-full shadow-lg border border-gray-200 rounded-md bg-white xl:ml-5 p-5 min-h-[75vh] h-full'"
-            ref="mainRef"
-            id="main-navigation"
-        >
-            <slot></slot>
-        </main>
+                <template #actions-sub-title v-if="isHierarchical">
+                    Abrir classificação:
+                </template>
+                <template #actions-sub-icons v-if="isHierarchical">
+                    <UIIcon
+                        name="ph:tree-view"
+                        title="Abrir classificação"
+                        class="hover:text-pmca-accent"
+                        @click="isSlideOverOpen = true"
+                    />
+                </template>
+
+                <PublicList
+                    :hasAlphabeticalFilter="isAlphabetical && !userSelection"
+                    :user-selection="userSelection"
+                    v-if="showList"
+                />
+
+                <PublicFullCard v-else-if="individualCard" />
+
+                <PublicDiagram v-else-if="isDiagram" />
+            </PublicPage>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
+    title: {
+        type: String,
+        default: 'Termos'
+    },
+    individualCard: {
+        type: Boolean,
+        default: false
+    },
+    userSelection: {
+        type: Boolean,
+        default: false
+    },
     useConceptStoreForTree: {
         type: Boolean,
         default: true
     }
 });
 
+const views = ref([
+    {
+        id: 'hierarchical',
+        name: 'Hierárquica',
+        icon: 'ph:tree-view',
+        title: 'Visualização hierárquica (classificação)'
+    },
+    {
+        id: 'alphabetical',
+        name: 'Alfabética',
+        title: 'Visualização alfabética',
+        icon: 'ph:text-aa'
+    },
+    {
+        id: 'diagram',
+        name: 'Diagrama',
+        title: 'Visualização em diagrama',
+        icon: 'ph:arrows-split'
+    }
+]);
+
 const conceptStore = useConceptStore();
-await conceptStore.fetchConceptsTree();
+const currentView = ref('hierarchical');
+const isHierarchical = computed(() => currentView.value === 'hierarchical');
+const isDiagram = computed(() => currentView.value === 'diagram');
+const isAlphabetical = computed(() => currentView.value === 'alphabetical');
+const showLeftSide = computed(
+    () =>
+        (isHierarchical.value === true || props.individualCard === true) &&
+        !props.userSelection
+);
+const showList = computed(
+    () =>
+        (isAlphabetical.value || isHierarchical.value || props.userSelection) &&
+        !props.individualCard
+);
+const showHeader = computed(() => !isDiagram.value && !props.individualCard);
+const showActions = computed(() => props.individualCard || props.userSelection);
 
-const { conceptsTree } = storeToRefs(conceptStore);
+const isSlideOverOpen = ref(false);
+const leftWidth = ref(300);
+const rightWidth = ref(300);
+const containerWidth = ref(600);
+const containerRef = ref<HTMLElement | null>(null);
+const leftRef = ref<HTMLElement | null>(null);
+const rightRef = ref<HTMLElement | null>(null);
+const resizeRef = ref<HTMLElement | null>(null);
+const moveX = ref(0);
+const closed = ref(false);
+const leftMediumWidthPercentage = 0.25;
+const leftMaxWidthPercentage = 0.5;
+const leftMinWidthPercentage = 0.05;
+const drag = ref(false);
 
-const isSmallScreen = ref(false);
-const isTreeNavigationPinned = ref(false);
-const isTreeNavigationOpen = ref(false);
-const treeNavigationRef = ref<HTMLElement | null>(null);
-const mainRef = ref<HTMLElement | null>(null);
-const mainDivClassOpen = 'xl:w-[74%]';
-const mainDivClassClose = 'xl:w-[95%]';
-const closeClass = 'w-[5%]';
-const openClass = 'w-[24%]';
-const localStorageKey = 'isTreeNavigationFixed';
-const screenBreakpoint = 1280;
-
-const openTreeNavigation = (open: boolean) => {
-    if (isSmallScreen.value) {
-        isTreeNavigationOpen.value = open;
-        return;
-    }
-
-    if (!treeNavigationRef.value) {
-        treeNavigationRef.value = document.getElementById('tree-navigation');
-        if (!treeNavigationRef.value) {
-            console.error('tree navigation not found');
-            return;
+watch(
+    () => props.individualCard,
+    () => {
+        if (props.individualCard === false) {
+            conceptStore.resetConcept();
         }
     }
-
-    if (!mainRef.value) {
-        mainRef.value = document.getElementById('main-navigation');
-        if (!mainRef.value) {
-            console.error('main not found');
-            return;
-        }
-    }
-
-    isTreeNavigationOpen.value = open;
-
-    if (open || isTreeNavigationPinned.value) {
-        treeNavigationRef.value.classList.remove(closeClass);
-        treeNavigationRef.value.classList.add(openClass);
-        mainRef.value.classList.remove(mainDivClassClose);
-        mainRef.value.classList.add(mainDivClassOpen);
-        return;
-    } else {
-        treeNavigationRef.value.classList.remove(openClass);
-        treeNavigationRef.value.classList.add(closeClass);
-        mainRef.value.classList.remove(mainDivClassOpen);
-        mainRef.value.classList.add(mainDivClassClose);
-        return;
-    }
-};
-
-const pinTreeNavigation = () => {
-    const pinLocal = localStorage.getItem(localStorageKey);
-    if (!pinLocal || pinLocal === 'false') {
-        localStorage.setItem(localStorageKey, 'true');
-        isTreeNavigationPinned.value = true;
-    } else {
-        localStorage.setItem(localStorageKey, 'false');
-        isTreeNavigationPinned.value = false;
-    }
-};
+);
 
 onMounted(() => {
-    isSmallScreen.value = window.innerWidth < screenBreakpoint;
-    isTreeNavigationPinned.value = localStorage.getItem(localStorageKey) === 'true';
-    openTreeNavigation(isTreeNavigationPinned.value && !isSmallScreen.value);
-    addHoverListener();
+    if (props.individualCard === false) {
+        conceptStore.resetConcept();
+    }
 
-    window.addEventListener('resize', async () => {
-        isSmallScreen.value = window.innerWidth < screenBreakpoint;
-        if (!isSmallScreen.value) {
-            await nextTick();
-            isTreeNavigationOpen.value = isTreeNavigationOpen.value || isTreeNavigationPinned.value
-            openTreeNavigation(isTreeNavigationOpen.value);
-            addHoverListener();
-        } else {
-            openTreeNavigation(false);
-        }
-    });
+    if (showLeftSide.value) {
+        setInitialDimensions();
+        setResizeListeners();
+    }
 });
 
-const addHoverListener = () => {
-    if (treeNavigationRef.value) {
-        treeNavigationRef.value.addEventListener('mouseenter', () => {
-            openTreeNavigation(true);
+onUpdated(() => {
+    if (showLeftSide.value) {
+        setInitialDimensions();
+        setResizeListeners();
+    }
+
+    if (props.individualCard === false) {
+        conceptStore.resetConcept();
+    }
+
+    if (!isAlphabetical.value) {
+        conceptStore.resetFilters();
+    }
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', setInitialDimensions);
+});
+
+function setInitialDimensions() {
+    if (!setHTMLReferences()) {
+        return;
+    }
+
+    const leftClientWidth = leftRef.value!.getBoundingClientRect().width;
+    const resizeClientWidth = resizeRef.value!.getBoundingClientRect().width;
+
+    moveX.value = leftClientWidth + resizeClientWidth / 2;
+    containerWidth.value = containerRef.value!.getBoundingClientRect().width;
+
+    leftWidth.value = containerWidth.value * leftMediumWidthPercentage;
+    rightWidth.value = containerWidth.value - leftWidth.value;
+    getStoredNavigationConfig();
+    resizeSides();
+}
+
+function resizeSides() {
+    if (!setHTMLReferences()) {
+        return;
+    }
+
+    const leftMaxWidth = containerWidth.value * leftMaxWidthPercentage;
+
+    if (leftWidth.value > leftMaxWidth) {
+        leftWidth.value = leftMaxWidth;
+        rightWidth.value = containerWidth.value - leftWidth.value;
+    }
+
+    const leftMinWidth = containerWidth.value * leftMinWidthPercentage;
+
+    if (leftWidth.value < leftMinWidth) {
+        leftWidth.value = leftMinWidth;
+        rightWidth.value = containerWidth.value - leftWidth.value;
+    }
+
+    closed.value =
+        leftWidth.value < containerWidth.value * leftMinWidthPercentage + 100;
+
+    leftRef.value!.style.width = `${leftWidth.value}px`;
+    rightRef.value!.style.width = `${rightWidth.value}px`;
+
+    saveNavigationConfig();
+}
+
+function openNavigation() {
+    leftWidth.value = leftMediumWidthPercentage * containerWidth.value;
+    rightWidth.value = containerWidth.value - leftWidth.value;
+    resizeSides();
+}
+
+function closeNavigation() {
+    leftWidth.value = leftMinWidthPercentage * containerWidth.value;
+    rightWidth.value = containerWidth.value - leftWidth.value;
+    resizeSides();
+}
+
+function changeView(view: string) {
+    currentView.value = view;
+    saveNavigationConfig();
+}
+
+function setHTMLReferences() {
+    if (!showLeftSide.value) {
+        return false;
+    }
+
+    if (!containerRef.value) {
+        containerRef.value = document.getElementById('container');
+    }
+
+    if (!leftRef.value) {
+        leftRef.value = document.getElementById('left');
+    }
+
+    if (!rightRef.value) {
+        rightRef.value = document.getElementById('right');
+    }
+
+    if (!resizeRef.value) {
+        resizeRef.value = document.getElementById('resize');
+    }
+
+    if (
+        !containerRef.value ||
+        !leftRef.value ||
+        !rightRef.value ||
+        !resizeRef.value
+    ) {
+        console.error('One or more HTML elements are missing', {
+            containerRef: containerRef.value,
+            leftRef: leftRef.value,
+            rightRef: rightRef.value,
+            resizeRef: resizeRef.value
         });
 
-        treeNavigationRef.value.addEventListener('mouseleave', () => {
-            openTreeNavigation(isTreeNavigationPinned.value);
-        });
+        return false;
     }
-};
+
+    return true;
+}
+
+function setResizeListeners() {
+    if (!setHTMLReferences()) {
+        return;
+    }
+
+    window.addEventListener('resize', setInitialDimensions);
+
+    resizeRef.value!.addEventListener('mousedown', function (e) {
+        drag.value = true;
+        moveX.value = e.x;
+    });
+
+    containerRef.value!.addEventListener('mousemove', function (e) {
+        moveX.value = e.x - containerRef.value!.getBoundingClientRect().x;
+        if (drag.value) {
+            leftWidth.value = moveX.value;
+            rightWidth.value =
+                containerRef.value!.getBoundingClientRect().width - moveX.value;
+            resizeSides();
+        }
+    });
+
+    containerRef.value!.addEventListener('mouseup', function (e) {
+        drag.value = false;
+    });
+
+    saveNavigationConfig();
+}
+
+function getStoredNavigationConfig() {
+    const storedConfig = localStorage.getItem('navigationConfig');
+
+    if (storedConfig && setHTMLReferences()) {
+        const config = JSON.parse(storedConfig);
+
+        const containerWidth =
+            containerRef.value!.getBoundingClientRect().width;
+
+        const storedContainerWidth = config.containerWidth ?? 0;
+
+        const containerWidthDifference = Math.abs(
+            containerWidth - storedContainerWidth
+        );
+
+        if (containerWidthDifference > containerWidth * 0.1) {
+            return false;
+        } else if (containerWidthDifference <= containerWidth * 0.1) {
+            const leftWidthPercentage = config.leftWidth / storedContainerWidth;
+            const rightWidthPercentage =
+                config.rightWidth / storedContainerWidth;
+            leftWidth.value = containerWidth * leftWidthPercentage;
+            rightWidth.value = containerWidth * rightWidthPercentage;
+        } else {
+            leftWidth.value = containerWidth * leftMediumWidthPercentage;
+            rightWidth.value = containerWidth - leftWidth.value;
+        }
+
+        if (config.closed) {
+            closed.value = config.closed;
+        }
+
+        if (config.currentView) {
+            currentView.value = config.currentView;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+function saveNavigationConfig() {
+    localStorage.setItem(
+        'navigationConfig',
+        JSON.stringify({
+            leftWidth: leftWidth.value,
+            rightWidth: rightWidth.value,
+            closed: closed.value,
+            currentView: currentView.value,
+            containerWidth: containerWidth.value
+        })
+    );
+}
 </script>

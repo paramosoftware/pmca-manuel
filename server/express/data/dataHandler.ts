@@ -5,13 +5,13 @@ import logger from '~/utils/logger';
 import capitalize from '~/utils/capitalize';
 import decodeJwt from '~/utils/decodeJwt';
 import parseNumber from '~/utils/parseNumber';
+import getDataFolderPath from '~/utils/getDataFolderPath';
 import PrismaService from '../../prisma/PrismaService';
-import { exportData } from '../../prisma/export';
-import { importData } from '../../prisma/import';
-import { importUploadFile, uploadMedia } from '../../prisma/media';
-import { ApiValidationError, ForbiddenError } from '../error';
-import { prisma } from '../../prisma/prisma';
+import { v4 as uuidv4 } from 'uuid';
+import { ApiValidationError, ForbiddenError, UploadError } from '../error';
 import { refreshAccessToken, getAccessToken } from '../auth/helpers';
+import multer from 'multer';
+import path from 'path';
 
 const dataHandler = async (
     req: express.Request,
@@ -26,16 +26,18 @@ const dataHandler = async (
         isUpload,
         isImport,
         isExport,
-        isPublic
+        isPublic,
+        apiMethod
     } = getParamsFromPath(req.path);
 
     // @ts-ignore
-    if (!model || !prisma[model]) {
+    if (!model || !PrismaService.modelExists(model)) {
         next();
         return;
     }
-
-    const method = req.method.toUpperCase() as Method;
+    
+    const requestMethod = req.method.toUpperCase() as Method;
+    
     const body = req.body;
     const queryParams = req.query;
     const format = req.query.format
@@ -44,13 +46,12 @@ const dataHandler = async (
           ? body.format
           : undefined;
     const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
-
+    
     const accessToken = getAccessToken(req);
 
     let userId = '';
     let permissions: Permission = {};
     let isAdmin = false;
-
     if (!isPublic && accessToken) {
         try {
             const refreshToken = await refreshAccessToken(accessToken, res);
@@ -58,7 +59,7 @@ const dataHandler = async (
             const decodedToken = decodeJwt(
                 refreshToken.accessToken,
                 process.env.ACCESS_TOKEN_SECRET!
-            ) as { userId: string; permissions: Permission; isAdmin: boolean };
+            ) as UserToken;
 
             userId = decodedToken.userId;
             permissions = decodedToken.permissions;
@@ -71,7 +72,7 @@ const dataHandler = async (
     }
 
     const prismaService = new PrismaService(model, true, isPublic, isPublic);
-    prismaService.setMethod(method);
+    prismaService.setMethod(requestMethod);
     prismaService.setUserId(userId);
     prismaService.setPermissions(permissions);
 
@@ -87,30 +88,17 @@ const dataHandler = async (
     try {
         let response: any = null;
         const query = convertQueryParamsToRequest(queryParams);
-        const request = method == 'GET' ? query : body;
-        const select = request.select ? request.select : undefined;
+        
+        const request = requestMethod == 'GET' ? query : body;
 
-        const hierarchicalEndpoints = ['ancestors', 'descendants', 'treeDepth', 'treeIds'];
-
-        // TODO: Would be better to another variable to check if it's a hierarchical endpoint?
-        if (partialResource && hierarchicalEndpoints.includes(partialResource)) {
-            if (partialResource === 'ancestors') {
-                response = prismaService.findAncestors(parseNumber(id), select);
-            } else if (partialResource === 'descendants') {
-                response = prismaService.findDescendants(parseNumber(id), select);
-            } else if (partialResource === 'tree') {
-                response = prismaService.findTrees(parseNumber(id), select);
-            } else if (partialResource === 'treeDepth') {
-                response = prismaService.findTreeDepth(parseNumber(id));
-            } else if (partialResource === 'treeIds') {
-                response = prismaService.findTreeIds(parseNumber(id));
-            }
+        if (apiMethod) {
+            response = executeApiMethod(apiMethod, prismaService, id, request);
+            
         } else {
-            switch (method) {
+            switch (requestMethod) {
                 case 'GET':
                     if (isExport) {
-                        response = exportData.exportToFormat(
-                            model,
+                        response = prismaService.exportToFormat(
                             format,
                             addMedia,
                             query
@@ -142,7 +130,7 @@ const dataHandler = async (
                     } else if (hasQuery) {
                         response = prismaService.readMany(request);
                     } else if (isUpload) {
-                        response = uploadMedia(model, id, body, req, res, next);
+                        response = uploadMedia(prismaService, id, req, res, next);
                     } else if (isImport && canImport) {
                         const importFilePath = (await importUploadFile(
                             req,
@@ -151,8 +139,10 @@ const dataHandler = async (
                         )) as string;
                         // mode is accessible only after multipart form data is parsed by multer
                         const mode = req.body.mode ? req.body.mode : 'merge';
-                        await importData.importFrom(model, importFilePath, mode);
-                        response = { message: 'Imported successfully' };
+                        response = prismaService.importData(
+                            importFilePath,
+                            mode
+                        );
                     } else {
                         response = prismaService.createOne(request);
                     }
@@ -188,30 +178,58 @@ const dataHandler = async (
 };
 
 /**
+ * Execute an API method
+ * @param apiMethod - The API method
+ * @param prismaService - The Prisma service
+ * @param id - The ID
+ * @param request - The request
+ * @param res - The response
+ * @param next - The next function
+ */
+function executeApiMethod(
+    apiMethod: string,
+    prismaService: PrismaService,
+    id: ID,
+    request: any
+) {
+    const mappedMethods = {
+        progress: 'getProgress',
+        ancestors: 'findAncestors',
+        descendants: 'findDescendants',
+        trees: 'findTrees',
+        treeDepth: 'findTreeDepth',
+        treeIds: 'findTreeIds',
+        availableLetters: 'getAvailableLetters'
+    } as Record<string, string>;
+
+    if (mappedMethods[apiMethod]) {
+        // @ts-ignore
+        return prismaService[mappedMethods[apiMethod]](
+            parseNumber(id),
+            request
+        );
+    } else {
+        throw new ApiValidationError('Invalid API method');
+    }
+}
+
+/**
  * Get the parameters from the path
  * @param path - The path
  * @returns The parameters as an object
  */
-function getParamsFromPath(path: string): {
-    model: string;
-    id: ID;
-    hasQuery: boolean;
-    partialResource: string;
-    isPublic: boolean;
-    isUpload: boolean;
-    isImport: boolean;
-    isExport: boolean;
-} {
+function getParamsFromPath(path: string) {
     const info = {
         model: '',
-        id: null as ID,
+        id: null,
         partialResource: '',
         hasQuery: false,
         isPublic: false,
         isUpload: false,
         isImport: false,
-        isExport: false
-    };
+        isExport: false,
+        apiMethod: ''
+    } as ApiParams;
 
     const parts = path.replace('/api/', '').split('/');
 
@@ -221,8 +239,14 @@ function getParamsFromPath(path: string): {
     }
 
     info.model = capitalize(parts[0]);
-
     parts.shift();
+
+    const lastPart = parts[parts.length - 1];
+
+    if (typeof lastPart === 'string' && lastPart.startsWith('@')) {
+        info.apiMethod = lastPart.substring(1);
+        parts.pop();
+    }
 
     if (parts[parts.length - 1] === 'query') {
         info.hasQuery = true;
@@ -299,6 +323,98 @@ function convertQueryParamsToRequest(queryParams: ParsedQs): Query {
                 (process.env.NODE_ENV === 'development' ? error.message : '')
         );
     }
+}
+
+
+
+async function importUploadFile(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+    destinationFolder: string = ''
+) {
+    if (!destinationFolder) {
+        destinationFolder = getDataFolderPath('temp');
+    }
+
+    if (!fs.existsSync(destinationFolder)) {
+        next(new UploadError('Destination folder does not exist'));
+    }
+
+    const storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, destinationFolder);
+        },
+        filename: function (req, file, cb) {
+            cb(null, uuidv4() + path.extname(file.originalname));
+        }
+    });
+
+    const upload = multer({
+        storage: storage,
+        limits: { fileSize: 1024 * 1024 * 100 }
+    }).single('file');
+
+    return new Promise((resolve, reject) => {
+        upload(req, res, async (err: any) => {
+            try {
+                if (err) {
+                    throw new UploadError(
+                        'Error uploading file: ' + err.message
+                    );
+                }
+
+                if (!req.file) {
+                    throw new UploadError('No file was sent');
+                }
+
+                resolve(path.join(destinationFolder, req.file?.filename));
+            } catch (error) {
+                const fileName = req.file?.filename ?? '';
+                const filePath = path.join(destinationFolder, fileName);
+
+                if (fs.existsSync(filePath) && fileName) {
+                    fs.unlink(filePath, (err) => {
+                        if (err) {
+                            throw new UploadError('Error deleting file');
+                        }
+                    });
+                }
+
+                next(reject(error));
+            }
+        });
+    });
+}
+
+async function uploadMedia(
+    prismaService: PrismaService,
+    id: ID,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) {
+    const mediaPath = (await importUploadFile(
+        req,
+        res,
+        next,
+        getDataFolderPath('media')
+    )) as string;
+
+    if (!mediaPath || !fs.existsSync(mediaPath)) {
+        return next(new UploadError('Error uploading file'));
+    }
+
+    const fileName = path.basename(mediaPath);
+    id = parseInt(id as string);
+
+    const mediaData = await prismaService.saveMedia(
+        id,
+        fileName,
+        req.file?.originalname ?? ''
+    );
+
+    return mediaData;
 }
 
 export default dataHandler;

@@ -19,17 +19,17 @@ const resourcesFieldsMap = new Map<string, Map<string, Prisma.DMMF.Field>>();
 async function main() {
     const userService = new PrismaService('user', false);
 
-    await userService.deleteOne('admin');
+    let user = await userService.readOne('admin');
 
-    const createdUser = await userService.createOne({
-        login: 'admin',
-        email: 'admin@email.com',
-        name: 'Administrador(a)',
-        password: 'admin',
-        isAdmin: true
-    });
-
-    await prisma.resource.deleteMany({});
+    if (!user) {
+        user = await userService.createOne({
+            login: 'admin',
+            email: 'admin@email.com',
+            name: 'Administrador(a)',
+            password: 'admin',
+            isAdmin: true
+        });
+    }
 
     // first get the resource config so it can be used to build the fields config
     const resources = Prisma.dmmf.datamodel.models.map((resource) => {
@@ -87,8 +87,7 @@ async function main() {
         );
     }
 
-    const resourceService = new PrismaService('resource', false);
-    const createdResources = await resourceService.createMany(resources);
+    const createdResources = await createOrUpdateResources(resources);
 
     for (const [resourceName, parentResourceName] of parentResourcesMap) {
         await prisma.resource.update({
@@ -184,7 +183,10 @@ async function main() {
         };
 
         const languageService = new PrismaService('language', false);
-        const foundLanguage = await languageService.readMany({ where: where });
+        const foundLanguage = await languageService.readMany(
+            { where: where },
+            true
+        );
 
         if (foundLanguage && foundLanguage.total > 0) {
             if (foundLanguage.items[0].name !== name) {
@@ -202,11 +204,11 @@ async function main() {
             continue;
         }
 
-        const newLanguage = await languageService.createOne({ name, code });
+        await languageService.createOne({ name, code });
     }
 
-    await prisma.group.deleteMany({});
-    await createDefaultGroups(createdUser.id);
+    await createDefaultGroups(user.id);
+    await createDefaultGlossary();
 
     console.log(
         'Found ' +
@@ -221,7 +223,7 @@ async function main() {
             relatedResourcesCount
     );
     console.log('Created ' + createdResources.length + ' resources');
-    console.log('Created user', createdUser);
+    console.log('Created user', user);
 }
 
 async function createDefaultGroups(userId: string) {
@@ -281,7 +283,31 @@ async function createDefaultGroups(userId: string) {
     const groupService = new PrismaService('group', false);
     for (const group of groups) {
         let groupCopy = JSON.parse(JSON.stringify(group));
-        await groupService.createOne(groupCopy);
+
+        const foundGroup = await groupService.readOne(group.name);
+
+        if (foundGroup) {
+            await groupService.updateOne(foundGroup.id, groupCopy);
+        } else {
+            await groupService.createOne(groupCopy);
+        }
+    }
+}
+
+async function createDefaultGlossary() {
+    const glossaryService = new PrismaService('glossary', false);
+    const glossary = await glossaryService.readMany({}, false);
+
+    if (!glossary || glossary.length === 0) {
+        const createdGlossary = await glossaryService.createOne({
+            name: 'Glossário padrão',
+            description: 'Altere o nome e a descrição do glossário padrão em Glossários',
+            code: 'GP',
+            languageId: '1',
+            keywords: []
+        });
+
+        console.log('Created default glossary', createdGlossary);
     }
 }
 
@@ -411,6 +437,58 @@ function buildFieldsConfig(
     }
 
     return fieldsConfig;
+}
+
+async function createOrUpdateResources(
+    resources: Prisma.ResourceCreateInput[]
+) {
+    const resourceService = new PrismaService('resource', false);
+    const processedResources = [] as Resource[];
+
+    for (const resource of resources) {
+        const foundResource = await resourceService.readOne(resource.name, {
+            include: { fields: true }
+        });
+
+        if (foundResource) {
+            const currentFields = foundResource.fields;
+
+            // @ts-ignore
+            if (resource.fields && resource.fields.length > 0) {
+                // @ts-ignore
+                resource.fields.forEach((field) => {
+                    const currentField = currentFields.find(
+                        (f: ResourceField) => f.name === field.name
+                    );
+
+                    if (currentField) {
+                        field.id = currentField.id;
+                        field._action_ = 'update';
+                    }
+                });
+            }
+
+            const updatedResource = await resourceService.updateOne(
+                foundResource.id,
+                resource
+            );
+
+            processedResources.push(updatedResource);
+        } else {
+            const createdResource = await resourceService.createOne(resource);
+            processedResources.push(createdResource);
+        }
+    }
+
+    await resourceService.deleteMany({
+        where: {
+            name: {
+                notIn: resources.map((r) => r.name)
+            }
+        }
+    });
+
+    return processedResources;
 }
 
 function convertPrismaTypeToFieldType(prismaType: string, isList: boolean) {

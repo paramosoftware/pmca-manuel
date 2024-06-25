@@ -4,7 +4,8 @@ import logger from '~/utils/logger';
 import normalizeString from '~/utils/normalizeString';
 import parseNumber from '~/utils/parseNumber';
 import { ApiValidationError } from '../express/error';
-import { prisma, Prisma } from '~/server/prisma/prisma';
+import { Prisma } from '@prisma/client';
+import PrismaService from '~/server/prisma/PrismaService';
 
 class PrismaServiceConverter {
     private model: string;
@@ -495,11 +496,17 @@ class PrismaServiceConverter {
                     : value;
                 break;
             case 'in':
-                prismaQuery[field].in = Array.isArray(value) ? value : [value];
+                const values = Array.isArray(value) ? value : [value];
+                prismaQuery[field].in = isNormalized
+                    ? values.map((v) => normalizeString(v as string))
+                    : values.map((v) => parseNumber(v));
                 break;
             case 'notin':
+                const notInValues = Array.isArray(value) ? value : [value];
                 prismaQuery[field].not = {
-                    in: Array.isArray(value) ? value : [value]
+                    in: isNormalized
+                        ? notInValues.map((v) => normalizeString(v as string))
+                        : notInValues.map((v) => parseNumber(v))
                 };
                 break;
             case 'isnull':
@@ -529,6 +536,7 @@ class PrismaServiceConverter {
         model: string,
         fieldsMap: Map<string, Prisma.DMMF.Field>
     ) {
+        const fieldsToIgnore = ['_action_', 'label', 'labelPlural'];
         const prismaQuery: any = {};
         const published = {
             where: {
@@ -634,7 +642,7 @@ class PrismaServiceConverter {
                             );
                         }
                     }
-                } else if (field !== '_action_') {
+                } else if (!fieldsToIgnore.includes(field)) {
                     logger.info(
                         'Field ' + field + ' not found in model: ' + model
                     );
@@ -769,7 +777,7 @@ class PrismaServiceConverter {
      * @returns The merged permissions
      */
     public async mergeRelatedPermissions() {
-        // TODO: Check if there is a better way to manage inheritance of permissions between resources and their children, the new privateFieldsPerModel attribute might help
+        // TODO: Check if there is a better way to manage inheritance of permissions between resources and their children, the new privateFieldsPerModel attribute might help [PMCA-409]
 
         const cacheKey = this.userId
             ? `mergeRelatedPermissions|${this.userId}`
@@ -782,14 +790,24 @@ class PrismaServiceConverter {
 
         const userPermissions = Object.keys(this.permissions);
 
-        const publicResources = await prisma.resource.findMany({
-            where: {
-                isPublic: true
+        const resourceService = new PrismaService(
+            'Resource',
+            false,
+            false,
+            false
+        );
+
+        const publicResources = (await resourceService.readMany(
+            {
+                where: {
+                    isPublic: true
+                },
+                include: {
+                    children: true
+                }
             },
-            include: {
-                children: true
-            }
-        });
+            false
+        )) as Resource[];
 
         for (const resource of publicResources) {
             if (!this.permissions[resource.name]) {
@@ -805,7 +823,7 @@ class PrismaServiceConverter {
                 this.permissions[resource.name].read = true;
             }
 
-            if (resource.children.length > 0) {
+            if (resource.children && resource.children.length > 0) {
                 for (const child of resource.children) {
                     if (!this.permissions[child.name]) {
                         this.permissions[child.name] = {
@@ -823,19 +841,22 @@ class PrismaServiceConverter {
             }
         }
 
-        const currentPermissions = await prisma.resource.findMany({
-            where: {
-                name: {
-                    in: userPermissions
+        const currentPermissions = (await resourceService.readMany(
+            {
+                where: {
+                    name: {
+                        in: userPermissions
+                    }
+                },
+                include: {
+                    children: true
                 }
             },
-            include: {
-                children: true
-            }
-        });
+            false
+        )) as Resource[];
 
         for (const resource of currentPermissions) {
-            if (resource.children.length > 0) {
+            if (resource.children && resource.children.length > 0) {
                 for (const child of resource.children) {
                     if (!this.permissions[child.name]) {
                         this.permissions[child.name] = {
@@ -922,24 +943,33 @@ class PrismaServiceConverter {
             return cache.get(cacheKey)!;
         }
 
-        const privateFields = await prisma.resourceField.findMany({
-            select: {
-                name: true,
-                resource: {
-                    select: {
-                        name: true
+        const resourceFieldService = new PrismaService(
+            'ResourceField',
+            false,
+            false,
+            false
+        );
+
+        const privateFields = await resourceFieldService
+            .getModelClient()
+            .findMany({
+                select: {
+                    name: true,
+                    resource: {
+                        select: {
+                            name: true
+                        }
                     }
+                },
+                where: {
+                    isPrivate: true
                 }
-            },
-            where: {
-                isPrivate: true
-            }
-        });
+            });
 
         const privateFieldsPerModel = {} as { [key: string]: string[] };
 
-        privateFields.forEach((attribute) => {
-            const resource = attribute.resource.name;
+        privateFields.forEach((attribute: ResourceField) => {
+            const resource = attribute.resource!.name;
             const field = attribute.name;
 
             if (!privateFieldsPerModel[resource]) {

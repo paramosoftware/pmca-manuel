@@ -16,6 +16,8 @@ export const useListStore = defineStore('list', () => {
     const resourceStore = useResourceStore();
     const userStore = useUserStore();
     const loadingStore = useLoadingStore();
+    const isHierarchical = ref(false)
+    const model = ref('');
     const canCreate = computed(
         () => userStore.permissions[resourceStore.model]?.create
     );
@@ -30,16 +32,30 @@ export const useListStore = defineStore('list', () => {
     );
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
+    let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
-    // TODO: allow query in label
     const query = computed(() => {
         const q = {
             page: page.value,
             pageSize: pageSize.value,
             where: {
-                name: {
-                    like: search.value
-                }
+                OR : [
+                    { 
+                        name: {
+                            like: search.value
+                        }
+                    },
+                    {
+                        label: {
+                            like: search.value
+                        }
+                    },
+                    {
+                        labelPlural: {
+                            like: search.value
+                        }
+                    }
+                ]
             },
             orderBy: {
                 name: sort.value
@@ -57,9 +73,14 @@ export const useListStore = defineStore('list', () => {
     });
 
     watch(
-        () => query.value,
-        async () => {
-            await fetch(resourceStore.name);
+        query,
+        async (newQuery, oldQuery) => {
+            if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(async () => {
+                    await fetch(resourceStore.name);
+                }, 500);
+            }
         },
         { deep: true }
     );
@@ -82,6 +103,8 @@ export const useListStore = defineStore('list', () => {
         label.value = resourceStore.label || '';
         labelPlural.value = resourceStore.labelPlural || '';
         labelSlug.value = resourceStore.labelSlug || '';
+        isHierarchical.value = resourceStore.isHierarchical || false;
+        model.value = resourceStore.model || '';
         genderNoun.value = resourceStore.genderNoun || 'n';
         items.value = data.value?.items || [];
         total.value = data.value?.total || 0;
@@ -167,6 +190,8 @@ export const useListStore = defineStore('list', () => {
         search,
         items,
         query,
+        isHierarchical,
+        model,
         pending,
         error,
         canCreate,

@@ -1,15 +1,14 @@
 <template>
-    <div class="flex justify-end mb-4 mt-4 sm:mt-0 sm:mb-0">
+    <div class="flex justify-end">
         <a
-            v-for="item in socialMedia"
-            :key="item.name"
-            class="mr-2 cursor-pointer"
+            v-for="item in actions"
+            :key="item.icon"
+            class="mr-3 cursor-pointer"
         >
             <UIIcon
                 :name="item.icon"
-                @click="share(item.name)"
-                :title="item.title ?? ''"
-                class="w-7"
+                @click="item['action'] ? item.action() : share(item.name)"
+                :title="item.title ?? `Compartilhar no ${item.name}`"
             />
         </a>
         <PublicExportDropdown />
@@ -18,24 +17,50 @@
 
 <script setup lang="ts">
 const props = defineProps({
-    title: {
-        type: String,
-        required: true
-    },
-    conceptId: {
-        type: Number,
-        required: true
+    userSelection: {
+        type: Boolean,
+        default: false
     }
 });
 
+
+const conceptStore = useConceptStore();
+
+const { concept } = storeToRefs(conceptStore);
+
+const conceptName = ref('');
+const actions = computed(() => {
+    return props.userSelection ? userSelectionActions : socialMedia;
+}) as Ref<{ icon: string; title?: string; action?: () => void; name: string }[]>;
+
+if (concept.value) {
+    conceptName.value = concept.value.name ?? '';
+}
+
 const toast = useToast();
 
+const userSelectionActions = [
+    {
+        icon: 'ph:broom',
+        title: 'Limpar seleção',
+        action: () => conceptStore.clearSelection()
+    }
+];
+
 const socialMedia = [
+    /*
     {
         name: 'Baixar',
         icon: 'ph:file-pdf',
         shareUrl: '',
         title: 'Baixar PDF'
+    },
+    */
+    {
+        name: 'Link',
+        icon: 'ph:link',
+        shareUrl: '',
+        title: 'Copiar link'
     },
     {
         name: 'Facebook',
@@ -56,7 +81,7 @@ const socialMedia = [
 
 const share = (name: string) => {
     let url = window.location.href;
-    let title = props.title;
+    let title = conceptName.value;
 
     if (name === 'Link') {
         navigator.clipboard.writeText(url);

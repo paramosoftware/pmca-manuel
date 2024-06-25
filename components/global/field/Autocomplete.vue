@@ -46,6 +46,7 @@
                 :show-icon="showIcon"
                 :loading="searching"
                 :size="size"
+                :square-right-corners="squareRightCorners"
             />
 
             <span ref="autocompleteRef">
@@ -63,7 +64,9 @@
                     </li>
 
                     <li
-                        v-if="results.length === 0 && !searching && showNoResults"
+                        v-if="
+                            results.length === 0 && !searching && showNoResults
+                        "
                         class="px-2 py-2 text-gray-400"
                         @click="search = ''"
                     >
@@ -161,6 +164,10 @@ const props = defineProps({
     },
     formStore: {
         type: Object as PropType<FormStore>
+    },
+    squareRightCorners: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -168,7 +175,7 @@ const defaultValue = getFormFieldConfig('defaultValue', [], props);
 const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
 const label = getFormFieldConfig('label', '', props);
-const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation
+const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation [DISCUSS]
 const placeholder = getFormFieldConfig('placeholder', '', props);
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowCreate = getFormFieldConfig('allowCreate', false, props);
@@ -202,7 +209,7 @@ const emit = defineEmits(['update:modelValue', 'select', 'input']);
 const autocompleteRef = ref<HTMLElement | null>(null);
 const search = ref('');
 const results = ref<{ id: number; name: string; label?: string }[]>([]);
-let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 0);
+let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 const searching = ref(false);
 const toast = useToast();
 const showPopper = ref(false);
@@ -320,12 +327,17 @@ async function searchItems() {
 
     clearTimeout(timeoutId);
 
-    // TODO: search by label
     const query = {
         where: {
             OR: [
                 {
                     name: {
+                        like: search.value
+                    },
+                    label: {
+                        like: search.value
+                    },
+                    labelPlural: {
                         like: search.value
                     }
                 }
@@ -349,7 +361,9 @@ async function searchItems() {
 
     timeoutId = setTimeout(async () => {
         const { data, pending, error } = (await useFetchWithBaseUrl(
-            'api/' + (props.isPublic ? 'public/' : '') + relatedResource.value.name,
+            'api/' +
+                (props.isPublic ? 'public/' : '') +
+                relatedResource.value.name,
             {
                 method: 'GET',
                 params: query
@@ -362,7 +376,7 @@ async function searchItems() {
 
         searching.value = pending.value;
         results.value = data.value.items;
-    }, 300);
+    }, 500);
 }
 
 async function createItem(value: string) {

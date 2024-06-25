@@ -41,7 +41,7 @@ export const createFormStore = (name: string) => {
         }
 
         async function loadResource(resourceIdentifier: string) {
-            // TODO: Consider using a createResourceStore function for multiples instances
+            // TODO: Consider using a createResourceStore function for multiples instances [PMCA-411]
             destroyStore(resourceStore);
             await resourceStore.fetch(resourceIdentifier);
 
@@ -299,7 +299,7 @@ export const createFormStore = (name: string) => {
                 throw new Error('Resource not found');
             }
 
-            // TODO: The auxiliary should only be saved with the parent?
+            // TODO: The auxiliary should only be saved with the parent? [DISCUSS]
             if (getIsAuxiliary() && !id.value) {
                 return;
             }

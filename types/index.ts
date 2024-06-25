@@ -15,6 +15,9 @@ declare global {
     export type Resource = Prisma.Resource & {
         groups?: Group[];
         fields?: ResourceField[];
+        relatedResources?: Resource[];
+        children?: Resource[];
+        parent?: Resource;
     };
 
     export type ResourceField = Prisma.ResourceField & {
@@ -74,6 +77,15 @@ declare global {
     export type FormField = Prisma.ResourceField & {
         resource?: Resource | undefined;
         relatedResource?: Resource | undefined;
+    };
+
+    export type Glossary = Prisma.Glossary & {
+        language: Language;
+        keywords?: Keyword[];
+    };
+
+    export type Keyword = Prisma.Keyword & {
+        glossaries?: Glossary[];
     };
 
     export type ValueType =
@@ -253,4 +265,71 @@ declare global {
         width?: number;
         height?: number;
     }
+
+    interface ApiParams {
+        model: string;
+        id: ID;
+        hasQuery: boolean;
+        partialResource: string;
+        isPublic: boolean;
+        isUpload: boolean;
+        isImport: boolean;
+        isExport: boolean;
+        apiMethod: string;
+    }
+
+    interface RequestProgress {
+        progress: number;
+        finished: boolean;
+        error: boolean;
+        message: string;
+        report?: string;
+    }
+
+
+    interface ImportReport {
+        duration: string;
+        totalItems: number;
+        processedItems: number;
+        skippedItems: number;
+        warnings: string[];
+        errors: string[];
+    }
+
+    interface Coords {
+        x: number;
+        y: number;
+        x0: number;
+        y0: number;
+    }
+
+    interface D3Node extends d3.HierarchyNode<TreeNode> {
+        _children: any;
+        children: any;
+        depth: number;
+        data: TreeNode;
+        x: number;
+        y: number;
+        x0: number;
+        y0: number;
+    } 
+
+    type D3SVGElement = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
+
+    export interface Media {
+        id: number;
+        name: string;
+        position: number;
+        originalFilename: string | null;
+        path: string | null;
+        subtitle: string | null;
+        type: string | null;
+        published: boolean;
+        subtitleNormalized: string | null;
+        conceptId: number;
+        createdAt: Date;
+        updatedAt: Date;
+        
+    }
+
 }

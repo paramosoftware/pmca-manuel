@@ -1,11 +1,5 @@
 <template>
-    <PublicPage :show-breadcrumb="false">
-        <PublicGrid
-            :title="title"
-            :user-selection="true"
-            :has-tree="false"
-        />
-    </PublicPage>
+    <PublicNavigation :user-selection="true" :title="title" />
 </template>
 
 <script setup lang="ts">
@@ -17,16 +11,10 @@ const config = useRuntimeConfig();
 const title = ref('Termos selecionados');
 const description = ref('Lista de termos selecionados');
 
-useHead({
+useSeoMeta({
     title: title.value + ' | ' + config.public.appName,
-    meta: [
-        { hid: 'description', name: 'description', content: description.value },
-        { hid: 'og:title', property: 'og:title', content: title.value },
-        {
-            hid: 'og:description',
-            property: 'og:description',
-            content: description.value
-        }
-    ]
+    description: description.value,
+    ogTitle: title.value,
+    ogDescription: description.value
 });
 </script>

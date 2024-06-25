@@ -1,6 +1,6 @@
 <template>
     <Splide :has-track="false" :options="options" v-if="concepts.length > 0">
-        <UITitle id="carousel-heading" class="mb-5">
+        <UITitle id="carousel-heading" class="mb-2">
             {{ title }}
         </UITitle>
         <SplideTrack>
@@ -8,9 +8,10 @@
                 <PublicCard
                     :concept="concept"
                     height="h-20"
+                    width="w-full"
                     titleSize="text-sm"
                     icon-size="w-6 h-6"
-                    title-padding="p-2"
+                    title-padding="p-1"
                 />
             </SplideSlide>
         </SplideTrack>

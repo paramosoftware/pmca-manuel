@@ -176,6 +176,9 @@ model Concept {
   id   Int    @id @default(autoincrement()) /// includeExport:true
   name String /// includeExport:true|label:Termo
 
+  glossaryId Int? /// hidden:true
+  glossary   Glossary? @relation(fields: [glossaryId], references: [id]) /// hidden:true
+
   parentId Int?
   children Concept[] @relation("ConceptToChildren")
   parent   Concept?  @relation("ConceptToChildren", fields: [parentId], references: [id]) /// includeExport:true
@@ -244,7 +247,29 @@ model ConceptMedia {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
 }
+
+model ReferenceMedia {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  position Int    @default(0)
+
+  originalFilename String?
+  path             String?
+  subtitle         String?
+  type             String?
+  published        Boolean @default(true) /// defaultValue:true
+
+  subtitleNormalized String?
+
+  referenceId Int
+  reference  Reference @relation(fields: [referenceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 
 model ConceptVariation {
   id   Int    @id @default(autoincrement())
@@ -281,6 +306,7 @@ model Language {
   code String? @unique
 
   translations ConceptTranslation[] /// disabled:true|hidden:true
+  glossaries Glossary[] /// disabled:true|hidden:true
 
   published Boolean @default(true) /// defaultValue:true
 
@@ -297,9 +323,10 @@ model Reference {
 
   nameRich       String? /// hidden:true
   nameNormalized String?
+  
 
   concepts Concept[]
-
+  media ReferenceMedia[] /// label:PDFs
   published Boolean? @default(true) /// defaultValue:true
 
   createdAt DateTime @default(now())
@@ -318,6 +345,44 @@ model WebPage {
 
   nameNormalized    String?
   contentNormalized String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// isPublic:true
+model Glossary {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  code String? @unique /// label:ID
+  description String?
+
+  keywords Keyword[]
+
+  languageId Int? /// required:true
+  language   Language? @relation(fields: [languageId], references: [id]) /// required:true
+
+  concepts Concept[] /// disabled:true|hidden:true
+
+  nameNormalized        String?
+  descriptionNormalized String?
+
+  published Boolean @default(true) /// defaultValue:true
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// isPublic:true
+model Keyword {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  glossaries Glossary[] /// disabled:true|hidden:true
+
+  nameNormalized String?
+
+  published Boolean @default(true) /// defaultValue:true
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

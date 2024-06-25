@@ -1,12 +1,43 @@
 <template>
     <main
-        class="shadow-lg border border-gray-200 rounded-md bg-white p-5 xl:p-8 2xl:p-10 min-h-[70vh] mx-auto max-w-screen-2xl"
+        class="w-full h-full shadow-lg border-b border-gray-200 rounded-md bg-white"
     >
-        <PublicBreadcrumb :add-concept-link="false" v-if="showBreadcrumb" />
-        <UIPageTitle class="border-b-2 border-gray-200 pb-1 mb-4" v-if="title">
-            {{ title }}
-        </UIPageTitle>
-        <slot></slot>
+        <div
+            class="flex justify-end border-b border-gray-200 border bg-gray-50"
+            v-if="hasActions()"
+        >
+            <div class="flex flex-row items-center space-x-4 p-4">
+                <h4 class="text-sm font-semibold text-pmca-primary">
+                    <slot name="actions-title"></slot>
+                </h4>
+                <slot name="actions-icons"></slot>
+            </div>
+        </div>
+        <div
+            class="flex justify-end border-b border-gray-200 border bg-gray-50 lg:hidden"
+            v-if="hasSubActions()"
+        >
+            <div class="flex flex-row items-center space-x-4 p-4">
+                <h4 class="text-sm font-semibold text-pmca-primary">
+                    <slot name="actions-sub-title"></slot>
+                </h4>
+                <slot name="actions-sub-icons"></slot>
+            </div>
+        </div>
+
+        <div class="py-5 px-3 md:px-5">
+            <slot name="template-header" v-if="hasTemplateHeader()" />
+            <span v-else>
+                <PublicBreadcrumb :add-concept-link="false" v-if="showBreadcrumb" />
+                <UIPageTitle
+                    class="pb-1 mb-4"
+                    v-if="title"
+                >
+                    {{ title }}
+                </UIPageTitle>
+            </span>
+            <slot></slot>
+        </div>
     </main>
 </template>
 
@@ -16,9 +47,27 @@ defineProps({
         type: String,
         default: ''
     },
+    hasTitle: {
+        type: Boolean,
+        default: true
+    },
     showBreadcrumb: {
         type: Boolean,
         default: true
     }
 });
+
+const slots = useSlots();
+
+function hasActions() {
+    return slots['actions-title'] || slots['actions-icons'];
+}
+
+function hasSubActions() {
+    return slots['actions-sub-title'] || slots['actions-sub-icons'];
+}
+
+function hasTemplateHeader() {
+    return slots['template-header'];
+}
 </script>

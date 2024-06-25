@@ -5,8 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import decodeJwt from '~/utils/decodeJwt';
 import getCookieOptions from '~/utils/getCookieOptions';
 import hashPassword from '~/utils/hashPassword';
-import { prisma } from '../../prisma/prisma';
 import { UnauthorizedError, ForbiddenError } from '../error';
+import PrismaService from '../../prisma/PrismaService';
 
 const ACCESS_COOKIE_NAME = 'access';
 const CSRF_COOKIE_NAME = 'csrf';
@@ -145,8 +145,10 @@ export async function refreshAccessToken(
 export async function setUserPassword(userId: string, password: string) {
     const hashedPassword = hashPassword(password);
 
+    const userService = new PrismaService('User', false);
+
     try {
-        await prisma.user.update({
+        await userService.getModelClient().update({
             where: {
                 id: userId
             },
@@ -168,12 +170,16 @@ export async function findUserByLoginOrId(login: string) {
         }
     };
 
-    return await prisma.user.findFirst(query);
+    const userService = new PrismaService('User', false);
+
+    return await userService.getModelClient().findFirst(query);
 }
 
 export async function deleteSession(sessionId: string) {
     try {
-        await prisma.userSession.deleteMany({
+        const sessionService = new PrismaService('UserSession', false);
+
+        await sessionService.deleteMany({
             where: {
                 id: sessionId
             }
@@ -186,7 +192,9 @@ export async function deleteSession(sessionId: string) {
 }
 
 export async function getSession(sessionId: string) {
-    const session = await prisma.userSession.findFirst({
+    const sessionService = new PrismaService('UserSession', false);
+
+    const session = await sessionService.getModelClient().findFirst({
         where: {
             id: sessionId
         }
@@ -196,7 +204,9 @@ export async function getSession(sessionId: string) {
 }
 
 export async function setSession(userId: string, refreshToken: string) {
-    const session = await prisma.userSession.upsert({
+    const sessionService = new PrismaService('UserSession', false);
+
+    const session = await sessionService.getModelClient().upsert({
         where: {
             userId_refreshToken: {
                 userId,
@@ -235,17 +245,21 @@ export function generateToken(
 async function getPermissions(user: User) {
     const permissions = {} as Permission;
 
+    const groupPermissionService = new PrismaService('GroupPermission', false);
+
     if (user.groupId && !user.isBlocked) {
-        const groupPermissions = await prisma.groupPermission.findMany({
-            where: {
-                groupId: {
-                    in: [user.groupId]
+        const groupPermissions = await groupPermissionService
+            .getModelClient()
+            .findMany({
+                where: {
+                    groupId: {
+                        in: [user.groupId]
+                    }
+                },
+                include: {
+                    resource: true
                 }
-            },
-            include: {
-                resource: true
-            }
-        });
+            });
 
         for (const groupPermission of groupPermissions) {
             const resource = groupPermission.resource.name as string;
@@ -282,7 +296,7 @@ async function getPermissions(user: User) {
         }
     }
 
-    // TODO: Check if this is needed
+    // TODO: Check if this is needed [DISCUSS]
     if (user.isAdmin && false) {
         const resources = await prisma.resource.findMany();
         for (const resource of resources) {

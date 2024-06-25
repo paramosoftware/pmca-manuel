@@ -1,16 +1,15 @@
 <template>
     <div class="container mx-auto">
         <section id="home" class="md:flex">
-            <div class="p-2 md:p-4 mb-auto mx-auto">
+            <div class="p-2 md:p-4 mb-auto mx-auto lg:w-4/6">
                 <div class="text-center">
-                    <h1 class="text-4xl md:text-5xl font-bold leading-snug">
-                        {{ title }}
-                        <span class="block" v-if="blockTitle">
-                            {{ blockTitle }}
-                        </span>
+                    <h1 class="text-3xl md:text-4xl font-bold line-clamp-2">
+                        {{ name }}
                     </h1>
-                    <p class="text-xl mt-4">{{ description }}</p>
-                    <div class="col-span-4 md:col-span-7 mt-5 text-start">
+                    <p class="text-base text-gray-500 mt-2" v-if="description">
+                        {{ description }}
+                    </p>
+                    <div class="col-span-4 md:col-span-7 mt-4 text-start">
                         <PublicSearchBar />
                     </div>
                 </div>
@@ -27,34 +26,16 @@
 definePageMeta({
     layout: 'home'
 });
-
 const config = useRuntimeConfig();
+const glossaryStore = useGlossaryStore();
+await glossaryStore.fetch();
+const { name, description, keywords } = storeToRefs(glossaryStore);
 
-const title = ref(config.public.appName);
-const blockTitle = ref('');
-const description = ref(
-    'Terminologia utilizada na área de conservação-restauro em papel'
-);
-
-if (title.value.length > 30) {
-    title.value = title.value.substring(0, title.value.indexOf(' ', 30));
-    blockTitle.value = config.public.appName.replace(title.value, '');
-}
-
-useHead({
-    title: config.public.appName,
-    meta: [
-        {
-            hid: 'description',
-            name: 'description',
-            content: config.public.appDescription
-        },
-        { hid: 'og:title', name: 'og:title', content: config.public.appName },
-        {
-            hid: 'og:description',
-            name: 'og:description',
-            content: config.public.appDescription
-        }
-    ]
+useSeoMeta({
+    title: name.value !== config.public.appName ? `${config.public.appName} | ${name.value}` : config.public.appName,
+    description: description.value,
+    ogTitle: name.value,
+    ogDescription: description.value,
+    keywords: keywords.value.map((keyword) => keyword.name).join(', '),
 });
 </script>

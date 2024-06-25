@@ -3,7 +3,7 @@
         <UDropdown 
             mode="hover" 
             :items="items" 
-            :popper="{ placement: 'bottom' }"
+            :popper="{ placement: placement }" 
             :ui="{ width: 'w-30', padding: 'p-0', background: 'bg-gray-100 opacity-90' }"
         >
             <Icon :name="name" :class="css" @click="onClick($event)" />
@@ -31,6 +31,11 @@ const props = defineProps({
     cursorClass: {
         type: String,
         default: 'cursor-pointer'
+    },
+    placement: {
+        type: String,
+        default: 'bottom',
+        required: false,
     }
 });
 
