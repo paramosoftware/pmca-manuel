@@ -300,10 +300,11 @@ async function createDefaultGlossary() {
 
     if (!glossary || glossary.length === 0) {
         const createdGlossary = await glossaryService.createOne({
-            name: 'Glossário de termos técnicos',
-            description: 'Terminologia utilizada...',
+            name: 'Glossário padrão',
+            description: 'Altere o nome e a descrição do glossário padrão em Glossários',
+            code: 'GP',
             languageId: '1',
-            keywords: [{ name: 'glossário' }, { name: 'termos técnicos' }, { name: 'dicionário' }]
+            keywords: []
         });
 
         console.log('Created default glossary', createdGlossary);
