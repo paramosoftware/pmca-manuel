@@ -20,7 +20,7 @@
         </FieldAutocomplete>
         
         <UIButton type="submit" :square="true" class="h-full self-end max-h-10 rounded-tl-none rounded-bl-none ">
-            <UIIcon name="ph:magnifying-glass" class="h-6 w-8"></UIIcon>
+            <UIIcon name="ph:magnifying-glass" variant="button"></UIIcon>
         </UIButton>
         </div>
 

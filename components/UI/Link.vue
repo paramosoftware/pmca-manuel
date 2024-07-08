@@ -1,6 +1,6 @@
 <template>
     <NuxtLink :to="href">
-        <span class="text-app-theme-400 hover:text-app-theme-500">
+        <span class="text-app-secondary-500 hover:text-app-theme-500">
             <slot />
         </span>
     </NuxtLink>

@@ -45,11 +45,7 @@
                         :key="visualization.name"
                         :name="visualization.icon"
                         :title="visualization.title"
-                        :class="{
-                            'text-app-theme-500':
-                                currentView === visualization.id
-                        }"
-                        class="hover:text-app-theme-500"
+                        :base="currentView === visualization.id ? 'text-app-theme-500' : ''"
                         @click="changeView(visualization.id)"
                         v-if="!showActions"
                     />

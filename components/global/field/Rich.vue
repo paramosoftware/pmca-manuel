@@ -29,7 +29,7 @@
             <template #fallback>
                 <div class="flex flex-col justify-center items-center">
                     <UIIcon
-                        class="animate-spin w-10 h-10 mr-5 text-app-secondary"
+                        class="animate-spin w-10 h-10 mr-5 text-app-secondary-500"
                         name="ph:spinner"
                     />
                 </div>

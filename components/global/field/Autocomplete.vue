@@ -25,8 +25,8 @@
                         <UIButton size="sm" @click="removeItem(item)" square>
                             <UIIcon
                                 name="ph:trash-simple"
-                                class="w-5 h-5"
                                 title="Remover"
+                                variant="button"
                             />
                         </UIButton>
                     </div>
@@ -58,7 +58,7 @@
                         v-for="item in results"
                         :key="item.name"
                         @click="selectItem(item)"
-                        class="p-2 cursor-pointer hover:bg-gray-100 border-b border-gray-200 hover:text-app-theme-400"
+                        class="p-2 cursor-pointer hover:bg-gray-100 border-b border-gray-200 text-app-secondary-500 hover:text-app-theme-500"
                     >
                         {{ item.label ?? item.name }}
                     </li>
@@ -75,14 +75,14 @@
 
                     <li
                         v-if="canCreate"
-                        class="p-2 text-gray-600 hover:bg-gray-100 cursor-pointer border-t border-gray-200 mt-2 rounded-none"
+                        class="p-2 text-gray-600 hover:bg-gray-100 cursor-pointer border-t border-gray-200 rounded-none"
                         @click="createItem(search)"
                     >
                         <div class="flex items-center">
                             <UIIcon
                                 name="ph:plus-circle"
-                                class="text-app-theme-500 w-6 h-6"
                                 title="Criar"
+                                size="sm"
                             />
                             <strong class="m-1">Criar: </strong>
                             <i>{{ search }}</i>

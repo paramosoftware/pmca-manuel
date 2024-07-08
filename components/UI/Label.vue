@@ -1,6 +1,6 @@
 <template>
     <label
-        class="text-xl text-app-secondary first-letter:uppercase"
+        class="text-xl text-app-theme-500 first-letter:uppercase font-[525]" 
         :for="id"
         v-if="showLabel"
     >

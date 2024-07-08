@@ -9,7 +9,7 @@
             :class="{
                 'text-app-theme-500 border-b-2 border-app-theme-500':
                     index + 1 === activeTab,
-                'text-app-theme-400 border-b-2 ': index + 1 !== activeTab
+                'text-app-secondary-500 border-b-2 ': index + 1 !== activeTab
             }"
         >
             <label

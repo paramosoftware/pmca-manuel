@@ -1,5 +1,5 @@
 <template>
-    <NuxtLink :to="href">
+    <UILink :to="href">
         <span
             :class="[
                 {
@@ -9,7 +9,7 @@
         >
             <slot />
         </span>
-    </NuxtLink>
+    </UILink>
 </template>
 
 <script setup lang="ts">

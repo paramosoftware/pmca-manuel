@@ -5,7 +5,7 @@
     >
         <ol class="flex items-center gap-x-1.5">
             <li
-                class="flex items-center gap-x-1.5 text-gray-400 text-sm leading-6 min-w-0"
+                class="flex items-center gap-x-1.5 text-app-secondary-500 text-sm leading-6 min-w-0"
                 v-for="(link, index) in linkItems"
             >
                 <NuxtLink

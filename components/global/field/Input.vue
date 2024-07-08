@@ -13,8 +13,8 @@
             :placeholder="placeholder"
             @input="onInput"
             @focus="iconColor = 'text-app-theme-500'"
-            @blur="iconColor = 'text-gray-400'"
-            color="gray"
+            @blur="iconColor = 'text-app-secondary-500'"
+            color="primary"
             variant="outline"
             :size="size"
             class="mt-1"
@@ -100,7 +100,7 @@ const props = defineProps({
     }
 });
 
-const iconColor = ref('text-gray-400');
+const iconColor = ref('text-app-secondary-500');
 
 const defaultValue = getFormFieldConfig('defaultValue', '', props);
 const disabled = getFormFieldConfig('disabled', false, props);

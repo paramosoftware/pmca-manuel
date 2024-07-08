@@ -33,8 +33,7 @@
                                 >
                                     <UAvatar size="sm">
                                         <UIIcon
-                                            :name="menu.icon"
-                                            class="h-6 w-6"
+                                            :name="menu.icon"   
                                             :title="menu.title"
                                         >
                                         </UIIcon>
@@ -45,7 +44,6 @@
                                 <UAvatar size="sm">
                                     <UIIcon
                                         :name="menu.icon"
-                                        class="h-6 w-6"
                                         :title="menu.title"
                                         @click="menu.onClick"
                                     >

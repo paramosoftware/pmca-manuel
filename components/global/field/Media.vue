@@ -3,10 +3,12 @@
         <h2 class="cursor-pointer" @click="isOpenAccordion = !isOpenAccordion">
             <button
                 type="button"
-                class="flex items-center justify-between w-full mt-4 text-lg text-app-secondary first-letter:uppercase text-left bg-white border border-gray-300 p-2"
+                class="flex items-center justify-between w-full mt-4 text-lg text-app-theme-500 first-letter:uppercase text-left bg-white border border-gray-300 p-2"
             >
                 <span>
-                    {{ label }}
+                    <UILabel>
+                        {{ label }}
+                    </UILabel>
                     <span class="text-sm text-gray-400" v-if="media.length">
                         ({{ media.length }} arquivo{{
                             media.length > 1 ? 's' : ''
@@ -15,7 +17,7 @@
                 </span>
 
                 <UIIcon
-                    class="w-10 text-gray-300"
+                    class="w-10 text-secondary-500"
                     :name="isOpenAccordion ? 'ph:caret-up' : 'ph:caret-down'"
                 />
             </button>
@@ -24,7 +26,7 @@
         <div class="p-2 border border-gray-300" v-show="isOpenAccordion">
             <div class="mb-4 text-right">
                 <UIButton @click="isOpen = true">
-                    <UIIcon name="ph:plus-circle" class="w-5 h-5" />
+                    <UIIcon name="ph:plus-circle" variant="button" />
                     Adicionar arquivos
                 </UIButton>
                 <UModal

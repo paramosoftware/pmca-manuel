@@ -12,7 +12,6 @@
                         name="ph:plus-circle"
                         @click="goToCreateForm"
                         title="Criar novo"
-                        class="w-8 h-8 cursor-pointer"
                     />
                 </template>
             </div>

@@ -20,7 +20,7 @@
             :size="size"
             class="w-full"
             variant="outline"
-            color="gray"
+            color="primary"
         >
         </USelect>
     </div>

@@ -1,6 +1,6 @@
 <template>
     <NuxtLink :to="link">
-        <div class="lg:flex shadow-sm hover:shadow-md" :class="width">
+        <div class="lg:flex shadow-sm hover:shadow-lg text-app-secondary-500 hover:text-app-theme-500" :class="width">
             <div
                 class="w-full border border-gray-200 rounded-md flex flex-col justify-between"
             >
@@ -16,7 +16,7 @@
                         class="flex flex-row justify-between h-10 items-center"
                     >
                         <h3
-                            class="line-clamp-2 text-semibold text-app-secondary"
+                            class="line-clamp-2 text-semibold "
                             :class="titleSize"
                             :title="concept.name"
                         >
@@ -26,7 +26,6 @@
                             <client-only>
                                 <UIIcon
                                     :class="
-                                        'text-app-theme-500 cursor-pointer ' +
                                         iconSize
                                     "
                                     :name="
@@ -45,7 +44,6 @@
                                 <template #fallback>
                                     <UIIcon
                                         :class="
-                                            'text-app-theme-500 cursor-pointer ' +
                                             iconSize
                                         "
                                         name="ph:bookmark-simple"
