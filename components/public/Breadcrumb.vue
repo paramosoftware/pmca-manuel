@@ -10,7 +10,7 @@
             >
                 <NuxtLink
                     :to="link.to"
-                    class="flex items-center gap-x-1.5 group font-semibold min-w-0 hover:text-pmca-accent"
+                    class="flex items-center gap-x-1.5 group font-semibold min-w-0 hover:text-app-theme-500"
                 >
                     <UIIcon
                         v-if="link.icon"
@@ -20,10 +20,7 @@
                     <span>{{ link.label }}</span>
                 </NuxtLink>
                 <span v-if="index < linkItems.length - 1">
-                    <UIIcon
-                        name="ph:caret-right"
-                        class="w-3 h-3"
-                    />
+                    <UIIcon name="ph:caret-right" class="w-3 h-3" />
                 </span>
             </li>
         </ol>

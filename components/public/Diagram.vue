@@ -1,7 +1,7 @@
 <template>
     <div :id="htmlId" class="w-full h-[60vh]">
         <div class="flex justify-between space-x-4 p-4">
-            <h4 class="text-lg md:text-2xl font-semibold text-pmca-primary">
+            <h4 class="text-lg md:text-2xl font-semibold text-app-primary">
                 Diagrama
             </h4>
             <div class="flex space-x-4">
@@ -39,13 +39,12 @@
             :width="width"
             :height="height"
             style="max-width: 100%; height: auto"
-            :style="{ 
+            :style="{
                 cursor: 'grab',
                 font: '10px sans-serif',
                 'user-select': 'none',
                 overflow: 'hidden'
             }"
-
             :id="`${htmlId}-svg`"
         ></svg>
     </div>
@@ -119,7 +118,6 @@ onMounted(() => {
     gLink.value = createGLink(svg.value);
     gNode.value = createGNode(svg.value);
 
-
     root.value.descendants().forEach((d: D3Node, i) => {
         d.id = i;
         d._children = d.children;
@@ -138,10 +136,13 @@ function centerDiagram() {
 
     const scale = 0.8;
     const xPosition = areaWidth / 2 - x * scale;
-    const yPosition = (areaHeight - 200 / 2) - y * scale;
+    const yPosition = areaHeight - 200 / 2 - y * scale;
 
     // @ts-ignore
-    svg.value.attr('transform', `translate(${xPosition}, ${yPosition}) scale(${scale})`);
+    svg.value.attr(
+        'transform',
+        `translate(${xPosition}, ${yPosition}) scale(${scale})`
+    );
 }
 
 function updateDimensions() {
@@ -198,8 +199,7 @@ function createGNode(svg: D3SVGElement) {
 function createSVG(elementId: string) {
     const { areaHeight, areaWidth } = getArea(elementId);
 
-    const svg = d3
-        .select(`#${elementId}-svg`);
+    const svg = d3.select(`#${elementId}-svg`);
 
     const svgG = svg.append('g');
 
@@ -453,10 +453,7 @@ function update(
 
 function zoomIn() {
     const zoom = d3.zoom().on('zoom', (event) => {
-        svg.value.attr(
-            'transform',
-            event.transform
-        );
+        svg.value.attr('transform', event.transform);
     }) as any;
 
     svg.value.call(zoom.scaleBy, 1.2);
@@ -464,9 +461,7 @@ function zoomIn() {
 
 function zoomOut() {
     const zoom = d3.zoom().on('zoom', (event) => {
-        svg.value.attr(
-            'transform', event.transform
-        );
+        svg.value.attr('transform', event.transform);
     }) as any;
 
     svg.value.call(zoom.scaleBy, 0.8);

@@ -5,9 +5,8 @@
                 <div class="mt-1">
                     <NuxtLink to="/admin">
                         <img
-                            src="/icons/icon-pmca.png "
+                            src="/icons/icon-horizontal.png"
                             alt="Logo"
-                            class="w-14 h-14"
                         />
                     </NuxtLink>
                 </div>

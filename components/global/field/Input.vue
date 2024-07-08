@@ -12,7 +12,7 @@
             :disabled="disabled"
             :placeholder="placeholder"
             @input="onInput"
-            @focus="iconColor = 'text-pmca-accent'"
+            @focus="iconColor = 'text-app-theme-500'"
             @blur="iconColor = 'text-gray-400'"
             color="gray"
             variant="outline"

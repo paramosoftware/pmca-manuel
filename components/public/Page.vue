@@ -7,7 +7,7 @@
             v-if="hasActions()"
         >
             <div class="flex flex-row items-center space-x-4 p-4">
-                <h4 class="text-sm font-semibold text-pmca-primary">
+                <h4 class="text-sm font-semibold text-app-primary">
                     <slot name="actions-title"></slot>
                 </h4>
                 <slot name="actions-icons"></slot>
@@ -18,7 +18,7 @@
             v-if="hasSubActions()"
         >
             <div class="flex flex-row items-center space-x-4 p-4">
-                <h4 class="text-sm font-semibold text-pmca-primary">
+                <h4 class="text-sm font-semibold text-app-primary">
                     <slot name="actions-sub-title"></slot>
                 </h4>
                 <slot name="actions-sub-icons"></slot>
@@ -28,11 +28,11 @@
         <div class="py-5 px-3 md:px-5">
             <slot name="template-header" v-if="hasTemplateHeader()" />
             <span v-else>
-                <PublicBreadcrumb :add-concept-link="false" v-if="showBreadcrumb" />
-                <UIPageTitle
-                    class="pb-1 mb-4"
-                    v-if="title"
-                >
+                <PublicBreadcrumb
+                    :add-concept-link="false"
+                    v-if="showBreadcrumb"
+                />
+                <UIPageTitle class="pb-1 mb-4" v-if="title">
                     {{ title }}
                 </UIPageTitle>
             </span>

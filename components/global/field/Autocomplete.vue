@@ -58,7 +58,7 @@
                         v-for="item in results"
                         :key="item.name"
                         @click="selectItem(item)"
-                        class="p-2 cursor-pointer hover:bg-gray-100 border-b border-gray-200 hover:text-pmca-green-400"
+                        class="p-2 cursor-pointer hover:bg-gray-100 border-b border-gray-200 hover:text-app-theme-400"
                     >
                         {{ item.label ?? item.name }}
                     </li>
@@ -81,7 +81,7 @@
                         <div class="flex items-center">
                             <UIIcon
                                 name="ph:plus-circle"
-                                class="text-pmca-accent w-6 h-6"
+                                class="text-app-theme-500 w-6 h-6"
                                 title="Criar"
                             />
                             <strong class="m-1">Criar: </strong>

@@ -4,7 +4,7 @@
       <div class="grid grid-cols-2 md:grid-cols-8 content-end items-end">
         <div class="mb-1">
           <NuxtLink to="/">
-            <img src="/icons/icon-pmca.png" alt="Logo" class="w-14 h-14" />
+            <img src="/icons/icon-horizontal.png" alt="Logo" class="w-14 h-14" />
           </NuxtLink>
         </div>
         <button @click="showMenu = !showMenu"

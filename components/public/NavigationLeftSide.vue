@@ -2,7 +2,7 @@
     <div class="flex flex-row justify-end" v-if="closed">
         <UIIcon
             name="ph:tree-view"
-            class="hover:text-pmca-accent"
+            class="hover:text-app-theme-500"
             :title="`Arraste para a direita para abrir a ${hierarchyName}`"
             @click="openNavigation()"
         />
@@ -20,7 +20,7 @@
             </div>
             <UIIcon
                 name="ph:x"
-                class="mt-1 hover:text-pmca-accent text-xl"
+                class="mt-1 hover:text-app-theme-500 text-xl"
                 :title="`Fechar ${hierarchyName}`"
                 @click="closeNavigation()"
             />
@@ -32,7 +32,7 @@
 
         <USlideover
             v-model="isSidePanelOpen"
-            class="text-pmca-primary h-screen lg:hidden"
+            class="text-app-primary h-screen lg:hidden"
             side="left"
             :ui="{
                 background: 'bg-gray-100',
@@ -50,7 +50,7 @@
                 </div>
                 <UIIcon
                     name="ph:x"
-                    class="hover:text-pmca-accent"
+                    class="hover:text-app-theme-500"
                     :title="`Fechar ${hierarchyName}`"
                     @click="isSidePanelOpen = false"
                 />
@@ -101,13 +101,19 @@ const emit = defineEmits(['slideOverClose']);
 
 const isSidePanelOpen = ref(false);
 
-watch(() => props.isSlideOverOpen, (value) => {
-    isSidePanelOpen.value = value;
-});
-
-watch(() => isSidePanelOpen.value, (value) => {
-    if (!value) {
-        emit('slideOverClose');
+watch(
+    () => props.isSlideOverOpen,
+    (value) => {
+        isSidePanelOpen.value = value;
     }
-});
+);
+
+watch(
+    () => isSidePanelOpen.value,
+    (value) => {
+        if (!value) {
+            emit('slideOverClose');
+        }
+    }
+);
 </script>

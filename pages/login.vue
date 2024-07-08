@@ -1,6 +1,6 @@
 <template>
     <div
-        class="flex flex-col justify-center items-center h-screen mx-3 text-pmca-primary"
+        class="flex flex-col justify-center items-center h-screen mx-3 text-app-primary"
     >
         <div
             class="container max-w-screen-md mx-auto p-16 border border-neutral rounded-md m-5"

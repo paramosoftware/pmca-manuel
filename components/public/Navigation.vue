@@ -19,7 +19,7 @@
             />
         </div>
         <div
-            class="w-2 hover:w-2 bg-gray-200 hover:bg-pmca-accent cursor-col-resize user-select-none items-center hidden lg:flex"
+            class="w-2 hover:w-2 bg-gray-200 hover:bg-app-theme-500 cursor-col-resize user-select-none items-center hidden lg:flex"
             id="resize"
             ref="resizeRef"
             v-if="showLeftSide"
@@ -46,9 +46,10 @@
                         :name="visualization.icon"
                         :title="visualization.title"
                         :class="{
-                            'text-pmca-accent': currentView === visualization.id
+                            'text-app-theme-500':
+                                currentView === visualization.id
                         }"
-                        class="hover:text-pmca-accent"
+                        class="hover:text-app-theme-500"
                         @click="changeView(visualization.id)"
                         v-if="!showActions"
                     />
@@ -62,7 +63,7 @@
                     <UIIcon
                         name="ph:tree-view"
                         title="Abrir classificação"
-                        class="hover:text-pmca-accent"
+                        class="hover:text-app-theme-500"
                         @click="isSlideOverOpen = true"
                     />
                 </template>

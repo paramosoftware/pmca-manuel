@@ -3,9 +3,8 @@
         <span
             :class="[
                 {
-                    'text-pmca-green-500': parentConditional,
-                },
-                
+                    'text-app-theme-500': parentConditional
+                }
             ]"
         >
             <slot />
@@ -25,5 +24,4 @@ defineProps({
         required: true
     }
 });
-
 </script>

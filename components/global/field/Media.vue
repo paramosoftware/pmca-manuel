@@ -3,7 +3,7 @@
         <h2 class="cursor-pointer" @click="isOpenAccordion = !isOpenAccordion">
             <button
                 type="button"
-                class="flex items-center justify-between w-full mt-4 text-lg text-pmca-secondary first-letter:uppercase text-left bg-white border border-gray-300 p-2"
+                class="flex items-center justify-between w-full mt-4 text-lg text-app-secondary first-letter:uppercase text-left bg-white border border-gray-300 p-2"
             >
                 <span>
                     {{ label }}

@@ -49,7 +49,7 @@
 
             <UButton
                 size="md"
-                color="primary"
+                color="app-theme"
                 variant="solid"
                 @click="isModalOpen = true"
                 :disabled="!canAddMore || disabled"
@@ -72,7 +72,7 @@
                 :id="relatedResource.name + '-modal-form'"
                 v-model="isModalOpen"
                 :ui="{
-                    base: 'text-pmca-primary',
+                    base: 'text-app-primary',
                     padding: 'p-0',
                     width: 'sm:max-w-3xl',
                     container: 'items-center'

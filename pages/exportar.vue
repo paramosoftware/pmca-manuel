@@ -23,10 +23,10 @@
                 desejados (utilize o ícone
                 <UIIcon
                     name="ph:bookmark-simple"
-                    class="text-pmca-accent w-6 h-6"
+                    class="text-app-theme-500 w-6 h-6"
                 />), acesse a página de termos selecionados (utilize o ícone
                 <UIIcon
-                    class="text-pmca-accent w-6 h-6"
+                    class="text-app-theme-500 w-6 h-6"
                     name="ph:bookmarks-simple-fill"
                 />
                 no menu superior) e clique na opção "Exportar".

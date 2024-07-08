@@ -1,6 +1,6 @@
 <template>
     <div
-        class="flex flex-col h-screen justify-between text-pmca-primary text-lg"
+        class="flex flex-col h-screen justify-between text-app-primary text-lg"
     >
         <HomeNavbar class="bg-white" />
 
@@ -8,5 +8,5 @@
 
         <Footer />
     </div>
-   <UILoading />
+    <UILoading />
 </template>

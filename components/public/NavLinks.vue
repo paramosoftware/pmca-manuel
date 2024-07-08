@@ -23,14 +23,14 @@
         <div class="hidden md:flex col-span-1 text-end mr-3 md:mr-0">
             <NuxtLink to="/termos/selecionados">
                 <UIIcon
-                    class="text-pmca-accent text-2xl cursor-pointer"
+                    class="text-app-theme-500 text-2xl cursor-pointer"
                     name="ph:bookmarks-simple-fill"
                     title="Termos selecionados"
                 />
             </NuxtLink>
             <NuxtLink to="/admin" v-if="isElectronApp">
                 <UIIcon
-                    class="text-pmca-accent text-2xl cursor-pointer ml-2"
+                    class="text-app-theme-500 text-2xl cursor-pointer ml-2"
                     name="ph:sign-in"
                     title="Acesso interno"
                 />
@@ -58,7 +58,6 @@ if (process.client) {
         }
     });
 }
-
 
 const links = ref([
     {

@@ -1,9 +1,6 @@
 <template>
     <NuxtLink :to="link">
-        <div
-            class="lg:flex shadow-sm hover:shadow-md"
-            :class="width"
-        >
+        <div class="lg:flex shadow-sm hover:shadow-md" :class="width">
             <div
                 class="w-full border border-gray-200 rounded-md flex flex-col justify-between"
             >
@@ -15,9 +12,11 @@
                     quality="70"
                 />
                 <div :class="titlePadding">
-                    <div class="flex flex-row justify-between h-10 items-center">
+                    <div
+                        class="flex flex-row justify-between h-10 items-center"
+                    >
                         <h3
-                            class="line-clamp-2 text-semibold text-pmca-secondary"
+                            class="line-clamp-2 text-semibold text-app-secondary"
                             :class="titleSize"
                             :title="concept.name"
                         >
@@ -26,7 +25,10 @@
                         <div class="flex flex-row items-center">
                             <client-only>
                                 <UIIcon
-                                    :class="'text-pmca-accent cursor-pointer ' + iconSize"
+                                    :class="
+                                        'text-app-theme-500 cursor-pointer ' +
+                                        iconSize
+                                    "
                                     :name="
                                         conceptSelected
                                             ? 'ph:bookmark-simple-fill'
@@ -42,7 +44,10 @@
 
                                 <template #fallback>
                                     <UIIcon
-                                        :class="'text-pmca-accent cursor-pointer ' + iconSize"
+                                        :class="
+                                            'text-app-theme-500 cursor-pointer ' +
+                                            iconSize
+                                        "
                                         name="ph:bookmark-simple"
                                     />
                                 </template>
@@ -76,11 +81,11 @@ const props = defineProps({
     titlePadding: {
         type: String,
         default: 'p-4'
-    }, 
+    },
     iconSize: {
         type: String,
         default: 'text-xl'
-    }   
+    }
 });
 
 const { isSelected, toggle } = useConceptSelection();

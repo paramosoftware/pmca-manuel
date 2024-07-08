@@ -57,7 +57,7 @@
         <div v-if="pending" class="mt-4">
             <UIIcon
                 name="ph:spinner"
-                class="animate-spin h-10 w-10 text-pmca-primary"
+                class="animate-spin h-10 w-10 text-app-primary"
             />
             <p>Carregando {{ uncapitalize(labelPlural) }}...</p>
         </div>
