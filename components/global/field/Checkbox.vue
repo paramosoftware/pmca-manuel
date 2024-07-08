@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-row items-center my-3" v-show="!hidden">
+    <div class="flex flex-row my-3" v-show="!hidden" :class="class">
         <UCheckbox
             :id="id"
             :model-value="modelValue"
