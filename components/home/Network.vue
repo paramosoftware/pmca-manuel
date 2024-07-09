@@ -19,8 +19,9 @@
 // TODO: How to handle large networks? Limit the number of nodes and links? Randomize the nodes? [PMCA-410]
 import * as d3 from 'd3';
 
-const blue = '#6699ff';
-const green = '#a9cc44';
+const secondaryColor = '#f2767e';
+const themeColor = '#dc143c';
+const primaryColor = '#603129';
 
 const conceptStore = useConceptStore();
 const { conceptsNetwork: concepts } = storeToRefs(conceptStore);
@@ -156,7 +157,7 @@ onMounted(() => {
         .data(nodes)
         .join('circle')
         .attr('r', (d) => Math.sqrt(d.value) * 3)
-        .attr('fill', blue)
+        .attr('fill', secondaryColor)
         .attr('cursor', 'pointer');
 
     const label = svg
@@ -165,7 +166,7 @@ onMounted(() => {
         .enter()
         .append('text')
         .style('text-anchor', 'middle')
-        .attr('fill', '#3D405C')
+        .attr('fill', primaryColor)
         .text((d) => d.label)
         .attr('font-size', 10)
         .attr('dy', '.35em')
@@ -174,16 +175,16 @@ onMounted(() => {
     node.on('click', click);
 
     node.on('mouseover', function (event, d) {
-        d3.select(this).attr('fill', green);
+        d3.select(this).attr('fill', themeColor);
         d3.select('#label-' + d.id)
             .attr('font-weight', 'bold')
-            .attr('fill', green);
+            .attr('fill', themeColor);
     });
     node.on('mouseout', function (event, d) {
-        d3.select(this).attr('fill', blue);
+        d3.select(this).attr('fill', secondaryColor);
         d3.select('#label-' + d.id)
             .attr('font-weight', 'normal')
-            .attr('fill', '#3D405C');
+            .attr('fill', primaryColor);
     });
 
     node.call(

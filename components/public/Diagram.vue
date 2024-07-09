@@ -76,9 +76,9 @@ const config = {
 };
 
 const lightGray = '#f7f7f7';
-const gray = '#555';
-const blue = '#79c8ff';
-const green = '#a9cc44';
+const primaryColor = '#603129';
+const secondaryColor = '#f2767e';
+const themeColor = '#dc143c';
 
 const conceptStore = useConceptStore();
 const { conceptsTree } = storeToRefs(conceptStore);
@@ -184,7 +184,7 @@ function createGLink(svg: D3SVGElement) {
     return svg
         .append('g')
         .attr('fill', 'none')
-        .attr('stroke', gray)
+        .attr('stroke', primaryColor)
         .attr('stroke-width', 1.5)
         .attr('pointer-events', 'none');
 }
@@ -255,14 +255,15 @@ function appendNode(node: D3SVGElement) {
         .attr('width', config.nodeWidth)
         .attr('height', config.nodeHeight)
         .attr('fill', lightGray)
-        .attr('stroke', gray)
-        .attr('stroke-width', 1);
+        .attr('stroke', primaryColor)
+        .attr('stroke-width', 1)
+        .attr('cursor', 'pointer');
 
     node.append('circle')
         .attr('r', 10)
         .attr('cx', config.nodeWidth / 2)
         .attr('cy', config.nodeHeight)
-        .attr('stroke', (d: any) => getColor(d, gray))
+        .attr('stroke', (d: any) => getColor(d, primaryColor))
         .attr('fill', (d: any) => getColor(d, lightGray))
         .attr('stroke-width', 1);
 
@@ -271,7 +272,7 @@ function appendNode(node: D3SVGElement) {
         .attr('y', config.nodeHeight)
         .attr('dy', '0.35em')
         .attr('text-anchor', 'middle')
-        .attr('fill', (d: any) => getColor(d, gray))
+        .attr('fill', (d: any) => getColor(d, primaryColor))
         .attr('font-size', 20)
         .attr('class', 'plus-minus')
         .text((d: any) => getSign(d));
@@ -280,7 +281,7 @@ function appendNode(node: D3SVGElement) {
         .attr('r', 10)
         .attr('cx', config.nodeWidth)
         .attr('cy', 0)
-        .attr('stroke', gray)
+        .attr('stroke', primaryColor)
         .attr('fill', lightGray)
         .attr('stroke-width', 1)
         .attr('cursor', 'pointer')
@@ -295,7 +296,7 @@ function appendNode(node: D3SVGElement) {
         .attr('y', 0)
         .attr('dy', '0.35em')
         .attr('text-anchor', 'middle')
-        .attr('fill', gray)
+        .attr('fill', primaryColor)
         .attr('font-size', 20)
         .attr('cursor', 'pointer')
         .text('👁')
@@ -303,6 +304,12 @@ function appendNode(node: D3SVGElement) {
             if (d.data.id != 'root') {
                 window.open(`/termos/${d.data.slug}`, '_blank');
             }
+        })
+        .on('mouseover', function (event, d) {
+            d3.select(this).attr('fill', themeColor);
+        })
+        .on('mouseout', function (event, d) {
+            d3.select(this).attr('fill', primaryColor);
         });
 }
 
@@ -317,7 +324,7 @@ function appendLabel(node: D3SVGElement) {
         .style('justify-content', 'center')
         .style('align-items', 'center')
         .style('font-size', '12px')
-        .style('color', 'black')
+        .style('color', primaryColor)
         .style('text-align', 'center')
         .html((d: any) => d.data.label);
 }
@@ -343,7 +350,7 @@ function updateDiagramLinks(
         .enter()
         .append('path')
         .attr('d', (d) => drawLink(d, source))
-        .attr('stroke', gray)
+        .attr('stroke', primaryColor)
         .attr('stroke-width', 3) as any;
 
     link.merge(linkEnter)
@@ -413,11 +420,11 @@ function update(
     });
 
     gElements.selectAll('rect').attr('fill', (d: any) => {
-        return ancestors.includes(d) ? blue : lightGray;
+        return ancestors.includes(d) ? secondaryColor : lightGray;
     });
 
     gElements.selectAll('path').attr('stroke', (d: any) => {
-        return ancestors.includes(d.target) ? green : gray;
+        return ancestors.includes(d.target) ? themeColor : primaryColor;
     });
 
     tree(root);
