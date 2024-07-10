@@ -1,7 +1,7 @@
 <template>
     <div class="container mx-auto">
         <section id="home" class="md:flex">
-            <div class="p-2 md:p-4 mb-auto mx-auto lg:w-4/6">
+            <div class="p-2 md:p-4 mb-auto mx-auto lg:w-3/6">
                 <div class="text-center">
                     <h1 class="text-3xl md:text-4xl font-bold line-clamp-2">
                         {{ name }}
@@ -9,7 +9,7 @@
                     <p class="text-base text-gray-500 mt-2" v-if="description">
                         {{ description }}
                     </p>
-                    <div class="col-span-4 md:col-span-7 mt-4 text-start">
+                    <div class="col-span-4 md:col-span-6 mt-4 text-start">
                         <PublicSearchBar />
                     </div>
                 </div>

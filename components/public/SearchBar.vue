@@ -1,6 +1,6 @@
 <template>
     <form class="flex items-center" @submit.prevent="onSearch">
-        <div id="searchWrapper" class="flex h-fit w-full ">
+        <div id="searchWrapper" class="flex h-fit w-full">
             <FieldAutocomplete
             :id="id"
             v-model="selected"
@@ -15,11 +15,10 @@
             class="w-full"
             @select="onSelect"
             @input="onInput"
-            size="lg"
-        >
-        </FieldAutocomplete>
-        
-        <UIButton type="submit" :square="true" class="h-full self-end max-h-10 rounded-tl-none rounded-bl-none ">
+            size="md"
+        />
+
+        <UIButton type="submit" :square="true" class="h-full self-end max-h-9 rounded-tl-none rounded-bl-none">
             <UIIcon name="ph:magnifying-glass" variant="button"></UIIcon>
         </UIButton>
         </div>
