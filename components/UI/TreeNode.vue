@@ -35,13 +35,13 @@
             >
                 <span
                     v-if="showPosition"
-                    class="text-xs text-gray-500"
+                    class="text-xs text-app-primary"
                     :class="[
                         {
-                            'text-gray-700 font-semibold':
+                            'font-semibold':
                                 node.parentId ==
                                 navigationStore.activeNode?.toString(),
-                            'text-gray-700 font-bold':
+                            'font-bold':
                                 navigationStore.activeNode?.toString() ==
                                 node.id
                         }
