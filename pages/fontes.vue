@@ -1,6 +1,6 @@
 <template>
     <PublicPage title="Fontes">
-        <div class="flex flex-col justify-left">
+        <div class="flex flex-col justify-left break-all">
             <div class="mt-2">
                 <div 
                     v-for="reference in references"
