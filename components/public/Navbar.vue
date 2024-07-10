@@ -1,12 +1,12 @@
 <template>
-    <nav id="navbar" class="p-3 border-b bg-white shadow-sm rounded-sm">
+    <nav id="navbar" class="p-3 border-b bg-white shadow-sm rounded-sm lg:px-5">
         <div class="max-w-screen-3xl mx-auto flex flex-row">
             <div class="w-9/12 lg:w-2/6">
                 <NuxtLink to="/">
                     <img
                         src="/icons/icon-horizontal.png"
                         alt="Logo"
-                        class="h-8"
+                        class="max-w-48"
                     />
                 </NuxtLink>
                 <p

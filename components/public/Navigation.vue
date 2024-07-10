@@ -35,6 +35,8 @@
                 :title="showHeader ? title : ''"
                 :show-breadcrumb="showHeader"
                 :has-header="showHeader"
+                :add-horizontal-line="showHeader"
+                :add-border="false"
             >
                 <template #actions-title>
                     {{ showActions ? 'Ações:' : 'Visualizações:' }}

@@ -10,19 +10,17 @@
 
     <div class="bg-gray-50" v-show="!closed">
         <div
-            class="flex flex-row justify-between border-b border-gray-200 mb-5"
+            class="flex flex-row justify-between border-b border-gray-200 mb-5 items-center"
         >
-            <div class="text-xl font-semibold py-3 flex flex-row">
-                <UIIcon :name="hierarchyIcon" class="mr-3" />
+            <div class="text-xl font-semibold py-2 flex flex-row">
+                <UIIcon :name="hierarchyIcon" class="mr-3" variant="static" />
                 <div class="first-letter:uppercase">
                     {{ hierarchyName }}
                 </div>
             </div>
-            <UIIcon
-                name="ph:x"
-                class="mt-1 hover:text-app-theme-500 text-xl"
-                :title="`Fechar ${hierarchyName}`"
+            <UICloseButton
                 @click="closeNavigation()"
+                :is-positioned-right="false"
             />
         </div>
 
@@ -40,19 +38,17 @@
             }"
         >
             <div
-                class="flex flex-row justify-between border-b border-gray-200 mb-5 p-3"
+                class="flex flex-row justify-between border-b border-gray-200 mb-5 p-3 items-center"
             >
-                <div class="text-xl font-semibold p-3 flex flex-row">
+                <div class="text-xl font-semibold p-3 flex flex-row items-center">
                     <UIIcon :name="hierarchyIcon" class="mr-3" />
                     <div class="first-letter:uppercase">
                         {{ hierarchyName }}
                     </div>
                 </div>
-                <UIIcon
-                    name="ph:x"
-                    class="hover:text-app-theme-500"
-                    :title="`Fechar ${hierarchyName}`"
+                <UICloseButton
                     @click="isSidePanelOpen = false"
+                    :is-positioned-right="false"
                 />
             </div>
 
