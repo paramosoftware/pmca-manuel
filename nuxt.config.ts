@@ -67,6 +67,7 @@ export default defineNuxtConfig({
             ]
         }
     },
+    css: ['~/assets/css/main.css'],
     build: {
         transpile: ['jsonwebtoken', 'vue2-dropzone-vue3', 'v-viewer']
     },
