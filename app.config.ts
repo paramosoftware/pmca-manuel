@@ -17,5 +17,10 @@ export default defineAppConfig({
                 disabled: 'text-app-primary'
             }
         },
+        input: {
+            variant: {
+                outline: 'text-app-primary',
+            }
+        }
     }
 });
