@@ -21,7 +21,7 @@
             />
             <UITreeLink
                 :href="'/termos/' + node.slug"
-                class="text-pmca-secondary-dark hover:text-pmca-accent"
+                class="text-app-theme-400 hover:text-app-theme-500"
                 :class="['p-2 ' + (node.expanded ? 'font-semibold' : '')]"
                 :parentConditional="
                     navigationStore.activeNode?.toString() == node.id ||
@@ -35,13 +35,13 @@
             >
                 <span
                     v-if="showPosition"
-                    class="text-xs text-gray-500"
+                    class="text-xs text-app-primary"
                     :class="[
                         {
-                            'text-gray-700 font-semibold':
+                            'font-semibold':
                                 node.parentId ==
                                 navigationStore.activeNode?.toString(),
-                            'text-gray-700 font-bold':
+                            'font-bold':
                                 navigationStore.activeNode?.toString() ==
                                 node.id
                         }

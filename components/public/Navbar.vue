@@ -1,80 +1,78 @@
 <template>
-    <nav id="navbar" class="p-4 border-b-2 bg-white shadow-sm rounded-md">
-        <div class="max-w-screen-2xl mx-auto ">
-            <div class="grid grid-cols-4 md:grid-cols-12 md:gap-2 ">
-                <div class="mt-1 ">
-                    <NuxtLink to="/">
-                        <img
-                            src="/icons/icon-pmca.png "
-                            alt="Logo"
-                            class="w-14 h-14"
-                        />
-                    </NuxtLink>
-                </div>
-                <div class="col-span-3 md:col-span-4 ">
-                    <div class="flex flex-col justify-between">
-                        <h1 class="text-2xl font-semibold flex-row mb-2">
-                            {{ title }}
-                        </h1>
-                        <p class="text-sm text-gray-500 truncate">
-                            {{ glossaryName }}
-                        </p>
-                    </div>
-                </div>
-                <div id="menuOpen" class="flex justify-end md:hidden row-start-2 col-start-3 col-span-2 ">
-                    <button 
-                        @click="showMenu = !showMenu"
-                        type="button"
-                        aria-controls="navbar-main"
-                        aria-expanded="false"
-                        aria-label="Abrir menu"
-                    >
-                        <UIIcon name="ph:list" class="w-9 h-9" />
-                    </button>
-                </div>
-
-                <div
-                    class="flex items-center md:hidden text-right align-middle col-span-2 md:col-span-0 mr-0 p-0 md:mr-3"
-                    :class="[{'justify-between': isElectronApp}, {'justify-start': !isElectronApp}]"
+    <nav id="navbar" class="p-3 border-b bg-white shadow-sm rounded-sm lg:px-5">
+        <div class="max-w-screen-3xl mx-auto flex flex-row">
+            <div class="w-9/12 lg:w-2/6">
+                <NuxtLink to="/">
+                    <img
+                        src="/icons/icon-horizontal.png"
+                        alt="Logo"
+                        class="max-w-48"
+                    />
+                </NuxtLink>
+                <p
+                    class="text-xl mt-2 text-app-primary font-semibold line-clamp-2"
+                    :title="glossaryName"
+                    v-if="showGlossaryName"
                 >
-                    <NuxtLink to="/termos-selecionados"  class="flex justify-center">
-                        <UIIcon
-                            class="text-pmca-accent w-9 h-9 cursor-pointer mr-0 md:mr-2"
-                            name="ph:bookmarks-simple-fill"
-                            title="Termos selecionados"
-                        />
-                    </NuxtLink>
-                    <NuxtLink to="/admin" class="w-1/4 flex justify-center " v-if="isElectronApp">
-                        <UIIcon
-                            class="text-pmca-accent text-2xl cursor-pointer ml-2"
-                            name="ph:sign-in"
-                            title="Acesso interno"
-                        />
-                    </NuxtLink>
-
-                </div>
-
-                <div class="col-span-4 md:col-span-7  flex relative m-0 md:mr-3 lg:mr-0">
-                    <PublicSearchBar  :navbar="true" class="flex-grow px-0 md:px-6"/>
+                    {{ glossaryName }}
+                </p>
+            </div>
+            <div class="hidden lg:block w-4/6">
+                <div>
+                    <PublicSearchBar class="ml-auto max-w-96" v-if="showSearchBar" />
+                    <PublicNavLinks
+                        class="mt-2 justify-end flex items-center space-x-5"
+                    />
                 </div>
             </div>
-            <div class="mt-4">
-                <PublicNavLinks
-                    :show-menu="showMenu"              
-                    @update:show-menu="showMenu = $event"
-                />
+            <div
+                class="w-3/12 lg:hidden flex justify-end items-center space-x-3"
+            >
+                <NuxtLink to="/termos/selecionados">
+                    <UIIcon
+                        name="ph:bookmarks-simple-fill"
+                        title="Termos selecionados"
+                    />
+                </NuxtLink>
+                <UIIcon name="ph:list" title="Menu" @click="isMenuOpen = true" />
+                <USlideover
+                    v-model="isMenuOpen"
+                    class="text-app-primary h-screen lg:hidden"
+                    :ui="{
+                        background: 'bg-white',
+                        width: 'w-screen max-w-lg'
+                    }"
+                >
+                    <div
+                        class="flex flex-row justify-end p-2"
+                    >
+                        <UICloseButton @click="isMenuOpen = false" class="m-2" :is-positioned-right="false" />
+                    </div>
+
+                    <div class="px-3 pb-3 flex flex-col items-start">
+                        <PublicSearchBar class="w-full" />
+                        <PublicNavLinks class="flex flex-col" @link-clicked="isMenuOpen = false" />
+                    </div>
+                </USlideover>
             </div>
         </div>
     </nav>
 </template>
 
 <script setup lang="ts">
-const showMenu = ref(false);
-const isElectronApp = isElectron();
+defineProps({
+    showSearchBar: {
+        type: Boolean,
+        default: true
+    },
+    showGlossaryName: {
+        type: Boolean,
+        default: true
+    }
+})
+
+const isMenuOpen = ref(false);
 const glossaryStore = useGlossaryStore();
 await glossaryStore.fetch();
 const { name: glossaryName } = storeToRefs(glossaryStore);
-
-const config = useRuntimeConfig();
-const title = ref(config.public.appName);
 </script>

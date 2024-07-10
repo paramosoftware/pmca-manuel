@@ -56,7 +56,7 @@
                                 />
                             </div>
                             <div
-                                class="w-full lg:w-4/12 order-first lg:order-last py-auto bg-gray-100 rounded-md"
+                                class="w-full lg:w-4/12 order-first lg:order-last py-auto rounded-md"
                                 v-if="images.length > 0"
                             >
                                 <PublicMedia :images="images" />

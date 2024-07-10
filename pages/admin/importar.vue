@@ -59,7 +59,7 @@
             <p class="mt-6">
                 <UIIcon
                     name="ph:warning"
-                    class="h-8 w-8 text-pmca-primary mr-1"
+                    class="h-8 w-8 text-app-primary mr-1"
                 />
                 <strong>Atenção:</strong> A importação de termos é uma operação
                 irreversível.
@@ -77,7 +77,7 @@
                     <span v-for="template in templates" class="block mt-4">
                         <UIIcon
                             name="ph:download"
-                            class="h-6 w-6 text-pmca-primary mr-1"
+                            class="h-6 w-6 text-app-primary mr-1"
                             @click="onClick(template.ext)"
                         >
                         </UIIcon>
@@ -111,11 +111,13 @@
                     :value="progress"
                     :indicator="progress !== undefined"
                     size="lg"
-                    :color="error ? 'red' : 'pmca-green'"
+                    :color="error ? 'red' : 'green'"
                     :ui="{
                         progress: {
-                            color: error ? 'text-{color}-700' : 'text-{color}-500',
-                        },
+                            color: error
+                                ? 'text-{color}-700'
+                                : 'text-{color}-500'
+                        }
                     }"
                 />
                 <div

@@ -1,7 +1,9 @@
 <template>
     <div class="flex flex-col mb-4" v-if="!isEmpty">
         
-        <UITitle>{{ title }}</UITitle>
+        <UILabel class="mb-1" v-if="title">
+            {{ title }}
+        </UILabel>
         
         <div class="flex flex-col">
 

@@ -5,12 +5,12 @@
     >
         <ol class="flex items-center gap-x-1.5">
             <li
-                class="flex items-center gap-x-1.5 text-gray-400 text-sm leading-6 min-w-0"
+                class="flex items-center gap-x-1.5 text-app-secondary-500 text-sm leading-6 min-w-0"
                 v-for="(link, index) in linkItems"
             >
                 <NuxtLink
                     :to="link.to"
-                    class="flex items-center gap-x-1.5 group font-semibold min-w-0 hover:text-pmca-accent"
+                    class="flex items-center gap-x-1.5 group font-semibold min-w-0 hover:text-app-theme-500"
                 >
                     <UIIcon
                         v-if="link.icon"
@@ -20,10 +20,7 @@
                     <span>{{ link.label }}</span>
                 </NuxtLink>
                 <span v-if="index < linkItems.length - 1">
-                    <UIIcon
-                        name="ph:caret-right"
-                        class="w-3 h-3"
-                    />
+                    <UIIcon name="ph:caret-right" class="w-3 h-3" />
                 </span>
             </li>
         </ol>

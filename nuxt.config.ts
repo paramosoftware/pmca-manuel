@@ -12,10 +12,62 @@ export default defineNuxtConfig({
                     name: 'viewport',
                     content: 'width=device-width, initial-scale=1'
                 },
-                { hid: 'description', name: 'description', content: packageJson.description}
+                {
+                    hid: 'description',
+                    name: 'description',
+                    content: packageJson.description
+                },
+                {
+                    name: 'application-name',
+                    content: packageJson.displayName
+                },
+                {
+                    name: 'apple-mobile-web-app-title',
+                    content: packageJson.displayName
+                },
+                {
+                    name: 'msapplication-TileColor',
+                    content: '#252525'
+                },
+                {
+                    name: 'theme-color',
+                    content: '#dc143c'
+                }
+            ],
+            link: [
+                { rel: 'manifest', href: '/site.webmanifest' },
+                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+                {
+                    rel: 'icon',
+                    type: 'image/png',
+                    sizes: '32x32',
+                    href: '/favicon-32x32.png'
+                },
+                {
+                    rel: 'icon',
+                    type: 'image/png',
+                    sizes: '16x16',
+                    href: '/favicon-16x16.png'
+                },
+                {
+                    rel: 'apple-touch-icon',
+                    sizes: '180x180',
+                    href: '/apple-touch-icon.png'
+                },
+                {
+                    rel: 'mask-icon',
+                    href: '/safari-pinned-tab.svg',
+                    color: '#ffffff'
+                },
+                {
+                    rel: 'mask-icon',
+                    href: '/safari-pinned-tab.svg',
+                    color: '#ffffff'
+                }
             ]
         }
     },
+    css: ['~/assets/css/main.css'],
     build: {
         transpile: ['jsonwebtoken', 'vue2-dropzone-vue3', 'v-viewer']
     },

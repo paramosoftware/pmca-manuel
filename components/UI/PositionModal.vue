@@ -2,7 +2,7 @@
     <UModal
         id="modal-position"
         :ui="{
-            base: 'text-pmca-primary',
+            base: 'text-app-primary',
             padding: 'p-0',
             width: 'sm:max-w-5xl',
             container: 'items-center'
@@ -45,9 +45,7 @@
                                 class="flex justify-between items-center border border-gray-200 bg-gray-50 p-2 rounded-md w-full shadow-md"
                             >
                                 {{ element.label }}
-                                <span
-                                    class="font-semibold text-pmca-secondary-dark"
-                                >
+                                <span class="font-semibold text-app-theme-400">
                                     {{ index + 1 }}
                                 </span>
                             </div>
@@ -81,7 +79,7 @@ const props = defineProps({
     isPositionModalOpen: {
         type: Boolean,
         default: false
-    },
+    }
 });
 
 const tree = ref<TreeNode>();
@@ -119,10 +117,7 @@ const fetchTreeData = async () => {
     });
 
     if (data.value) {
-        const builtTree = buildTreeData(
-            data.value,
-            true
-        );
+        const builtTree = buildTreeData(data.value, true);
 
         tree.value = builtTree[0];
         parentIdExists = builtTree[1] as boolean;
@@ -146,7 +141,6 @@ const setChildren = ({
     getChildrenCurrentNode(tree.value!, currentExpanded.value);
 };
 
-
 const getChildrenCurrentNode = (node: TreeNode, targetNodeId: ID) => {
     if (node.id === targetNodeId) {
         if (!children.value.has(node.id)) {
@@ -161,7 +155,6 @@ const getChildrenCurrentNode = (node: TreeNode, targetNodeId: ID) => {
         });
     }
 };
-
 
 const updatePositionInNode = (event: any) => {
     if (event.oldIndex !== event.newIndex) {
