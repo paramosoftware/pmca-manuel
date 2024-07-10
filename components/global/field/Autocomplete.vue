@@ -1,5 +1,5 @@
 <template>
-    <div class="mt-4" :class="{ hidden: hidden }">
+    <div :class="{ hidden: hidden, 'mt-4': addMarginTop }">
         <div class="w-full relative">
             <UILabel :for="id">
                 {{ label }}
@@ -168,6 +168,10 @@ const props = defineProps({
     squareRightCorners: {
         type: Boolean,
         default: false
+    },
+    addMarginTop: {
+        type: Boolean,
+        default: true
     }
 });
 

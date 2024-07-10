@@ -1,16 +1,16 @@
 <template>
     <div class="container mx-auto">
-        <section id="home" class="md:flex">
-            <div class="p-2 md:p-4 mb-auto mx-auto lg:w-3/6">
+        <section id="home" class="md:flex mt-10">
+            <div class="p-2 md:p-4 mb-auto mx-auto lg:w-4/6">
                 <div class="text-center">
-                    <h1 class="text-3xl md:text-4xl font-bold line-clamp-2">
+                    <h1 class="text-3xl md:text-4xl font-bold line-clamp-3">
                         {{ name }}
                     </h1>
                     <p class="text-base text-gray-500 mt-2" v-if="description">
                         {{ description }}
                     </p>
                     <div class="col-span-4 md:col-span-6 mt-4 text-start">
-                        <PublicSearchBar />
+                        <PublicSearchBar class="w-full" />
                     </div>
                 </div>
             </div>

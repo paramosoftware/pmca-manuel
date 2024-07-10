@@ -1,57 +1,49 @@
 <template>
-    <nav id="navbar" class="p-4 border-b-2 bg-white shadow-sm rounded-md">
-        <div class="max-w-screen-xl mx-auto">
-            <div class="grid grid-cols-4 md:grid-cols-12 gap-4">
-                <div class="mt-1">
-                    <NuxtLink to="/admin">
-                        <img
-                            src="/icons/icon-horizontal.png"
-                            alt="Logo"
-                        />
-                    </NuxtLink>
-                </div>
-                <div class="col-span-3 md:col-span-4">
-                    <div class="flex flex-col justify-between">
-                        <div>
-                            <h1 class="text-2xl font-semibold flex-row mb-2">
-                                {{ title }}
-                            </h1>
-                            <p class="text-sm text-gray-500 truncate">
-                                {{ glossaryName }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-span-4 md:col-span-7">
-                    <div class="flex flex-row justify-end align-bottom">
-                        <span v-for="menu in menus" :key="menu.title">
-                            <span v-if="menu.items" class="mr-4">
-                                <UDropdown
-                                    :items="menu.items"
-                                    :popper="{ placement: 'bottom-end' }"
-                                >
-                                    <UAvatar size="sm">
-                                        <UIIcon
-                                            :name="menu.icon"   
-                                            :title="menu.title"
-                                        >
-                                        </UIIcon>
-                                    </UAvatar>
-                                </UDropdown>
-                            </span>
-                            <span v-else-if="menu.onClick" class="mr-4">
+    <nav id="navbar" class="p-3 border-b bg-white shadow-sm rounded-sm">
+        <div class="max-w-screen-xl mx-auto md:flex flex-row justify-between items-center">
+            <div class="w-full md:w-2/6">
+                <NuxtLink to="/">
+                    <img
+                        src="/icons/icon-horizontal.png"
+                        alt="Logo"
+                        class="h-8"
+                    />
+                </NuxtLink>
+                <p
+                    class="text-xl mt-2 text-app-primary font-semibold line-clamp-2"
+                    :title="glossaryName"
+                >
+                    {{ glossaryName }}
+                </p>
+            </div>
+            <div class="w-full md:w-4/6 mt-5 md:mt-0 md:flex flex-row justify-end items-center">
+                <div class="flex flex-row justify-end items-center">
+                    <span v-for="menu in menus" :key="menu.title">
+                        <span v-if="menu.items" class="mr-4">
+                            <UDropdown
+                                :items="menu.items"
+                                :popper="{ placement: 'bottom-end' }"
+                            >
                                 <UAvatar size="sm">
                                     <UIIcon
                                         :name="menu.icon"
                                         :title="menu.title"
-                                        @click="menu.onClick"
                                     >
                                     </UIIcon>
                                 </UAvatar>
-                            </span>
+                            </UDropdown>
                         </span>
-                    </div>
+                        <span v-else-if="menu.onClick" class="mr-4">
+                            <UAvatar size="sm">
+                                <UIIcon
+                                    :name="menu.icon"
+                                    :title="menu.title"
+                                    @click="menu.onClick"
+                                >
+                                </UIIcon>
+                            </UAvatar>
+                        </span>
+                    </span>
                 </div>
             </div>
         </div>
@@ -60,8 +52,6 @@
 
 <script setup lang="ts">
 import ROUTES from '~/config/routes';
-const config = useRuntimeConfig();
-const title = ref(config.public.appName);
 const isElectronApp = isElectron();
 
 const userStore = useUserStore();
@@ -155,12 +145,10 @@ const logout = async () => {
 };
 
 const accessPublic = () => {
-  if (isElectronApp) {
-    navigateTo('/');
-  } else {
-    window.open('/', '_blank');
-  }
+    if (isElectronApp) {
+        navigateTo('/');
+    } else {
+        window.open('/', '_blank');
+    }
 };
-
-
 </script>

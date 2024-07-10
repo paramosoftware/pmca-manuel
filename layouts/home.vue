@@ -2,7 +2,7 @@
     <div
         class="flex flex-col h-screen justify-between text-app-primary text-lg"
     >
-        <HomeNavbar class="bg-white" />
+        <PublicNavbar class="bg-white" :show-glossary-name="false" :show-search-bar="false" />
 
         <slot />
 

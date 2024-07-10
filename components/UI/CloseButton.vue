@@ -1,6 +1,6 @@
 <template>
-    <button type="button" class="absolute right-0 top-0 mt-2 mr-2">
+    <button type="button" @click="$emit('click')">
         <span class="sr-only">Fechar</span>
-        <UIIcon name="ph:x" />
+        <UIIcon name="ph:x" title="Fechar" />
     </button>
 </template>

@@ -9,6 +9,13 @@ export default defineAppConfig({
             default: {
                 size: 'md'
             }
-        }
+        },
+        dropdown: {
+            item: {
+                active: 'text-app-theme-500',
+                inactive: 'text-app-secondary-500',
+                disabled: 'text-app-primary'
+            }
+        },
     }
 });
