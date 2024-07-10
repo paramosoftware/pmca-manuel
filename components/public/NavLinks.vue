@@ -2,18 +2,18 @@
     <div class="text-xl">
         <ul v-for="link in links" :key="link.name">
             <UILink :to="link.path">
-                <li class="mt-4 lg:mt-0">
+                <li class="mt-4 lg:mt-0" @click="emit('link-clicked')">
                     {{ link.name }}
                 </li>
             </UILink>
         </ul>
-        <NuxtLink to="/termos/selecionados" class="hidden lg:block">
+        <NuxtLink to="/termos/selecionados" class="hidden lg:block" @click="emit('link-clicked')">
             <UIIcon
                 name="ph:bookmarks-simple-fill"
                 title="Termos selecionados"
             />
         </NuxtLink>
-        <NuxtLink to="/admin" v-if="isElectronApp">
+        <NuxtLink to="/admin" v-if="isElectronApp" class="hidden lg:block" @click="emit('link-clicked')">
             <UIIcon
                 name="ph:sign-in"
                 title="Acesso interno"
@@ -24,6 +24,8 @@
 
 <script setup lang="ts">
 const isElectronApp = isElectron();
+
+const emit = defineEmits(['link-clicked']);
 
 const webPages = ref(<WebPage[]>[]);
 
