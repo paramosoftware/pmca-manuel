@@ -15,7 +15,7 @@
                     <UIIcon
                         name="ph:eraser"
                         title="Limpar seleção"
-                        class="w-5 h-5"
+                        variant="button"
                         @click="onClear"
                     />
                 </UIButton>

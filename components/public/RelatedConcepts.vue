@@ -1,8 +1,8 @@
 <template>
     <Splide :has-track="false" :options="options" v-if="concepts.length > 0">
-        <UITitle id="carousel-heading" class="mb-2">
+        <UILabel id="carousel-heading" class="mb-2">
             {{ title }}
-        </UITitle>
+        </UILabel>
         <SplideTrack>
             <SplideSlide v-for="concept in concepts" :key="concept.id">
                 <PublicCard

@@ -21,7 +21,7 @@
             :class="total > pageSize ? 'justify-between' : 'justify-end'"
         >
             <UIIcon
-                class="w-8 h-8 mr-3"
+                class="mr-3"
                 :name="
                     sort === 'asc' ? 'ph:sort-ascending' : 'ph:sort-descending'
                 "

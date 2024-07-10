@@ -30,15 +30,15 @@
                         >
                             <UIIcon
                                 name="ph:pencil-simple"
-                                class="w-5 h-5"
                                 title="Editar"
+                                variant="button"
                             />
                         </UIButton>
                         <UIButton size="sm" @click="removeItem(item)" square>
                             <UIIcon
                                 name="ph:trash-simple"
-                                class="w-5 h-5"
                                 title="Remover"
+                                variant="button"
                             />
                         </UIButton>
                     </div>
@@ -49,7 +49,7 @@
 
             <UButton
                 size="md"
-                color="primary"
+                color="app-theme"
                 variant="solid"
                 @click="isModalOpen = true"
                 :disabled="!canAddMore || disabled"
@@ -58,8 +58,7 @@
                 <template #leading>
                     <UIIcon
                         name="ph:plus-circle"
-                        class="w-5 h-5"
-                        title="Criar"
+                        variant="button"
                     />
                 </template>
                 <template v-if="!canAddMore">
@@ -72,7 +71,7 @@
                 :id="relatedResource.name + '-modal-form'"
                 v-model="isModalOpen"
                 :ui="{
-                    base: 'text-pmca-primary',
+                    base: 'text-app-primary',
                     padding: 'p-0',
                     width: 'sm:max-w-3xl',
                     container: 'items-center'

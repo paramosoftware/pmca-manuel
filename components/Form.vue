@@ -6,13 +6,14 @@
                 class="text-end flex justify-between"
                 :class="{ 'mt-5 mb-2': !isAuxiliary }"
             >
-                <UIContainerTitle> {{ formTitle }} </UIContainerTitle>
+                <UIContainerTitle :size="isAuxiliary ? '2xl' : '3xl'">
+                    {{ formTitle }} 
+                </UIContainerTitle>
                 <template v-if="!isCreate && !isAuxiliary && canCreate">
                     <UIIcon
                         name="ph:plus-circle"
                         @click="goToCreateForm"
-                        title="Criar novo"
-                        class="w-8 h-8 cursor-pointer"
+                        title="Criar"
                     />
                 </template>
             </div>

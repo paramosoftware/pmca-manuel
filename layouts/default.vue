@@ -1,6 +1,6 @@
 <template>
     <div
-        class="flex flex-col min-h-screen justify-between text-pmca-primary text-md bg-gray-50"
+        class="flex flex-col min-h-screen justify-between text-app-primary text-md bg-gray-50"
     >
         <Navbar class="bg-white" />
 

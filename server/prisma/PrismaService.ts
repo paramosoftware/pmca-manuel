@@ -21,7 +21,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 class PrismaService {
     static _clientWriter: PrismaClient;
     static _clientReader: PrismaClient;
-    static _clientTransaction: PrismaClient;
+    static _clientTransaction: PrismaClient | null = null;
     private _modelClient!: PrismaClient;
 
     private inTransaction = false;
@@ -59,7 +59,8 @@ class PrismaService {
         model: string,
         checkPermissions = true,
         onlyPublished = false,
-        removePrivateFields = false
+        removePrivateFields = false,
+        inTransaction = false
     ) {
         if (!PrismaService.modelExists(model)) {
             throw new ApiValidationError('Model ' + model + ' does not exist');
@@ -1827,9 +1828,15 @@ class PrismaService {
         try {
             if (PrismaService.transactionOpen) {
                 logger.debug(
-                    `Transaction already open: ${PrismaService.transactionId}`
+                    `Transaction already open: ${PrismaService.transactionId}. Setting inTransaction flag to true`
                 );
-                return await callback();
+                this.inTransaction = true;
+                const response = await callback();
+                logger.debug(
+                    `Callback executed in transaction: ${PrismaService.transactionId}. Setting inTransaction flag to false`
+                );
+                this.inTransaction = false;
+                return response;
             }
 
             await PrismaService._clientWriter.$transaction(async (prismaTx) => {
@@ -1845,10 +1852,6 @@ class PrismaService {
                 await callback();
 
                 this.reinitializePrisma();
-
-                logger.info(
-                    `Transaction committed: ${PrismaService.transactionId}`
-                );
             });
         } catch (error) {
             throw error;
@@ -1861,17 +1864,36 @@ class PrismaService {
         logger.info(`Transaction closed: ${PrismaService.transactionId}`);
         PrismaService.transactionId = '';
         PrismaService.transactionOpen = false;
+        PrismaService._clientTransaction = null;
         this.inTransaction = false;
         PrismaService._clientWriter = PrismaService.getPrismaClientWriter();
     }
 
     initPrismaServiceWithFlags(model: string) {
-        return new PrismaService(
+        const service = new PrismaService(
             model,
             this.checkPermissions,
             this.onlyPublished,
             this.removePrivateFields
         );
+
+        if (this.userId) {
+            service.setUserId(this.userId);
+        }
+
+        if (this.permissions) {
+            service.setPermissions(this.permissions);
+        }
+
+        if (this.inTransaction) {
+            service.setInTransaction();
+        }
+
+        return service;
+    }
+
+    private setInTransaction(open: boolean = true) {
+        this.inTransaction = open;
     }
 
     setClients() {
@@ -1880,7 +1902,7 @@ class PrismaService {
     }
 
     private getClient(reader = false) {
-        if (this.inTransaction) {
+        if (this.inTransaction && PrismaService._clientTransaction) {
             return PrismaService._clientTransaction;
         } else if (reader) {
             return PrismaService._clientReader;
@@ -1899,7 +1921,7 @@ class PrismaService {
      * const client = this.getModelClient();
      */
     getModelClient(reader = false): PrismaClient | any {
-        if (this.inTransaction) {
+        if (this.inTransaction && PrismaService._clientTransaction) {
             // @ts-ignore
             this._modelClient = PrismaService._clientTransaction[this.model];
         } else if (reader) {

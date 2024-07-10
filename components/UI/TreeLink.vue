@@ -1,16 +1,15 @@
 <template>
-    <NuxtLink :to="href">
+    <UILink :to="href">
         <span
             :class="[
                 {
-                    'text-pmca-green-500': parentConditional,
-                },
-                
+                    'text-app-theme-500': parentConditional
+                }
             ]"
         >
             <slot />
         </span>
-    </NuxtLink>
+    </UILink>
 </template>
 
 <script setup lang="ts">
@@ -25,5 +24,4 @@ defineProps({
         required: true
     }
 });
-
 </script>

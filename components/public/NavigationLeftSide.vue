@@ -2,7 +2,7 @@
     <div class="flex flex-row justify-end" v-if="closed">
         <UIIcon
             name="ph:tree-view"
-            class="hover:text-pmca-accent"
+            class="hover:text-app-theme-500"
             :title="`Arraste para a direita para abrir a ${hierarchyName}`"
             @click="openNavigation()"
         />
@@ -10,19 +10,17 @@
 
     <div class="bg-gray-50" v-show="!closed">
         <div
-            class="flex flex-row justify-between border-b border-gray-200 mb-5"
+            class="flex flex-row justify-between border-b border-gray-200 mb-5 items-center"
         >
-            <div class="text-xl font-semibold py-3 flex flex-row">
-                <UIIcon :name="hierarchyIcon" class="mr-3" />
+            <div class="text-xl font-semibold py-2 flex flex-row">
+                <UIIcon :name="hierarchyIcon" class="mr-3" variant="static" />
                 <div class="first-letter:uppercase">
                     {{ hierarchyName }}
                 </div>
             </div>
-            <UIIcon
-                name="ph:x"
-                class="mt-1 hover:text-pmca-accent text-xl"
-                :title="`Fechar ${hierarchyName}`"
+            <UICloseButton
                 @click="closeNavigation()"
+                :is-positioned-right="false"
             />
         </div>
 
@@ -32,7 +30,7 @@
 
         <USlideover
             v-model="isSidePanelOpen"
-            class="text-pmca-primary h-screen lg:hidden"
+            class="text-app-primary h-screen lg:hidden"
             side="left"
             :ui="{
                 background: 'bg-gray-100',
@@ -40,19 +38,17 @@
             }"
         >
             <div
-                class="flex flex-row justify-between border-b border-gray-200 mb-5 p-3"
+                class="flex flex-row justify-between border-b border-gray-200 mb-5 p-3 items-center"
             >
-                <div class="text-xl font-semibold p-3 flex flex-row">
+                <div class="text-xl font-semibold p-3 flex flex-row items-center">
                     <UIIcon :name="hierarchyIcon" class="mr-3" />
                     <div class="first-letter:uppercase">
                         {{ hierarchyName }}
                     </div>
                 </div>
-                <UIIcon
-                    name="ph:x"
-                    class="hover:text-pmca-accent"
-                    :title="`Fechar ${hierarchyName}`"
+                <UICloseButton
                     @click="isSidePanelOpen = false"
+                    :is-positioned-right="false"
                 />
             </div>
 
@@ -101,13 +97,19 @@ const emit = defineEmits(['slideOverClose']);
 
 const isSidePanelOpen = ref(false);
 
-watch(() => props.isSlideOverOpen, (value) => {
-    isSidePanelOpen.value = value;
-});
-
-watch(() => isSidePanelOpen.value, (value) => {
-    if (!value) {
-        emit('slideOverClose');
+watch(
+    () => props.isSlideOverOpen,
+    (value) => {
+        isSidePanelOpen.value = value;
     }
-});
+);
+
+watch(
+    () => isSidePanelOpen.value,
+    (value) => {
+        if (!value) {
+            emit('slideOverClose');
+        }
+    }
+);
 </script>

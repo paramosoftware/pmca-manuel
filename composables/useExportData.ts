@@ -13,7 +13,7 @@ export default function useExportData() {
             ui: {
                 rounded: 'rounded-sm',
                 padding: 'p-5',
-                icon: { color: 'text-pmca-accent' }
+                icon: { color: 'text-app-theme-500' }
             },
             closeButton: {
                 disabled: true
@@ -29,7 +29,7 @@ export default function useExportData() {
             const contentLength = response.headers.get('content-length');
             let progress = 0;
 
-            if (contentLength && Number(contentLength) > 25000000) {    
+            if (contentLength && Number(contentLength) > 25000000) {
                 const stream = response.body!;
                 const reader = stream.getReader();
                 const content = [];
@@ -40,7 +40,9 @@ export default function useExportData() {
                     if (value) {
                         content.push(value);
                         receivedBytes += value.length;
-                        progress = Math.round((receivedBytes / Number(contentLength)) * 100);
+                        progress = Math.round(
+                            (receivedBytes / Number(contentLength)) * 100
+                        );
                     }
                     done = doneValue;
                 }
@@ -48,7 +50,6 @@ export default function useExportData() {
             } else {
                 blob = await response.blob();
             }
-
         } catch (error) {
             toast.remove(exportToast.id);
             loading.value = false;

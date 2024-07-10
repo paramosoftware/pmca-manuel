@@ -10,24 +10,32 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                'pmca-primary': '#3D405C',
-                'pmca-primary-light': '#5c608a',
-                'pmca-secondary': '#6699FF',
-                'pmca-secondary-dark': '#4054B2',
-                'pmca-accent': '#A9CC44',
-                'pmca-accent-dark': '#23A455',
-                'pmca-green': {
-                    50: '#f8fbea',
-                    100: '#eef5d2',
-                    200: '#ddeda9',
-                    300: '#c6df77',
-                    400: '#a9cc44',
-                    500: '#a9cc44',
-                    600: '#6f8f21',
-                    700: '#556d1e',
-                    800: '#45571d',
-                    900: '#3b4b1c',
-                    950: '#a9cc44'
+                'app-primary': '#603129',
+                'app-secondary': {
+                    50: '#fef2f2',
+                    100: '#fde7e6',
+                    200: '#fbd0d2',
+                    300: '#f7aaad',
+                    400: '#f57f82',
+                    500: '#f2767e',
+                    600: '#dc143c',
+                    700: '#b31d36',
+                    800: '#961b33',
+                    900: '#811a32',
+                    950: '#480916'
+                },
+                'app-theme': {
+                    50: '#fff0f2',
+                    100: '#ffe3e4',
+                    200: '#ffcbd1',
+                    300: '#ff6b7e',
+                    400: '#fb3855',
+                    500: '#dc143c',
+                    600: '#a50c33',
+                    700: '#8d0e33',
+                    800: '#4f0217',
+                    900: '#2f0217',
+                    950: '#1a010b'
                 }
             }
         }

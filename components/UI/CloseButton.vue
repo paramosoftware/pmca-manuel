@@ -1,6 +1,15 @@
 <template>
-    <button type="button" class="absolute right-0 top-0 mt-2 mr-2">
+    <button type="button" @click="$emit('click')" :class="{ 'absolute top-2 right-2': isPositionedRight }">
         <span class="sr-only">Fechar</span>
-        <UIIcon name="ph:x" class="w-6 h-6 text-pmca-primary" />
+        <UIIcon name="ph:x" title="Fechar" />
     </button>
 </template>
+
+<script setup lang="ts">
+defineProps({
+    isPositionedRight: {
+        type: Boolean,
+        default: true
+    }
+});
+</script>

@@ -1,5 +1,9 @@
 <template>
-    <label class="text-xl text-pmca-secondary first-letter:uppercase" :for="id" v-if="showLabel">
+    <label
+        class="text-xl text-app-theme-500 first-letter:uppercase font-[525]" 
+        :for="id"
+        v-if="showLabel"
+    >
         <slot />
     </label>
 </template>
@@ -11,5 +15,5 @@ defineProps({
         type: Boolean,
         default: true
     }
-})
+});
 </script>

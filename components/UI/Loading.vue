@@ -1,6 +1,6 @@
 <template>
     <div
-        class="w-full h-1 fixed top-0 left-0 bg-pmca-accent z-[1000] transition-all duration-500 shadow-lg shadow-pmca-accent"
+        class="w-full h-1 fixed top-0 left-0 bg-app-theme-500 z-[1000] transition-all duration-500 shadow-lg shadow-app-theme-500"
         :style="{
             width: `${progress}%`
         }"

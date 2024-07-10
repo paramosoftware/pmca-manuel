@@ -19,6 +19,7 @@ class PrismaServiceConverter {
     private onlyPublished: boolean = false;
     private removePrivateFields: boolean = false;
     private privateFieldsPerModel: { [key: string]: string[] } = {};
+    private fieldsToIgnore = ['_action_', 'label', 'labelPlural', 'position'];
 
     constructor(
         model: string,
@@ -536,7 +537,6 @@ class PrismaServiceConverter {
         model: string,
         fieldsMap: Map<string, Prisma.DMMF.Field>
     ) {
-        const fieldsToIgnore = ['_action_', 'label', 'labelPlural'];
         const prismaQuery: any = {};
         const published = {
             where: {
@@ -642,7 +642,7 @@ class PrismaServiceConverter {
                             );
                         }
                     }
-                } else if (!fieldsToIgnore.includes(field)) {
+                } else if (!this.fieldsToIgnore.includes(field)) {
                     logger.info(
                         'Field ' + field + ' not found in model: ' + model
                     );
@@ -760,8 +760,10 @@ class PrismaServiceConverter {
         field: string,
         model: string
     ) {
-        if (fieldsMap.get(field) === undefined && field !== '_action_') {
-            logger.info('Field ' + field + ' not found in model: ' + model);
+        if (fieldsMap.get(field) === undefined) {
+            if (!this.fieldsToIgnore.includes(field)) {
+                logger.info('Field ' + field + ' not found in model: ' + model);
+            }
             return false;
         }
 

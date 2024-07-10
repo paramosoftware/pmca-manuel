@@ -1,15 +1,15 @@
 <template>
     <ul
-        class="list-none text-center overflow-auto whitespace-nowrap flex items-center border-b-0 pl-0 border-pmca-primary text-md"
+        class="list-none text-center overflow-auto whitespace-nowrap flex items-center border-b-0 pl-0 border-app-primary text-md"
     >
         <li
             v-for="(tab, index) in tabs"
             :key="index"
-            class="inline-block p-3 border-b-2 hover:border-pmca-accent hover:text-pmca-accent"
+            class="inline-block p-3 border-b-2 hover:border-app-theme-500 hover:text-app-theme-500"
             :class="{
-                'text-pmca-accent border-b-2 border-pmca-accent':
+                'text-app-theme-500 border-b-2 border-app-theme-500':
                     index + 1 === activeTab,
-                'text-pmca-secondary-dark border-b-2 ': index + 1 !== activeTab
+                'text-app-secondary-500 border-b-2 ': index + 1 !== activeTab
             }"
         >
             <label
