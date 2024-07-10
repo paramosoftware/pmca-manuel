@@ -1,29 +1,32 @@
 <template>
     <form class="flex items-center" @submit.prevent="onSearch">
-        <div id="searchWrapper" class="flex h-fit w-full ">
+        <div id="searchWrapper" class="flex h-fit w-full">
             <FieldAutocomplete
-            :id="id"
-            v-model="selected"
-            :placeholder="placeholder"
-            :related-resource="relatedResource"
-            :allow-create="allowCreate"
-            :show-icon="showIcon"
-            :show-selected="showSelected"
-            :is-public="isPublic"
-            :show-no-results="showNoResults"
-            :square-right-corners="true"
-            class="w-full"
-            @select="onSelect"
-            @input="onInput"
-            size="lg"
-        >
-        </FieldAutocomplete>
-        
-        <UIButton type="submit" :square="true" class="h-full self-end max-h-10 rounded-tl-none rounded-bl-none ">
-            <UIIcon name="ph:magnifying-glass" class="h-6 w-8"></UIIcon>
-        </UIButton>
-        </div>
+                :id="id"
+                v-model="selected"
+                :placeholder="placeholder"
+                :related-resource="relatedResource"
+                :allow-create="allowCreate"
+                :show-icon="showIcon"
+                :show-selected="showSelected"
+                :is-public="isPublic"
+                :show-no-results="showNoResults"
+                :square-right-corners="true"
+                class="w-full"
+                @select="onSelect"
+                @input="onInput"
+                size="md"
+                :add-margin-top="false"
+            />
 
+            <UIButton
+                type="submit"
+                :square="true"
+                class="h-full self-end max-h-9 rounded-tl-none rounded-bl-none"
+            >
+                <UIIcon name="ph:magnifying-glass" variant="button"></UIIcon>
+            </UIButton>
+        </div>
     </form>
 </template>
 

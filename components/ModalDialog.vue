@@ -3,7 +3,7 @@
         v-model="isOpen"
         @close="closeModal"
         :ui="{
-            base: 'text-pmca-primary',
+            base: 'text-app-primary',
             padding: 'p-0',
             width: 'sm:max-w-xl',
             container: 'items-center'
@@ -20,6 +20,7 @@
             <UIIcon
                 name="ph:warning"
                 class="h-10 w-10 text-pmca-warning mr-3"
+                variant="static"
             />
             {{ message }}
 

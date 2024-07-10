@@ -37,23 +37,24 @@
                     padding="p-1"
                     square
                     class="mr-1"
+                    size="sm"
                     v-if="!isPdf"
                 >
                     <UIIcon
-                        class="w-4 h-4"
                         name="ph:subtitles"
                         title="Editar legenda"
+                        variant="button"
                     />
                 </UIButton>
                 <UIButton
                     @click="deleteMedia(element)"
                     padding="p-1"
                     square
+                    size="sm"
                 >
                     <UIIcon
-                        class="w-4 h-4"
                         name="ph:trash-simple"
-                        title="Excluir"
+                        variant="button"
                     />
                 </UIButton>
             </div>

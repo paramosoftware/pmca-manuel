@@ -1,18 +1,26 @@
 export default defineAppConfig({
-    nuxtIcon: {
-      size: '32px', // default <Icon> size applied
-      class: 'icon' // default <Icon> class applied
-    },
     ui: {
-      primary: 'pmca-green',
-      gray: 'cool',
-      default: {
-        size: 'md'
-      },
-      button: {
+        primary: 'app-theme',
+        gray: 'stone',
         default: {
-          size: 'md'
+            size: 'md'
+        },
+        button: {
+            default: {
+                size: 'md'
+            }
+        },
+        dropdown: {
+            item: {
+                active: 'text-app-theme-500',
+                inactive: 'text-app-secondary-500',
+                disabled: 'text-app-primary'
+            }
+        },
+        input: {
+            variant: {
+                outline: 'text-app-primary',
+            }
         }
-      }
     }
-  })
+});

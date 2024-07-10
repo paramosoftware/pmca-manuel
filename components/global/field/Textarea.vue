@@ -14,7 +14,7 @@
             :model-value="modelValue"
             @input="onInput"
             resize
-            color="gray"
+            color="primary"
             variant="outline"
             size="md"
             class="w-full mt-1"

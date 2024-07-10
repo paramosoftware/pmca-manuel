@@ -12,7 +12,6 @@
                         name="ph:plus-circle"
                         @click="goToCreateForm"
                         title="Criar"
-                        class="w-8 h-8 cursor-pointer"
                         v-if="canCreate"
                     />
 
@@ -21,7 +20,6 @@
                         v-if="listStore.isHierarchical"
                         name="ph:list-numbers"
                         title="Alterar posição dos itens"
-                        class="w-8 h-8"
                     />
                     <UIPositionModal
                         v-model="isPositionModalOpen"
@@ -36,7 +34,6 @@
                         <UIIcon
                             name="ph:dots-three-outline-vertical"
                             title="Mais opções"
-                            class="w-8 h-8 cursor-pointer"
                         />
                     </UDropdown>
                 </div>
@@ -57,7 +54,7 @@
         <div v-if="pending" class="mt-4">
             <UIIcon
                 name="ph:spinner"
-                class="animate-spin h-10 w-10 text-pmca-primary"
+                class="animate-spin h-10 w-10 text-app-primary"
             />
             <p>Carregando {{ uncapitalize(labelPlural) }}...</p>
         </div>
@@ -131,16 +128,16 @@
                             <UIButton size="sm" square class="mr-1">
                                 <UIIcon
                                     name="ph:pencil-simple"
-                                    class="w-5 h-5"
                                     title="Editar"
+                                    variant="button"
                                 />
                             </UIButton>
                         </NuxtLink>
                         <UIButton size="sm" square v-if="canDelete">
                             <UIIcon
                                 name="ph:trash-simple"
-                                class="w-5 h-5"
                                 title="Excluir"
+                                variant="button"
                                 @click="openModal(item)"
                             />
                         </UIButton>

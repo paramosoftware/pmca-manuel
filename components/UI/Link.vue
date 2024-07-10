@@ -1,6 +1,6 @@
 <template>
     <NuxtLink :to="href">
-        <span class="text-pmca-secondary-dark hover:text-pmca-accent">
+        <span class="text-app-secondary-500 hover:text-app-theme-500">
             <slot />
         </span>
     </NuxtLink>
@@ -12,7 +12,5 @@ defineProps({
         type: String,
         default: '/'
     }
-})
+});
 </script>
-
-

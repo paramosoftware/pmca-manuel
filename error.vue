@@ -2,7 +2,7 @@
     <NuxtLayout :name="layout">
         <PublicPage :show-breadcrumb="false">
             <div class="items-center justify-center flex flex-col min-h-[70vh]">
-                <UIIcon name="ph:warning-circle" class="w-24 h-24" />
+                <UIIcon name="ph:warning-circle" class="w-24 h-24" variant="static"/>
                 <h1 class="text-5xl text-center font-bold">
                     {{ title }}
                 </h1>
@@ -21,7 +21,7 @@
                 </div>
                 <NuxtLink :to="to" class="mt-5">
                     <UIButton>
-                        <UIIcon name="ph:arrow-left" class="w-6 h-6" />
+                        <UIIcon name="ph:arrow-left" variant="button"/>
                         <span class="text-lg">Voltar para a página principal</span>
                     </UIButton>
                 </NuxtLink>

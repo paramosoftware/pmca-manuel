@@ -1,5 +1,5 @@
 <template>
-    <div class="container bg-gray-100">
+    <div class="container bg-gray-50">
         <Viewer :images="images" @inited="inited" class="viewer">
             <Splide :options="mainOptions" ref="main">
                 <SplideSlide
