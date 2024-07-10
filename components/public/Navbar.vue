@@ -46,7 +46,7 @@
                     <div
                         class="flex flex-row justify-end p-2"
                     >
-                        <UICloseButton @click="isMenuOpen = false" class="m-2" />
+                        <UICloseButton @click="isMenuOpen = false" class="m-2" :is-positioned-right="false" />
                     </div>
 
                     <div class="px-3 pb-3 flex flex-col items-start">
