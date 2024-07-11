@@ -54,10 +54,10 @@
                     <PublicActionsBar v-else :user-selection="userSelection" />
                 </template>
 
-                <template #actions-sub-title v-if="isHierarchical">
+                <template #actions-sub-title v-if="showLeftSide">
                     Abrir classificação:
                 </template>
-                <template #actions-sub-icons v-if="isHierarchical">
+                <template #actions-sub-icons v-if="showLeftSide">
                     <UIIcon
                         name="ph:tree-view"
                         title="Abrir classificação"
