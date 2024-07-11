@@ -89,7 +89,10 @@ export default defineNuxtConfig({
             baseURL: process.env.NUXT_PUBLIC_BASE_URL,
             appName: packageJson.displayName,
             appDescription: packageJson.description,
-            appVersion: packageJson.version
+            appVersion: packageJson.version,
+            primaryColor: '#603129',
+            secondaryColor: '#f2767e',
+            themeColor: '#dc143c'
         }
     },
     colorMode: {
