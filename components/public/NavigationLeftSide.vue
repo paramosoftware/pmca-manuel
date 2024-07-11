@@ -26,6 +26,8 @@
 
         <PublicHierarchicalNavigation
             :useConceptStoreForTree="useConceptStoreForTree"
+            :class="`overflow-auto max-h-screen`"
+            :style="{ maxHeight: panelMaxHeight }"
         />
 
         <USlideover
@@ -94,6 +96,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['slideOverClose']);
+const panelMaxHeight = ref('80vh');
+const minHeight = ref(0);
 
 const isSidePanelOpen = ref(false);
 
@@ -112,4 +116,52 @@ watch(
         }
     }
 );
+
+
+function setPanelMaxHeight() {
+    const fullCardElement = document.getElementById('full-card');
+    const navbarElement = document.getElementById('navbar')!;
+    const footerElement = document.getElementById('footer')!;
+    
+    if (fullCardElement) {
+        const fullCardHeight = fullCardElement.clientHeight;
+        const navbarHeight = navbarElement.clientHeight;
+        const footerHeight = footerElement.clientHeight;
+        const windowHeight = window.innerHeight;
+        const minHeight = windowHeight - navbarHeight - footerHeight - 160;
+
+        if (fullCardHeight > minHeight) {
+            panelMaxHeight.value = `${fullCardHeight}px`;
+        } else {
+            panelMaxHeight.value = `${minHeight}px`;
+        }
+
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const fullCardHeight = entry.target.clientHeight;
+                if (fullCardHeight > minHeight) {
+                    panelMaxHeight.value = `${fullCardHeight}px`;
+                } else {
+                    panelMaxHeight.value = `${minHeight}px`;
+                }
+            }
+        });
+
+        resizeObserver.observe(fullCardElement);
+    }
+}
+
+
+onMounted(() => {
+    window.setTimeout(() => {
+        setPanelMaxHeight();
+    }, 750);
+});
 </script>
+
+<style scoped>
+::-webkit-scrollbar {
+    height: 5px;
+    width: 5px;
+}
+</style>
