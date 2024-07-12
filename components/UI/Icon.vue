@@ -37,7 +37,7 @@ const props = defineProps({
         required: false,
     },
     size: {
-        type: String as PropType<'sm' | 'md' | 'lg'>,
+        type: String as PropType<'xs' | 'sm' | 'md' | 'lg'>,
         default: '',
     },
     variant: {
@@ -47,8 +47,9 @@ const props = defineProps({
 });
 
 const sizes = {
-    sm: '1.5rem',
-    md: '2rem',
+    xs: '0.75rem',
+    sm: '1.25rem',
+    md: '1.75rem',
     lg: '3rem'
 };
 
