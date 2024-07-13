@@ -3,7 +3,7 @@
         <UIIcon
             name="ph:tree-view"
             class="hover:text-app-theme-500"
-            :title="`Arraste para a direita para abrir a ${hierarchyName}`"
+            :title="`Clique aqui ou arraste a faixa divisória para a direita para abrir a ${hierarchyName}`"
             @click="openNavigation()"
         />
     </div>
