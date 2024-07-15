@@ -9,8 +9,6 @@ export class CustomError extends Error {
 }
 
 export class ApiValidationError extends CustomError {
-    public statusCode: number;
-
     constructor(message: string) {
         super(message);
         this.name = 'ApiValidationError';
@@ -19,8 +17,6 @@ export class ApiValidationError extends CustomError {
 }
 
 export class UnauthorizedError extends CustomError {
-    public statusCode: number;
-
     constructor(message: string) {
         super(message);
         this.name = 'UnauthorizedError';
@@ -29,8 +25,6 @@ export class UnauthorizedError extends CustomError {
 }
 
 export class ForbiddenError extends CustomError {
-    public statusCode: number;
-
     constructor(message: string) {
         super(message);
         this.name = 'ForbiddenError';
@@ -39,8 +33,6 @@ export class ForbiddenError extends CustomError {
 }
 
 export class ServerError extends CustomError {
-    public statusCode: number;
-
     constructor(message: string) {
         super(message);
         this.name = 'ServerError';
@@ -49,11 +41,17 @@ export class ServerError extends CustomError {
 }
 
 export class UploadError extends CustomError {
-    public statusCode: number;
-
     constructor(message: string) {
         super(message);
         this.name = 'UploadError';
+        this.statusCode = 400;
+    }
+}
+
+export class ExportError extends CustomError {
+    constructor(message: string) {
+        super(message);
+        this.name = 'ExportError';
         this.statusCode = 400;
     }
 }
