@@ -75,10 +75,11 @@ const config = {
     duration: 250
 };
 
+const runtimeConfig = useRuntimeConfig().public;
 const lightGray = '#f7f7f7';
-const primaryColor = '#603129';
-const secondaryColor = '#f2767e';
-const themeColor = '#dc143c';
+const primaryColor = runtimeConfig.primaryColor;
+const secondaryColor = runtimeConfig.secondaryColor;
+const themeColor = runtimeConfig.themeColor;
 
 const conceptStore = useConceptStore();
 const { conceptsTree } = storeToRefs(conceptStore);

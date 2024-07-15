@@ -11,7 +11,7 @@
                     width="w-full"
                     titleSize="text-sm"
                     icon-size="w-6 h-6"
-                    title-padding="p-1"
+                    title-padding="px-2 py-1"
                 />
             </SplideSlide>
         </SplideTrack>
@@ -48,12 +48,14 @@ const props = defineProps({
     }
 });
 
+const themeColor = ref(useRuntimeConfig().public.themeColor);
+
 const concepts = computed(() => {
     return props.concepts.concat(props.oppositeSide);
 });
 
 const options = ref({
-    perPage: 4,
+    perPage: 5,
     perMove: 1,
     gap: '1rem',
     drag: concepts.value.length > 4,
@@ -91,6 +93,6 @@ const options = ref({
 }
 
 .splide__pagination__page.is-active {
-    background: #aacc4459;
+    background: v-bind(themeColor) !important;
 }
 </style>

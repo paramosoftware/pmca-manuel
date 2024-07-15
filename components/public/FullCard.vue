@@ -1,5 +1,6 @@
 <template>
-    <article class="w-7xl">
+    <!-- id is used by NavigationLeftSide -->
+    <article class="w-7xl" id="full-card">
         <PublicBreadcrumb use-concept-store />
         <PublicFullCardTitle :id="id" :name="concept ? concept.name : ''" class="mb-4" />
         <div class="flex flex-row">

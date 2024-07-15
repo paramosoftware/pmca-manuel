@@ -30,6 +30,8 @@
 import { Splide, SplideSlide, SplideTrack } from '@splidejs/vue-splide';
 import '@splidejs/vue-splide/css';
 
+const themeColor = ref(useRuntimeConfig().public.themeColor);
+
 const conceptStore = useConceptStore();
 conceptStore.reset();
 await conceptStore.load();
@@ -74,6 +76,6 @@ const options = {
 }
 
 .splide__pagination__page.is-active {
-    background: #aacc4459;
+    background: v-bind(themeColor) !important;
 }
 </style>

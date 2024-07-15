@@ -54,10 +54,10 @@
                     <PublicActionsBar v-else :user-selection="userSelection" />
                 </template>
 
-                <template #actions-sub-title v-if="isHierarchical">
+                <template #actions-sub-title v-if="showLeftSide">
                     Abrir classificação:
                 </template>
-                <template #actions-sub-icons v-if="isHierarchical">
+                <template #actions-sub-icons v-if="showLeftSide">
                     <UIIcon
                         name="ph:tree-view"
                         title="Abrir classificação"
@@ -148,7 +148,7 @@ const leftRef = ref<HTMLElement | null>(null);
 const rightRef = ref<HTMLElement | null>(null);
 const resizeRef = ref<HTMLElement | null>(null);
 const moveX = ref(0);
-const closed = ref(false);
+const closed = ref(true);
 const leftMediumWidthPercentage = 0.25;
 const leftMaxWidthPercentage = 0.5;
 const leftMinWidthPercentage = 0.05;

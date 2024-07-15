@@ -19,9 +19,10 @@
 // TODO: How to handle large networks? Limit the number of nodes and links? Randomize the nodes? [PMCA-410]
 import * as d3 from 'd3';
 
-const secondaryColor = '#f2767e';
-const themeColor = '#dc143c';
-const primaryColor = '#603129';
+const config = useRuntimeConfig().public;
+const secondaryColor = config.secondaryColor;
+const themeColor = config.themeColor;
+const primaryColor = config.primaryColor;
 
 const conceptStore = useConceptStore();
 const { conceptsNetwork: concepts } = storeToRefs(conceptStore);

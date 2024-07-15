@@ -1,6 +1,7 @@
 <template>
     <footer
         class="p-4 border-t shadow-sm rounded-sm text-gray-400 text-xs bg-white"
+        id="footer"
     >
         <div class="md:flex flex-row justify-center md:justify-between items-center">
             <div class="flex flex-col items-center md:items-start">
