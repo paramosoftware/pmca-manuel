@@ -208,6 +208,7 @@ async function main() {
     }
 
     await createDefaultGroups(user.id);
+    await addAdminToAdminGroup(user.id);
     await createDefaultGlossary();
 
     console.log(
@@ -239,7 +240,6 @@ async function createDefaultGroups(userId: string) {
 
     const adminGroup = {
         name: 'Administradores',
-        users: [{ id: userId }],
         permissions: [] as any[]
     };
 
@@ -291,6 +291,18 @@ async function createDefaultGroups(userId: string) {
         } else {
             await groupService.createOne(groupCopy);
         }
+    }
+}
+
+
+async function addAdminToAdminGroup(userId: string) {
+    const groupService = new PrismaService('group', false);
+    const adminGroup = await groupService.readOne('administradores', { include: { users: true } });
+
+    if (adminGroup) {
+        await groupService.updateOne(adminGroup.id, {
+            users: adminGroup.users ? [...adminGroup.users, { id: userId }] : [{ id: userId }]
+        }); 
     }
 }
 
