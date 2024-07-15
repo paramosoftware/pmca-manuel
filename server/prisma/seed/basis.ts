@@ -37,18 +37,21 @@ async function main() {
 
         resourcesConfig.set(resource.name, resourceConfig);
 
-        return {
-            name: resource.name,
-            model: resource.name,
-            label: resourceConfig.label,
-            labelPlural: resourceConfig.labelPlural,
-            isAppModel: resourceConfig.isAppModel,
-            isPublic: resourceConfig.isPublic,
-            isRelation: resourceConfig.isRelation,
-            isHierarchical: resourceConfig.isHierarchical,
-            genderNoun: resourceConfig.genderNoun,
-            fields: resourceConfig.fields
-        } as Prisma.ResourceCreateInput & { fields: any[] };
+        const resourceKeys = Object.keys(resourceConfig);
+
+        const returnResource = {} as Prisma.ResourceCreateInput & {
+            fields: any[];
+        };
+
+        for (const key of resourceKeys) {
+            // @ts-ignore
+            returnResource[key] = resourceConfig[key];
+        }
+
+        returnResource.name = resource.name;
+        returnResource.model = resource.name;
+
+        return returnResource;
     });
 
     const parentResourcesMap = new Map<string, string>();
@@ -374,8 +377,11 @@ function buildResourceConfig(resource: Prisma.DMMF.Model) {
             modelsTranslations.get(resource.name)?.genderNoun ||
             docConfig.genderNoun ||
             'n',
-        fields: resource.fields
-    } as any;
+        fields: resource.fields,
+        canBeExported: docConfig.canBeExported == 'true',
+        canBeImported: docConfig.canBeImported == 'true',
+        published: docConfig.published == 'true' || docConfig.canBeExported
+    } as Prisma.ResourceCreateInput & { fields: any[] };
 
     return resourceConfig;
 }
