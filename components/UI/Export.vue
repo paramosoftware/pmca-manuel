@@ -71,8 +71,6 @@
             </div>
         </form>
     </div>
-
-    {{ resource }}
 </template>
 
 <script setup lang="ts">
