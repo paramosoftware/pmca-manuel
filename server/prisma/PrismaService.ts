@@ -800,7 +800,7 @@ class PrismaService {
     }
 
     async saveMedia(
-        recordId: number,
+        recordId: ID,
         fileName: string,
         originalFilename: string,
         position: number = 1
