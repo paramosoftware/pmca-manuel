@@ -49,7 +49,7 @@ class PrismaServiceExporter {
         format: DataTransferFormat,
         addMedia: boolean = false,
         query?: Query,
-        template?: string
+        template: boolean = false
     ) {
         try {
             if (!format) {
@@ -65,24 +65,27 @@ class PrismaServiceExporter {
             this.include = QUERIES.get(this.model)?.include || '*';
             this.where = query?.where || undefined;
 
+            const name = template ? 'template' : 'export';
+            const fileName = `${name}-${this.model.toLowerCase()}${template ? '' : `-${new Date().toISOString()}`}`;
+
             const filePath = path.join(
                 getDataFolderPath('temp'),
-                `export-${Date.now()}.${format}`
+                `${fileName}.${format}`
             );
             const zipPath = path.join(
                 getDataFolderPath('temp'),
-                `export-${Date.now()}.zip`
+                `${fileName}.zip`
             );
 
             switch (format) {
                 case 'xlsx':
-                    await this.exportToXlsx(filePath);
+                    await this.exportToXlsx(filePath, template);
                     break;
                 case 'csv':
-                    await this.exportToCsv(filePath);
+                    await this.exportToCsv(filePath, template);
                     break;
                 case 'json':
-                    await this.exportToJson(filePath);
+                    await this.exportToJson(filePath, template);
                     break;
                 case 'xml':
                     if (this.model === 'Concept') {
@@ -182,11 +185,35 @@ class PrismaServiceExporter {
         }
     }
 
-    async exportToJson(filePath: string) {
+    async exportToJson(filePath: string, template: boolean = false) {
         fs.writeFileSync(filePath, '');
-        fs.appendFileSync(filePath, '[');
-
+        let addedOpeningBracket = false;
         let totalPages = 1;
+
+        if (template) {
+            fs.appendFileSync(filePath, '[');
+            let obj = {} as any;
+
+            for (const [key, value] of this.labelMap) {
+                const field = this.prismaService.fieldsMap.get(key);
+                if (!field) {
+                    obj[value] = '';
+                }
+                if (field?.type === 'boolean') {
+                    obj[value] = false;
+                } else if (field?.type === 'number') {
+                    obj[value] = 0;
+                } else if (field?.isList) {
+                    obj[value] = [];
+                } else {
+                    obj[value] = '';
+                }
+            }
+
+            fs.appendFileSync(filePath, JSON.stringify(obj, null, 2));
+            fs.appendFileSync(filePath, ']');
+            return;
+        }
 
         for (let i = 0; i < totalPages; i++) {
             const data = await this.prismaService.readMany(
@@ -201,6 +228,11 @@ class PrismaServiceExporter {
 
             if (!data) {
                 continue;
+            }
+
+            if (!addedOpeningBracket) {
+                fs.appendFileSync(filePath, '[');
+                addedOpeningBracket = true;
             }
 
             totalPages = data.totalPages;
@@ -275,7 +307,7 @@ class PrismaServiceExporter {
         fs.appendFileSync(filePath, '</rdf:RDF>');
     }
 
-    async exportToXlsx(filePath: string) {
+    async exportToXlsx(filePath: string, template: boolean = false) {
         const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
             filename: filePath
         });
@@ -284,6 +316,11 @@ class PrismaServiceExporter {
         );
 
         worksheet.columns = this.getColumns();
+
+        if (template) {
+            await workbook.commit();
+            return;
+        }
 
         let totalPages = 1;
 
@@ -319,10 +356,18 @@ class PrismaServiceExporter {
         await workbook.commit();
     }
 
-    async exportToCsv(filePath: string) {
+    async exportToCsv(filePath: string, template: boolean = false) {
         fs.writeFileSync(filePath, '');
 
         const columns = this.getColumns();
+
+        if (template) {
+            fs.appendFileSync(
+                filePath,
+                columns.map((column) => column.header).join(',') + '\n'
+            );
+            return
+        }
 
         let totalPages = 1;
 
@@ -674,7 +719,7 @@ class PrismaServiceExporter {
         return [conceptScheme];
     }
 
-    private buildExportItem(item: any, flatten: boolean = true) {
+    private buildExportItem(item: any) {
         const buildItem = {} as any;
         const itemKeys = Object.keys(item);
 

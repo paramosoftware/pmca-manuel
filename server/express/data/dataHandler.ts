@@ -46,6 +46,7 @@ const dataHandler = async (
           ? body.format
           : undefined;
     const addMedia = req.query.addMedia ? req.query.addMedia === 'true' : false;
+    const template = req.query.template ? req.query.template === 'true' : false;
     
     const accessToken = getAccessToken(req);
 
@@ -101,7 +102,8 @@ const dataHandler = async (
                         response = prismaService.exportToFormat(
                             format,
                             addMedia,
-                            query
+                            query,
+                            template
                         );
                     } else if (id) {
                         response = prismaService.readOne(

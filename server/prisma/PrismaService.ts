@@ -699,14 +699,16 @@ class PrismaService {
      * @param format - The export format: json, csv, xml or xlsx
      * @param addMedia - If it should add media to the export
      * @param query - The query object
+     * @param template - If it should export a template
      * @throws ApiValidationError
      */
     async exportToFormat(
         format: DataTransferFormat,
         addMedia: boolean,
-        query: Query
+        query: Query,
+        template: boolean = false
     ) {
-        return await this.exporter.exportToFormat(format, addMedia, query);
+        return await this.exporter.exportToFormat(format, addMedia, query, template);
     }
 
     getProgress(processId: string) {
