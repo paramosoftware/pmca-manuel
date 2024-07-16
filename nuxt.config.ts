@@ -76,7 +76,8 @@ export default defineNuxtConfig({
         '@nuxt/ui',
         '@pinia/nuxt',
         '@nuxt/image',
-        '@formkit/auto-animate/nuxt'
+        '@formkit/auto-animate/nuxt',
+        '@nuxt/content'
     ],
     serverHandlers: [
         {
