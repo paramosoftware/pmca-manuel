@@ -61,6 +61,8 @@ model Resource {
   isHierarchical Boolean? @default(false)
   isAppModel     Boolean? @default(false)
   isPublic       Boolean? @default(false)
+  canBeExported  Boolean? @default(false)
+  canBeImported  Boolean? @default(false)
 
   parent   Resource?  @relation("ResourceToChildren", fields: [parentId], references: [id])
   parentId Int?
@@ -171,7 +173,7 @@ model UserSession {
   @@unique([userId, refreshToken])
 }
 
-/// isPublic:true
+/// isPublic:true|canBeExported:true|canBeImported:true
 model Concept {
   id   Int    @id @default(autoincrement()) /// includeExport:true
   name String /// includeExport:true|label:Termo
@@ -197,7 +199,7 @@ model Concept {
   references Reference[] /// includeExport:true
   media      ConceptMedia[]
 
-  published Boolean @default(true) /// defaultValue:true
+  published Boolean @default(true) /// defaultValue:true|includeExport:true
 
   accessCount Int              @default(0) /// disabled:true|hidden:true
   position    Int              @default(1) /// disabled:true|hidden:true|includeExport:true
@@ -299,16 +301,16 @@ model ConceptTranslation {
   updatedAt DateTime @updatedAt
 }
 
-/// isPublic:true
+/// isPublic:true|canBeExported:true|canBeImported:true
 model Language {
   id   Int     @id @default(autoincrement())
-  name String  @unique
-  code String? @unique
+  name String  @unique /// includeExport:true
+  code String? @unique /// includeExport:true
 
   translations ConceptTranslation[] /// disabled:true|hidden:true
   glossaries Glossary[] /// disabled:true|hidden:true
 
-  published Boolean @default(true) /// defaultValue:true
+  published Boolean @default(true) /// defaultValue:true|includeExport:true
 
   nameNormalized String?
 
@@ -316,12 +318,12 @@ model Language {
   updatedAt DateTime @updatedAt
 }
 
-/// isPublic:true
+/// isPublic:true|canBeExported:true|canBeImported:true
 model Reference {
   id   Int    @id @default(autoincrement())
-  name String @unique /// uiField:rich|isRich:true
+  name String @unique /// uiField:rich|isRich:true|includeExport:true
 
-  nameRich       String? /// hidden:true
+  nameRich       String? /// hidden:true|includeExport:true
   nameNormalized String?
   
 
@@ -373,16 +375,16 @@ model Glossary {
   updatedAt DateTime @updatedAt
 }
 
-/// isPublic:true
+/// isPublic:true|canBeExported:true|canBeImported:true
 model Keyword {
   id   Int    @id @default(autoincrement())
-  name String @unique
+  name String @unique /// includeExport:true
 
   glossaries Glossary[] /// disabled:true|hidden:true
 
   nameNormalized String?
 
-  published Boolean @default(true) /// defaultValue:true
+  published Boolean @default(true) /// defaultValue:true|includeExport:true
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

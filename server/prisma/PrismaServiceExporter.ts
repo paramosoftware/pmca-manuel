@@ -7,7 +7,10 @@ import path from 'path';
 import QUERIES from '~/config/queries';
 import getDataFolderPath from '~/utils/getDataFolderPath';
 import { useCamelCase } from '~/utils/useCamelCase';
+import capitalize from '~/utils/capitalize';
 import PrismaService from './PrismaService';
+import logger from '~/utils/logger';
+import { ExportError } from '../express/error';
 
 class PrismaServiceExporter {
     private model: string;
@@ -46,51 +49,63 @@ class PrismaServiceExporter {
         format: DataTransferFormat,
         addMedia: boolean = false,
         query?: Query,
-        template?: string
+        template: boolean = false
     ) {
-        if (!format) {
-            return;
-        }
+        try {
+            if (!format) {
+                throw new ExportError('Formato de exportação não informado');
+            }
 
-        await this.setResourceConfig();
+            const configSet = await this.setResourceConfig();
 
-        this.include = QUERIES.get(this.model)?.include || '*';
-        this.where = query?.where || undefined;
+            if (!configSet) {
+                throw new ExportError(`Recurso ${this.model} não pode ser exportado`);
+            }
 
-        const filePath = path.join(
-            getDataFolderPath('temp'),
-            `export-${Date.now()}.${format}`
-        );
-        const zipPath = path.join(
-            getDataFolderPath('temp'),
-            `export-${Date.now()}.zip`
-        );
+            this.include = QUERIES.get(this.model)?.include || '*';
+            this.where = query?.where || undefined;
 
-        switch (format) {
-            case 'xlsx':
-                await this.exportToXlsx(filePath);
-                break;
-            case 'csv':
-                await this.exportToCsv(filePath);
-                break;
-            case 'json':
-                await this.exportToJson(filePath);
-                break;
-            case 'xml':
-                if (this.model === 'Concept') {
-                    await this.getGlossaryProperties();
-                    await this.exportToSkos(filePath);
-                }
-                break;
-            default:
-                console.log('Invalid format');
-        }
+            const name = template ? 'template' : 'export';
+            const fileName = `${name}-${this.model.toLowerCase()}${template ? '' : `-${new Date().toISOString()}`}`;
 
-        if (addMedia) {
-            this.createZip(filePath, zipPath);
-            return zipPath;
-        } else {
-            return filePath;
+            const filePath = path.join(
+                getDataFolderPath('temp'),
+                `${fileName}.${format}`
+            );
+            const zipPath = path.join(
+                getDataFolderPath('temp'),
+                `${fileName}.zip`
+            );
+
+            switch (format) {
+                case 'xlsx':
+                    await this.exportToXlsx(filePath, template);
+                    break;
+                case 'csv':
+                    await this.exportToCsv(filePath, template);
+                    break;
+                case 'json':
+                    await this.exportToJson(filePath, template);
+                    break;
+                case 'xml':
+                    if (this.model === 'Concept') {
+                        await this.getGlossaryProperties();
+                        await this.exportToSkos(filePath);
+                    }
+                    break;
+                default:
+                    console.log('Invalid format');
+            }
+
+            if (addMedia) {
+                this.createZip(filePath, zipPath);
+                return zipPath;
+            } else {
+                return filePath;
+            }
+        } catch (error) {
+            logger.error(error);
+            throw error;
         }
     }
 
@@ -118,7 +133,7 @@ class PrismaServiceExporter {
     async setResourceConfig() {
         const resourceService = new PrismaService('Resource');
 
-        const resourceConfig = await resourceService.readOne(this.model, {
+        const resourceConfig = (await resourceService.readOne(this.model, {
             include: {
                 fields: {
                     orderBy: {
@@ -126,9 +141,13 @@ class PrismaServiceExporter {
                     }
                 }
             }
-        });
+        })) as Resource & { fields: ResourceField[] };
 
-        this.labelNormalized = resourceConfig?.labelNormalized;
+        if (!resourceConfig || !resourceConfig.canBeExported) {
+            return false;
+        }
+
+        this.labelNormalized = resourceConfig?.labelNormalized!;
 
         if (resourceConfig) {
             for (const field of resourceConfig.fields) {
@@ -141,6 +160,8 @@ class PrismaServiceExporter {
                 }
             }
         }
+
+        return true;
     }
 
     async getGlossaryProperties() {
@@ -164,22 +185,54 @@ class PrismaServiceExporter {
         }
     }
 
-    async exportToJson(filePath: string) {
+    async exportToJson(filePath: string, template: boolean = false) {
         fs.writeFileSync(filePath, '');
-        fs.appendFileSync(filePath, '[');
-
+        let addedOpeningBracket = false;
         let totalPages = 1;
 
+        if (template) {
+            fs.appendFileSync(filePath, '[');
+            let obj = {} as any;
+
+            for (const [key, value] of this.labelMap) {
+                const field = this.prismaService.fieldsMap.get(key);
+                if (!field) {
+                    obj[value] = '';
+                }
+                if (field?.type === 'boolean') {
+                    obj[value] = false;
+                } else if (field?.type === 'number') {
+                    obj[value] = 0;
+                } else if (field?.isList) {
+                    obj[value] = [];
+                } else {
+                    obj[value] = '';
+                }
+            }
+
+            fs.appendFileSync(filePath, JSON.stringify(obj, null, 2));
+            fs.appendFileSync(filePath, ']');
+            return;
+        }
+
         for (let i = 0; i < totalPages; i++) {
-            const data = await this.prismaService.readMany({
-                pageSize: this.pageSize,
-                page: i + 1,
-                include: this.include,
-                where: this.where
-            });
+            const data = await this.prismaService.readMany(
+                {
+                    pageSize: this.pageSize,
+                    page: i + 1,
+                    include: this.include,
+                    where: this.where
+                },
+                true
+            );
 
             if (!data) {
                 continue;
+            }
+
+            if (!addedOpeningBracket) {
+                fs.appendFileSync(filePath, '[');
+                addedOpeningBracket = true;
             }
 
             totalPages = data.totalPages;
@@ -231,7 +284,7 @@ class PrismaServiceExporter {
                 orderBy: {
                     position: 'asc'
                 }
-            });
+            }, true);
 
             if (!data) {
                 continue;
@@ -254,7 +307,7 @@ class PrismaServiceExporter {
         fs.appendFileSync(filePath, '</rdf:RDF>');
     }
 
-    async exportToXlsx(filePath: string) {
+    async exportToXlsx(filePath: string, template: boolean = false) {
         const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
             filename: filePath
         });
@@ -264,6 +317,11 @@ class PrismaServiceExporter {
 
         worksheet.columns = this.getColumns();
 
+        if (template) {
+            await workbook.commit();
+            return;
+        }
+
         let totalPages = 1;
 
         for (let i = 0; i < totalPages; i++) {
@@ -272,7 +330,7 @@ class PrismaServiceExporter {
                 page: i + 1,
                 include: this.include,
                 where: this.where
-            });
+            }, true);
 
             if (!data) {
                 continue;
@@ -298,10 +356,18 @@ class PrismaServiceExporter {
         await workbook.commit();
     }
 
-    async exportToCsv(filePath: string) {
+    async exportToCsv(filePath: string, template: boolean = false) {
         fs.writeFileSync(filePath, '');
 
         const columns = this.getColumns();
+
+        if (template) {
+            fs.appendFileSync(
+                filePath,
+                columns.map((column) => column.header).join(',') + '\n'
+            );
+            return
+        }
 
         let totalPages = 1;
 
@@ -311,7 +377,7 @@ class PrismaServiceExporter {
                 page: i + 1,
                 include: this.include,
                 where: this.where
-            });
+            }, true);
 
             if (!data) {
                 continue;
@@ -630,11 +696,14 @@ class PrismaServiceExporter {
 
         const where = { parentId: { isNull: true } };
 
-        const topConcepts = await this.prismaService.readMany({
-            pageSize: -1,
-            page: 1,
-            where
-        }, true);
+        const topConcepts = await this.prismaService.readMany(
+            {
+                pageSize: -1,
+                page: 1,
+                where
+            },
+            true
+        );
 
         if (topConcepts && topConcepts.items.length > 0) {
             for (const topConcept of topConcepts.items) {
@@ -650,39 +719,53 @@ class PrismaServiceExporter {
         return [conceptScheme];
     }
 
-    private buildExportItem(item: Concept) {
-        const newItem = {} as any;
+    private buildExportItem(item: any) {
+        const buildItem = {} as any;
+        const itemKeys = Object.keys(item);
 
-        newItem.id = item.nameSlug;
-        newItem.name = item.name;
-        newItem.definition = item.definition;
-        newItem.notes = item.notes;
-        newItem.parent = item.parent?.nameSlug;
-        newItem.position = item.position;
-        newItem.references =
-            item.references?.map((reference: Reference) => reference.name) ??
-            [];
-        newItem.variations =
-            item.variations?.map((variation: Variation) => variation.name) ??
-            [];
-        newItem.translations =
-            item.translations?.map(
-                (translation: Translation) =>
-                    translation.name +
-                    (translation.language
-                        ? ` (${translation.language.name})`
-                        : '')
-            ) ?? [];
+        for (const key of itemKeys) {
+            if (!this.labelMap.has(key)) {
+                continue;
+            }
 
-        const concepts =
-            item.concepts?.map((concept: Concept) => concept.nameSlug) ?? [];
-        const relatedConcepts =
-            item.relatedConcepts?.map((concept: Concept) => concept.nameSlug) ??
-            [];
+            if (typeof item[key] === 'string' || typeof item[key] === 'number') {
+                buildItem[key] = item[key];
+            } else if (typeof item[key] === 'boolean') {
+                buildItem[key] = item[key] ? 'Sim' : 'Não';
+            } else if (item[key] instanceof Array) {
+                buildItem[key] = item[key].map((value: any) =>
+                    typeof value === 'string' ? value : value.name
+                );
+            } else if (item[key] instanceof Object) {
+                buildItem[key] = item[key].name;
+            }
+        }
 
-        newItem.concepts = concepts?.concat(relatedConcepts) ?? [];
+        const newKeys = Object.keys(buildItem);
 
-        return newItem;
+        for (const key of newKeys) {
+            const relatedKey = 'related' + capitalize(key);
+            if (newKeys.includes(relatedKey)) {
+                buildItem[key] = buildItem[key].concat(
+                    buildItem[relatedKey]
+                );
+                delete buildItem[relatedKey];
+            }
+        }
+
+        if (this.model === 'Concept') {
+            buildItem.id = item.nameSlug;
+            buildItem.translations =
+                item.translations?.map(
+                    (translation: Translation) =>
+                        translation.name +
+                        (translation.language
+                            ? ` (${translation.language.name})`
+                            : '')
+                ) ?? [];
+        }
+
+        return buildItem;
     }
 
     private addMediaToMap(media: ConceptMedia[], nameSlug: string) {

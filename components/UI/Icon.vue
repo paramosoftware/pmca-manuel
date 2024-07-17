@@ -1,13 +1,8 @@
 <template>
     <span class="flex" v-if="title">
-        <UDropdown 
-            mode="hover" 
-            :items="items" 
-            :popper="{ placement: placement }" 
-            :ui="{ width: 'w-30', padding: 'p-0', background: 'bg-gray-100 opacity-90' }"
-        >
+        <UITooltip :help="title" :placement="placement">
             <Icon :name="name" :class="css" @click="onClick($event)" :size="selectedSize" />
-        </UDropdown>
+        </UITooltip>
     </span>
 
     <Icon :name="name" :class="css" @click="onClick" v-else :size="selectedSize" />
@@ -82,17 +77,4 @@ const emit = defineEmits(['click']);
 function onClick($event: Event) {
     emit('click', $event);
 }
-
-let items = [
-    [{
-        label: props.title,
-        class: 'cursor-default text-sm justify-center text-black',
-        disabled: true
-    }]
-];
-
-watch(() => props.title, (value) => {
-    items[0][0].label = value;
-});
-
 </script>
