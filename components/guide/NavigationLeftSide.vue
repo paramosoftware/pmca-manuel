@@ -7,8 +7,8 @@
             @click="openNavigation()"
         />
     </div>
-
-    <div class="bg-gray-50" v-show="!closed">
+    
+    <div class="bg-gray-50 " v-show="!closed">
         <div
             class="flex flex-row justify-between border-b border-gray-200 mb-5 items-center"
         >
@@ -23,11 +23,8 @@
                 :is-positioned-right="false"
             />
         </div>
+        <GuideTreeView  class="h-[55vh] overflow-auto" :tree="navigation" :showPosition="true"/>
 
-        <PublicHierarchicalNavigation
-            :class="`overflow-auto max-h-screen`"
-            :style="{ maxHeight: panelMaxHeight }"
-        />
 
         <USlideover
             v-model="isSidePanelOpen"
@@ -62,6 +59,7 @@
 </template>
 
 <script setup lang="ts">
+
 const props = defineProps({
     closed: {
         type: Boolean,
@@ -88,7 +86,9 @@ const props = defineProps({
         default: 'ph:flower-lotus'
     }
 });
-
+const { data: navigation } = await useAsyncData('navigation', () =>
+    fetchContentNavigation()
+);
 const emit = defineEmits(['slideOverClose']);
 const panelMaxHeight = ref('80vh');
 const minHeight = ref(0);

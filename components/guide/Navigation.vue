@@ -1,7 +1,7 @@
 <template>
     <div
         id="container"
-        class="flex flex-grow min-h-full shadow-lg border-gray-200 rounded-lg border"
+        class="flex flex-grow max-h-max shadow-lg bg-red-500 border-gray-200 rounded-lg border"
     >
         <div
             id="left"
@@ -10,6 +10,7 @@
             v-if="showLeftSide"
         >
             <GuideNavigationLeftSide
+                class="bg-red-500"
                 :closed="closed"
                 :open-navigation="openNavigation"
                 :close-navigation="closeNavigation"
@@ -18,7 +19,7 @@
             />
         </div>
         <div
-            class="w-2 hover:w-2 bg-gray-200 hover:bg-app-theme-500 cursor-col-resize user-select-none items-center hidden lg:flex"
+            class="w-2 hover:w-2 bg-gray-200 hover:bg-app-theme-500 cursor-col-resize user-select-none items-center overflow-auto hidden lg:flex"
             id="resize"
             ref="resizeRef"
             v-if="showLeftSide"
@@ -27,17 +28,17 @@
         </div>
         <div
             id="right"
-            class="bg-white overflow-hidden items-center shrink grow"
+            class="bg-white max-h-max overflow-x-auto items-center shrink grow"
             ref="rightRef"
         >
             <PublicPage
-                :title="'(Nome nível)'"
-                :show-breadcrumb="false"
+                :title="data ? data.title : props.title"
+                :show-breadcrumb="true"
                 :has-header="false"
                 :add-horizontal-line="true"
                 :add-border="false"
             >
-                ContentDoc aqui.
+                <GuideContent />
             </PublicPage>
         </div>
     </div>
@@ -47,7 +48,7 @@
 const props = defineProps({
     title: {
         type: String,
-        default: '(Titulo nível atual)'
+        default: 'Inicio'
     },
     individualCard: {
         type: Boolean,
@@ -63,31 +64,13 @@ const props = defineProps({
     }
 });
 
-const views = ref([
-    {
-        id: 'hierarchical',
-        name: 'Hierárquica',
-        icon: 'ph:tree-view',
-        title: 'Visualização hierárquica (classificação)'
-    },
-    {
-        id: 'alphabetical',
-        name: 'Alfabética',
-        title: 'Visualização alfabética',
-        icon: 'ph:text-aa'
-    },
-    {
-        id: 'diagram',
-        name: 'Diagrama',
-        title: 'Visualização em diagrama',
-        icon: 'ph:arrows-split'
-    }
-]);
-
-const showLeftSide = computed(
-    () => true
-        
+const route = useRoute();
+const currentManualPath = route.path.split('/').slice(2).join('/');
+const { data } = useAsyncData('title', () =>
+    queryContent(currentManualPath).findOne()
 );
+
+const showLeftSide = computed(() => true);
 
 const isSlideOverOpen = ref(false);
 const leftWidth = ref(300);
@@ -105,8 +88,6 @@ const leftMinWidthPercentage = 0.05;
 const drag = ref(false);
 
 onMounted(() => {
-
-
     if (showLeftSide.value) {
         setInitialDimensions();
         setResizeListeners();
@@ -118,7 +99,6 @@ onUpdated(() => {
         setInitialDimensions();
         setResizeListeners();
     }
-
 });
 
 onUnmounted(() => {
@@ -166,7 +146,6 @@ function resizeSides() {
 
     leftRef.value!.style.width = `${leftWidth.value}px`;
     rightRef.value!.style.width = `${rightWidth.value}px`;
-
 }
 
 function openNavigation() {
@@ -246,8 +225,6 @@ function setResizeListeners() {
     containerRef.value!.addEventListener('mouseup', function (e) {
         drag.value = false;
     });
-
-
 }
 
 function getStoredNavigationConfig() {
@@ -282,11 +259,9 @@ function getStoredNavigationConfig() {
             closed.value = config.closed;
         }
 
-
         return true;
     }
 
     return false;
 }
-
 </script>

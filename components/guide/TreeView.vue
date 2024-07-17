@@ -2,12 +2,12 @@
     <div class="w-full h-full whitespace-nowrap text-md" ref="treeViewRef">
         <ul>
             <li>
-                <div v-for="(node, index) in treeRef" class="mb-2">
-                    <UITreeNode
+                <div v-for="(node, index) in treeRef" class="mb-2 ">
+                    <GuideTreeNode
                         :node="node"
                         :level="1"
                         :show-position="showPosition"
-                        :load-expanded="false"
+                        :load-expanded="true"
                         :position-among-siblings="index + 1"
                     />
                 </div>
@@ -19,7 +19,7 @@
 <script setup lang="ts">
 const props = defineProps({
     tree: {
-        type: Object as PropType<TreeNode[]>,
+        type: Object as () => NavItem[] | null,
         required: true
     },
     showPosition: {
