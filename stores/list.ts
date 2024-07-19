@@ -34,6 +34,8 @@ export const useListStore = defineStore('list', () => {
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
     let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
+    const isConcept = computed(() => resourceStore.isConcept);
+    const isGlossary = computed(() => resourceStore.isGlossary);
 
     const query = computed(() => {
         const q = {
@@ -207,6 +209,8 @@ export const useListStore = defineStore('list', () => {
         canUpdate,
         canDelete,
         canBatch,
+        isConcept,
+        isGlossary,
         sortByName,
         deleteItem,
         deleteAll,
