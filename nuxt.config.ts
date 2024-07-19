@@ -67,7 +67,7 @@ export default defineNuxtConfig({
             ]
         }
     },
-    css: ['~/assets/css/main.css'],
+    css: ['~/assets/css/main.css', '~/assets/css/markdown.css' ],
     build: {
         transpile: ['jsonwebtoken', 'vue2-dropzone-vue3', 'v-viewer']
     },
@@ -76,7 +76,8 @@ export default defineNuxtConfig({
         '@nuxt/ui',
         '@pinia/nuxt',
         '@nuxt/image',
-        '@formkit/auto-animate/nuxt'
+        '@formkit/auto-animate/nuxt',
+        '@nuxt/content'
     ],
     serverHandlers: [
         {
