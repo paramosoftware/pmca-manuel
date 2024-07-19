@@ -216,8 +216,6 @@ const templates = ref([
     { ext: 'xml', name: 'SKOS (Simple Knowledge Organization System)' }
 ]);
 
-
-await glossaryStore.fetch();
 const glossaryOptions = buildGlossaryOptions(availableGlossaries.value);
 await getImportableResources();
 
