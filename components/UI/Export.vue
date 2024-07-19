@@ -39,9 +39,17 @@
                 <FieldSelect
                     id="recurso"
                     label="Recurso"
-                    :options="exportableResources"
+                    :options="exportableResourcesOptions"
                     :required="true"
                     v-model="resource"
+                />
+                <FieldSelect
+                    id="glossario"
+                    label="Escolha o glossário para exportar"
+                    :options="glossaryOptions"
+                    :required="true"
+                    v-model="glossary"
+                    v-if="resource == conceptKey"
                 />
                 <FieldSelect
                     id="formato"
@@ -82,27 +90,34 @@ const props = defineProps({
     }
 });
 
-const exportableResources = ref([]);
+const glossaryStore = useGlossaryStore();
+await glossaryStore.fetch(props.public);
+const { availableGlossaries, id: glossaryId } = storeToRefs(glossaryStore);
+const conceptKey = 'Concept';
+const exportableResourcesOptions = ref([]) as Ref<
+    { value: string; name: string }[]
+>;
 const exportData = useExportData();
 const format = ref<DataTransferFormat>('xlsx');
-const resource = ref<string | null>('Concept');
+const resource = ref<string | null>(conceptKey);
+const glossary = ref<ID>(glossaryId.value);
 const addMedia = ref(false);
-const { data } = await useFetchWithBaseUrl('/api/public/resource', {
-    method: 'GET',
-    params: { where: { canBeExported: true } }
-});
 
-if (data.value.items) {
-    exportableResources.value = data.value.items.map((item: any) => ({
-        value: item.model,
-        name: item.labelPlural
-    }));
-}
-
+const glossaryOptions = buildGlossaryOptions(availableGlossaries.value);
+await getExportableResources(props.public);
 const disableExport = computed(() => exportData.loading.value);
 
 async function onExport() {
-    const url = `/api/${props.public ? 'public/' : ''}${resource.value}/export?format=${format.value}&addMedia=${addMedia.value}`;
+    let url = `/api/${props.public ? 'public/' : ''}${resource.value}/export?format=${format.value}&addMedia=${addMedia.value}`;
+
+    if (resource.value === conceptKey) {
+        const where = {
+            glossaryId: glossary.value
+        };
+
+        url += `&where=${JSON.stringify(where)}`;
+    }
+
     const date = new Date().toISOString().replace(/:/g, '-');
     const ext = addMedia.value ? 'zip' : format.value;
     const fileName = `export-${date}.${ext}`;
@@ -131,12 +146,46 @@ watch(
 toggleSkosOption();
 
 function toggleSkosOption() {
-    if (resource.value === 'Concept') {
+    if (resource.value === conceptKey) {
         options.value.push(skosOption);
     } else {
         options.value = options.value.filter(
             (option) => option.value !== skosOption.value
         );
+    }
+}
+
+function buildGlossaryOptions(glossaries: Glossary[]) {
+    const g = glossaries.map((glossary) => ({
+        value: glossary.id,
+        name: glossary.name
+    }));
+
+    return g;
+}
+
+async function getExportableResources(
+    isPublic = true,
+) {
+
+    const { data } = await useFetchWithBaseUrl(
+        `/api/${isPublic ? 'public/' : ''}resource`,
+        {
+            method: 'GET',
+            params: {
+                where: {
+                    canBeExported: true
+                },
+                pageSize: 100
+            }
+        }
+    );
+
+    if (data.value) {
+        exportableResourcesOptions.value = data.value.items.map((item: Resource) => ({
+            value: item.model,
+            name: item.labelPlural
+        }));
     }
 }
 
