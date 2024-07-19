@@ -1856,6 +1856,12 @@ class PrismaService {
                 this.reinitializePrisma();
             });
         } catch (error) {
+            // @ts-ignore
+            if (error.code === 'P2028') {
+                this.recreatePrismaClients();
+            } else {
+                this.reinitializePrisma();
+            }
             throw error;
         } finally {
             //this.reinitializePrisma();
@@ -1935,6 +1941,17 @@ class PrismaService {
         }
 
         return this._modelClient;
+    }
+
+    private recreatePrismaClients() {
+        PrismaService._clientReader.$disconnect();
+        PrismaService._clientWriter.$disconnect();
+        // @ts-ignore
+        PrismaService._clientReader = null;
+        // @ts-ignore
+        PrismaService._clientWriter = null;
+        this.setClients();
+
     }
 
     private setHasMedia() {
