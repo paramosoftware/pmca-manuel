@@ -310,9 +310,11 @@ export const createFormStore = (name: string) => {
                 : `/api/${resourceStore.model}/${id.value}`;
             const method = !id.value ? 'POST' : 'PUT';
 
+            const treatedData = treatDataBeforeSave();
+
             const { data, error } = (await useFetchWithBaseUrl(url, {
                 method: method,
-                body: JSON.stringify(treatDataBeforeSave())
+                body: JSON.stringify(treatedData)
             })) as { data: Ref<Item>; error: Ref<any> };
 
             if (!getIsAuxiliary()) {
@@ -332,6 +334,27 @@ export const createFormStore = (name: string) => {
                     toast.add({
                         title: 'Dados salvos com sucesso.'
                     });
+
+                    if (
+                        data.value &&
+                        treatedData.default &&
+                        treatedData.default == true
+                    ) {
+                        await useFetchWithBaseUrl(
+                            `/api/${resourceStore.model}`,
+                            {
+                                method: 'PUT',
+                                body: {
+                                    where: {
+                                        default: true,
+                                        id: { not: data.value.id }
+                                    },
+                                    data: { default: false }
+                                }
+                            }
+                        );
+                    }
+
                     return data.value.id;
                 }
             }
