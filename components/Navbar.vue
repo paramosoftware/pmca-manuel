@@ -9,9 +9,7 @@
                         class="h-8"
                     />
                 </NuxtLink>
-                <UIGlossarySelector
-                    class="mt-2"
-                />
+                <UIGlossarySelector class="mt-2" :public="false"/>
             </div>
             <div class="w-full md:w-3/6 mt-5 md:mt-0 md:flex flex-row justify-end items-center">
                 <div class="flex flex-row justify-end items-center">

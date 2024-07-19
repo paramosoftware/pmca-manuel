@@ -14,7 +14,7 @@
         </p>
 
         <ul
-            v-if="isSelectorOpen"
+            v-if="isSelectorOpen && availableGlossaries.length > 1"
             class="absolute bg-white z-10 mt-1 rounded-md shadow-xl max-h-60 overflow-y-auto text-md border w-full"
         >
             <span v-for="glossary in availableGlossaries" :key="glossary.name">
@@ -32,7 +32,10 @@
 
 <script setup lang="ts">
 const props = defineProps({
-    public: Boolean,
+    public: {
+        type: Boolean,
+        default: true
+    },
     customClass: String
 });
 
@@ -47,7 +50,10 @@ useOnClickOutside(glossarySeletorRef, () => {
 });
 
 function setGlossary(glossaryId: number) {
-    glossaryStore.setGlossary(glossaryId);
+    glossaryStore.setGlossary(glossaryId, props.public);
     isSelectorOpen.value = false;
+    if (import.meta.client) {
+        window.location.reload();
+    }
 }
 </script>
