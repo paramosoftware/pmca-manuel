@@ -1,7 +1,7 @@
 <template>
     <nav id="navbar" class="p-3 border-b bg-white shadow-sm rounded-sm">
         <div class="max-w-screen-xl mx-auto md:flex flex-row justify-between items-center">
-            <div class="w-full md:w-2/6">
+            <div class="w-full md:w-3/6">
                 <NuxtLink to="/">
                     <img
                         src="/icons/icon-horizontal.png"
@@ -9,14 +9,11 @@
                         class="h-8"
                     />
                 </NuxtLink>
-                <p
-                    class="text-xl mt-2 text-app-primary font-semibold line-clamp-2"
-                    :title="glossaryName"
-                >
-                    {{ glossaryName }}
-                </p>
+                <UIGlossarySelector
+                    class="mt-2"
+                />
             </div>
-            <div class="w-full md:w-4/6 mt-5 md:mt-0 md:flex flex-row justify-end items-center">
+            <div class="w-full md:w-3/6 mt-5 md:mt-0 md:flex flex-row justify-end items-center">
                 <div class="flex flex-row justify-end items-center">
                     <span v-for="menu in menus" :key="menu.title">
                         <span v-if="menu.items" class="mr-4">
@@ -57,10 +54,6 @@ const isElectronApp = isElectron();
 const userStore = useUserStore();
 await userStore.fetch();
 const { name, resources, canImport } = storeToRefs(userStore);
-
-const glossaryStore = useGlossaryStore();
-await glossaryStore.fetch();
-const { name: glossaryName } = storeToRefs(glossaryStore);
 
 const menus = [
     {

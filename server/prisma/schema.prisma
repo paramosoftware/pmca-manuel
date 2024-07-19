@@ -370,6 +370,7 @@ model Glossary {
   descriptionNormalized String?
 
   published Boolean @default(true) /// defaultValue:true
+  default Boolean @default(false) /// defaultValue:false
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

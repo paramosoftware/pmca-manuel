@@ -193,5 +193,6 @@ FIELDS.set('keywords', 'Palavras-chave');
 FIELDS.set('canBeImported', 'Pode ser importado?');
 FIELDS.set('canBeExported', 'Pode ser exportado?');
 FIELDS.set('nameRich', 'Nome (html)');
+FIELDS.set('default', 'Padrão');
 
 export { MODELS, FIELDS };
