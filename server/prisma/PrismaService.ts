@@ -344,9 +344,7 @@ class PrismaService {
                         item,
                         false
                     );
-
-                    const where = q.where;
-
+                    
                     const query = await this.processCreateOrUpdateRequest(
                         this.model,
                         item.data,
@@ -355,7 +353,7 @@ class PrismaService {
 
                     const ids = (await this.readMany(
                         {
-                            where,
+                            where: item.where,
                             select: ['id']
                         },
                         false
