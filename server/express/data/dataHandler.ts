@@ -141,9 +141,11 @@ const dataHandler = async (
                         )) as string;
                         // mode is accessible only after multipart form data is parsed by multer
                         const mode = req.body.mode ? req.body.mode : 'merge';
+                        const glossaryId = req.body.glossaryId;
                         response = prismaService.importData(
                             importFilePath,
-                            mode
+                            mode,
+                            glossaryId
                         );
                     } else {
                         response = prismaService.createOne(request);

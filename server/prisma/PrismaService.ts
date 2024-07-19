@@ -690,8 +690,8 @@ class PrismaService {
      * @returns The process id to track the progress with getProgress
      * @throws ApiValidationError
      */
-    importData(filePath: string, mode: string = 'merge') {
-        return this.importer.importFrom(filePath, mode);
+    importData(filePath: string, mode: string = 'merge', glossaryId: ID) {
+        return this.importer.importFrom(filePath, mode, glossaryId);
     }
 
     /**

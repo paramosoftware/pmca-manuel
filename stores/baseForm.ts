@@ -14,6 +14,7 @@ export const createFormStore = (name: string) => {
         const parentModel = ref('');
         const resourceStore = useResourceStore();
         const userStore = useUserStore();
+        const glossaryStore = useGlossaryStore();
         const canCreate = computed(
             () => userStore.permissions[resourceStore.model]?.create
         );
@@ -353,6 +354,10 @@ export const createFormStore = (name: string) => {
                 }
 
                 treatedData[field] = data[field];
+            }
+
+            if (resourceStore.isConcept) {
+                treatedData['glossaryId'] = glossaryStore.id;
             }
 
             return treatedData;

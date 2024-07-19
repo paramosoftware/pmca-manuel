@@ -21,6 +21,7 @@ class PrismaServiceImporter {
     private model: string;
     private prismaService: PrismaService;
     private processId: string = '';
+    private glossaryId: ID = '';
     private xmlOptions = {
         ignoreAttributes: false,
         format: true,
@@ -55,9 +56,10 @@ class PrismaServiceImporter {
         this.model = prismaService.getModel();
     }
 
-    importFrom(filePath: string, mode: string = 'merge') {
+    importFrom(filePath: string, mode: string = 'merge', glossaryId: ID) {
         this.processId = uuidv4();
         this.prismaService.setProgress(this.processId, 0, 'Iniciado');
+        this.glossaryId = glossaryId;
         this._importFrom(filePath, mode);
         return this.processId;
     }
@@ -265,8 +267,7 @@ class PrismaServiceImporter {
                     if (label && item[label]) {
                         oldId = item[label];
                         break;
-                    }
-                    else if (item[key]) {
+                    } else if (item[key]) {
                         oldId = item[key];
                         break;
                     }
@@ -517,7 +518,7 @@ class PrismaServiceImporter {
         position: number
     ) {
         const modelFields = this.prismaService.fieldsMap;
-        
+
         if (!value || !key || key === 'id') {
             return buildItem;
         }
@@ -599,6 +600,16 @@ class PrismaServiceImporter {
     async upsertItem(oldId: string, buildItem: any, update: boolean = true) {
         let create = !update;
 
+        if (this.model === 'Concept') {
+            if (!this.glossaryId) {
+                await this.setGlossaryId();
+                this.warnings.push(
+                    `Glossário não definido. Um novo glossário foi criado para a importação.`
+                );
+            }
+            buildItem.glossaryId = this.glossaryId;
+        }
+
         logger.debug(`Processing item ${oldId}`);
 
         this.updateProgress(
@@ -611,7 +622,10 @@ class PrismaServiceImporter {
             logger.debug(`Checking if item ${oldId} exists`);
             const foundItems = await this.prismaService.readMany(
                 {
-                    where: { name: buildItem.name }
+                    where: {
+                        name: buildItem.name,
+                        glossaryId: this.glossaryId!
+                    }
                 },
                 true
             );
@@ -901,6 +915,17 @@ class PrismaServiceImporter {
         };
 
         this.prismaService.setReportProgress(this.processId, importReport);
+    }
+
+    private async setGlossaryId() {
+        const glossaryService = new PrismaService('Glossary', false);
+
+        const newGlossary = await glossaryService.createOne({
+            name: `Glossário importação (${new Date().toLocaleString()})`,
+            default: true
+        });
+
+        this.glossaryId = newGlossary.id;
     }
 }
 

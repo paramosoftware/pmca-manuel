@@ -16,6 +16,7 @@ export const useListStore = defineStore('list', () => {
     const resourceStore = useResourceStore();
     const userStore = useUserStore();
     const loadingStore = useLoadingStore();
+    const glossaryStore = useGlossaryStore();
     const isHierarchical = ref(false)
     const model = ref('');
     const canCreate = computed(
@@ -55,7 +56,8 @@ export const useListStore = defineStore('list', () => {
                             like: search.value
                         }
                     }
-                ]
+                ],
+                AND: [] as any[]
             },
             orderBy: {
                 name: sort.value
@@ -67,6 +69,12 @@ export const useListStore = defineStore('list', () => {
                 q.where,
                 QUERIES.get(resourceStore.name)?.where
             );
+        }
+
+        if (resourceStore.isConcept) {
+            q.where.AND.push({
+                glossaryId: glossaryStore.id
+            });
         }
 
         return q;
@@ -151,7 +159,8 @@ export const useListStore = defineStore('list', () => {
         const urlDelete = computed(() => `/api/${resourceStore.model}/query`);
 
         const { data, error } = (await useFetchWithBaseUrl(urlDelete, {
-            method: 'DELETE'
+            method: 'DELETE',
+            body: JSON.stringify(query.value)
         })) as { data: Ref<{ error: string }>; error: Ref<Error | undefined> };
 
         pending.value = pending.value;
