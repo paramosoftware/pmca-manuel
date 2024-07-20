@@ -36,15 +36,15 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v3
 
-        
+
       - name: Fix pnpm.cjs
         if: matrix.os == 'windows-2022'
         env:
           PNPM_CJS: C:/Users/runneradmin/setup-pnpm/node_modules/.pnpm/pnpm@9.5.0/node_modules/pnpm/bin/pnpm.cjs
         run: |
-          cat $PNPM_CJS
-          sed -i 's/#!\/usr\/bin\/env node/#!node/' $PNPM_CJS
-          cat $PNPM_CJS
+          cat ${{ env.PNPM_CJS }}
+          sed -i 's/#!\/usr\/bin\/env node/#!node/' ${{ env.PNPM_CJS }}
+          cat ${{ env.PNPM_CJS }}
     
       
       - name: Build electron
