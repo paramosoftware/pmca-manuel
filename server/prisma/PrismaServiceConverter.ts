@@ -745,7 +745,15 @@ class PrismaServiceConverter {
         };
 
         if (Array.isArray(order)) {
-            order.forEach((field) => processField(field));
+            order.forEach((field) => {
+                if (typeof field === 'string') {
+                    processField(field);
+                } else {
+                    Object.entries(field).forEach(([key, direction]) =>
+                        processField(key, direction as OrderBy | Direction)
+                    );
+                }
+            })
         } else {
             Object.entries(order).forEach(([key, direction]) =>
                 processField(key, direction as OrderBy | Direction)

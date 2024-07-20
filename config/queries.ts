@@ -54,9 +54,10 @@ QUERIES.set('TrackChanges', {
 });
 
 QUERIES.set('network', {
-    pageSize: -1,
+    pageSize: 100,
     select: JSON.stringify(['id', 'name', 'nameSlug', 'parentId']),
-    include: JSON.stringify(['relatedConcepts', 'concepts'])
+    include: JSON.stringify(['relatedConcepts', 'concepts']),
+    orderBy: JSON.stringify([{ concepts: { _count: 'desc' } }, { relatedConcepts: { _count: 'desc' } }])
 });
 
 export default QUERIES;

@@ -11,6 +11,7 @@ import getDataFolderPath from '~/utils/getDataFolderPath';
 import parseNumber from '~/utils/parseNumber';
 import normalizeString from '~/utils/normalizeString';
 import logger from '~/utils/logger';
+import getBoolean from '~/utils/getBoolean';
 import { useCamelCase } from '~/utils/useCamelCase';
 
 // TODO: Memory optimization: reading the whole file at once is not optimal [PMCA-398]
@@ -20,6 +21,7 @@ class PrismaServiceImporter {
     private model: string;
     private prismaService: PrismaService;
     private processId: string = '';
+    private glossaryId: ID = '';
     private xmlOptions = {
         ignoreAttributes: false,
         format: true,
@@ -31,7 +33,7 @@ class PrismaServiceImporter {
     private languages = new Map<string, number>();
     private parent = new Map<string, string>();
     private related = new Map<string, string[]>();
-    private createdConcepts = new Map<string | number, number>();
+    private createdItems = new Map<string | ID, ID>();
     private labelMap = new Map<string, string>();
     private camelCaseMap = new Map<string, string>();
     private totalItems = 0;
@@ -43,6 +45,7 @@ class PrismaServiceImporter {
     private errors = [] as string[];
     private warnings = [] as string[];
     private mediaToDelete = [] as any[];
+    private idKeys = ['id', 'name'];
 
     /**
      * Prisma Importer Service
@@ -53,9 +56,10 @@ class PrismaServiceImporter {
         this.model = prismaService.getModel();
     }
 
-    importFrom(filePath: string, mode: string = 'merge') {
+    importFrom(filePath: string, mode: string = 'merge', glossaryId: ID) {
         this.processId = uuidv4();
-        this.prismaService.setProgress(this.processId, 0, 'Started');
+        this.prismaService.setProgress(this.processId, 0, 'Iniciado');
+        this.glossaryId = glossaryId;
         this._importFrom(filePath, mode);
         return this.processId;
     }
@@ -63,7 +67,18 @@ class PrismaServiceImporter {
     private async _importFrom(filePath: string, mode: string = 'merge') {
         try {
             this.startTime = performance.now();
-            await this.setResourceConfig();
+
+            if (!(await this.setResourceConfig())) {
+                this.prismaService.setProgress(
+                    this.processId,
+                    0,
+                    `Configuração de recurso não encontrada para o modelo ${this.model}.`,
+                    true,
+                    true
+                );
+                return;
+            }
+
             const merge = mode === 'merge';
             const overwrite = mode === 'overwrite';
 
@@ -146,7 +161,7 @@ class PrismaServiceImporter {
                 }
 
                 await this.processRelations(
-                    this.createdConcepts,
+                    this.createdItems,
                     this.related,
                     this.parent
                 );
@@ -181,7 +196,7 @@ class PrismaServiceImporter {
                 await this.prismaService.deleteMedia(this.mediaToDelete, false);
             }
 
-            this.prismaService.setProgress(this.processId, 100, 'Finished');
+            this.prismaService.setProgress(this.processId, 100, 'Concluído');
             this.endTime = performance.now();
         } catch (error) {
             this.prismaService.setProgress(
@@ -204,7 +219,7 @@ class PrismaServiceImporter {
     async setResourceConfig() {
         const resourceService = new PrismaService('Resource', false);
 
-        const resourceConfig = await resourceService.readOne(this.model, {
+        const resourceConfig = (await resourceService.readOne(this.model, {
             include: {
                 fields: {
                     orderBy: {
@@ -212,19 +227,28 @@ class PrismaServiceImporter {
                     }
                 }
             }
-        });
+        })) as Resource & { fields: ResourceField[] };
 
-        if (resourceConfig) {
+        if (resourceConfig && resourceConfig.canBeImported) {
             for (const field of resourceConfig.fields) {
                 if (field.labelNormalized && field.includeExport) {
                     this.labelMap.set(field.name, field.labelNormalized);
+                    this.labelMap.set(field.labelNormalized, field.name);
+                    this.camelCaseMap.set(
+                        useCamelCase().to(field.labelNormalized),
+                        field.name
+                    );
                     this.camelCaseMap.set(
                         field.name,
                         useCamelCase().to(field.labelNormalized)
                     );
                 }
             }
+
+            return true;
         }
+
+        return false;
     }
 
     async importFromJson(filePath: string, update: boolean = true) {
@@ -236,10 +260,18 @@ class PrismaServiceImporter {
             let position = 1;
             this.totalItems = items.length;
             for (const item of items) {
-                let oldId =
-                    item.id ??
-                    item[this.camelCaseMap.get('name') ?? 'name'] ??
-                    undefined;
+                let oldId = undefined;
+
+                for (const key of this.idKeys) {
+                    const label = this.camelCaseMap.get(key);
+                    if (label && item[label]) {
+                        oldId = item[label];
+                        break;
+                    } else if (item[key]) {
+                        oldId = item[key];
+                        break;
+                    }
+                }
 
                 oldId = normalizeString(oldId, true);
 
@@ -250,86 +282,22 @@ class PrismaServiceImporter {
                     );
                 }
 
-                const concept = {} as any;
-                concept.translations = [];
-                concept.variations = [];
-                concept.references = [];
-
+                let buildItem = {} as any;
                 const keys = Object.keys(item);
 
                 for (const key of keys) {
-                    switch (key) {
-                        case this.camelCaseMap.get('name'):
-                            concept.name = item[key];
-                            break;
-
-                        case this.camelCaseMap.get('definition'):
-                            concept.definition = item[key];
-                            break;
-
-                        case this.camelCaseMap.get('notes'):
-                            concept.notes = item[key];
-                            break;
-
-                        case this.camelCaseMap.get('parent'):
-                            this.parent.set(oldId, item[key]);
-                            break;
-
-                        case this.camelCaseMap.get('relatedConcepts'):
-                            this.related.set(oldId, item[key]);
-                            break;
-
-                        case this.camelCaseMap.get('translations'):
-                            const translations = item[key];
-                            for (const translation of translations) {
-                                const translationAndLanguage =
-                                    await this.getTranslationAndLanguage(
-                                        translation
-                                    );
-
-                                if (
-                                    translationAndLanguage.name &&
-                                    translationAndLanguage.languageId
-                                ) {
-                                    concept.translations.push(
-                                        translationAndLanguage
-                                    );
-                                }
-                            }
-                            break;
-
-                        case this.camelCaseMap.get('references'):
-                            // @ts-ignore
-                            concept.references = item[key]
-                                .filter((reference: string) => reference != '')
-                                .map((reference: string) => {
-                                    return {
-                                        name: reference,
-                                        nameRich: '<p>' + reference + '</p>'
-                                    };
-                                });
-                            break;
-
-                        case this.camelCaseMap.get('variations'):
-                            // @ts-ignore
-                            concept.variations = item[key]
-                                .filter((variation: string) => variation != '')
-                                .map((variation: string) => {
-                                    return {
-                                        name: variation
-                                    };
-                                });
-                            break;
-
-                        case this.camelCaseMap.get('position'):
-                            concept.position = item[key] ?? position;
-                            break;
-                    }
+                    buildItem = await this.addItemProperty(
+                        oldId,
+                        buildItem,
+                        this.camelCaseMap.get(key),
+                        item[key],
+                        position
+                    );
                 }
 
                 this.processedItems++;
                 position++;
-                await this.upsertConcept(oldId, concept, update);
+                await this.upsertItem(oldId, buildItem, update);
             }
         } catch (error) {
             throw error;
@@ -349,30 +317,32 @@ class PrismaServiceImporter {
             const worksheet = workbook.getWorksheet(1);
 
             if (!worksheet) {
-                return this.createdConcepts;
+                return this.createdItems;
             }
 
             const rows = worksheet.getRows(1, worksheet.rowCount);
 
             if (!rows) {
-                return this.createdConcepts;
+                return this.createdItems;
             }
 
             const headerRow = rows[0].values as string[];
 
-            this.totalItems = rows.length;
+            this.totalItems = rows.length - 1;
             for (let i = 1; i < rows.length; i++) {
-                let oldId = rows[i].getCell(
-                    headerRow.indexOf(this.labelMap.get('id') ?? 'id')
-                ).value as string;
+                let oldId = undefined;
 
-                if (!oldId) {
-                    oldId = rows[i].getCell(
-                        headerRow.indexOf(this.labelMap.get('name') ?? 'name')
-                    ).value as string;
+                for (const key of this.idKeys) {
+                    const label = this.labelMap.get(key);
+                    const headerIndex = headerRow.indexOf(label ?? key);
+                    if (headerIndex != -1) {
+                        const cellValue = rows[i].getCell(headerIndex).value;
+                        if (cellValue) {
+                            oldId = cellValue as string;
+                            break;
+                        }
+                    }
                 }
-
-                oldId = normalizeString(oldId, true);
 
                 if (!oldId) {
                     this.skippedItems++;
@@ -382,12 +352,8 @@ class PrismaServiceImporter {
                     continue;
                 }
 
-                const concept = {} as any;
-
-                concept.translations = [];
-                concept.variations = [];
-                concept.references = [];
-                concept.position = i;
+                oldId = normalizeString(oldId, true);
+                let buildItem = {} as any;
 
                 for (const header of headerRow) {
                     const headerIndex = headerRow.indexOf(header);
@@ -398,79 +364,17 @@ class PrismaServiceImporter {
 
                     const value = rows[i].getCell(headerIndex).value as string;
 
-                    if (!value) {
-                        continue;
-                    }
-
-                    switch (header) {
-                        case this.labelMap.get('name'):
-                            concept.name = value;
-                            break;
-                        case this.labelMap.get('definition'):
-                            concept.definition = value;
-                            break;
-                        case this.labelMap.get('notes'):
-                            concept.notes = value;
-                            break;
-                        case this.labelMap.get('parent'):
-                            this.parent.set(oldId, value);
-                            break;
-                        case this.labelMap.get('relatedConcepts'):
-                            this.related.set(
-                                oldId,
-                                value
-                                    .split(';')
-                                    .filter(
-                                        (relatedConcept) => relatedConcept != ''
-                                    )
-                            );
-                            break;
-                        case this.labelMap.get('references'):
-                            value.split(';').forEach((reference) => {
-                                if (reference) {
-                                    concept.references.push({
-                                        name: reference,
-                                        nameRich: '<p>' + reference + '</p>'
-                                    });
-                                }
-                            });
-                            break;
-                        case this.labelMap.get('variations'):
-                            value.split(';').forEach((variation) => {
-                                if (variation) {
-                                    concept.variations.push({
-                                        name: variation
-                                    });
-                                }
-                            });
-                            break;
-                        case this.labelMap.get('translations'):
-                            const translations = value.split(';');
-                            for (const translation of translations) {
-                                const translationAndLanguage =
-                                    await this.getTranslationAndLanguage(
-                                        translation
-                                    );
-
-                                if (
-                                    translationAndLanguage.name &&
-                                    translationAndLanguage.languageId
-                                ) {
-                                    concept.translations.push(
-                                        translationAndLanguage
-                                    );
-                                }
-                            }
-                            break;
-
-                        case this.labelMap.get('position'):
-                            concept.position = parseNumber(value) ?? i;
-                            break;
-                    }
+                    buildItem = await this.addItemProperty(
+                        oldId,
+                        buildItem,
+                        this.labelMap.get(header),
+                        value,
+                        i + 1
+                    );
                 }
 
                 this.processedItems++;
-                await this.upsertConcept(oldId, concept, update);
+                await this.upsertItem(oldId, buildItem, update);
             }
         } catch (error) {
             throw error;
@@ -596,7 +500,7 @@ class PrismaServiceImporter {
 
                     this.processedItems++;
                     position++;
-                    await this.upsertConcept(oldId, concept, update);
+                    await this.upsertItem(oldId, concept, update);
                     logger.debug(`Processed concept ${oldId}`);
                 }
             }
@@ -606,47 +510,147 @@ class PrismaServiceImporter {
         }
     }
 
-    async upsertConcept(oldId: string, concept: any, update: boolean = true) {
+    async addItemProperty(
+        itemId: any,
+        buildItem: any,
+        key: string | undefined,
+        value: string | number | boolean | string[] | undefined,
+        position: number
+    ) {
+        const modelFields = this.prismaService.fieldsMap;
+
+        if (!value || !key || key === 'id') {
+            return buildItem;
+        }
+
+        if (modelFields.has(key)) {
+            const field = modelFields.get(key)!;
+            const fieldType = field.type.toLowerCase();
+
+            if (key === 'translations') {
+                let translations = [] as string[];
+
+                if (!Array.isArray(value) && typeof value === 'string') {
+                    translations = value.split(';');
+                }
+
+                for (const translation of translations) {
+                    const translationAndLanguage =
+                        await this.getTranslationAndLanguage(translation);
+
+                    if (
+                        translationAndLanguage.name &&
+                        translationAndLanguage.languageId
+                    ) {
+                        buildItem[key].push(translationAndLanguage);
+                    }
+                }
+            } else if (key === 'references') {
+                let references = [] as string[];
+
+                if (!Array.isArray(value) && typeof value === 'string') {
+                    references = value.split(';');
+                }
+
+                for (const reference of references) {
+                    if (reference) {
+                        buildItem[key].push({
+                            name: reference,
+                            nameRich: '<p>' + reference + '</p>'
+                        });
+                    }
+                }
+            } else if (key === 'parent' && typeof value === 'string') {
+                this.parent.set(itemId, value);
+            } else if (key === 'relatedConcepts') {
+                if (typeof value === 'string') {
+                    const relatedConcepts = value
+                        .split(';')
+                        .filter((relatedConcept) => relatedConcept != '');
+                    this.related.set(itemId, relatedConcepts);
+                } else if (Array.isArray(value)) {
+                    this.related.set(itemId, value);
+                }
+            } else if (key === 'position') {
+                buildItem[key] = parseNumber(value) ?? position;
+            } else if (fieldType === 'string') {
+                buildItem[key] = value;
+            } else if (fieldType === 'int') {
+                buildItem[key] = parseNumber(value);
+            } else if (fieldType === 'boolean') {
+                buildItem[key] = getBoolean(value);
+            } else if (field.isList) {
+                let list = [] as string[];
+
+                if (!Array.isArray(value) && typeof value === 'string') {
+                    list = value.split(';');
+                }
+
+                buildItem[key] = list.map((item) => {
+                    return { name: item };
+                });
+            } else if (!field.isList) {
+                buildItem[key] = { name: value };
+            }
+        }
+
+        return buildItem;
+    }
+
+    async upsertItem(oldId: string, buildItem: any, update: boolean = true) {
         let create = !update;
 
-        logger.debug(`Processing concept ${oldId}`);
+        if (this.model === 'Concept') {
+            if (!this.glossaryId) {
+                await this.setGlossaryId();
+                this.warnings.push(
+                    `Glossário não definido. Um novo glossário foi criado para a importação.`
+                );
+            }
+            buildItem.glossaryId = this.glossaryId;
+        }
+
+        logger.debug(`Processing item ${oldId}`);
 
         this.updateProgress(
             this.totalItems,
             this.processedItems,
-            concept.name ?? ''
+            buildItem.name ?? ''
         );
 
         if (update) {
-            logger.debug(`Checking if concept ${oldId} exists`);
-            const foundConcepts = await this.prismaService.readMany(
+            logger.debug(`Checking if item ${oldId} exists`);
+            const foundItems = await this.prismaService.readMany(
                 {
-                    where: { name: concept.name }
+                    where: {
+                        name: buildItem.name,
+                        glossaryId: this.glossaryId!
+                    }
                 },
                 true
             );
 
-            logger.debug(`Found ${foundConcepts.total} concepts`);
+            logger.debug(`Found ${foundItems.total} items`);
 
-            if (foundConcepts && foundConcepts.items.length > 0) {
-                const existingConcept = foundConcepts.items[0] as Concept;
-                logger.debug(`Updating concept ${oldId}`);
-                await this.prismaService.updateOne(existingConcept.id, concept);
-                this.createdConcepts.set(oldId, existingConcept.id);
+            if (foundItems && foundItems.items.length > 0) {
+                const existingItem = foundItems.items[0] as Item;
+                logger.debug(`Updating item ${oldId}`);
+                await this.prismaService.updateOne(existingItem.id, buildItem);
+                this.createdItems.set(oldId, existingItem.id);
             } else {
                 create = true;
             }
         }
 
         if (create) {
-            logger.debug(`Creating concept ${oldId}`);
-            const newConcept = await this.prismaService.createOne(concept);
-            this.createdConcepts.set(oldId, newConcept.id);
+            logger.debug(`Creating item ${oldId}`);
+            const newItem = await this.prismaService.createOne(buildItem);
+            this.createdItems.set(oldId, newItem.id);
         }
     }
 
     async processRelations(
-        createdConcepts: Map<string | number, number>,
+        createdConcepts: Map<string | ID, ID>,
         related: Map<string, string[]>,
         parent: Map<string, string>
     ) {
@@ -850,8 +854,8 @@ class PrismaServiceImporter {
             oldId = normalizeString(oldId, true);
 
             const conceptId =
-                this.createdConcepts.get(oldId) ??
-                this.createdConcepts.get('#' + oldId);
+                this.createdItems.get(oldId) ??
+                this.createdItems.get('#' + oldId);
 
             logger.debug(`Importing media for concept ${conceptId} (${oldId})`);
 
@@ -911,6 +915,17 @@ class PrismaServiceImporter {
         };
 
         this.prismaService.setReportProgress(this.processId, importReport);
+    }
+
+    private async setGlossaryId() {
+        const glossaryService = new PrismaService('Glossary', false);
+
+        const newGlossary = await glossaryService.createOne({
+            name: `Glossário importação (${new Date().toLocaleString()})`,
+            default: true
+        });
+
+        this.glossaryId = newGlossary.id;
     }
 }
 
