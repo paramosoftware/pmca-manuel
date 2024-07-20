@@ -178,8 +178,8 @@ model Concept {
   id   Int    @id @default(autoincrement()) /// includeExport:true
   name String /// includeExport:true|label:Termo
 
-  glossaryId Int? /// hidden:true
-  glossary   Glossary? @relation(fields: [glossaryId], references: [id]) /// hidden:true
+  glossaryId Int /// hidden:true
+  glossary   Glossary @relation(fields: [glossaryId], references: [id], onDelete: Cascade) /// hidden:true
 
   parentId Int?
   children Concept[] @relation("ConceptToChildren")

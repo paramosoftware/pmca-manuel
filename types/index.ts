@@ -164,7 +164,7 @@ declare global {
         position: number;
     };
 
-    export type DataTransferFormat = 'json' | 'xml' | 'csv' | 'xlsx';
+    export type DataTransferFormat = 'json' | 'xml' | 'csv' | 'xlsx' | 'skos' | 'rdf';
 
     export type Permission = {
         [key: string]: {

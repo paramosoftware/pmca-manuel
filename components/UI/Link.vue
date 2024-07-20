@@ -9,8 +9,7 @@
 <script setup lang="ts">
 defineProps({
     href: {
-        type: String,
-        default: '/'
+        type: String
     }
 });
 </script>

@@ -65,8 +65,10 @@ class PrismaServiceExporter {
             this.include = QUERIES.get(this.model)?.include || '*';
             this.where = query?.where || undefined;
 
+
             const name = template ? 'template' : 'export';
-            const fileName = `${name}-${this.model.toLowerCase()}${template ? '' : `-${new Date().toISOString()}`}`;
+            const timestamp = new Date().toISOString().replace(/:/g, '-').slice(0, -5);
+            const fileName = `${name}-${this.model.toLowerCase()}${template ? '' : `-${timestamp}`}`;
 
             const filePath = path.join(
                 getDataFolderPath('temp'),
@@ -88,13 +90,15 @@ class PrismaServiceExporter {
                     await this.exportToJson(filePath, template);
                     break;
                 case 'xml':
+                case 'rdf':
+                case 'skos':
                     if (this.model === 'Concept') {
                         await this.getGlossaryProperties();
                         await this.exportToSkos(filePath);
                     }
                     break;
                 default:
-                    console.log('Invalid format');
+                    throw new ExportError('Formato de exportação inválido');
             }
 
             if (addMedia) {

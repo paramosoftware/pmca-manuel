@@ -344,9 +344,7 @@ class PrismaService {
                         item,
                         false
                     );
-
-                    const where = q.where;
-
+                    
                     const query = await this.processCreateOrUpdateRequest(
                         this.model,
                         item.data,
@@ -355,7 +353,7 @@ class PrismaService {
 
                     const ids = (await this.readMany(
                         {
-                            where,
+                            where: item.where,
                             select: ['id']
                         },
                         false
@@ -690,8 +688,8 @@ class PrismaService {
      * @returns The process id to track the progress with getProgress
      * @throws ApiValidationError
      */
-    importData(filePath: string, mode: string = 'merge') {
-        return this.importer.importFrom(filePath, mode);
+    importData(filePath: string, mode: string = 'merge', glossaryId: ID) {
+        return this.importer.importFrom(filePath, mode, glossaryId);
     }
 
     /**
@@ -1856,6 +1854,12 @@ class PrismaService {
                 this.reinitializePrisma();
             });
         } catch (error) {
+            // @ts-ignore
+            if (error.code === 'P2028') {
+                this.recreatePrismaClients();
+            } else {
+                this.reinitializePrisma();
+            }
             throw error;
         } finally {
             //this.reinitializePrisma();
@@ -1935,6 +1939,17 @@ class PrismaService {
         }
 
         return this._modelClient;
+    }
+
+    private recreatePrismaClients() {
+        PrismaService._clientReader.$disconnect();
+        PrismaService._clientWriter.$disconnect();
+        // @ts-ignore
+        PrismaService._clientReader = null;
+        // @ts-ignore
+        PrismaService._clientWriter = null;
+        this.setClients();
+
     }
 
     private setHasMedia() {
