@@ -37,16 +37,19 @@ jobs:
         id: setup-pnpm
         uses: pnpm/action-setup@v3
 
-      - name: Fix pnpm.cjs
+      - name: Set pnpm.cjs path
         if: matrix.os == 'windows-2022'
         env:
           PNPM_PATH: ${{ steps.setup-pnpm.outputs.dest }}
           PNPM_FIRST_HALF: /node_modules/.pnpm/pnpm@
           PNPM_SECOND_HALF: /node_modules/pnpm/bin/pnpm.cjs
         run: |
-          echo "PNPM_VERSION=$(pnpm --version)" >> $GITHUB_ENV
-          echo "PNPM_CJS=${{ env.PNPM_PATH }}${{ env.PNPM_FIRST_HALF }}${{ env.PNPM_VERSION }}${{ env.PNPM_SECOND_HALF }}" >> $GITHUB_ENV
+          echo "PNPM_CJS=${{ env.PNPM_PATH }}${{ env.PNPM_FIRST_HALF }}$(pnpm --version)${{ env.PNPM_SECOND_HALF }}" >> $GITHUB_ENV
           cat ${{ env.PNPM_CJS }}
+
+      - name: Fix pnpm.cjs
+        if: matrix.os == 'windows-2022'
+        run: |
           sed -i 's/#!\/usr\/bin\/env node/#!node/' ${{ env.PNPM_CJS }}
           cat ${{ env.PNPM_CJS }}
     
