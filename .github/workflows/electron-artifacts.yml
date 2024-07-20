@@ -34,14 +34,16 @@ jobs:
           node-version: '20.15.0'
 
       - name: Install pnpm
+        id: setup_pnpm
         uses: pnpm/action-setup@v3
-
 
       - name: Fix pnpm.cjs
         if: matrix.os == 'windows-2022'
         env:
-          PNPM_CJS: C:/Users/runneradmin/setup-pnpm/node_modules/.pnpm/pnpm@9.5.0/node_modules/pnpm/bin/pnpm.cjs
+          PNPM_CJS: C:/Users/runneradmin/setup-pnpm/node_modules/.pnpm/pnpm@0.0.0/node_modules/pnpm/bin/pnpm.cjs
         run: |
+          echo ${{ steps.setup_pnpm.outputs.dest }}
+          echo ${{ steps.setup_pnpm.outputs.bin_dest }}
           cat ${{ env.PNPM_CJS }}
           sed -i 's/#!\/usr\/bin\/env node/#!node/' ${{ env.PNPM_CJS }}
           cat ${{ env.PNPM_CJS }}
