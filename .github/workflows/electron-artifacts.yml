@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019]
+        os: [windows-2022]
   
     runs-on: ${{ matrix.os }}
     steps:
@@ -35,6 +35,12 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
+
+      # C:\Users\runneradmin\setup-pnpm\node_modules\.pnpm\pnpm@9.5.0\node_modules\pnpm\bin\pnpm.cjs
+      - name: Log pnpm.cjs content
+        if: matrix.os == 'windows-2022'
+        run: |
+          cat C:/Users/runneradmin/setup-pnpm/node_modules/.pnpm/pnpm@9.5.0/node_modules/pnpm/bin/pnpm.cjs
       
       - name: Build electron
         run: pnpm electron:build
