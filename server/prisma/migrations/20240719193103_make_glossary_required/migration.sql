@@ -9,7 +9,7 @@ PRAGMA defer_foreign_keys=ON;
 PRAGMA foreign_keys=OFF;
 
 INSERT INTO "Glossary" ("name", "code", "createdAt", "updatedAt") SELECT 'Padrão migração', 'default-migrate', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP WHERE EXISTS (SELECT 1 FROM "Concept" WHERE "glossaryId" IS NULL);
-UPDATE "Concept" SET "glossaryId" = (SELECT "id" FROM "Glossary" WHERE "nameSlug" = 'default-migrate') WHERE "glossaryId" IS NULL;
+UPDATE "Concept" SET "glossaryId" = (SELECT "id" FROM "Glossary" WHERE "code" = 'default-migrate') WHERE "glossaryId" IS NULL;
 
 CREATE TABLE "new_Concept" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
