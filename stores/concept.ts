@@ -23,7 +23,7 @@ export const useConceptStore = defineStore('concept', () => {
     const descendantsIds = ref<ID[]>([]);
     const searchInitialLetter = ref<string>('TODOS');
     const maxPage = computed(() => Math.ceil(total.value / pageSize.value));
-    const date = new Date();
+    const glossaryStore = useGlossaryStore();
 
     let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
 
@@ -75,7 +75,9 @@ export const useConceptStore = defineStore('concept', () => {
                         }
                     }
                 ],
-                AND: []
+                AND: [{
+                    glossaryId: glossaryStore.id
+                }]
             },
             orderBy: {
                 name: sort.value
@@ -105,7 +107,7 @@ export const useConceptStore = defineStore('concept', () => {
                 }
             });
         }
-
+        
         return q;
     });
 
@@ -188,7 +190,10 @@ export const useConceptStore = defineStore('concept', () => {
             `/api/public/${model}`,
             {
                 params: {
-                    ...QUERIES.get('network')
+                    ...QUERIES.get('network'),
+                    where: {
+                        glossaryId: glossaryStore.id
+                    }
                 }
             }
         )) as {
@@ -219,7 +224,8 @@ export const useConceptStore = defineStore('concept', () => {
                     'parentId',
                     'position'
                 ]),
-                orderBy: JSON.stringify({ position: 'asc' })
+                orderBy: JSON.stringify({ position: 'asc' }),
+                where: JSON.stringify({ glossaryId: glossaryStore.id })
             },
             transform: (data: PaginatedResponse) => {
                 if (!data) {

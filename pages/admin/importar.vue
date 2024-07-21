@@ -5,11 +5,38 @@
             <UIContainerTitle>Importar</UIContainerTitle>
         </template>
         <div v-if="!importing && !completed">
+
+            <FieldSelect
+                id="recurso"
+                label="Recurso"
+                :options="exportableResources"
+                :required="true"
+                v-model="resource"
+            />
+            
+            <FieldSelect
+                id="glossario"
+                label="Glossário para importar os termos"
+                :options="glossaryOptions"
+                :required="true"
+                v-model="glossary"
+                v-if="resource == conceptKey"
+            />
+
+            <h2 class="mt-4 font-bold text-xl">
+                Orientações para importação do recurso
+            </h2>
+
             <p class="mt-4">
-                É possível importar termos para o sistema nos formatos:
-                <strong>JSON, CSV, XLXS, SKOS</strong> (extensão .xml ou .rdf) e
-                <strong>ZIP</strong> (contendo um dos formatos anteriores).
+                É possível importar itens para o sistema nos formatos:
+                <strong>JSON, CSV, XLXS, SKOS</strong> (extensão .xml ou .rdf, somente disponível para o recurso <b>Termos</b>).
             </p>
+
+            <p class="mt-4">
+                Os <strong>ids</strong> dos itens devem ser únicos e podem ser
+                numéricos ou textuais.
+            </p>
+
             <p class="mt-4">
                 Os dados devem estar no formato correto para que a importação
                 seja realizada com sucesso. Abaixo é possível baixar um template
@@ -18,30 +45,27 @@
                 para importação sem necessidade de alterações.
             </p>
 
-            <p class="mt-4">
-                A propriedade/coluna <strong>posicao</strong> é opcional e deve
-                ser um número inteiro, representando a posição relativa do termo
-                em relação aos seus irmãos. Caso não seja informada, o sistema
-                irá atribuir um valor automaticamente com base na ordem de
-                importação.
-            </p>
+            <span v-if="resource === 'Concept'">
+                <p class="mt-4">
+                    A propriedade/coluna <strong>posicao</strong> é opcional e deve
+                    ser um número inteiro, representando a posição relativa do termo
+                    em relação aos seus irmãos. Caso não seja informada, o sistema
+                    irá atribuir um valor automaticamente com base na ordem de
+                    importação.
+                </p>
 
-            <p class="mt-4">
-                Para incluir imagens, é necessário que os arquivos estejam no
-                formato <strong>ZIP</strong> e que o nome do arquivo seja o
-                mesmo do campo <strong>id</strong> do termo. As imagens devem
-                estar no formato <strong>JPG</strong> ou <strong>PNG</strong> e
-                estar dentro de uma pasta com o nome <strong>media</strong>.
-                Vários arquivos para o mesmo termo são permitidos adicionando um
-                número ao final do nome do arquivo com _, por exemplo:
-                <strong>id_1.jpg</strong>, <strong>id_2.jpg</strong>,
-                <strong>id_3.jpg</strong>.
-            </p>
-
-            <p class="mt-4">
-                Os <strong>ids</strong> dos termos devem ser únicos e podem ser
-                numéricos ou textuais.
-            </p>
+                <p class="mt-4">
+                    Para incluir imagens, é necessário que os arquivos estejam no
+                    formato <strong>ZIP</strong> e que o nome do arquivo seja o
+                    mesmo do campo <strong>id</strong> do termo. As imagens devem
+                    estar no formato <strong>JPG</strong> ou <strong>PNG</strong> e
+                    estar dentro de uma pasta com o nome <strong>media</strong>.
+                    Vários arquivos para o mesmo termo são permitidos adicionando um
+                    número ao final do nome do arquivo com _, por exemplo:
+                    <strong>id_1.jpg</strong>, <strong>id_2.jpg</strong>,
+                    <strong>id_3.jpg</strong>.
+                </p>
+            </span>
 
             <h4 class="mt-4 font-bold">Opções de importação:</h4>
 
@@ -56,25 +80,15 @@
                 </li>
             </ul>
 
-            <p class="mt-6">
-                <UIIcon
-                    name="ph:warning"
-                    class="h-8 w-8 text-app-primary mr-1"
-                />
-                <strong>Atenção:</strong> A importação de termos é uma operação
-                irreversível.
-            </p>
+            <div class="mt-4">
+                <h4 class="mt-4 font-bold">
+                    Templates disponíveis para download (clique para baixar):
+                </h4>
 
-            <UDivider class="my-8" />
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="px-10">
-                    <b>
-                        Baixe um arquivo template e preencha com os dados que
-                        deseja importar.
-                    </b>
-
-                    <span v-for="template in templates" class="block mt-4">
+                <span v-for="template in templates" class="block mt-4">
+                    <span v-if="template.ext === 'xml' && resource !== 'Concept'">
+                    </span>
+                    <span v-else>
                         <UIIcon
                             name="ph:download"
                             class="h-6 w-6 text-app-primary mr-1"
@@ -83,24 +97,36 @@
                         </UIIcon>
                         {{ template.name }}
                     </span>
-                </div>
+                </span>
+            </div>
 
-                <div class="px-10">
-                    <FieldDropzone
-                        url="/api/concept/import"
-                        :max-files="1"
-                        :max-filesize="10000000"
-                        :accepted-files="acceptedFiles.join(', ')"
-                        :params="{ mode: mode }"
-                        @finish="updateProgress"
-                    >
-                        <URadioGroup
-                            v-model="mode"
-                            :options="options"
-                            class="mb-3"
-                        />
-                    </FieldDropzone>
-                </div>
+            <UDivider class="my-8" />
+
+            <div class="mt-4" v-if="exportableResources.length > 0 && resource">
+                <p class="mt-6">
+                    <UIIcon
+                        name="ph:warning"
+                        class="h-8 w-8 text-app-primary mr-1"
+                        variant="static"
+                    />
+                    <strong> A importação de dados é uma
+                    operação irreversível.</strong>
+                </p>
+
+                <FieldDropzone
+                    :url="`/api/${resource}/import`"
+                    :max-files="1"
+                    :max-filesize="10000000"
+                    :accepted-files="acceptedFiles.join(', ')"
+                    :params="{ mode: mode, glossaryId: glossary }"
+                    @finish="updateProgress"
+                >
+                    <URadioGroup
+                        v-model="mode"
+                        :options="options"
+                        class="mb-3"
+                    />
+                </FieldDropzone>
             </div>
         </div>
 
@@ -156,17 +182,13 @@ useHead({
     title: 'Importar | ' + useRuntimeConfig().public.appName
 });
 
-const options = [
-    {
-        value: 'merge',
-        label: 'Mesclar (adicionar e atualizar dados existentes)'
-    },
-    {
-        value: 'overwrite',
-        label: 'Sobrescrever (apagar todos os dados e importar novos)'
-    }
-];
-
+const glossaryStore = useGlossaryStore();
+await glossaryStore.fetch(false);
+const { availableGlossaries, id: glossaryId } = storeToRefs(glossaryStore);
+const conceptKey = 'Concept';
+const exportableResources = ref([]) as Ref<{ value: string; name: string }[]>;
+const resource = ref<string>(conceptKey);
+const glossary = ref<ID>(glossaryId.value);
 const res = ref('');
 const progress = ref<number | undefined>();
 const report = ref<undefined | ImportReport>();
@@ -174,7 +196,6 @@ const message = ref('');
 const error = ref(false);
 const tries = ref(0);
 const maxTries = ref(5);
-
 const mode = ref('merge');
 const importing = ref(false);
 const completed = ref(false);
@@ -195,6 +216,20 @@ const templates = ref([
     { ext: 'xml', name: 'SKOS (Simple Knowledge Organization System)' }
 ]);
 
+const glossaryOptions = buildGlossaryOptions(availableGlossaries.value);
+await getImportableResources();
+
+const options = [
+    {
+        value: 'merge',
+        label: 'Mesclar (adicionar e atualizar dados existentes)'
+    },
+    {
+        value: 'overwrite',
+        label: 'Sobrescrever (apagar todos os dados e importar novos)'
+    }
+];
+
 const restart = () => {
     res.value = '';
     progress.value = 0;
@@ -211,7 +246,11 @@ const updateProgress = async (processId: string) => {
     importing.value = true;
 
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', `/api/public/concept/${res.value}/@progress`, true);
+    xhr.open(
+        'GET',
+        `/api/public/${resource.value}/${res.value}/@progress`,
+        true
+    );
 
     xhr.onload = function () {
         if (xhr.status === 200) {
@@ -254,8 +293,42 @@ const updateProgress = async (processId: string) => {
 // TODO: Template files should be generated by the server
 const onClick = (ext: string) => {
     var link = document.createElement('a');
-    link.href = '/templates/import.' + ext;
-    link.download = 'import.' + ext;
+    if (resource.value == conceptKey) {
+        link.href = `/templates/${resource.value.toLowerCase()}_import.${ext}`;
+    } else {
+        link.href = `/api/${resource.value}/export?format=${ext}&template=true&addMedia=false`;
+    }
+
+    const resourceLabel = exportableResources.value.find(
+        (r) => r.value === resource.value
+    )?.name ?? 'recurso';
+
+    link.download = `${resourceLabel.toLowerCase()}-template.${ext}`;
     link.dispatchEvent(new MouseEvent('click'));
 };
+
+
+async function getImportableResources() {
+    const { data } = await useFetchWithBaseUrl('/api/public/resource', {
+        method: 'GET',
+        params: { where: { canBeExported: true } }
+    });
+
+    if (data.value && data.value.items) {
+        exportableResources.value = data.value.items.map((item: any) => ({
+            value: item.model,
+            name: item.labelPlural
+        }));
+    }
+}
+
+function buildGlossaryOptions(glossaries: Glossary[]) {
+    const g = glossaries.map((glossary) => ({
+        value: glossary.id,
+        name: glossary.name
+    }));
+
+    return g;
+}
+
 </script>

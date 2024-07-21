@@ -1,0 +1,44 @@
+.markdown-content h1 {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .markdown-content p {
+    margin-top: 6px;
+    margin-bottom: 6px;
+  }
+
+  .markdown-content a {
+    color: rgb(220, 20, 60);
+    /* Não sei porque hex code não estava funcionando. Converti a 500 (crimson/cereja) pra rgb */
+    /* Não é uma solução também (?), pois os ## são gerados como <a> e não como <h2> */
+  }
+
+  .markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .markdown-content th,
+  .markdown-content td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+  .markdown-content th {
+    background-color: #f4f4f4;
+    text-align: left;
+  }
+  
+  .markdown-content tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .markdown-content pre {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 8px;
+    border-radius: 6px;
+
+  }
+  

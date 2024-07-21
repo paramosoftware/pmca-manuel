@@ -11,6 +11,8 @@ export const useResourceStore = defineStore('resource', () => {
     const pending = ref(false);
     const error = ref<Error | undefined>(undefined);
     const isHierarchical = ref(false)
+    const isConcept = computed(() => model.value === 'Concept');
+    const isGlossary = computed(() => model.value === 'Glossary');
     const query = computed(() => {
         return {
             include: {
@@ -68,6 +70,8 @@ export const useResourceStore = defineStore('resource', () => {
         isAppModel,
         isPublic,
         isHierarchical,
+        isConcept,
+        isGlossary,
         pending,
         error,
         fetch

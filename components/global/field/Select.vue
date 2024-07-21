@@ -140,6 +140,9 @@ if (relatedResource.value) {
     }
 } else if (options.value) {
     list.value = options.value;
+    watch(() => options.value, (newValue) => {
+        list.value = newValue;
+    });
 }
 
 if (defaultValue.value && props.formStore) {

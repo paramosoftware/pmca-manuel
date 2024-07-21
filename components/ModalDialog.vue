@@ -22,8 +22,8 @@
                 class="h-10 w-10 text-pmca-warning mr-3"
                 variant="static"
             />
-            {{ message }}
 
+            <span v-html="message" />
             <slot />
 
             <template #footer>

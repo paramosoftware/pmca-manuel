@@ -14,7 +14,6 @@
                         title="Criar"
                         v-if="canCreate"
                     />
-
                     <UIIcon
                         @click="openModalPosition"
                         v-if="listStore.isHierarchical"
@@ -202,6 +201,7 @@ const listStore = useListStore();
 await listStore.fetch(path);
 
 const {
+    label,
     labelSlug,
     labelPlural,
     genderNoun,
@@ -216,7 +216,8 @@ const {
     canCreate,
     canDelete,
     canUpdate,
-    canBatch
+    canBatch,
+    isGlossary
 } = storeToRefs(listStore);
 
 const createUrl = ROUTES.create + labelSlug.value;
@@ -233,6 +234,9 @@ const filterDisabled = computed(() => {
 async function openModal(item: any) {
     modalTitle.value = 'Confirmar exclusão';
     modalMessage.value = 'Tem certeza que deseja excluir este item?';
+    if (isGlossary) {
+        modalMessage.value += `<br><br><b>Todos os termos associados também serão excluídos.</b>`;
+    }
     modalButtonText.value = 'Excluir';
     modalFunction.value = () => deleteItem();
     itemToDelete.value = item;

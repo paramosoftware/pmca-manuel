@@ -43,7 +43,7 @@ const props = defineProps({
 const myVueDropzone = ref(null);
 const emit = defineEmits(['start', 'update', 'finish']);
 
-const dropzoneOptions = {
+const dropzoneOptions = ref({
     url: props.url,
     timeout: 180000, // 3 minutes
     maxFilesize: props.maxFilesize,
@@ -82,17 +82,21 @@ const dropzoneOptions = {
             emit('finish', response);
         }
     }
-};
+});
+
+watch(
+    () => props.url,
+    (value) => {
+        dropzoneOptions.value.url = value;
+        if (myVueDropzone.value && myVueDropzone.value.dropzone) {
+            myVueDropzone.value.dropzone.options.url = value;
+        }
+    }
+);
 
 const uploadFiles = () => {
     myVueDropzone.value.processQueue();
 };
-
-defineComponent({
-    components: {
-        vueDropzone
-    }
-});
 </script>
 
 <style>
