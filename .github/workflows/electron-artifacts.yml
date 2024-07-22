@@ -1,6 +1,4 @@
 name: Generate Electron artifacts
-# TODO: Get versions from package.json
-# TODO: Add windows-2022 when fixed: bin\pnpm.cjs: %1 is not a valid Win32 application.
 on:
   pull_request:
     types: [closed]
@@ -34,8 +32,29 @@ jobs:
           node-version: '20.15.0'
 
       - name: Install pnpm
+        id: setup-pnpm
         uses: pnpm/action-setup@v3
-      
+
+      - name: Set pnpm version
+        if: matrix.os == 'windows-2022'
+        run: echo "PNPM_VERSION=$(pnpm --version)" >> $env:GITHUB_ENV
+
+      - name: Set pnpm.cjs path
+        if: matrix.os == 'windows-2022'
+        env:
+          PNPM_PATH: ${{ steps.setup-pnpm.outputs.dest }}
+          PNPM_FIRST_HALF: /node_modules/.pnpm/pnpm@
+          PNPM_SECOND_HALF: /node_modules/pnpm/bin/pnpm.cjs
+        run: |
+          echo "PNPM_CJS=${{ env.PNPM_PATH }}${{ env.PNPM_FIRST_HALF }}${{ env.PNPM_VERSION }}${{ env.PNPM_SECOND_HALF }}" >> $env:GITHUB_ENV
+
+      - name: Fix pnpm.cjs
+        if: matrix.os == 'windows-2022'
+        run: |
+          echo "PNPM_CJS: ${{ env.PNPM_CJS }}"
+          sed -i 's/#!\/usr\/bin\/env node/#!node/' ${{ env.PNPM_CJS }}
+          cat ${{ env.PNPM_CJS }}
+    
       - name: Build electron
         run: pnpm electron:build
       

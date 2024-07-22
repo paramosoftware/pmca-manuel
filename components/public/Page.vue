@@ -1,6 +1,7 @@
 <template>
     <main
-        class="w-full h-full shadow-lg border-b border-gray-200 rounded-md bg-white break-words" :class="{'border': addBorder}"
+      class="w-full flex-grow min-h-full shadow-lg border-b border-gray-200 rounded-md bg-white break-words"
+      :class="{ border: addBorder }"
     >
         <div
             class="flex justify-end border-b border-gray-200 bg-gray-50"
@@ -28,9 +29,10 @@
         <div class="py-5 px-3 md:px-5">
             <slot name="template-header" v-if="hasTemplateHeader()" />
             <span v-else>
+                <GuideBreadcrumb v-if="isGuide" />
                 <PublicBreadcrumb
                     :add-concept-link="false"
-                    v-if="showBreadcrumb"
+                    v-if="showBreadcrumb && !isGuide"
                 />
                 <UIPageTitle class="pb-1 mb-4" v-if="title">
                     {{ title }}
@@ -64,6 +66,10 @@ defineProps({
     addHorizontalLine: {
         type: Boolean,
         default: true
+    },
+    isGuide: {
+        type: Boolean,
+        default: false
     }
 });
 

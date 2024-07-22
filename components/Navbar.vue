@@ -1,22 +1,20 @@
 <template>
     <nav id="navbar" class="p-3 border-b bg-white shadow-sm rounded-sm">
-        <div class="max-w-screen-xl mx-auto md:flex flex-row justify-between items-center">
-            <div class="w-full md:w-2/6">
-                <NuxtLink to="/">
-                    <img
-                        src="/icons/icon-horizontal.png"
-                        alt="Logo"
-                        class="h-8"
-                    />
-                </NuxtLink>
-                <p
-                    class="text-xl mt-2 text-app-primary font-semibold line-clamp-2"
-                    :title="glossaryName"
-                >
-                    {{ glossaryName }}
-                </p>
+        <div
+            class="max-w-screen-xl mx-auto md:flex flex-row justify-between items-center"
+        >
+            <div class="w-full md:w-3/6">
+                <img
+                    src="/icons/icon-horizontal.png"
+                    alt="Logo"
+                    class="h-8"
+                    @click="navigateTo('/admin')"
+                />
+                <UIGlossarySelector class="mt-3" :public="false" />
             </div>
-            <div class="w-full md:w-4/6 mt-5 md:mt-0 md:flex flex-row justify-end items-center">
+            <div
+                class="w-full md:w-3/6 mt-5 md:mt-0 md:flex flex-row justify-end items-center"
+            >
                 <div class="flex flex-row justify-end items-center">
                     <span v-for="menu in menus" :key="menu.title">
                         <span v-if="menu.items" class="mr-4">
@@ -24,23 +22,30 @@
                                 :items="menu.items"
                                 :popper="{ placement: 'bottom-end' }"
                             >
+                                <template #item="{ item }">
+                                    <UILink :href="item.href">
+                                        {{ item.label }}
+                                    </UILink>
+                                </template>
+
                                 <UAvatar size="sm">
-                                    <UIIcon
-                                        :name="menu.icon"
-                                        :title="menu.title"
-                                    >
-                                    </UIIcon>
+                                    <UILink :href="menu.href">
+                                        <UIIcon
+                                            :name="menu.icon"
+                                            :title="menu.title"
+                                        />
+                                    </UILink>
                                 </UAvatar>
                             </UDropdown>
                         </span>
                         <span v-else-if="menu.onClick" class="mr-4">
                             <UAvatar size="sm">
-                                <UIIcon
-                                    :name="menu.icon"
-                                    :title="menu.title"
-                                    @click="menu.onClick"
-                                >
-                                </UIIcon>
+                                <UILink :href="menu.href">
+                                    <UIIcon
+                                        :name="menu.icon"
+                                        :title="menu.title"
+                                    />
+                                </UILink>
                             </UAvatar>
                         </span>
                     </span>
@@ -58,10 +63,6 @@ const userStore = useUserStore();
 await userStore.fetch();
 const { name, resources, canImport } = storeToRefs(userStore);
 
-const glossaryStore = useGlossaryStore();
-await glossaryStore.fetch();
-const { name: glossaryName } = storeToRefs(glossaryStore);
-
 const menus = [
     {
         icon: 'ph:list',
@@ -70,6 +71,7 @@ const menus = [
             resources.value.map((resource: Resource) => {
                 return {
                     label: resource.labelPlural,
+                    href: ROUTES.list + resource.labelSlug,
                     click: () => {
                         navigateTo(ROUTES.list + resource.labelSlug);
                     }
@@ -80,6 +82,7 @@ const menus = [
     {
         icon: 'ph:box-arrow-down',
         title: 'Exportar',
+        href: ROUTES.export,
         onClick: () => {
             navigateTo(ROUTES.export);
         }
@@ -90,6 +93,7 @@ if (canImport.value) {
     menus.push({
         icon: 'ph:box-arrow-up',
         title: 'Importar',
+        href: ROUTES.import,
         onClick: () => {
             navigateTo(ROUTES.import);
         }
@@ -100,6 +104,7 @@ if (userStore.isAdmin) {
     menus.push({
         icon: 'ph:archive',
         title: 'Backup',
+        href: ROUTES.backup,
         onClick: () => {
             navigateTo(ROUTES.backup);
         }
@@ -109,6 +114,7 @@ if (userStore.isAdmin) {
 menus.push({
     icon: 'ph:arrow-square-out',
     title: 'Acesso público',
+    href: '/',
     onClick: () => {
         accessPublic();
     }
@@ -125,6 +131,7 @@ menus.push({
             },
             {
                 label: 'Alterar senha',
+                href: ROUTES.restricted + '/alterar-senha',
                 click: () => {
                     navigateTo(ROUTES.restricted + '/alterar-senha');
                 }

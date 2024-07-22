@@ -41,6 +41,14 @@ const links = ref([
     {
         name: 'Exportar',
         path: '/exportar'
+    },
+    {
+        name: 'Download',
+        path: '/download'
+    },
+    {
+        name: 'Manual',
+        path: '/manual'
     }
 ]);
 

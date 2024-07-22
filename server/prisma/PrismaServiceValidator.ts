@@ -191,9 +191,12 @@ class PrismaServiceValidator {
             typeof condition === 'number' ||
             Array.isArray(condition) ||
             typeof condition === 'boolean'
+            || !condition
         ) {
             return;
         }
+
+
 
         const keys = Object.keys(condition);
 

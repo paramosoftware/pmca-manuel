@@ -9,13 +9,10 @@
                         class="max-w-48"
                     />
                 </NuxtLink>
-                <p
-                    class="text-xl mt-2 text-app-primary font-semibold line-clamp-2"
-                    :title="glossaryName"
+                <UIGlossarySelector
+                    class="mt-2"
                     v-if="showGlossaryName"
-                >
-                    {{ glossaryName }}
-                </p>
+                />
             </div>
             <div class="hidden lg:block w-4/6">
                 <div>
@@ -72,7 +69,4 @@ defineProps({
 })
 
 const isMenuOpen = ref(false);
-const glossaryStore = useGlossaryStore();
-await glossaryStore.fetch();
-const { name: glossaryName } = storeToRefs(glossaryStore);
 </script>

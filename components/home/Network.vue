@@ -1,7 +1,12 @@
 <template>
-    <div class="mt-5 md:mx-auto min-h-[60vh] w-full rounded-tl overflow-hidden bg-gray-100" v-if="concepts.length != 0">
+    <div
+        class="mt-5 md:mx-auto min-h-[60vh] w-full rounded-tl overflow-hidden bg-gray-100"
+        v-if="concepts.length != 0"
+    >
         <h1 class="text-xl pb-8 md:text-3xl text-center font-bold mt-5">
-            Mapa de relacionamentos
+            <UITooltip :help="help" placement="top">
+                Mapa de relacionamentos
+            </UITooltip>
         </h1>
         <div id="network" class="w-full h-full">
             <svg
@@ -16,12 +21,18 @@
 </template>
 
 <script setup lang="ts">
-// TODO: How to handle large networks? Limit the number of nodes and links? Randomize the nodes? [PMCA-410]
 import * as d3 from 'd3';
 
-const secondaryColor = '#f2767e';
-const themeColor = '#dc143c';
-const primaryColor = '#603129';
+const help = `
+O mapa de relacionamentos mostra como os termos estão conectados entre si, a partir do campo Ver também.
+Cada nó representa um termo e cada linha representa uma conexão. Clique em um nó para ver mais informações sobre o termo.
+Somente os 100 termos mais conectados são exibidos.
+`;
+
+const config = useRuntimeConfig().public;
+const secondaryColor = config.secondaryColor;
+const themeColor = config.themeColor;
+const primaryColor = config.primaryColor;
 
 const conceptStore = useConceptStore();
 const { conceptsNetwork: concepts } = storeToRefs(conceptStore);
@@ -31,6 +42,7 @@ if (!concepts.value || concepts.value.length === 0) {
 }
 
 const nodeMapSize = new Map();
+const addedNodes = new Set();
 const nodes = [] as {
     id: number;
     label: string;
@@ -54,8 +66,18 @@ concepts.value.forEach((concept) => {
         slug: concept.nameSlug,
         value: nodeSize
     });
+    addedNodes.add(concept.id);
 
     concept.concepts?.forEach((child) => {
+        if (!addedNodes.has(child.id)) {
+            nodes.push({
+                id: child.id,
+                label: child.name,
+                slug: child.nameSlug,
+                value: nodeSize
+            });
+        }
+
         nodeMapSize.set(
             concept.id,
             (nodeMapSize.get(concept.id) || nodeSize) + nodeGap
@@ -73,6 +95,15 @@ concepts.value.forEach((concept) => {
     });
 
     concept.relatedConcepts?.forEach((related) => {
+        if (!addedNodes.has(related.id)) {
+            nodes.push({
+                id: related.id,
+                label: related.name,
+                slug: related.nameSlug,
+                value: nodeSize
+            });
+        }
+
         nodeMapSize.set(
             concept.id,
             (nodeMapSize.get(concept.id) || nodeSize) + nodeGap
