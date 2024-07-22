@@ -93,7 +93,8 @@ export default defineNuxtConfig({
             appVersion: packageJson.version,
             primaryColor: '#603129',
             secondaryColor: '#f2767e',
-            themeColor: '#dc143c'
+            themeColor: '#dc143c',
+            repositoryUrl: packageJson.repository.url,
         }
     },
     colorMode: {

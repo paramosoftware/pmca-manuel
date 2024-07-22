@@ -1,0 +1,139 @@
+name: Release
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      APP_VERSION: ${{ steps.generate_tag.outputs.new_tag }}
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Bump version and generate tag (dry run)
+        id: generate_tag
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          WITH_V: false
+          DRY_RUN: true
+      
+      - name: Update version in package.json
+        run: |
+          echo "Updating package.json version to ${{ steps.generate_tag.outputs.new_tag }}"
+          sed -i "s/\"version\": \".*\"/\"version\": \"${{ steps.generate_tag.outputs.new_tag }}\"/" package.json
+
+      - name: Commit version bump
+        run: |
+          git config user.name "paramo-bot"
+          git config user.email "150099564+paramo-bot[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore: update project version to ${{ steps.generate_tag.outputs.new_tag }}"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Bump version and push tag
+        id: create_tag
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          WITH_V: false
+          
+      - name: Publish release
+        uses: softprops/action-gh-release@v0.1.15
+        with:
+          prerelease: true
+          generate_release_notes: true
+          tag_name: ${{ steps.create_tag.outputs.new_tag }}
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          
+      - name: Set vars for next job
+        run: |
+          echo "APP_VERSION=${{ steps.generate_tag.outputs.new_tag }}" >> $GITHUB_OUTPUT
+
+
+  upload-release-assets:
+    needs: release
+    strategy:
+        fail-fast: false
+        matrix:
+          os: [ubuntu-latest, macos-12, windows-2022]
+          include:
+            - os: windows-2022
+              ext_glob: "exe"
+            - os: macos-12
+              ext_glob: "dmg"
+            - os: ubuntu-latest
+              ext_glob: "+(deb|AppImage)"
+      
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.15.0'
+
+      - name: Install pnpm
+        id: setup-pnpm
+        uses: pnpm/action-setup@v3
+
+      - name: Set pnpm version
+        if: matrix.os == 'windows-2022'
+        run: echo "PNPM_VERSION=$(pnpm --version)" >> $env:GITHUB_ENV
+
+      - name: Set pnpm.cjs path
+        if: matrix.os == 'windows-2022'
+        env:
+          PNPM_PATH: ${{ steps.setup-pnpm.outputs.dest }}
+          PNPM_FIRST_HALF: /node_modules/.pnpm/pnpm@
+          PNPM_SECOND_HALF: /node_modules/pnpm/bin/pnpm.cjs
+        run: |
+          echo "PNPM_CJS=${{ env.PNPM_PATH }}${{ env.PNPM_FIRST_HALF }}${{ env.PNPM_VERSION }}${{ env.PNPM_SECOND_HALF }}" >> $env:GITHUB_ENV
+
+      - name: Fix pnpm.cjs
+        if: matrix.os == 'windows-2022'
+        run: |
+          echo "PNPM_CJS: ${{ env.PNPM_CJS }}"
+          sed -i 's/#!\/usr\/bin\/env node/#!node/' ${{ env.PNPM_CJS }}
+          cat ${{ env.PNPM_CJS }}
+    
+      - name: Build electron
+        run: pnpm electron:build
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ steps.generate_token.outputs.token }}
+          file: builds/${{ needs.release.outputs.APP_VERSION }}/pmca-manuel-${{ needs.release.outputs.APP_VERSION }}.${{ matrix.ext_glob }}
+          tag: ${{ needs.release.outputs.APP_VERSION }}
+          overwrite: true
+          file_glob: true
