@@ -1,6 +1,6 @@
 <template>
     <main
-        class="w-full h-full shadow-lg border-b border-gray-200 rounded-md bg-white break-words" :class="{'border': addBorder}"
+        class="w-full flex-grow min-h-full shadow-lg border-b border-gray-200 rounded-md bg-white break-words" :class="{'border': addBorder}"
     >
         <div
             class="flex justify-end border-b border-gray-200 bg-gray-50"
