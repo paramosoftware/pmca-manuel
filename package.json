@@ -3,11 +3,15 @@
   "displayName": "Manuel",
   "version": "0.9.0",
   "author": "Páramo Software <contato@paramosoftware.com.br>",
-  "description": "Ferramenta para gestão de glossários",
-  "private": true,
+  "description": "Ferramenta de glossários",
   "main": "electron/main.js",
+  "license": "MIT",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/paramosoftware/pmca-manuel"
+  },
   "engines": {
-    "node": "20.x"
+      "node": "20.x"
   },
   "packageManager": "pnpm@9.4.0",
   "scripts": {
