@@ -77,13 +77,14 @@ jobs:
     strategy:
         fail-fast: false
         matrix:
+          os: [ubuntu-latest]
           include:
             - os: windows-2022
-            - ext_glob: "exe"
+              ext_glob: "exe"
             - os: macos-12
-            - ext_glob: "dmg"
+              ext_glob: "dmg"
             - os: ubuntu-latest
-            - ext_glob: "+(deb|AppImage)"
+              ext_glob: "+(deb|AppImage)"
       
     runs-on: ${{ matrix.os }}
     steps:
