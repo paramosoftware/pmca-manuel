@@ -24,8 +24,6 @@
             />
         </div>
         <GuideTreeView  class="h-[55vh] overflow-auto" :tree="navigation" :showPosition="true"/>
-
-
         <USlideover
             v-model="isSidePanelOpen"
             class="text-app-primary h-screen lg:hidden"
@@ -35,6 +33,7 @@
                 width: 'w-screen max-w-lg'
             }"
         >
+        
             <div
                 class="flex flex-row justify-between border-b border-gray-200 mb-5 p-3 items-center"
             >
@@ -51,8 +50,7 @@
             </div>
 
             <div class="px-3 pb-3 overflow-auto">
-                <PublicHierarchicalNavigation
-                />
+                <GuideTreeView :tree="navigation" :showPosition="true"/>
             </div>
         </USlideover>
     </div>

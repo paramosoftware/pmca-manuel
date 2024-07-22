@@ -1,4 +1,8 @@
-O meno de navegação superior...
+---
+title: Utilizando o menu de navegação superior
+---
+
+O menu de navegação superior traz uma gama de opções e serve como indicador de navegação. É possível, a partir dele, ser redirecionado para diversos locais da aplicação.
 
 # Opções do menu de navegação superior
 
@@ -11,7 +15,8 @@ O meno de navegação superior...
 | Botão acesso publico    | Redireciona o usuário para a navegação pública  |
 | Botão opções de usuário | Redireciona o usuário para suas opções de usuário |
 
+<br>
 
 # Menu de navegação superior
 
-![Menu de navegação superior]()
+![Menu de navegação superior](media/guide/3-utilizando-o-manuel/1-navegacao-interna/2-menu-navegacao-superior/1-como-utilizar-o-menu-navegacao-superior/menu_navegacao_superior.png)

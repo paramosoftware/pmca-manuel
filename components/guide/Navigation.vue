@@ -34,10 +34,22 @@
             <PublicPage
                 :title="data ? data.title : props.title"
                 :show-breadcrumb="true"
-                :has-header="false"
+                :has-header="true"
                 :add-horizontal-line="true"
                 :add-border="false"
+                :is-guide="true"
             >
+                <template #actions-sub-title>
+                    Abrir guia:
+                </template>
+                <template #actions-sub-icons>
+                    <UIIcon
+                        name="ph:tree-view"
+                        title="Abrir classificação"
+                        class="hover:text-app-theme-500"
+                        @click="isSlideOverOpen = true"
+                    />
+                </template>
                 <GuideContent />
             </PublicPage>
         </div>
