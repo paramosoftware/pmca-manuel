@@ -45,6 +45,10 @@ const links = ref([
     {
         name: 'Download',
         path: '/download'
+    },
+    {
+        name: 'Manual',
+        path: '/manual'
     }
 ]);
 

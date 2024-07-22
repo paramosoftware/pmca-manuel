@@ -77,11 +77,11 @@ const props = defineProps({
     },
     hierarchyName: {
         type: String,
-        default: 'guia'
+        default: 'manual'
     },
     hierarchyIcon: {
         type: String,
-        default: 'ph:flower-lotus'
+        default: 'ph:toolbox'
     }
 });
 const { data: navigation } = await useAsyncData('navigation', () =>

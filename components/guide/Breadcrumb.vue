@@ -31,8 +31,6 @@
 </template>
 
 <script setup lang="ts">
-import { active } from 'd3';
-
 const props = defineProps({
     useConceptStore: {
         type: Boolean,
@@ -51,7 +49,7 @@ const home = {
 };
 
 const guide = {
-    label: 'Guia',
+    label: 'Manual',
     to: '/manual',
     icon: 'ph:cards-three'
 };

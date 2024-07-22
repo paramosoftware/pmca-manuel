@@ -29,7 +29,7 @@
         <div class="py-5 px-3 md:px-5">
             <slot name="template-header" v-if="hasTemplateHeader()" />
             <span v-else>
-                <GuideBreadcrumb v-if="isGuide && showBreadcrumb" />
+                <GuideBreadcrumb v-if="isGuide" />
                 <PublicBreadcrumb
                     :add-concept-link="false"
                     v-if="showBreadcrumb && !isGuide"
