@@ -1,7 +1,6 @@
 <template>
     <nav
         class="flex min-w-0 mb-3 overflow-auto whitespace-nowrap"
-        draggable="true"
     >
         <ol class="flex items-center gap-x-1.5">
             <li
@@ -31,16 +30,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
-    useConceptStore: {
-        type: Boolean,
-        default: false
-    },
-    addConceptLink: {
-        type: Boolean,
-        default: true
-    }
-});
+const guidePath = '/manual';
 
 const home = {
     label: 'Início',
@@ -50,8 +40,8 @@ const home = {
 
 const guide = {
     label: 'Manual',
-    to: '/manual',
-    icon: 'ph:cards-three'
+    to: guidePath,
+    icon: 'ph:toolbox'
 };
 
 const route = useRoute();
@@ -71,6 +61,7 @@ watch(
         buildBreadcrumb();
     }
 );
+
 const findTargetNode = (node, targetPath) => {
     if (node._path === targetPath) {
         return [node];
@@ -79,7 +70,6 @@ const findTargetNode = (node, targetPath) => {
         for (const children of node.children) {
             const result = findTargetNode(children, targetPath);
             if (result) {
-                console.log([node, ...result]);
                 return [node, ...result];
             }
         }
@@ -97,24 +87,25 @@ function buildBreadcrumb() {
         }
     }
     breadcrumb.push(guide);
-    if (!activePath) {
-        return breadcrumb;
-    }
 
-    for (const node of activePath) {
-        let crumb = {
-            label: node.title,
-            to: '',
-            icon: 'ph:article'
-        };
-        if (node.children) {
-            crumb.icon = 'ph:tag-simple';
-        } else {
-            crumb.to = `/manual${node._path}`;
+    if (activePath) {
+        for (const node of activePath) {
+            let crumb = {
+                label: node.title,
+                to: '',
+                icon: 'ph:article'
+            };
+            if (node.children) {
+                crumb.icon = 'ph:folder';
+            } else {
+                crumb.to = `${guidePath}${node._path}`;
+            }
+
+            breadcrumb.push(crumb);
         }
-
-        breadcrumb.push(crumb);
     }
+
+    breadcrumb.pop()
     return breadcrumb;
 }
 </script>

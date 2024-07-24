@@ -6,7 +6,7 @@
         <div
             id="left"
             ref="leftRef"
-            class="bg-gray-50 overflow-hidden p-5 pl-10 overflow-y-auto hidden lg:block"
+            class="bg-gray-50 overflow-hidden p-5 overflow-y-auto hidden lg:block"
             v-if="showLeftSide"
         >
             <PublicNavigationLeftSide
