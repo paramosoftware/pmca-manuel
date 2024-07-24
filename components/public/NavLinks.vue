@@ -1,8 +1,8 @@
 <template>
     <div class="text-xl">
         <ul v-for="link in links" :key="link.name">
-            <UILink :to="link.path" :active="currentPath === link.path">
-                <li class="mt-4 lg:mt-0" @click="emit('link-clicked')">
+            <UILink :to="link.path" :active="currentPath === link.path || link.partial && currentPath.includes(link.path)">
+                <li @click="emit('link-clicked')">
                     {{ link.name }}
                 </li>
             </UILink>
@@ -53,7 +53,8 @@ const links = ref([
     },
     {
         name: 'Manual',
-        path: '/manual'
+        path: '/manual',
+        partial: true
     }
 ]);
 
