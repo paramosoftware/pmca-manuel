@@ -5,7 +5,7 @@
         <PublicNavbar />
 
         <div
-            class="h-auto flex flex-col flex-grow justify-start items-start min-h-[40vh] w-full px-3 py-5 md:px-6 lg:px-8 xl:px-10"
+            class="h-auto flex flex-col flex-grow justify-start items-start min-h-[40vh] w-full"
         >
             <div class="flex flex-col h-full w-full flex-grow justify-start">
                 <div
