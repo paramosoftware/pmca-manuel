@@ -1,7 +1,7 @@
 <template>
     <div class="text-xl">
         <ul v-for="link in links" :key="link.name">
-            <UILink :to="link.path">
+            <UILink :to="link.path" :active="currentPath === link.path">
                 <li class="mt-4 lg:mt-0" @click="emit('link-clicked')">
                     {{ link.name }}
                 </li>
@@ -11,6 +11,7 @@
             <UIIcon
                 name="ph:bookmarks-simple-fill"
                 title="Termos selecionados"
+                :active="currentPath === '/termos/selecionados'"
             />
         </NuxtLink>
         <NuxtLink to="/admin" v-if="isElectronApp" class="hidden lg:block" @click="emit('link-clicked')">
@@ -59,6 +60,10 @@ const links = ref([
 const { data, pending, error } = await useFetchWithBaseUrl(
     '/api/public/webPage'
 );
+
+const currentPath = computed(() => {
+    return useRoute().path;
+});
 
 webPages.value = data.value.items ?? [];
 
