@@ -1,6 +1,9 @@
 <template>
     <NuxtLink :to="href">
-        <span class="text-app-secondary-500 hover:text-app-theme-500">
+        <span
+            class="text-app-secondary-500 hover:text-app-theme-500"
+            :class="{ 'text-app-theme-500 font-bold': active }"
+        >
             <slot />
         </span>
     </NuxtLink>
@@ -10,6 +13,10 @@
 defineProps({
     href: {
         type: String
+    },
+    active: {
+        type: Boolean,
+        default: false
     }
 });
 </script>

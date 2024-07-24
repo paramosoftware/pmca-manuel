@@ -6,7 +6,6 @@
                     <GuideTreeNode
                         :node="node"
                         :level="1"
-                        :show-position="showPosition"
                         :load-expanded="true"
                         :position-among-siblings="index + 1"
                     />
@@ -17,6 +16,8 @@
 </template>
 
 <script setup lang="ts">
+import type { NavItem } from '@nuxt/content';
+
 const props = defineProps({
     tree: {
         type: Object as () => NavItem[] | null,
@@ -37,14 +38,4 @@ watch(
         treeRef.value = value;
     }
 );
-
-onMounted(() => {
-    if (treeViewRef.value) {
-        treeViewRef.value.addEventListener('click', (event) => {
-            if (!treeViewRef.value) {
-                return;
-            }
-        });
-    }
-});
 </script>

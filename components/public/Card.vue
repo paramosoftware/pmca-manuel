@@ -66,7 +66,7 @@ const props = defineProps({
     },
     width: {
         type: String,
-        default: 'w-full md:w-72 md:w-min-72 lg:w-80 xl:w-96'
+        default: 'w-full md:w-72 md:w-min-72 lg:w-80'
     },
     height: {
         type: String,

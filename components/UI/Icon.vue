@@ -39,6 +39,10 @@ const props = defineProps({
         type: String,
         default: 'default'
     },
+    active: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const sizes = {
@@ -48,9 +52,9 @@ const sizes = {
     lg: '3rem'
 };
 
-const variants = {
+const variants = computed(() => ({
     default: {
-        base: 'text-app-secondary-500 hover:text-app-theme-500',
+        base: 'text-app-secondary-500 hover:text-app-theme-500' + (props.active ? ' text-app-theme-500' : ''),
         size: 'md',
         cursor: 'cursor-pointer',
     },
@@ -64,10 +68,10 @@ const variants = {
         size: 'md',
         cursor: 'cursor-default',
     },
-};
+}));
 
 // @ts-ignore
-const selectedVariant = computed(() => variants[props.variant] || variants.default);
+const selectedVariant = computed(() => variants.value[props.variant] || variants.value.default);
 // @ts-ignore
 const selectedSize = computed(() => sizes[props.size || selectedVariant.value.size || 'md']);
 
