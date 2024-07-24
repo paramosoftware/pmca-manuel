@@ -1,6 +1,6 @@
 <template>
     <PublicPage :title="name">
-        <div class="flex flex-col break-words">
+        <div class="flex flex-col">
             <p>
                 O {{ appName }} é é um software livre multiplataforma para a
                 gestão e divulgação de vocabulários, desenvolvido como uma das
