@@ -203,7 +203,8 @@ function executeApiMethod(
         trees: 'findTrees',
         treeDepth: 'findTreeDepth',
         treeIds: 'findTreeIds',
-        availableLetters: 'getAvailableLetters'
+        availableLetters: 'getAvailableLetters',
+        random: 'findRandom',
     } as Record<string, string>;
 
     if (mappedMethods[apiMethod]) {

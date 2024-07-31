@@ -332,7 +332,8 @@ export const createFormStore = (name: string) => {
 
                 if (data.value) {
                     toast.add({
-                        title: 'Dados salvos com sucesso.'
+                        title: 'Dados salvos com sucesso.',
+                        timeout: 2000,
                     });
 
                     if (

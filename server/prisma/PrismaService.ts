@@ -344,7 +344,7 @@ class PrismaService {
                         item,
                         false
                     );
-                    
+
                     const query = await this.processCreateOrUpdateRequest(
                         this.model,
                         item.data,
@@ -706,7 +706,12 @@ class PrismaService {
         query: Query,
         template: boolean = false
     ) {
-        return await this.exporter.exportToFormat(format, addMedia, query, template);
+        return await this.exporter.exportToFormat(
+            format,
+            addMedia,
+            query,
+            template
+        );
     }
 
     getProgress(processId: string) {
@@ -768,6 +773,106 @@ class PrismaService {
                 await mediaService.deleteOne(media.id);
             }
         }
+    }
+
+    async findRandom(id: number, query: Query, ignoreCache: boolean = false) {
+
+        const whereOR = query.where?.OR ?? [];
+        let whereAND = query.where?.AND ?? [];
+        const pageSize = query.pageSize ?? 16;
+
+        if (whereOR.length === 0 && whereAND.length === 0) {
+            if (Array.isArray(query.where)) {
+                whereAND = query.where;
+            } else {
+                if (query.where) {
+                    whereAND = Object.keys(query.where).map((key) => {
+                        return {
+                            // @ts-ignore
+                            [key]: query.where[key]
+                        };
+                    });
+                }
+            }
+        }
+
+        const cacheKey = "randomIds" + JSON.stringify(query);
+
+        let ids = cache.get(cacheKey) as number[];
+
+        if (!ids || ids.length < pageSize || ignoreCache) {
+            ids = await this.fetchRandomIds(pageSize, whereAND);
+            cache.set(cacheKey, ids, 60 * 60 * 24);
+        }
+
+        const where = {
+            AND: [
+                {
+                    id: {
+                        in: ids
+                    }
+                },
+            ]
+        } as Where;
+
+        // @ts-ignore
+        if (whereAND.length > 0) {
+            // @ts-ignore
+            where.AND.push(...whereAND);
+        }
+
+        // @ts-ignore
+        if (whereOR && whereOR.length > 0) {
+            where.OR = whereOR;
+        }
+
+        const concepts = await this.readMany(
+            {
+                where: where,
+                select: query.select,
+                include: query.include
+            },
+            false
+        );
+
+        const reorderedConcepts = [];
+
+        for (const id of ids) {
+            const concept = concepts.find((c: any) => c.id === id);
+
+            if (concept) {
+                reorderedConcepts.push(concept);
+            }
+        }
+
+        return reorderedConcepts;
+    }
+
+    /**
+     * Fetches random ids
+     * @param limit 
+     * @param where - Only accepts key value pairs for equality
+     * @returns 
+     */
+    async fetchRandomIds(limit: number = 16, where: any = []) {
+        const select = `SELECT id FROM ${this.model}`;
+
+        let whereClause = '';
+
+        if (where.length > 0) {
+            for (let i = 0; i < where.length; i++) {
+                whereClause += ` WHERE ${Object.keys(where[i]).map((key) => `${key} = ${where[i][key]}`).join(' AND ')}`;
+            }
+        }
+
+        const ids = await this.getClient(true).$queryRawUnsafe(`
+            ${select}
+            ${whereClause}
+            ORDER BY RANDOM()
+            LIMIT ${limit}
+        `) as { id: number }[];
+
+        return ids.map((id: { id: number }) => id.id);
     }
 
     private async handleMedia(oldMedia: Array<Media>, recordId: number) {
@@ -1949,7 +2054,6 @@ class PrismaService {
         // @ts-ignore
         PrismaService._clientWriter = null;
         this.setClients();
-
     }
 
     private setHasMedia() {
