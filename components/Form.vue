@@ -182,21 +182,15 @@ async function submit() {
 
     if (id && !isAuxiliary) {
         confirmSave();
-        router.push(ROUTES.edit + labelSlug.value + '/' + id);
 
-        if (process.client) {
-            // TODO: Full reload instead? [DISCUSS... might be more pricy]
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+        if (import.meta.client) {
+           window.location.href = ROUTES.edit + labelSlug.value + '/' + id
         }
-        await props.formStore.load(model.value, id);
     }
 }
 
 function goToCreateForm() {
-    if (process.client) {
+    if (import.meta.client) {
         window.location.href = urlCreate;
     }
 }
