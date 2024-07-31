@@ -14,7 +14,7 @@ export const useConceptStore = defineStore('concept', () => {
     const conceptChanges = ref<ConceptChanges>();
     const totalConceptChanges = ref(0);
     const conceptChangesLoading = ref(false);
-    const randomConceptIds = ref<number[]>([]);
+    const randomConcepts = ref<Concept[]>([]);
     const concepts = ref<Concept[]>([]);
     const conceptsNetwork = ref<Concept[]>([]); // only used to build network for home
     const conceptsTree = ref<TreeNode[]>([]);
@@ -207,7 +207,18 @@ export const useConceptStore = defineStore('concept', () => {
     }
 
     async function fetchRandom() {
-        // TODO: implement [PMCA-403]
+        const { data } = await useFetchWithBaseUrl(`/api/public/${model}/@random`, {
+            method: 'GET',
+            params: {
+                where: JSON.stringify({ glossaryId: glossaryStore.id }),
+                include: JSON.stringify (QUERIES.get(model)?.include),
+                orderBy: JSON.stringify({ position: 'asc' })
+            }
+        });
+
+        if (data.value) {
+            randomConcepts.value = data.value;
+        }
     }
 
     async function fetchConceptsTree() {
@@ -386,7 +397,7 @@ export const useConceptStore = defineStore('concept', () => {
         ancestors,
         totalConceptChanges,
         conceptChangesLoading,
-        randomConceptIds,
+        randomConcepts,
         concepts,
         conceptsNetwork,
         conceptsTree,
@@ -404,6 +415,7 @@ export const useConceptStore = defineStore('concept', () => {
         reset,
         resetConcept,
         resetFilters,
-        clearSelection
+        clearSelection,
+        fetchRandom
     };
 });
