@@ -36,8 +36,12 @@ export const useListStore = defineStore('list', () => {
     let timeoutId: NodeJS.Timeout = setTimeout(() => {}, 500);
     const isConcept = computed(() => resourceStore.isConcept);
     const isGlossary = computed(() => resourceStore.isGlossary);
-
+    const maxPage = computed(() => Math.ceil(total.value / pageSize.value));
+    
     const query = computed(() => {
+        if (page.value > maxPage.value) {
+            page.value = 1;
+        }
         const q = {
             page: page.value,
             pageSize: pageSize.value,
