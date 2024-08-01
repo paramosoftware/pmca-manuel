@@ -6,8 +6,10 @@
     :class="class"
     class="shadow-sm"
   >
-    {{ label }}
-    <slot />
+    <span class="font-semibold">
+      {{ label }}
+      <slot />
+    </span>
   </UButton>
 </template>
 
