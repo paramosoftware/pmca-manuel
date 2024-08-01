@@ -234,7 +234,7 @@ const filterDisabled = computed(() => {
 async function openModal(item: any) {
     modalTitle.value = 'Confirmar exclusão';
     modalMessage.value = 'Tem certeza que deseja excluir este item?';
-    if (isGlossary) {
+    if (isGlossary.value) {
         modalMessage.value += `<br><br><b>Todos os termos associados também serão excluídos.</b>`;
     }
     modalButtonText.value = 'Excluir';
