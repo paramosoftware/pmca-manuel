@@ -2,7 +2,7 @@
     <PublicPage :title="name">
         <div class="flex flex-col">
             <p>
-                O {{ appName }} é é um software livre multiplataforma para a
+                O {{ appName }} é um software livre multiplataforma para a
                 gestão e divulgação de vocabulários, desenvolvido como uma das
                 atividades do
                 <UILink href="https://sites.usp.br/pmca/" class="inline">

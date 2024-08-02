@@ -6,7 +6,7 @@
     :class="class"
     class="shadow-sm"
   >
-    <span class="font-semibold">
+    <span :class="{ 'font-semibold': bold }">
       {{ label }}
       <slot />
     </span>
@@ -31,6 +31,10 @@ defineProps({
   class: {
     type: String,
     default: ''
+  },
+  bold: {
+    type: Boolean,
+    default: true
   }
 });
 </script>

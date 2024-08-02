@@ -1,7 +1,7 @@
 <template>
     <div
         id="container"
-        class="flex flex-grow max-h-max shadow-lg zborder-gray-200 rounded-lg border"
+        class="flex flex-grow max-h-max shadow-lg border-gray-200 rounded-lg border"
     >
         <div
             id="left"
