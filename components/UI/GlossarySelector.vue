@@ -1,7 +1,7 @@
 <template>
     <div ref="glossarySeletorRef" class="relative">
         <p
-            :class="`text-xl text-app-primary font-semibold line-clamp-2 items-end ${props.customClass}`"
+            :class="`text-2xl text-app-primary font-semibold line-clamp-2 items-end ${props.customClass}`"
             :title="glossaryName"
             @click="isSelectorOpen = !isSelectorOpen"
         >

@@ -1,12 +1,14 @@
 <template>
-    <div class="container mx-auto" v-if="concepts && concepts.length > 0">
+    <div class="container mx-auto" v-if="randomConcepts && randomConcepts.length > 0">
         <Splide :has-track="false" :options="options" class="p-5 sm:px-14 mb-10 md:mb-5">
-            <h3 class="font-semibold text-xl md:text-3xl mb-3">
-                Termos selecionados
-            </h3>
+            <UITooltip :help="help" placement="top">
+                <h3 class="font-semibold text-xl md:text-3xl mb-3">
+                    Termos destacados
+                </h3>
+            </UITooltip>
             <SplideTrack>
                 <SplideSlide
-                    v-for="concept in concepts"
+                    v-for="concept in randomConcepts"
                     :key="concept.id"
                     class="mx-auto items-center justify-center"
                 >
@@ -31,11 +33,11 @@ import { Splide, SplideSlide, SplideTrack } from '@splidejs/vue-splide';
 import '@splidejs/vue-splide/css';
 
 const themeColor = ref(useRuntimeConfig().public.themeColor);
-
 const conceptStore = useConceptStore();
-conceptStore.reset();
-await conceptStore.load();
-const { concepts } = storeToRefs(conceptStore);
+await conceptStore.fetchRandom();
+const { randomConcepts } = storeToRefs(conceptStore);
+
+const help = "Termos destacados são selecionados aleatoriamente e alterados uma vez por dia.";
 
 const options = {
     type: 'slide',

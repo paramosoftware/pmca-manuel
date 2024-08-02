@@ -6,8 +6,10 @@
     :class="class"
     class="shadow-sm"
   >
-    {{ label }}
-    <slot />
+    <span :class="{ 'font-semibold': bold }">
+      {{ label }}
+      <slot />
+    </span>
   </UButton>
 </template>
 
@@ -29,6 +31,10 @@ defineProps({
   class: {
     type: String,
     default: ''
+  },
+  bold: {
+    type: Boolean,
+    default: true
   }
 });
 </script>

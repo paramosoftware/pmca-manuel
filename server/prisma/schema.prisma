@@ -326,8 +326,7 @@ model Reference {
   nameRich       String? /// hidden:true|includeExport:true
   nameNormalized String?
   
-
-  concepts Concept[]
+  concepts Concept[] /// label:Termos referenciados
   media ReferenceMedia[] /// label:PDFs
   published Boolean? @default(true) /// defaultValue:true
 
