@@ -47,7 +47,7 @@
                     </div>
 
                     <div class="px-3 pb-3 flex flex-col items-start">
-                        <PublicSearchBar class="w-full" />
+                        <PublicSearchBar class="w-full mb-3" />
                         <PublicNavLinks class="flex flex-col" @link-clicked="isMenuOpen = false" />
                     </div>
                 </USlideover>

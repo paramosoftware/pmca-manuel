@@ -28,12 +28,29 @@
                 <UILink href="/manual" class="inline">Guia de Instalação</UILink>.
             </div>
 
+
+            <div class="mt-5">
+                Para acessar o {{ appName }} no seu computador, utilize as seguintes credenciais:
+                <div class="mt-2">
+                    <strong>Usuário:</strong> admin
+                </div>
+                <div class="mt-2">
+                    <strong>Senha:</strong> admin
+                </div>
+            </div>
+
             <div class="mt-5">
                 O código fonte do {{ appName }} está disponível no repositório do
                 <UILink :href="repository" class="inline">GitHub</UILink>. O código é
                 licenciado sob a licença MIT, o que significa que você pode
                 modificar e distribuir o código como desejar.
             </div>
+
+            <div class="mt-5">
+                Se você encontrar algum problema ou tiver alguma sugestão, por favor
+                abra uma <UILink :href="`${repository}/issues`" class="inline">issue</UILink>.
+            </div>
+
         </div>
     </PublicPage>
 </template>

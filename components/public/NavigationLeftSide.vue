@@ -119,16 +119,20 @@ watch(
 
 
 function setPanelMaxHeight() {
-    const fullCardElement = document.getElementById('full-card');
+    let fullCardElement = document.getElementById('full-card')!;
     const navbarElement = document.getElementById('navbar')!;
     const footerElement = document.getElementById('footer')!;
+
+    if (!fullCardElement) {
+        fullCardElement = document.getElementById('right')!;
+    }
     
     if (fullCardElement) {
         const fullCardHeight = fullCardElement.clientHeight;
         const navbarHeight = navbarElement.clientHeight;
         const footerHeight = footerElement.clientHeight;
         const windowHeight = window.innerHeight;
-        const minHeight = windowHeight - navbarHeight - footerHeight - 160;
+        const minHeight = windowHeight - navbarHeight - footerHeight - 100;
 
         if (fullCardHeight > minHeight) {
             panelMaxHeight.value = `${fullCardHeight}px`;
