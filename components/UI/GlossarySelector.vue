@@ -31,6 +31,8 @@
 </template>
 
 <script setup lang="ts">
+import ROUTES from '~/config/routes';
+
 const props = defineProps({
     public: {
         type: Boolean,
@@ -53,7 +55,11 @@ function setGlossary(glossaryId: number) {
     glossaryStore.setGlossary(glossaryId, props.public);
     isSelectorOpen.value = false;
     if (import.meta.client) {
-        window.location.reload();
+        if (props.public) {
+            window.location.reload();
+        } else {
+            window.location.href = ROUTES.restricted;
+        }
     }
 }
 </script>
