@@ -185,7 +185,11 @@ onUpdated(() => {
     }
 
     if (!isAlphabetical.value) {
-        conceptStore.resetFilters();
+        const route = useRoute()
+        const search = route.query?.search as string;
+        if (!search) {
+            conceptStore.resetFilters();
+        }
     }
 });
 

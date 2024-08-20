@@ -3,6 +3,7 @@ import { getIconCollections } from '@egoist/tailwindcss-icons';
 import packageJson from './package.json';
 
 export default defineNuxtConfig({
+    compatibilityDate: '2024-08-02',
     app: {
         head: {
             title: packageJson.displayName,

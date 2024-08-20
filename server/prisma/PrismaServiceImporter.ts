@@ -542,6 +542,11 @@ class PrismaServiceImporter {
                         translationAndLanguage.name &&
                         translationAndLanguage.languageId
                     ) {
+                        
+                        if (!buildItem[key] || buildItem[key] == undefined) {
+                            buildItem[key] = [];
+                        }
+
                         buildItem[key].push(translationAndLanguage);
                     }
                 }
@@ -554,6 +559,10 @@ class PrismaServiceImporter {
 
                 for (const reference of references) {
                     if (reference) {
+                        if (!buildItem[key] || buildItem[key] == undefined) {
+                            buildItem[key] = [];
+                        }
+
                         buildItem[key].push({
                             name: reference,
                             nameRich: '<p>' + reference + '</p>'
