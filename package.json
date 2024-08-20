@@ -1,7 +1,7 @@
 {
   "name": "pmca-manuel",
   "displayName": "Manuel",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Páramo Software <contato@paramosoftware.com.br>",
   "description": "Ferramenta de glossários",
   "main": "electron/main.js",
