@@ -163,7 +163,11 @@ if (!required.value) {
             value: ''
         });
     }
+} else if (required.value && !modelValue.value && list.value.length > 0) {
+    modelValue = computed(() => list.value[0].value);
 }
+
+
 const emit = defineEmits(['update:modelValue']);
 
 const onInput = (event: Event) => {
