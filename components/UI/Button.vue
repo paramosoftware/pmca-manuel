@@ -3,18 +3,16 @@
     :type="type"
     :square="square"
     :size="size"
-    :class="class"
+    :class="computedClass"
     class="shadow-sm"
   >
-    <span :class="{ 'font-semibold': bold }">
       {{ label }}
       <slot />
-    </span>
-  </UButton>
+    </UButton>
 </template>
 
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
   label: String,
   type: {
     type: String as () => 'button' | 'submit' | 'reset',
@@ -36,5 +34,9 @@ defineProps({
     type: Boolean,
     default: true
   }
+});
+
+const computedClass = computed(() => {
+  return (props.bold ? "font-semibold" : "") + " " + props.class;
 });
 </script>
