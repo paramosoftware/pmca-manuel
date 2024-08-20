@@ -6,7 +6,7 @@
             type="text"
             placeholder="Pesquisar"
             :disabled="filterDisabled"
-            size="lg"
+            size="md"
         />
     </div>
 </template>
