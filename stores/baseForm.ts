@@ -228,21 +228,22 @@ export const createFormStore = (name: string) => {
                 fieldsData.value[field] = [fieldsData.value[field]];
             }
 
-            if (
-                fieldsData.value[field].find((v: Item) => {
-                    if (!value || !v) {
-                        return false;
-                    }
-
-                    if (value.id) {
-                        return v.id === value.id;
-                    } else if (value.name) {
-                        return v.name === value.name;
-                    }
-
+            const foundItem = fieldsData.value[field].find((v: Item) => {
+                if (!value || !v) {
                     return false;
-                })
-            ) {
+                }
+
+                if (value.id) {
+                    return v.id === value.id;
+                } else if (value.name) {
+                    return v.name === value.name;
+                }
+
+                return false;
+            });
+
+            if (foundItem) {
+                Object.assign(foundItem, value);
                 return;
             }
 
@@ -361,12 +362,17 @@ export const createFormStore = (name: string) => {
             }
         }
 
-        function treatDataBeforeSave() {
+        function treatDataBeforeSave(removeId = true) {
             const data = getFieldsData();
             const treatedData = {} as Record<string, any>;
 
             for (const field of Object.keys(data)) {
                 const fieldConfig = getFieldConfig(field);
+
+                if (!removeId && field === 'id') {
+                    treatedData[field] = data[field];
+                    continue;
+                }
 
                 if (!fieldConfig || fieldConfig.disabled) {
                     continue;
@@ -411,7 +417,8 @@ export const createFormStore = (name: string) => {
             resetFieldData,
             addFieldData,
             removeFieldData,
-            unsetFieldData
+            unsetFieldData, 
+            treatDataBeforeSave
         };
     });
 };

@@ -103,13 +103,11 @@ if (!props.formStore) {
     throw new Error('Form store not defined');
 }
 
-// TODO: Allow edit items [DISCUSS]
-
 const defaultValue = getFormFieldConfig('defaultValue', [], props);
 const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
 const label = getFormFieldConfig('label', '', props);
-const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation [DISCUSS]
+const required = getFormFieldConfig('required', false, props);
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowMultiple = getFormFieldConfig('allowMultiple', false, props);
 let max = getFormFieldConfig('max', 100, props);
@@ -147,7 +145,7 @@ watch(
             auxiliaryFormStore.$onAction(({ name, after }) => {
                 after(() => {
                     if (name === 'save') {
-                        const item = auxiliaryFormStore.getFieldsData() as Item;
+                        const item = auxiliaryFormStore.treatDataBeforeSave(false) as Item;
                         props.formStore.addFieldData(props.id, item);
                         isModalOpen.value = false;
                     }
