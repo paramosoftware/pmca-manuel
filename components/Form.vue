@@ -158,16 +158,20 @@ onBeforeUnmount(() => {
 
 const urlList = ROUTES.list + labelSlug.value;
 const urlCreate = ROUTES.create + labelSlug.value;
-const isCreate = !props.formStore.getId();
-const isAuxiliary = props.formStore.getIsAuxiliary();
+const isCreate = computed(() => {
+    return !props.formStore.getId();
+});
+const isAuxiliary = computed(() => {
+    return props.formStore.getIsAuxiliary();
+});
 
 const isAdd = computed(() => {
-    return isAuxiliary && isCreate;
+    return isAuxiliary.value && isCreate.value;
 });
 
 const formTitle = computed(() => {
     return (
-        (isAdd.value ? 'Adicionar' : isCreate ? 'Criar' : 'Editar') +
+        (isAdd.value ? 'Adicionar' : isCreate.value ? 'Criar' : 'Editar') +
         ' ' +
         uncapitalize(label.value)
     );
@@ -180,7 +184,7 @@ const buttonLabel = computed(() => {
 async function submit() {
     const id = await props.formStore.save();
 
-    if (id && !isAuxiliary) {
+    if (id && !isAuxiliary.value) {
         confirmSave();
 
         if (import.meta.client) {
