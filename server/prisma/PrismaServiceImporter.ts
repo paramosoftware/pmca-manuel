@@ -801,26 +801,20 @@ class PrismaServiceImporter {
             return translationAndLanguage;
         }
 
-        let languageName = '';
+        const parts = translation.split('|');
+        const translationName = (parts[0] ?? '').trim();
+        const languageName = (parts[1] ?? '').trim();
 
-        if (translation.includes('(')) {
-            languageName = translation.split('(')[1].replace(')', '');
-        } else {
-            this.warnings.push(
-                `Tradução "${translation}" não possui idioma definido. A tradução será ignorada.`
-            );
+        const warningMessage = `Tradução "${translation}" não possui termo traduzido ou idioma definido. A tradução será ignorada. Utilize o formato "Termo traduzido|Idioma. Exemplo: Water|Inglês".`;
+
+        if (!translationName || !languageName) {
+            this.warnings.push(warningMessage);
             return translationAndLanguage;
         }
 
         if (!this.languages.get(languageName)) {
             const languageId = await this.upsertLanguage(languageName);
             this.languages.set(languageName, languageId);
-        }
-
-        const translationName = translation.split('(')[0].trim();
-
-        if (!translationName) {
-            return translationAndLanguage;
         }
 
         return {

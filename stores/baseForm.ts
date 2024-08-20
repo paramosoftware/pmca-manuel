@@ -233,10 +233,12 @@ export const createFormStore = (name: string) => {
                     return false;
                 }
 
-                if (value.id) {
-                    return v.id === value.id;
-                } else if (value.name) {
-                    return v.name === value.name;
+                const equalId = value.id && v.id === value.id;
+                const equalName = value.name && v.name === value.name;
+                const equalTempId = value._tempId && v._tempId === value._tempId;
+
+                if (equalId || equalName || equalTempId) {
+                    return true;
                 }
 
                 return false;
@@ -369,6 +371,11 @@ export const createFormStore = (name: string) => {
             for (const field of Object.keys(data)) {
                 const fieldConfig = getFieldConfig(field);
 
+                if (field === '_tempId') {
+                    treatedData[field] = data[field];
+                    continue;
+                }
+
                 if (!removeId && field === 'id') {
                     treatedData[field] = data[field];
                     continue;
@@ -412,6 +419,7 @@ export const createFormStore = (name: string) => {
             getFieldsData,
             getFieldData,
             setFieldData,
+            setFieldsData,
             getIsAuxiliary,
             setIsAuxiliary,
             resetFieldData,

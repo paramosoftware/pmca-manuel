@@ -7,7 +7,7 @@
                 <img
                     src="/icons/icon-horizontal.png"
                     alt="Logo"
-                    class="h-8"
+                    class="h-8 cursor-pointer"
                     @click="navigateTo('/admin')"
                 />
                 <UIGlossarySelector class="mt-3" :public="false" />

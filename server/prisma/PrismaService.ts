@@ -1946,7 +1946,7 @@ class PrismaService {
 
             await PrismaService._clientWriter.$transaction(async (prismaTx) => {
                 PrismaService.transactionId = uuidv4();
-                logger.info(
+                logger.debug(
                     `Transaction opened: ${PrismaService.transactionId}`
                 );
                 PrismaService.transactionOpen = true;
@@ -1972,7 +1972,7 @@ class PrismaService {
     }
 
     reinitializePrisma() {
-        logger.info(`Transaction closed: ${PrismaService.transactionId}`);
+        logger.debug(`Transaction closed: ${PrismaService.transactionId}`);
         PrismaService.transactionId = '';
         PrismaService.transactionOpen = false;
         PrismaService._clientTransaction = null;
