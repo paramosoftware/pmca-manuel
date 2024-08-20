@@ -82,7 +82,6 @@
                     :form-store="auxiliaryFormStore"
                     :id="relatedResource.name + '-form'"
                 />
-                 {{ itemInEdit }}
             </UModal>
         </div>
     </div>
