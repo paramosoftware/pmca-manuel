@@ -92,7 +92,17 @@ const defaultOptions = getFormFieldConfig('defaultOptions', '', props);
 const options = getFormFieldConfig('options', [], props);
 let modelValue = getFormFieldConfig('modelValue', defaultValue.value, props);
 if (props.formStore) {
-    modelValue = computed(() => props.formStore?.getFieldData(props.id));
+    modelValue = computed(
+        () => {
+            const value = props.formStore?.getFieldData(props.id);
+            if (value) {
+                return value;
+            } else if (required.value && list.value.length > 0 && !hidden.value && !disabled.value) {
+                props.formStore?.setFieldData(props.id, list.value[0].value);
+                return list.value[0].value;
+            }
+        }
+    );
 }
 
 const loading = ref(false);
@@ -163,10 +173,7 @@ if (!required.value) {
             value: ''
         });
     }
-} else if (required.value && !modelValue.value && list.value.length > 0) {
-    modelValue = computed(() => list.value[0].value);
 }
-
 
 const emit = defineEmits(['update:modelValue']);
 
