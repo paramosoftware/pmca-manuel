@@ -19,7 +19,7 @@ class PrismaServiceConverter {
     private onlyPublished: boolean = false;
     private removePrivateFields: boolean = false;
     private privateFieldsPerModel: { [key: string]: string[] } = {};
-    private fieldsToIgnore = ['_action_', 'label', 'labelPlural', 'position'];
+    private fieldsToIgnore = ['_action_', 'label', 'labelPlural', 'position', '_tempId'];
 
     constructor(
         model: string,

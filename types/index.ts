@@ -133,6 +133,7 @@ declare global {
         nameSlug?: string;
         label?: string;
         labelSlug?: string;
+        _tempId?: ID;
     };
 
     export type HierarchicalItem = Item & {

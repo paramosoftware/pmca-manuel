@@ -764,7 +764,7 @@ class PrismaServiceExporter {
                     (translation: Translation) =>
                         translation.name +
                         (translation.language
-                            ? ` (${translation.language.name})`
+                            ? `|${translation.language.name}`
                             : '')
                 ) ?? [];
         }

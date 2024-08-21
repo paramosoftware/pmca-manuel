@@ -34,25 +34,8 @@ const conceptStore = useConceptStore();
 await conceptStore.load('', props.userSelection);
 await conceptStore.fetchConceptsTree();
 
-const { search } = storeToRefs(conceptStore);
-
 const userSelection = computed(() => {
     return props.userSelection;
-});
-
-const route = useRoute()
-const router = useRouter()
-
-onMounted(async () => {
-   if (route.query.search) {
-       search.value = route.query.search as string;
-   }
-
-    watch(search, () => {
-         router.push({ query: {}});
-    },
-    { once: true }
-    );
 });
 
 watch(userSelection, async () => {

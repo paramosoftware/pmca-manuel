@@ -24,10 +24,11 @@ definePageMeta({
 });
 
 const formStore = useFormStore();
+const route = useRoute();
 
 await formStore.load(
-    useRoute().params.path.toString(),
-    useRoute().params.id.toString()
+    route.params.path.toString(),
+    route.params.id.toString()
 );
 
 const pending = computed(() => formStore.pending);

@@ -51,7 +51,7 @@
                 size="md"
                 color="app-theme"
                 variant="solid"
-                @click="isModalOpen = true"
+                @click="openModal"
                 :disabled="!canAddMore || disabled"
                 class="mt-1"
             >
@@ -85,6 +85,7 @@
             </UModal>
         </div>
     </div>
+   
 </template>
 
 <script setup lang="ts">
@@ -103,13 +104,11 @@ if (!props.formStore) {
     throw new Error('Form store not defined');
 }
 
-// TODO: Allow edit items [DISCUSS]
-
 const defaultValue = getFormFieldConfig('defaultValue', [], props);
 const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
 const label = getFormFieldConfig('label', '', props);
-const required = getFormFieldConfig('required', false, props); // TODO: handle required with form validation [DISCUSS]
+const required = getFormFieldConfig('required', false, props);
 const relatedResource = getFormFieldConfig('relatedResource', null, props);
 const allowMultiple = getFormFieldConfig('allowMultiple', false, props);
 let max = getFormFieldConfig('max', 100, props);
@@ -126,35 +125,48 @@ if (!relatedResource || !relatedResource.value || !relatedResource.value.name) {
     );
 }
 
+
+const emit = defineEmits(['update:modelValue']);
+const isModalOpen = ref(false);
+const itemInEdit = ref<Item | null>(null);
 const useAuxiliaryForm = createFormStore(relatedResource.value.name);
 const auxiliaryFormStore = useAuxiliaryForm();
 auxiliaryFormStore.setIsAuxiliary(true, props.formStore.model);
 await auxiliaryFormStore.load(relatedResource.value.name);
 
-const emit = defineEmits(['update:modelValue']);
-const isModalOpen = ref(false);
-const itemId = ref();
-
 watch(
     () => isModalOpen.value,
     async (value) => {
-        if (value) {
-            auxiliaryFormStore.setIsAuxiliary(true, props.formStore.model);
-            await auxiliaryFormStore.load(
-                relatedResource.value.name,
-                itemId.value
-            );
+        if (value) { 
+            const isTempId = itemInEdit.value && itemInEdit.value._tempId;
+            await auxiliaryFormStore.load(relatedResource.value.name);
+
+            if (itemInEdit.value && itemInEdit.value.id && !isTempId) {
+                await auxiliaryFormStore.load(
+                    relatedResource.value.name,
+                    itemInEdit.value.id
+                );
+            } else if (itemInEdit.value) {
+                auxiliaryFormStore.setFieldsData(itemInEdit.value);
+            }
+
             auxiliaryFormStore.$onAction(({ name, after }) => {
                 after(() => {
                     if (name === 'save') {
-                        const item = auxiliaryFormStore.getFieldsData() as Item;
+                        const item = auxiliaryFormStore.treatDataBeforeSave(false) as Item;
+                        if (!item.id) {
+                            item._tempId = item._tempId ?? `temp_${Date.now()}`;
+                        }
                         props.formStore.addFieldData(props.id, item);
-                        isModalOpen.value = false;
+                        closeModal();
                     }
                 });
             });
         }
-        itemId.value = null;
+
+        if (!value) {
+            itemInEdit.value = null;
+        }
     }
 );
 
@@ -179,7 +191,18 @@ function removeItem(item: Item) {
 }
 
 async function editItem(item: Item) {
-    itemId.value = item.id;
+    itemInEdit.value = item;
     isModalOpen.value = true;
 }
+
+function openModal() {
+    isModalOpen.value = true;
+    itemInEdit.value = null;
+}
+
+function closeModal() {
+    isModalOpen.value = false;
+    itemInEdit.value = null;
+}
+
 </script>
