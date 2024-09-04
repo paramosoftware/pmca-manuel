@@ -177,6 +177,17 @@ async function main() {
             }
         });
 
+        await prisma.resourceField.update({
+            where: { id: relatedField.id },
+            data: {
+                oppositeField: {
+                    connect: {
+                        id: field.id
+                    }
+                }
+            }
+        });
+
         fieldRelationsCount++;
     }
 
