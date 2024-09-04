@@ -51,7 +51,8 @@ const props = defineProps({
 const themeColor = ref(useRuntimeConfig().public.themeColor);
 
 const concepts = computed(() => {
-    return props.concepts.concat(props.oppositeSide);
+    let concat = props.concepts.concat(props.oppositeSide);
+    return concat.filter((v, i, a) => a.findIndex((t) => t.id === v.id) === i);
 });
 
 const options = ref({
