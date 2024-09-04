@@ -18,7 +18,7 @@
 
         <span class="splide__arrows w-36 h-36">
             <button class="splide__arrow splide__arrow--prev">
-                <UIIcon name="ph:caret-right" />
+                <UIIcon name="ph:caret-left" />
             </button>
             <button class="splide__arrow splide__arrow--next">
                 <UIIcon name="ph:caret-right" />
