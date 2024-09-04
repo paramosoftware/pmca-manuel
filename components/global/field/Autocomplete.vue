@@ -256,6 +256,14 @@ const selectedItems = computed(() => {
         }
     }
 
+    return selectedItems.filter(
+        (item, index, self) =>
+            index ===
+            self.findIndex(
+                (t) => t.id === item.id && t.name === item.name
+            )
+    );
+
     return selectedItems;
 });
 
