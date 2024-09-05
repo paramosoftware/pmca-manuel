@@ -60,7 +60,7 @@
                         @click="selectItem(item)"
                         class="p-2 cursor-pointer hover:bg-gray-100 border-b border-gray-200 text-app-secondary-500 hover:text-app-theme-500"
                     >
-                        {{ item.label ?? item.name }}
+                        {{ replaceHtmlEntities(item.label ?? item.name) }}
                     </li>
 
                     <li
@@ -174,6 +174,10 @@ const props = defineProps({
         default: true
     }
 });
+
+const glossaryStore = useGlossaryStore();
+await glossaryStore.fetch(false);
+const { id: glossaryId } = storeToRefs(glossaryStore);
 
 const defaultValue = getFormFieldConfig('defaultValue', [], props);
 const disabled = getFormFieldConfig('disabled', false, props);
@@ -368,6 +372,12 @@ async function searchItems() {
             id: {
                 not: props.formStore?.getId()
             }
+        });
+    }
+
+    if (relatedResource.value.isGlossaryDependent) {
+        query.where.AND.push({
+            glossaryId: glossaryId.value
         });
     }
 

@@ -341,8 +341,13 @@ function buildResourceConfig(resource: Prisma.DMMF.Model) {
     const docConfig = getDocConfig(resource.documentation);
 
     const fieldsMap = new Map<string, Prisma.DMMF.Field>();
+    let glossaryDependent = false;
 
     for (const field of resource.fields) {
+        if (['glossaryId', 'glossary'].includes(field.name)) {
+            glossaryDependent = true;
+        }
+
         if (field.relationName) {
             const relation = fieldRelations.get(field.relationName);
             if (relation) {
@@ -391,7 +396,8 @@ function buildResourceConfig(resource: Prisma.DMMF.Model) {
         fields: resource.fields,
         canBeExported: docConfig.canBeExported == 'true',
         canBeImported: docConfig.canBeImported == 'true',
-        published: docConfig.published == 'true' || docConfig.canBeExported
+        published: docConfig.published == 'true' || docConfig.canBeExported,
+        isGlossaryDependent: glossaryDependent
     } as Prisma.ResourceCreateInput & { fields: any[] };
 
     return resourceConfig;

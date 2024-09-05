@@ -63,6 +63,7 @@ model Resource {
   isPublic       Boolean? @default(false)
   canBeExported  Boolean? @default(false)
   canBeImported  Boolean? @default(false)
+  isGlossaryDependent Boolean? @default(false)
 
   parent   Resource?  @relation("ResourceToChildren", fields: [parentId], references: [id])
   parentId Int?
