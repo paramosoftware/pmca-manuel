@@ -97,7 +97,7 @@ if (props.formStore) {
             const value = props.formStore?.getFieldData(props.id);
             if (value) {
                 return value;
-            } else if (required.value && list.value.length > 0 && !hidden.value && !disabled.value) {
+            } else if (required.value && list.value.length > 0 && !disabled.value) {
                 props.formStore?.setFieldData(props.id, list.value[0].value);
                 return list.value[0].value;
             }
