@@ -43,7 +43,7 @@ if (!concepts.value || concepts.value.length === 0) {
 
 const nodeMapSize = new Map();
 const addedNodes = new Set();
-const nodes = [] as {
+const tempNodes = [] as {
     id: number;
     label: string;
     slug: string;
@@ -60,17 +60,19 @@ const nodeSize = 8;
 const nodeGap = 2;
 
 concepts.value.forEach((concept) => {
-    nodes.push({
+    tempNodes.push({
         id: concept.id,
         label: concept.name,
         slug: concept.nameSlug,
         value: nodeSize
     });
+
     addedNodes.add(concept.id);
 
     concept.concepts?.forEach((child) => {
         if (!addedNodes.has(child.id)) {
-            nodes.push({
+            addedNodes.add(child.id);
+            tempNodes.push({
                 id: child.id,
                 label: child.name,
                 slug: child.nameSlug,
@@ -82,21 +84,25 @@ concepts.value.forEach((concept) => {
             concept.id,
             (nodeMapSize.get(concept.id) || nodeSize) + nodeGap
         );
+
         nodeMapSize.set(
             child.id,
             (nodeMapSize.get(child.id) || nodeSize) + nodeGap
         );
+
         links.push({
             source: concept.id,
             target: child.id,
             value: 1,
-            distance: 75 + Math.random() * 50
+            distance: 300 + Math.random() * 50
         });
+
     });
 
     concept.relatedConcepts?.forEach((related) => {
         if (!addedNodes.has(related.id)) {
-            nodes.push({
+            addedNodes.add(related.id);
+            tempNodes.push({
                 id: related.id,
                 label: related.name,
                 slug: related.nameSlug,
@@ -108,16 +114,39 @@ concepts.value.forEach((concept) => {
             concept.id,
             (nodeMapSize.get(concept.id) || nodeSize) + nodeGap
         );
+
         nodeMapSize.set(
             related.id,
             (nodeMapSize.get(related.id) || nodeSize) + nodeGap
         );
+
+        links.push({
+            source: concept.id,
+            target: related.id,
+            value: 1,
+            distance: 75 + Math.random() * 50
+        });
     });
 });
 
-nodes.forEach((node) => {
-    node.value = nodeMapSize.get(node.id) || nodeSize;
+const repeatedNodes = new Set();
+const nodes = [] as {
+    id: number;
+    label: string;
+    slug: string;
+    value: number;
+}[];
+
+tempNodes.forEach((node) => {
+    if (!repeatedNodes.has(node.id)) {
+        repeatedNodes.add(node.id);
+        node.value = nodeMapSize.get(node.id) || nodeSize;
+        nodes.push(node);
+    }
 });
+
+// remove all from tempNodes
+tempNodes.splice(0, tempNodes.length);
 
 const data = {
     nodes,
@@ -161,22 +190,27 @@ onMounted(() => {
                 .forceLink(links)
                 // @ts-ignore
                 .id((d) => d.id)
-                .distance((d) => d.distance)
+                .distance((d) => d.distance * 1.2)
         )
-        .force('charge', d3.forceManyBody().strength(-60))
-        .force('center', d3.forceCenter())
-        .force('y', d3.forceY().strength(0.03));
+        .force('charge', d3.forceManyBody().strength(-90))
+        .force('center', d3.forceCenter(0, 0))
+        .force('y', d3.forceY().strength(0.03))
+        .force(
+            'collide',
+            d3.forceCollide().radius((d) => Math.sqrt(d.value) * 3 + 1)
+        );
 
     const svg = d3.select('#network-svg');
 
     const link = svg
         .append('g')
         .attr('stroke', '#999')
-        .attr('stroke-opacity', 0.6)
+        .attr('stroke-opacity', 0.2)
         .selectAll()
         .data(links)
         .join('line')
-        .attr('stroke-width', 1.5);
+        .attr('stroke-width', 1.5)
+        .attr('id', (d) => 'link-' + d.id);
 
     d3.line().curve(d3.curveBasis);
 
@@ -198,7 +232,7 @@ onMounted(() => {
         .append('text')
         .style('text-anchor', 'middle')
         .attr('fill', primaryColor)
-        .text((d) => d.label)
+        .text((d) => replaceHtmlEntities(d.label))
         .attr('font-size', 10)
         .attr('dy', '.35em')
         .attr('id', (d) => 'label-' + d.id);
@@ -209,8 +243,34 @@ onMounted(() => {
         d3.select(this).attr('fill', themeColor);
         d3.select('#label-' + d.id)
             .attr('font-weight', 'bold')
-            .attr('fill', themeColor);
+            .attr('fill',  primaryColor);
+
+        d3.selectAll('line').attr('stroke', function (line) {
+            if (line.source.id === d.id || line.target.id === d.id) {
+                return themeColor;
+            } else {
+                return '#999';
+            }
+        });
+
+        d3.selectAll('line').attr('stroke-width', function (line) {
+            if (line.source.id === d.id || line.target.id === d.id) {
+                return 2;
+            } else {
+                return 1.5;
+            }
+        });
+
+        d3.selectAll('line').attr('stroke-opacity', function (line) {
+            if (line.source.id === d.id || line.target.id === d.id) {
+                return 0.5;
+            } else {
+                return 0.2;
+            }
+        });
+
     });
+
     node.on('mouseout', function (event, d) {
         d3.select(this).attr('fill', secondaryColor);
         d3.select('#label-' + d.id)
