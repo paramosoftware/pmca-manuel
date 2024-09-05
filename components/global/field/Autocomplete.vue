@@ -406,13 +406,20 @@ async function createItem(value: string) {
         return;
     }
 
+    const itemToCreate = {
+        name: value.trim()
+    };
+
+    if (relatedResource.value.isGlossaryDependent) {
+        itemToCreate['glossaryId'] = glossaryId.value;
+    }
+
+
     const { data, pending, error } = (await useFetchWithBaseUrl(
         'api/' + relatedResource.value.name,
         {
             method: 'POST',
-            body: {
-                name: value.trim()
-            }
+            body: itemToCreate
         }
     )) as { data: Ref<Item>; pending: Ref<boolean>; error: Ref<Error> };
 

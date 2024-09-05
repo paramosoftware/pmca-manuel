@@ -6,7 +6,7 @@
                     v-for="reference in references"
                     :key="reference.id"
                     class="flex flex-row mb-5"
-                    v-html="reference.nameRich"
+                    v-html="reference.nameRich ?? reference.name"
                 ></div>
                 <div v-if="references.length === 0" class="text-center text-gray-500 mt-10">
                     Nenhuma fonte encontrada.
@@ -21,11 +21,18 @@ definePageMeta({
     layout: 'public'
 });
 
+const glossaryStore = useGlossaryStore();
+await glossaryStore.fetch(true);
+const { id: glossaryId } = storeToRefs(glossaryStore);
+
 const { data, pending, error } = (await useFetchWithBaseUrl(
     `/api/public/reference`,
     {
         params: {
-            pageSize: -1
+            pageSize: -1,
+            where: JSON.stringify({
+                glossaryId: glossaryId.value
+            })
         }
     }
 )) as {
