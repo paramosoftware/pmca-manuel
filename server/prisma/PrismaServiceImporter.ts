@@ -806,7 +806,7 @@ class PrismaServiceImporter {
         const translationName = (parts[0] ?? '').trim();
         const languageName = (parts[1] ?? '').trim();
 
-        const warningMessage = `Tradução "${translation}" não possui termo traduzido ou idioma definido. A tradução será ignorada. Utilize o formato "Termo traduzido|Idioma. Exemplo: Water|Inglês".`;
+        const warningMessage = `Tradução "${translation}" não possui termo traduzido ou idioma definido. A tradução será ignorada. Utilize o formato Termo traduzido${this.translationSeparator}Idioma. Exemplo: Water${this.translationSeparator}Inglês.`;
 
         if (!translationName || !languageName) {
             this.warnings.push(warningMessage);
