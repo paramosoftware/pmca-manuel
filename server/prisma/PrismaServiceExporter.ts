@@ -35,6 +35,8 @@ class PrismaServiceExporter {
     private mediaFiles = new Map<string, string>(); // Keep track of media files to add to zip with old file name and new file name
     private labelMap = new Map<string, string>();
     private camelCaseMap = new Map<string, string>();
+    private separator = '|';
+    private translationSeparator = '~~';
 
     /**
      * Prisma Service Exporter
@@ -348,7 +350,7 @@ class PrismaServiceExporter {
 
                 for (const key of keys) {
                     if (obj[key] instanceof Array) {
-                        obj[key] = obj[key].join(';');
+                        obj[key] = obj[key].join(this.separator);
                     }
                 }
 
@@ -398,7 +400,7 @@ class PrismaServiceExporter {
 
                 for (const key of keys) {
                     if (obj[key] instanceof Array) {
-                        obj[key] = obj[key].join(';');
+                        obj[key] = obj[key].join(this.separator);
                     }
                 }
 
@@ -764,7 +766,7 @@ class PrismaServiceExporter {
                     (translation: Translation) =>
                         translation.name +
                         (translation.language
-                            ? `|${translation.language.name}`
+                            ? this.translationSeparator + translation.language.name
                             : '')
                 ) ?? [];
         }

@@ -46,6 +46,8 @@ class PrismaServiceImporter {
     private warnings = [] as string[];
     private mediaToDelete = [] as any[];
     private idKeys = ['id', 'name'];
+    private separator = '|';
+    private translationSeparator = '~~';
 
     /**
      * Prisma Importer Service
@@ -531,7 +533,7 @@ class PrismaServiceImporter {
                 let translations = [] as string[];
 
                 if (!Array.isArray(value) && typeof value === 'string') {
-                    translations = value.split(';');
+                    translations = value.split(this.separator);
                 }
 
                 for (const translation of translations) {
@@ -542,7 +544,6 @@ class PrismaServiceImporter {
                         translationAndLanguage.name &&
                         translationAndLanguage.languageId
                     ) {
-                        
                         if (!buildItem[key] || buildItem[key] == undefined) {
                             buildItem[key] = [];
                         }
@@ -554,7 +555,7 @@ class PrismaServiceImporter {
                 let references = [] as string[];
 
                 if (!Array.isArray(value) && typeof value === 'string') {
-                    references = value.split(';');
+                    references = value.split(this.separator);
                 }
 
                 for (const reference of references) {
@@ -592,7 +593,7 @@ class PrismaServiceImporter {
                 let list = [] as string[];
 
                 if (!Array.isArray(value) && typeof value === 'string') {
-                    list = value.split(';');
+                    list = value.split(this.separator);
                 }
 
                 buildItem[key] = list.map((item) => {
@@ -801,7 +802,7 @@ class PrismaServiceImporter {
             return translationAndLanguage;
         }
 
-        const parts = translation.split('|');
+        const parts = translation.split(this.translationSeparator);
         const translationName = (parts[0] ?? '').trim();
         const languageName = (parts[1] ?? '').trim();
 

@@ -60,7 +60,7 @@
                         @click="selectItem(item)"
                         class="p-2 cursor-pointer hover:bg-gray-100 border-b border-gray-200 text-app-secondary-500 hover:text-app-theme-500"
                     >
-                        {{ item.label ?? item.name }}
+                        {{ replaceHtmlEntities(item.label ?? item.name) }}
                     </li>
 
                     <li
@@ -175,6 +175,10 @@ const props = defineProps({
     }
 });
 
+const glossaryStore = useGlossaryStore();
+await glossaryStore.fetch(false);
+const { id: glossaryId } = storeToRefs(glossaryStore);
+
 const defaultValue = getFormFieldConfig('defaultValue', [], props);
 const disabled = getFormFieldConfig('disabled', false, props);
 const hidden = getFormFieldConfig('hidden', false, props);
@@ -255,6 +259,14 @@ const selectedItems = computed(() => {
             selectedItems.push(oppositeFieldData.value);
         }
     }
+
+    return selectedItems.filter(
+        (item, index, self) =>
+            index ===
+            self.findIndex(
+                (t) => t.id === item.id && t.name === item.name
+            )
+    );
 
     return selectedItems;
 });
@@ -363,6 +375,12 @@ async function searchItems() {
         });
     }
 
+    if (relatedResource.value.isGlossaryDependent) {
+        query.where.AND.push({
+            glossaryId: glossaryId.value
+        });
+    }
+
     timeoutId = setTimeout(async () => {
         const { data, pending, error } = (await useFetchWithBaseUrl(
             'api/' +
@@ -388,13 +406,20 @@ async function createItem(value: string) {
         return;
     }
 
+    const itemToCreate = {
+        name: value.trim()
+    };
+
+    if (relatedResource.value.isGlossaryDependent) {
+        itemToCreate['glossaryId'] = glossaryId.value;
+    }
+
+
     const { data, pending, error } = (await useFetchWithBaseUrl(
         'api/' + relatedResource.value.name,
         {
             method: 'POST',
-            body: {
-                name: value.trim()
-            }
+            body: itemToCreate
         }
     )) as { data: Ref<Item>; pending: Ref<boolean>; error: Ref<Error> };
 

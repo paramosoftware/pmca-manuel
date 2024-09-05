@@ -77,7 +77,7 @@ export const useListStore = defineStore('list', () => {
             );
         }
 
-        if (resourceStore.isConcept) {
+        if (resourceStore.isGlossaryDependent) {
             q.where.AND.push({
                 glossaryId: glossaryStore.id
             });

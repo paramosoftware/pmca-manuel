@@ -18,7 +18,7 @@
 
         <span class="splide__arrows w-36 h-36">
             <button class="splide__arrow splide__arrow--prev">
-                <UIIcon name="ph:caret-right" />
+                <UIIcon name="ph:caret-left" />
             </button>
             <button class="splide__arrow splide__arrow--next">
                 <UIIcon name="ph:caret-right" />
@@ -51,7 +51,8 @@ const props = defineProps({
 const themeColor = ref(useRuntimeConfig().public.themeColor);
 
 const concepts = computed(() => {
-    return props.concepts.concat(props.oppositeSide);
+    let concat = props.concepts.concat(props.oppositeSide);
+    return concat.filter((v, i, a) => a.findIndex((t) => t.id === v.id) === i);
 });
 
 const options = ref({

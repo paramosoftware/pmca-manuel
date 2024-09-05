@@ -49,7 +49,7 @@
                 >
                     {{ position }}
                 </span>
-                {{ node.label }}
+                {{ replaceHtmlEntities(node.label) }}
             </UITreeLink>
         </div>
     </div>

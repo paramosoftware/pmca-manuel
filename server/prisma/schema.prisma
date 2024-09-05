@@ -63,6 +63,7 @@ model Resource {
   isPublic       Boolean? @default(false)
   canBeExported  Boolean? @default(false)
   canBeImported  Boolean? @default(false)
+  isGlossaryDependent Boolean? @default(false)
 
   parent   Resource?  @relation("ResourceToChildren", fields: [parentId], references: [id])
   parentId Int?
@@ -323,6 +324,9 @@ model Reference {
   id   Int    @id @default(autoincrement())
   name String @unique /// uiField:rich|isRich:true|includeExport:true
 
+  glossaryId Int? /// required:true|hidden:true
+  glossary   Glossary? @relation(fields: [glossaryId], references: [id]) /// required:true|hidden:true
+
   nameRich       String? /// hidden:true|includeExport:true
   nameNormalized String?
   
@@ -364,6 +368,7 @@ model Glossary {
   language   Language? @relation(fields: [languageId], references: [id]) /// required:true
 
   concepts Concept[] /// disabled:true|hidden:true
+  references Reference[] /// disabled:true|hidden:true
 
   nameNormalized        String?
   descriptionNormalized String?

@@ -13,6 +13,7 @@ export const useResourceStore = defineStore('resource', () => {
     const isHierarchical = ref(false)
     const isConcept = computed(() => model.value === 'Concept');
     const isGlossary = computed(() => model.value === 'Glossary');
+    const isGlossaryDependent = ref(false);
     const query = computed(() => {
         return {
             include: {
@@ -53,6 +54,7 @@ export const useResourceStore = defineStore('resource', () => {
             isAppModel.value = data.value.isAppModel || false;
             isPublic.value = data.value.isPublic || false;
             isHierarchical.value = data.value.isHierarchical || false;
+            isGlossaryDependent.value = data.value.isGlossaryDependent || false;
         }
 
         pending.value = pending.value;
@@ -72,6 +74,7 @@ export const useResourceStore = defineStore('resource', () => {
         isHierarchical,
         isConcept,
         isGlossary,
+        isGlossaryDependent,
         pending,
         error,
         fetch
