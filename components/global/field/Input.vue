@@ -7,7 +7,7 @@
         <UInput
             :id="id"
             :type="type"
-            :model-value="modelValue"
+            :model-value="replaceHtmlEntities(modelValue)"
             :required="required"
             :disabled="disabled"
             :placeholder="placeholder"

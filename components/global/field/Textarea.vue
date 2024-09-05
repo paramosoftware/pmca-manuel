@@ -11,7 +11,7 @@
             :disabled="disabled"
             :placeholder="placeholder"
             :rows="rows"
-            :model-value="modelValue"
+            :model-value="replaceHtmlEntities(modelValue)"
             @input="onInput"
             resize
             color="primary"
