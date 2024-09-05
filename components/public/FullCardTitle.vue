@@ -1,7 +1,7 @@
 <template>
     <div class="sm:flex sm:items-center sm:justify-between">
         <UIPageTitle class="flex items-center">
-            {{ name }}
+            {{ replaceHtmlEntities(name) }}
             <client-only>
                 <UIIcon
                     class="text-app-theme-500 cursor-pointer ml-2 w-7"

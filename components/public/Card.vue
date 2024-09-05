@@ -20,7 +20,7 @@
                             :class="titleSize"
                             :title="concept.name"
                         >
-                            {{ concept.name }}
+                            {{ replaceHtmlEntities(concept.name) }}
                         </h3>
                         <div class="flex flex-row items-center">
                             <client-only>
