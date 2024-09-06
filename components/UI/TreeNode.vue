@@ -7,17 +7,17 @@
             <UIIcon
                 v-if="node.expanded && node.children.length > 0"
                 name="ph:caret-down"
-                class="h-5 w-5"
+                class="h-5 w-5 align-middle items-center"
             />
             <UIIcon
                 v-else-if="node.children.length > 0"
                 name="ph:caret-right"
-                class="h-5 w-5"
+                class="h-5 w-5 align-middle items-center"
             />
             <UIIcon
                 v-else-if="!showPosition"
                 name="ph:dot-outline"
-                class="h-5 w-5"
+                class="h-5 w-5 align-middle items-center"
             />
             <UITreeLink
                 :href="'/termos/' + node.slug"
