@@ -68,14 +68,14 @@
                 versão
                 web foi desenvolvida com os frameworks Nuxt, Prisma e Express.js, enquanto a versão desktop foi criada
                 com o
-                framework Electron. Com um código-fonte único, disponível no 
+                framework Electron. Com um código-fonte único, disponível no
                 <UILink :href="repository" class="inline">
                     GitHub</UILink>, o Manuel pode receber
                 contribuições
                 de qualquer pessoa, pode ser usado em qualquer servidor Linux com Node.js instalado ou em desktop com
-                Windows, Linux ou MacOS. Para o seu funcionamento, o software MANUEL requer:
-                Memória RAM: 4GB
-                Espaço em disco: 15GB.
+                Windows, Linux ou MacOS. Para o seu funcionamento, o software MANUEL requer: 4GB de memória RAM e 15GB
+                de espaço em disco (dependendo das imagens associadas aos termos);
+
             </p>
 
             <h2 class="mt-5 text-xl font-bold">Distribuição</h2>
@@ -354,7 +354,7 @@ const activities = ref(
             ]
         }
     }
-) 
+)
 
 useSeoMeta({
     title:
@@ -369,7 +369,7 @@ useSeoMeta({
 
 
 <style scoped>
-    p {
-        margin-bottom: 0.5rem;
-    }
+p {
+    margin-bottom: 0.5rem;
+}
 </style>
