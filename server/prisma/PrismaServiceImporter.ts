@@ -521,6 +521,13 @@ class PrismaServiceImporter {
     ) {
         const modelFields = this.prismaService.fieldsMap;
 
+        if (!this.glossaryId) {
+            await this.setGlossaryId();
+            this.warnings.push(
+                `Glossário não definido. Um novo glossário foi criado para a importação.`
+            );
+        }
+
         if (!value || !key || key === 'id') {
             return buildItem;
         }
@@ -566,7 +573,8 @@ class PrismaServiceImporter {
 
                         buildItem[key].push({
                             name: reference,
-                            nameRich: '<p>' + reference + '</p>'
+                            nameRich: '<p>' + reference + '</p>',
+                            glossaryId: this.glossaryId
                         });
                     }
                 }
@@ -575,7 +583,7 @@ class PrismaServiceImporter {
             } else if (key === 'relatedConcepts') {
                 if (typeof value === 'string') {
                     const relatedConcepts = value
-                        .split(';')
+                        .split(this.separator)
                         .filter((relatedConcept) => relatedConcept != '');
                     this.related.set(itemId, relatedConcepts);
                 } else if (Array.isArray(value)) {
@@ -671,7 +679,7 @@ class PrismaServiceImporter {
                 'Processando relacionamentos'
             );
 
-            logger.info('Processing relations');
+            logger.info('Processando relacionamentos');
 
             for (const [oldId, relatedConcepts] of related) {
                 // delete relations in other direction in related map to avoid duplicate relations

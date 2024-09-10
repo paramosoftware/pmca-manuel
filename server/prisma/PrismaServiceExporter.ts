@@ -734,7 +734,9 @@ class PrismaServiceExporter {
                 continue;
             }
 
-            if (typeof item[key] === 'string' || typeof item[key] === 'number') {
+            if (key === 'concepts' || key === 'relatedConcepts') {
+                buildItem[key] = item[key].map((value: any) => value.nameSlug);
+            } else if (typeof item[key] === 'string' || typeof item[key] === 'number') {
                 buildItem[key] = item[key];
             } else if (typeof item[key] === 'boolean') {
                 buildItem[key] = item[key] ? 'Sim' : 'Não';
