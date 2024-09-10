@@ -521,6 +521,13 @@ class PrismaServiceImporter {
     ) {
         const modelFields = this.prismaService.fieldsMap;
 
+        if (!this.glossaryId) {
+            await this.setGlossaryId();
+            this.warnings.push(
+                `Glossário não definido. Um novo glossário foi criado para a importação.`
+            );
+        }
+
         if (!value || !key || key === 'id') {
             return buildItem;
         }
@@ -566,7 +573,8 @@ class PrismaServiceImporter {
 
                         buildItem[key].push({
                             name: reference,
-                            nameRich: '<p>' + reference + '</p>'
+                            nameRich: '<p>' + reference + '</p>',
+                            glossaryId: this.glossaryId
                         });
                     }
                 }
