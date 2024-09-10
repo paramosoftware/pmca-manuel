@@ -583,7 +583,7 @@ class PrismaServiceImporter {
             } else if (key === 'relatedConcepts') {
                 if (typeof value === 'string') {
                     const relatedConcepts = value
-                        .split(';')
+                        .split(this.separator)
                         .filter((relatedConcept) => relatedConcept != '');
                     this.related.set(itemId, relatedConcepts);
                 } else if (Array.isArray(value)) {
@@ -679,7 +679,7 @@ class PrismaServiceImporter {
                 'Processando relacionamentos'
             );
 
-            logger.info('Processing relations');
+            logger.info('Processando relacionamentos');
 
             for (const [oldId, relatedConcepts] of related) {
                 // delete relations in other direction in related map to avoid duplicate relations
