@@ -153,7 +153,14 @@
                     <li v-for="item in activity.items" :key="item.name">
                         <span class="italic">{{ item.name }}</span>
                         <span v-if="item.date">, {{ item.date }}</span>
-                        <span v-if="item.location">, {{ item.location }}</span>
+                        <span v-if="item.location">, 
+                            <UILink v-if="item.isLink" :href="item.location" class="inline">
+                                {{ item.location }}
+                            </UILink>
+                            <span v-else>
+                                {{ item.location }}
+                            </span>
+                        </span>
                         <span v-if="item.speaker">, {{ item.speaker }}</span>
                     </li>
                 </ul>
@@ -280,6 +287,17 @@ const activities = ref(
                     date: '24 e 31/05 e 07 e 14/06 de 2023',
                     location: 'IEB/USP'
                 }
+            ]
+        },
+        digitalExhibitions: {
+            title: 'Coleção digital',
+            items: [
+                {
+                    name: 'Manuel Correia de Andrade: o divulgador científico',
+                    date: '12/11/2024',
+                    location: 'https://www.ieb.usp.br/colecao-digital-pmca/',
+                    isLink: true
+                },
             ]
         },
         webinars: {
